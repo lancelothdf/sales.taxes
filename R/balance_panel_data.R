@@ -20,4 +20,3 @@ balance_panel_data <- function(panel_data, n_periods, panel_unit){
   panel_data <- panel_data[eval(parse(text = panel_unit)) %in% to_keep]
   return(panel_data)
 }
-
