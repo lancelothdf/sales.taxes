@@ -6,7 +6,10 @@
 #'
 
 identify_exemptions <- function(sales_data){
+  # Step 1: import the module exemptions file (wide or long)
   module_exemptions <- read.dta13("/project2/igaarder/Data/Nielsen/Module_exemptions_by_state.dta")
+  # From there, if wide, convert to long
+  # Match based on state and product code
   sales_data[, tax_status := ]
   gen tax_status = taxable /* 0 is always exempt; 1 is always taxable; 2 different
   but always constant rate; 3 status change; 4 different and changing */
