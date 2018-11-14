@@ -1,0 +1,12 @@
+Functions to make:
+
+A function to take, given a list of filters, the Nielsen data and link
+it together, returning the output (done)
+
+A function to handle tax-exempted goods (identify them and/or remove them)
+
+A function to balance a panel, by calendar time and event time (in progress)
+
+A function to merge treatments to the panel data (done)
+
+A function to add a treatment count variable (done)

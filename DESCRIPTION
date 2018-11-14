@@ -1,0 +1,13 @@
+Package: sales.taxes
+Type: Package
+Title: Analyze Changes in Sales Taxes
+Version: 0.1.0
+Author: John Bonney
+Maintainer: John Bonney <jbonney@uchicago.edu>
+Description: This package exists to anlayze Nielsen scanner data in conjunction
+    with state/county sales tax rates. The various functions help clean and
+    visualize these data.
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Imports: data.table, ggplot2, checkmate, magrittr, zoo, readstata13
