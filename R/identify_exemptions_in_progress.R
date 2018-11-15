@@ -6,7 +6,8 @@
 #' requires tidyr
 
 identify_exemptions <- function(sales_data,
-                                module_exemptions_path = "/project2/igaarder/Data/Nielsen/List_modules_sample_with_description.xlsx"){
+                                module_exemptions_path = "/project2/igaarder/Data/Nielsen/List_modules_sample_with_description.xlsx",
+                                county_monthly_tax_data = ""){
   # Step 1: import the module exemptions file (wide or long)
   module_exemptions <- read.xlsx(module_exemptions_path, sheetIndex = 1)
   module_exemptions <- gather(module_exemptions, AL:WY, key = "state", value = "taxable")
@@ -29,6 +30,8 @@ identify_exemptions <- function(sales_data,
                              by = c("state"))
   # 0 is always exempt, 1 is always taxable, 2 is different but always constant rate,
   # 3 is status change, 4 is different and changing.
+
+  county_monthly_tax <- fread("/project2/igaarder/Data/county_monthly_tax_rates.csv")
 
 
   #TODO: why are some NA?
