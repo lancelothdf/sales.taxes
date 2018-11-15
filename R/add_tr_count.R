@@ -28,6 +28,7 @@ add_tr_count <- function(collapsed_data, tr_group_name, count_col_name){
                                       get(count_col_name),
                                       tr_match)]
   if ("*)" %in% collapsed_data$tr_match){
+    collapsed_data[, tr_count := paste0(tr_group, " (n=", min(n_counties), "*)"), by = "tr_group"]
     print("Warning: count not equal across years within treatment groups.")
     print(with(collapsed_data, table(get(tr_group_name), get(count_col_name))))
   }

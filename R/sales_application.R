@@ -8,13 +8,13 @@ sales_application <- function(sales_data,
   assertCharacter(treatment_data_path)
   assertCharacter(time)
 
-  sales_panel_ct <- merge_treatment(original_data = sales_data,
+  sales_panel <- merge_treatment(original_data = sales_data,
                                     treatment_data_path = treatment_data_path,
                                     time = time,
                                     merge_by = c("fips_county", "fips_state"))
 
   if (time == "calendar"){
-    sales_collapsed <- sales_panel_ct[, list(mean_log_sales = weighted.mean(x = ln_total_sales,
+    sales_collapsed <- sales_panel[, list(mean_log_sales = weighted.mean(x = ln_total_sales,
                                                                             w = population),
                                              n_counties = uniqueN(1000 * fips_state + fips_county),
                                              n_stores = sum(n_stores)),
@@ -41,9 +41,9 @@ sales_application <- function(sales_data,
       ggsave(fig_outfile, plot = log_sales)
     }
   } else if (time == "event"){
-    sales_panel_es[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
-    sales_panel_es <- sales_panel_es[tt_event >= -24 & tt_event <= 24]
-    es_sales_collapsed <- sales_panel_es[, list(mean_log_sales = weighted.mean(x = ln_total_sales,
+    sales_panel[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
+    sales_panel <- sales_panel[tt_event >= -24 & tt_event <= 24]
+    es_sales_collapsed <- sales_panel[, list(mean_log_sales = weighted.mean(x = ln_total_sales,
                                                                                w = population),
                                                 n_counties = uniqueN(1000 * fips_state + fips_county),
                                                 n_stores = sum(n_stores)),
