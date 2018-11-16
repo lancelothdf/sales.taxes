@@ -147,5 +147,5 @@ for (command in stata_table$r_command){
   eval(parse(text = command))
 }
 
-me_det <- me_det[!is.na(sales_tax)]
+me_det <- me_det[!is.na(taxable)]
 fwrite(me_det, "C:/Users/John Bonney/Dropbox/Sales tax/Data/modules_exemptions_long.csv")
