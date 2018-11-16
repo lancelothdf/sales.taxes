@@ -1,26 +1,47 @@
-#' Merge tax rates to a panel dataset of sales
+#' Merge tax rates (county-product level)
 #'
-#' @description \code{merge_tax_rates} merges applicable tax rates to a dataset
-#'     on the product-county level or finer.
+#' @description \code{merge_tax_rates} merges the applicable tax rates to a
+#'     county-product level dataset, including exemptions or reduced rates.
+#' @param sales_data The county-product level dataset, including quantities and/
+#'     or sales information (but not tax rates) (data.table)
+#' @param county_monthly_tax_data A dataset of county-by-month tax rates
+#'     (data.table)
+#' @param module_exemptions_path The path to the .csv file containing a long
+#'     dataset of state-product level exemptions/special tax rates. The default
+#'     is \code{"/project2/igaarder/Data/modules_exemptions_long.csv"}. Don't
+#'     change this unless you know what you are doing (character)
 #'
-#' requires tidyr
 
 identify_exemptions <- function(sales_data,
-                                county_monthly_tax_data){
+                                county_monthly_tax_data,
+                                module_exemptions_path = "/project2/igaarder/Data/modules_exemptions_long.csv"){
+  assertDataTable(sales_data)
+  assertCharacter(module_exemptions_path)
+  assertDataTable(county_monthly_tax_data)
+  assertSubset(c("fips_state", "fips_county", "year", "month", "sales_tax"),
+               names(county_monthly_tax_data))
+  assertSubset(c("fips_state", "fips_county", "year", "month", "product_module_code"),
+               names(sales_data))
 
-  # 0 is always exempt, 1 is always taxable, 2 is different but always constant rate,
-  # 3 is status change, 4 is different and changing.
-  sales_data <- merge(sales_data, county_monthly_tax_data,
-                      by = c("fips_state", "fips_county", "year", "month"))
-  # currently, the tax variable is called `sales_tax'
-  sales_data[]
+  module_exemptions <- fread(module_exemptions_path)
+  assertSubset(c("fips_state", "year", "month", "sales_tax", "taxable", "product_module_code"),
+               names(module_exemptions))
 
+  applicable_tax <- merge(module_exemptions, county_monthly_tax_data,
+                          by = c("fips_state", "year", "month"),
+                          allow.cartesian = T)
+  applicable_tax[is.na(taxable), applicable_tax := sales_tax.y]
+  applicable_tax[taxable == 1 & is.na(sales_tax.x), applicable_tax := sales_tax.y]
+  applicable_tax[taxable == 1 & !is.na(sales_tax.x), applicable_tax := sales_tax.x]
+  applicable_tax[taxable == 0, applicable_tax := 0]
 
-  #TODO: why are some NA?
+  # TODO: What are the "tax_status" variables?
+  table(module_exemptions$tax_status, module_exemptions$taxable)
 
-  # Lance will send me 1) panel of county-level sales tax rates and 2) list of
-  # exemptions/special tax rates for various products.
-  # At that point, I will connect the county-level sales tax rates to the products,
-  # except for where exemptions apply, in which case I will apply the exemption
-  # or the reduced rate.
+  applicable_tax <- applicable_tax[, .(fips_state, fips_county, year, month, product_module_code, applicable_tax)]
+
+  sales_data <- merge(sales_data, applicable_tax,
+                      by = c("fips_state", "fips_county", "year", "month",
+                             "product_module_code"), all.x = T)
+  return(sales_data)
 }

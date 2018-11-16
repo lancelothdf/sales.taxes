@@ -39,27 +39,8 @@ me_det <- merge(me_det, as.data.table(fips_codes),
 
 me_det[, tax_status := taxable]
 
-# me_det[taxable == 2 & fips_state == 5 & year <= 2010, sales_tax := 0.02]
-# me_det[taxable == 2 & fips_state == 5 & year <= 2010, taxable == 1]
-#
-# me_det[taxable == 2 & fips_state == 5 & year >= 2011, sales_tax := 0.015]
-# me_det[taxable == 2 & fips_state == 5 & year >= 2011, taxable := 1]
-# me_det[taxable == 2 & fips_state == 5, tax_status := 4]
-#
-# me_det[taxable == 2 & fips_state == 8 & (year <= 2009 | (year == 2010 & quarter == 1)), taxable := 0]
-# me_det[taxable == 2 & fips_state == 8 & (year >= 2011 | (year == 2010 & quarter >= 2)), taxable := 1]
-# me_det[taxable == 2 & fips_state == 8, tax_status := 3]
-#
-# me_det[taxable == 2 & fips_state == 17, sales_tax := 0.01]
-# me_det[taxable == 2 & fips_state == 17, taxable := 1]
-# me_det[taxable == 2 & fips_state == 17, tax_status := 2]
-#
-# me_det[taxable == 3 & fips_state == 17 & (year == 2008 | (year == 2009 & quarter < 4)), sales_tax := 0.01]
-# me_det[taxable == 3 & fips_state == 17 & (year == 2008 | (year == 2009 & quarter < 4)), taxable := 1]
-# me_det[taxable == 3 & fips_state == 17 & (year >= 2010 | (year == 2009 & quarter == 4)), taxable := 1]
-# me_det[taxable == 3 & fips_state == 17]
-
-# TODO: change these quarters into months
+# The below lines are from project2/igaarder/Code/10132018_First_stage.do.
+# However, I have converted the "quarter" conditions to "month" conditions.
 
 stata_lines <-
 "
