@@ -34,8 +34,8 @@ normalize_price <- function(price_data, time_type, base_time, price_var, new_pri
 
   } else if (time_type == "calendar"){
     assertSubset(c("year", "month"), names(price_data))
-    assertSubset(time_type[1], 1990:2020)
-    assertSubset(time_type[2], 1:12)
+    assertSubset(base_time[1], 1990:2020)
+    assertSubset(base_time[2], 1:12)
     base_year <- base_time[1]
     base_month <- base_time[2]
     price_anchors <- price_data[year == base_year & month == base_month]
