@@ -9,11 +9,13 @@ price_application <- function(price_data,
   assertCharacter(treatment_data_path)
   assertCharacter(time)
   assertLogical(w_tax)
+  if (time == "calendar"){
+    price_panel <- merge_treatment(original_data = price_data,
+                                   treatment_data_path = treatment_data_path,
+                                   time = time,
+                                   merge_by = c("fips_county", "fips_state"))
+  }
 
-  price_panel <- merge_treatment(original_data = price_data,
-                                 treatment_data_path = treatment_data_path,
-                                 time = time,
-                                 merge_by = c("fips_county", "fips_state"))
   if (!w_tax){
     if (time == "calendar"){
       price_collapsed <- price_panel[, list(mean_ln_price = weighted.mean(x = mld_price,
@@ -45,8 +47,8 @@ price_application <- function(price_data,
         ggsave(fig_outfile, plot = log_prices)
       }
     } else if (time == "event"){
-      price_panel[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
-      price_panel <- price_panel[tt_event >= -24 & tt_event <= 24]
+      # price_panel[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
+      # price_panel <- price_panel[tt_event >= -24 & tt_event <= 24]
       es_price_collapsed <- price_panel[, list(mean_ln_price = weighted.mean(x = mld_price,
                                                                              w = population),
                                                n_counties = uniqueN(1000 * fips_state + fips_county),
@@ -102,8 +104,8 @@ price_application <- function(price_data,
         ggsave(fig_outfile, plot = log_prices)
       }
     } else if (time == "event"){
-      price_panel[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
-      price_panel <- price_panel[tt_event >= -24 & tt_event <= 24]
+      # price_panel[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
+      # price_panel <- price_panel[tt_event >= -24 & tt_event <= 24]
       es_price_collapsed <- price_panel[, list(mean_ln_price = weighted.mean(x = mld_price_w_tax,
                                                                              w = population),
                                                n_counties = uniqueN(1000 * fips_state + fips_county),

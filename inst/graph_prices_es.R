@@ -1,0 +1,99 @@
+#' Maintained by: John Bonney
+#' Last modified: 11/12/2018
+#'
+#' Graphs:
+#' Plot log of normalized prices by calendar time
+#'
+
+rm(list=ls())
+wd <- "/project2/igaarder"
+setwd(wd)
+
+library(sales.taxes)
+library(readstata13)
+library(data.table)
+library(zoo)
+library(ggplot2)
+
+county_monthly_tax <- fread("Data/county_monthly_tax_rates.csv")
+county_monthly_tax <- county_monthly_tax[, .(fips_state, fips_county, year, month, sales_tax)]
+
+all_nielsen_data <- fread("Data/Nielsen/allyears_module_store_level.csv")
+all_nielsen_data <- balance_panel_data(all_nielsen_data,
+                                       panel_unit = "store_code_uc",
+                                       n_periods = 84)
+all_nielsen_data[, price := sales / quantity]
+
+# keep counties in the treatment groups for size
+tr_groups_compr <- fread("Data/event_study_tr_groups_comprehensive.csv")[, .(fips_county, fips_state)]
+tr_groups_compr <- unique(tr_groups_compr)
+tr_groups_compr[, treated := 1]
+
+all_nielsen_data <- merge(all_nielsen_data, tr_groups_compr, by = c("fips_state", "fips_county"))
+all_nielsen_data <- all_nielsen_data[treated == 1]
+
+# Merge on the tax rates (including exemptions)
+all_nielsen_data <- merge_tax_rates(sales_data = all_nielsen_data,
+                                    county_monthly_tax_data = county_monthly_tax)
+all_nielsen_data[, price_w_tax := (1 + applicable_tax) * price]
+# Merge on comprehensive treatment
+
+all_nielsen_data <- merge_treatment(original_data = all_nielsen_data,
+                               treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
+                               time = "event",
+                               merge_by = c("fips_county", "fips_state"))
+
+all_nielsen_data[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
+all_nielsen_data <- price_panel[tt_event >= -24 & tt_event <= 24]
+
+all_nielsen_data <- normalize_price(price_data = all_nielsen_data,
+                    time_type = "event",
+                    base_time = -1,
+                    price_var = "price",
+                    new_price_var = "normalized_price")
+
+
+all_nielsen_data <- normalize_price(price_data = all_nielsen_data,
+                                    time_type = "event",
+                                    base_time = -1,
+                                    price_var = "price_w_tax",
+                                    new_price_var = "normalized_price_w_tax")
+
+# Aggregate to county x product level
+product_by_county_prices <- all_nielsen_data[, list(mld_price = mean(normalized_price),
+                                                    mld_price_w_tax = mean(normalized_price_w_tax),
+                                                    n_stores = .N),
+                                       by = c("fips_state", "fips_county",
+                                              "product_module_code",
+                                              "tt_event")]
+
+county_pop <- fread("Data/county_population.csv")
+product_by_county_prices <- merge(product_by_county_prices,
+                                  county_pop,
+                                  by = c("fips_state", "fips_county"))
+
+
+### At this point, the data is ready (for unweighted, calendar plots)
+### COMPREHENSIVE DEFINITION ###
+price_application(product_by_county_prices,
+                  treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
+                  time = "event",
+                  w_tax = F,
+                  fig_outfile = "Graphs/log_price_trends_compr_pretax_es.png")
+price_application(product_by_county_prices,
+                  treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
+                  time = "event",
+                  w_tax = T,
+                  fig_outfile = "Graphs/log_price_trends_compr_posttax_es.png")
+
+### RESTRICTIVE DEFINITION ###
+# price_application(product_by_county_prices,
+#                   treatment_data_path = "Data/tr_groups_restrictive.csv",
+#                   time = "calendar",
+#                   w_tax = F,
+#                   fig_outfile = "Graphs/log_price_trends_restr_pretax.png")
+# price_application(product_by_county_prices,
+#                   treatment_data_path = "Data/tr_groups_restrictive.csv",
+#                   time = "calendar",
+#                   w_tax = T,
+#                   fig_outfile = "Graphs/log_price_trends_restr_posttax.png")
