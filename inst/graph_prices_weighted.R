@@ -34,7 +34,6 @@ all_nielsen_data <- normalize_price(price_data = all_nielsen_data,
                     price_var = "price",
                     new_price_var = "normalized_price")
 
-
 all_nielsen_data <- normalize_price(price_data = all_nielsen_data,
                                     time_type = "calendar",
                                     base_time = c(2008, 1),
@@ -56,7 +55,7 @@ product_by_county_prices <- merge(product_by_county_prices,
                                   by = c("fips_state", "fips_county"))
 
 
-### At this point, the data is ready (for unweighted, calendar plots)
+### At this point, the data is ready (for unweighted plots)
 ### COMPREHENSIVE DEFINITION ###
 price_application(product_by_county_prices,
                   treatment_data_path = "Data/tr_groups_comprehensive.csv",
@@ -68,6 +67,17 @@ price_application(product_by_county_prices,
                   time = "calendar",
                   w_tax = T,
                   fig_outfile = "Graphs/log_price_trends_compr_posttax.png")
+### event study-like ###
+price_application(product_by_county_prices,
+                  treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
+                  time = "event",
+                  w_tax = F,
+                  fig_outfile = "Graphs/log_sales_trends_es_compr_pretax.png")
+price_application(product_by_county_prices,
+                  treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
+                  time = "event",
+                  w_tax = T,
+                  fig_outfile = "Graphs/log_sales_trends_es_compr_posttax.png")
 
 ### RESTRICTIVE DEFINITION ###
 price_application(product_by_county_prices,
@@ -80,3 +90,15 @@ price_application(product_by_county_prices,
                   time = "calendar",
                   w_tax = T,
                   fig_outfile = "Graphs/log_price_trends_restr_posttax.png")
+### event study-like ###
+price_application(product_by_county_prices,
+                  treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
+                  time = "event",
+                  w_tax = F,
+                  fig_outfile = "Graphs/log_sales_trends_es_restr_pretax.png")
+price_application(product_by_county_prices,
+                  treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
+                  time = "event",
+                  w_tax = T,
+                  fig_outfile = "Graphs/log_sales_trends_es_restr_posttax.png")
+
