@@ -12,7 +12,7 @@
 #'     change this unless you know what you are doing (character)
 #'
 
-identify_exemptions <- function(sales_data,
+merge_tax_rates <- function(sales_data,
                                 county_monthly_tax_data,
                                 module_exemptions_path = "/project2/igaarder/Data/modules_exemptions_long.csv"){
   assertDataTable(sales_data)
