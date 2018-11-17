@@ -1,5 +1,5 @@
 #' Maintained by: John Bonney
-#' Last modified: 11/12/2018
+#' Last modified: 11/16/2018
 #'
 #' Graphs:
 #' Plot log of normalized prices by calendar time
