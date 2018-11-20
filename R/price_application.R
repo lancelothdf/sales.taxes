@@ -18,8 +18,9 @@ price_application <- function(price_data,
 
   if (!w_tax){
     if (time == "calendar"){
-      price_collapsed <- price_panel[, list(mean_ln_price = weighted.mean(x = mld_price,
-                                                                          w = population),
+      price_panel_not_na <- price_panel[!is.na(mld_price)]
+      price_collapsed <- price_panel_not_na[, list(mean_ln_price = weighted.mean(x = mld_price,
+                                                                                w = population),
                                             n_counties = uniqueN(1000 * fips_state + fips_county),
                                             n_stores = sum(n_stores)),
                                      by = c("tr_group", "year", "month")]
@@ -47,10 +48,11 @@ price_application <- function(price_data,
         ggsave(fig_outfile, plot = log_prices)
       }
     } else if (time == "event"){
+      price_panel_not_na <- price_panel[!is.na(mld_price)]
       # price_panel[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
       # price_panel <- price_panel[tt_event >= -24 & tt_event <= 24]
-      es_price_collapsed <- price_panel[, list(mean_ln_price = weighted.mean(x = mld_price,
-                                                                             w = population),
+      es_price_collapsed <- price_panel_not_na[, list(mean_ln_price = weighted.mean(x = mld_price,
+                                                                                    w = population),
                                                n_counties = uniqueN(1000 * fips_state + fips_county),
                                                n_stores = sum(n_stores)),
                                         by = c("tr_group", "tt_event")]
@@ -75,8 +77,9 @@ price_application <- function(price_data,
     }
   } else if (w_tax){
     if (time == "calendar"){
-      price_collapsed <- price_panel[, list(mean_ln_price = weighted.mean(x = mld_price_w_tax,
-                                                                          w = population),
+      price_panel_not_na <- price_panel[!is.na(mld_price_w_tax)]
+      price_collapsed <- price_panel_not_na[, list(mean_ln_price = weighted.mean(x = mld_price_w_tax,
+                                                                                 w = population),
                                             n_counties = uniqueN(1000 * fips_state + fips_county),
                                             n_stores = sum(n_stores)),
                                      by = c("tr_group", "year", "month")]
@@ -104,10 +107,11 @@ price_application <- function(price_data,
         ggsave(fig_outfile, plot = log_prices)
       }
     } else if (time == "event"){
+      price_panel_not_na <- price_panel[!is.na(mld_price_w_tax)]
       # price_panel[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
       # price_panel <- price_panel[tt_event >= -24 & tt_event <= 24]
-      es_price_collapsed <- price_panel[, list(mean_ln_price = weighted.mean(x = mld_price_w_tax,
-                                                                             w = population),
+      es_price_collapsed <- price_panel_not_na[, list(mean_ln_price = weighted.mean(x = mld_price_w_tax,
+                                                                                    w = population),
                                                n_counties = uniqueN(1000 * fips_state + fips_county),
                                                n_stores = sum(n_stores)),
                                         by = c("tr_group", "tt_event")]
