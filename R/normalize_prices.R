@@ -45,7 +45,7 @@ normalize_price <- function(price_data, time_type, base_time, price_var, new_pri
     text = paste("price_anchors[, base_price :=", price_var, "]")
   ))
 
-  price_anchors <- price_anchors[, .(store_code_uc, product_module_code, base_price)]
+  price_anchors <- unique(price_anchors[, .(store_code_uc, product_module_code, base_price)])
   price_data <- merge(price_data, price_anchors,
                       by = c("store_code_uc", "product_module_code"))
   eval(parse(text = paste0("price_data[, ", new_price_var, " := log(", price_var,
