@@ -28,9 +28,19 @@ test_scanner_data <- normalize_price(price_data = test_scanner_data,
                                     price_var = "price_w_tax",
                                     new_price_var = "normalized_price_w_tax")
 
+test_scanner_data <- make_fixed_weights(test_scanner_data,
+                                       weight_time = list(year = 2008, month = 1),
+                                       weight_var = "sales",
+                                       panel_unit_vars = c("fips_state", "fips_county", "store_code_uc", "product_module_code"))
+
 # Aggregate to county x product level
 product_by_county_prices <- test_scanner_data[, list(mld_price = mean(normalized_price),
                                                     mld_price_w_tax = mean(normalized_price_w_tax),
+                                                    mld_price.wtd = weighted.mean(x = normalized_price,
+                                                                                  w = sales.weight),
+                                                    mld_price_w_tax.wtd = weighted.mean(x = normalized_price_w_tax,
+                                                                                        w = sales.weight),
+                                                    total_sales = sum(sales),
                                                     n_stores = .N),
                                              by = c("fips_state", "fips_county",
                                                     "product_module_code",
@@ -43,13 +53,40 @@ product_by_county_prices <- merge(product_by_county_prices,
 
 # test combine_scanner_data
 
+
 price_application(product_by_county_prices,
                   treatment_data_path = "C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/tr_groups_comprehensive.csv",
                   time = "calendar",
+                  weighting_var = "population",
+                  pretax_var = "mld_price",
+                  posttax_var = "mld_price_w_tax",
                   w_tax = F,
                   fig_outfile = NULL)
 price_application(product_by_county_prices,
                   treatment_data_path = "C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/tr_groups_comprehensive.csv",
                   time = "calendar",
+                  weighting_var = "population",
+                  pretax_var = "mld_price",
+                  posttax_var = "mld_price_w_tax",
                   w_tax = T,
                   fig_outfile = NULL)
+
+## Weighted plots
+### COMPREHENSIVE DEFINITION ###
+price_application(product_by_county_prices,
+                  treatment_data_path = "C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/tr_groups_comprehensive.csv",
+                  time = "calendar",
+                  weighting_var = "total_sales",
+                  pretax_var = "mld_price.wtd",
+                  posttax_var = "mld_price_w_tax.wtd",
+                  w_tax = F,
+                  fig_outfile = NULL)
+price_application(product_by_county_prices,
+                  treatment_data_path = "C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/tr_groups_comprehensive.csv",
+                  time = "calendar",
+                  weighting_var = "total_sales",
+                  pretax_var = "mld_price.wtd",
+                  posttax_var = "mld_price_w_tax.wtd",
+                  w_tax = T,
+                  fig_outfile = NULL)
+
