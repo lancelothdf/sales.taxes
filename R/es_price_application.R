@@ -16,11 +16,13 @@ es_price_application <- function(price_data,
   assertCharacter(price_var)
   assertLogical(w_tax)
 
+  print("Merging treatment...")
   # Before normalizing, need to identify event times...
   price_data <- merge_treatment(original_data = price_data,
                                 treatment_data_path = treatment_data_path,
                                 time = "event",
                                 merge_by = c("fips_county", "fips_state"))
+  print("Treatment merged!")
   # now we have time of treatment attached
 
   price_data[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
