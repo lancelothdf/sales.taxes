@@ -36,85 +36,88 @@ all_nielsen_data <- make_fixed_weights(all_nielsen_data,
 
 county_pop <- fread("Data/county_population.csv")
 
-### At this point, the data is ready (for unweighted, calendar plots)
-### COMPREHENSIVE DEFINITION ###
-price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_comprehensive.csv",
-                  time = "calendar",
-                  weighting_var = "population",
-                  pretax_var = "mld_price",
-                  posttax_var = "mld_price_w_tax",
-                  w_tax = F,
-                  fig_outfile = "Graphs/log_price_trends_compr_pretax.png")
-price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_comprehensive.csv",
-                  time = "calendar",
-                  weighting_var = "population",
-                  pretax_var = "mld_price",
-                  posttax_var = "mld_price_w_tax",
-                  w_tax = T,
-                  fig_outfile = "Graphs/log_price_trends_compr_posttax.png")
+## at this point, we have
+## all_nielsen_data -- contains price and price_w_tax on module-store-month level
+
+county_module_weights <- all_nielsen_data[year == 2008 & month == 1,
+                                          list(cty_base_sales = sum(sales)),
+                                          by = c("fips_state", "fips_county", "product_module_code")]
+
+### COMPREHENSIVE DEF ###
+es_price_application(all_nielsen_data,
+                     treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
+                     county_pop_data = county_pop,
+                     county_sales_weights = NULL,
+                     weighting_var = "population",
+                     price_var = "mld_price",
+                     w_tax = F,
+                     fig_outfile = "Graphs/log_price_trends_compr_pretax_es")
+
+es_price_application(all_nielsen_data,
+                     treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
+                     county_pop_data = county_pop,
+                     county_sales_weights = NULL,
+                     weighting_var = "population",
+                     price_var = "mld_price_w_tax",
+                     w_tax = T,
+                     fig_outfile = "Graphs/log_price_trends_compr_posttax_es")
+
 
 ### RESTRICTIVE DEFINITION ###
-price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_restrictive.csv",
-                  time = "calendar",
-                  weighting_var = "population",
-                  pretax_var = "mld_price",
-                  posttax_var = "mld_price_w_tax",
-                  w_tax = F,
-                  fig_outfile = "Graphs/log_price_trends_restr_pretax.png")
-price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_restrictive.csv",
-                  time = "calendar",
-                  weighting_var = "population",
-                  pretax_var = "mld_price",
-                  posttax_var = "mld_price_w_tax",
-                  w_tax = T,
-                  fig_outfile = "Graphs/log_price_trends_restr_posttax.png")
+es_price_application(all_nielsen_data,
+                     treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
+                     county_pop_data = county_pop,
+                     county_sales_weights = NULL,
+                     weighting_var = "population",
+                     price_var = "mld_price",
+                     w_tax = F,
+                     fig_outfile = "Graphs/log_price_trends_restr_pretax_es")
+
+es_price_application(all_nielsen_data,
+                     treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
+                     county_pop_data = county_pop,
+                     county_sales_weights = NULL,
+                     weighting_var = "population",
+                     price_var = "mld_price_w_tax",
+                     w_tax = T,
+                     fig_outfile = "Graphs/log_price_trends_restr_posttax_es")
 
 ## Weighted plots
 ### COMPREHENSIVE DEFINITION ###
-price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_comprehensive.csv",
-                  time = "calendar",
-                  weighting_var = "total_sales",
-                  pretax_var = "mld_price.wtd",
-                  posttax_var = "mld_price_w_tax.wtd",
-                  w_tax = F,
-                  fig_outfile = "Graphs/log_price_trends_compr_pretax_wtd.png")
-price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_comprehensive.csv",
-                  time = "calendar",
-                  weighting_var = "total_sales",
-                  pretax_var = "mld_price.wtd",
-                  posttax_var = "mld_price_w_tax.wtd",
-                  w_tax = T,
-                  fig_outfile = "Graphs/log_price_trends_compr_posttax_wtd.png")
+es_price_application(all_nielsen_data,
+                     treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
+                     county_pop_data = NULL,
+                     county_sales_weights = county_module_weights,
+                     weighting_var = "cty_base_sales",
+                     price_var = "mld_price",
+                     w_tax = F,
+                     fig_outfile = "Graphs/log_price_trends_compr_pretax_wtd_es")
+
+es_price_application(all_nielsen_data,
+                     treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
+                     county_pop_data = NULL,
+                     county_sales_weights = county_module_weights,
+                     weighting_var = "cty_base_sales",
+                     price_var = "mld_price_w_tax",
+                     w_tax = T,
+                     fig_outfile = "Graphs/log_price_trends_compr_posttax_wtd_es")
 
 ### RESTRICTIVE DEFINITION ###
-price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_restrictive.csv",
-                  time = "calendar",
-                  weighting_var = "total_sales",
-                  pretax_var = "mld_price.wtd",
-                  posttax_var = "mld_price_w_tax.wtd",
-                  w_tax = F,
-                  fig_outfile = "Graphs/log_price_trends_restr_pretax_wtd.png")
-price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_restrictive.csv",
-                  time = "calendar",
-                  weighting_var = "total_sales",
-                  pretax_var = "mld_price.wtd",
-                  posttax_var = "mld_price_w_tax.wtd",
-                  w_tax = T,
-                  fig_outfile = "Graphs/log_price_trends_restr_posttax_wtd.png")
+es_price_application(all_nielsen_data,
+                     treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
+                     county_pop_data = NULL,
+                     county_sales_weights = county_module_weights,
+                     weighting_var = "cty_base_sales",
+                     price_var = "mld_price",
+                     w_tax = F,
+                     fig_outfile = "Graphs/log_price_trends_restr_pretax_wtd_es")
 
+es_price_application(all_nielsen_data,
+                     treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
+                     county_pop_data = NULL,
+                     county_sales_weights = county_module_weights,
+                     weighting_var = "cty_base_sales",
+                     price_var = "mld_price_w_tax",
+                     w_tax = T,
+                     fig_outfile = "Graphs/log_price_trends_restr_posttax_wtd_es")
 
-## Next up: event time plots
-# all_nielsen_data[, c("normalized_price", "normalized_price_w_tax") := NULL]
-
-# ultimately need to normalize price by event t=-1 -- have to figure out how to
-# connect event t=-1 prices to all other prices for normalization...
-
-# may be fastest to merge on the treatments (m:m merge)...

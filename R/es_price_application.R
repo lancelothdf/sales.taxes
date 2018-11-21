@@ -3,31 +3,35 @@
 es_price_application <- function(price_data,
                                  treatment_data_path,
                                  county_pop_data = NULL,
+                                 county_sales_weights = NULL,
                                  weighting_var,
                                  price_var,
                                  w_tax,
                                  fig_outfile = NULL){
   assertDataTable(price_data)
   assertCharacter(treatment_data_path)
+  assertDataTable(county_pop_data, null.ok = T)
+  assertDataTable(county_sales_weights, null.ok = T)
+  assertCharacter(weighting_var)
+  assertCharacter(price_var)
   assertCharacter(time)
   assertLogical(w_tax)
-
 
   # Before normalizing, need to identify event times...
   price_data <- merge_treatment(original_data = price_data,
                                 treatment_data_path = treatment_data_path,
                                 time = "event",
                                 merge_by = c("fips_county", "fips_state"))
+  # now we have time of treatment attached
 
   price_data[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
-  price_data <- price_data[tt_event >= -24 & tt_event <= 24]
+  # now we have an event time variable
 
   price_data <- normalize_price(price_data = price_data,
                                       time_type = "event",
                                       base_time = -1,
                                       price_var = "price",
                                       new_price_var = "normalized_price")
-
 
   price_data <- normalize_price(price_data = price_data,
                                       time_type = "event",
@@ -47,7 +51,17 @@ es_price_application <- function(price_data,
                                                 n_stores = .N),
                                                by = c("fips_state", "fips_county",
                                                       "product_module_code",
-                                                      "tt_event")]
+                                                      "tt_event", "tr_group")]
+
+  product_by_county_prices <- product_by_county_prices[tt_event >= -24 & tt_event <= 24]
+
+  if (!is.null(county_sales_weights)){
+    product_by_county_prices <- merge(product_by_county_prices,
+                                      county_sales_weights,
+                                      by = c("fips_state", "fips_county",
+                                             "product_module_code"))
+  }
+
 
   if (!is.null(county_pop_data)){
     product_by_county_prices <- merge(product_by_county_prices,
@@ -68,7 +82,7 @@ es_price_application <- function(price_data,
   price_panel_not_na <- price_panel[!is.na(price_var)]
   # price_panel[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
   # price_panel <- price_panel[tt_event >= -24 & tt_event <= 24]
-  es_price_collapsed <- price_panel_not_na[, list(mean_ln_price = weighted.mean(x = pretax_price_var,
+  es_price_collapsed <- price_panel_not_na[, list(mean_ln_price = weighted.mean(x = price_var,
                                                                                 w = weights),
                                                   n_counties = uniqueN(1000 * fips_state + fips_county),
                                                   n_stores = sum(n_stores)),
