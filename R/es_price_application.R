@@ -14,7 +14,6 @@ es_price_application <- function(price_data,
   assertDataTable(county_sales_weights, null.ok = T)
   assertCharacter(weighting_var)
   assertCharacter(price_var)
-  assertCharacter(time)
   assertLogical(w_tax)
 
   # Before normalizing, need to identify event times...
