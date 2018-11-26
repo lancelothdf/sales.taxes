@@ -13,8 +13,10 @@
 #'
 
 merge_tax_rates <- function(sales_data,
-                                county_monthly_tax_data,
-                                module_exemptions_path = "/project2/igaarder/Data/modules_exemptions_long.csv"){
+                            county_monthly_tax_data,
+                            keep_taxable_only = F,
+                            remove_tax_missing = T,
+                            module_exemptions_path = "/project2/igaarder/Data/modules_exemptions_long.csv"){
   assertDataTable(sales_data)
   assertCharacter(module_exemptions_path)
   assertDataTable(county_monthly_tax_data)
@@ -43,5 +45,11 @@ merge_tax_rates <- function(sales_data,
   sales_data <- merge(sales_data, applicable_tax,
                       by = c("fips_state", "fips_county", "year", "month",
                              "product_module_code"), all.x = T)
+  if (keep_taxable_only){
+    sales_data <- sales_data[applicable_tax != 0]
+  }
+  if (remove_tax_missing){
+    sales_data <- sales_data[!is.na(applicable_tax)]
+  }
   return(sales_data)
 }

@@ -19,14 +19,15 @@ county_monthly_tax <- fread("Data/county_monthly_tax_rates.csv")
 county_monthly_tax <- county_monthly_tax[, .(fips_state, fips_county, year, month, sales_tax)]
 
 all_nielsen_data <- fread("Data/Nielsen/allyears_module_store_level.csv")
-all_nielsen_data <- balance_panel_data(all_nielsen_data,
-                                       panel_unit = "store_code_uc",
-                                       n_periods = 84)
 all_nielsen_data[, price := sales / quantity]
 
 ## incorporate tax rates
 all_nielsen_data <- merge_tax_rates(sales_data = all_nielsen_data,
+                                    keep_taxable_only = T,
                                     county_monthly_tax_data = county_monthly_tax)
+all_nielsen_data <- balance_panel_data(all_nielsen_data,
+                                       panel_unit = "store_code_uc",
+                                       n_periods = 84)
 all_nielsen_data[, price_w_tax := (1 + applicable_tax) * price]
 # creates a weighted sales variable called sales.weight
 all_nielsen_data <- make_fixed_weights(all_nielsen_data,
