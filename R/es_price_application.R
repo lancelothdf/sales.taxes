@@ -15,6 +15,7 @@ es_price_application <- function(price_data,
   assertCharacter(weighting_var)
   assertCharacter(price_var)
   assertLogical(w_tax)
+  on.exit(traceback(1))
 
   print("Merging treatment...")
   # Before normalizing, need to identify event times...
@@ -29,16 +30,16 @@ es_price_application <- function(price_data,
   # now we have an event time variable
   print("Normalizing pre-tax price...")
   price_data <- normalize_price(price_data = price_data,
-                                      time_type = "event",
-                                      base_time = -1,
-                                      price_var = "price",
-                                      new_price_var = "normalized_price")
+                                time_type = "event",
+                                base_time = -1,
+                                price_var = "price",
+                                new_price_var = "normalized_price")
   print("Normalizing post-tax price...")
   price_data <- normalize_price(price_data = price_data,
-                                      time_type = "event",
-                                      base_time = -1,
-                                      price_var = "price_w_tax",
-                                      new_price_var = "normalized_price_w_tax")
+                                time_type = "event",
+                                base_time = -1,
+                                price_var = "price_w_tax",
+                                new_price_var = "normalized_price_w_tax")
 
   print("Aggregating to county x product level...")
   # Aggregate to county x product level

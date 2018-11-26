@@ -45,13 +45,17 @@ normalize_price <- function(price_data, time_type, base_time, price_var, new_pri
     text = paste("price_anchors[, base_price :=", price_var, "]")
   ))
   if (time_type == "event"){
+    print("Debug check 1 (normalize_prices): ready to merge price_anchors")
     price_anchors <- price_anchors[, .(store_code_uc, product_module_code, base_price,
                                        ref_year, ref_month)]
+    # Need to be careful with merging the price anchors on...
     price_data <- merge(price_data, price_anchors,
                         by = c("store_code_uc", "product_module_code",
                                "ref_year", "ref_month"))
   } else if (time_type == "calendar"){
     price_anchors <- price_anchors[, .(store_code_uc, product_module_code, base_price)]
+    # It's ok to just merge on store and product, since store x product gives
+    # enough information to match base price
     price_data <- merge(price_data, price_anchors,
                         by = c("store_code_uc", "product_module_code"))
   }
