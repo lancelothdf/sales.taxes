@@ -5,7 +5,8 @@
 \title{Make event study graphs for prices (temporary file)}
 \usage{
 price_application(price_data, treatment_data_path, time, weighting_var,
-  pretax_var, posttax_var, w_tax, fig_outfile = NULL)
+  pretax_var, posttax_var, w_tax, resid_type = NULL,
+  fig_outfile = NULL)
 }
 \description{
 Make event study graphs for prices (temporary file)

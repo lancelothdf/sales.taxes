@@ -5,6 +5,7 @@
 \title{Merge tax rates (county-product level)}
 \usage{
 merge_tax_rates(sales_data, county_monthly_tax_data,
+  keep_taxable_only = F, remove_tax_missing = T,
   module_exemptions_path = "/project2/igaarder/Data/modules_exemptions_long.csv")
 }
 \arguments{
