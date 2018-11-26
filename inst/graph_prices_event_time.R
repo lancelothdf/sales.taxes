@@ -63,7 +63,6 @@ es_price_application(all_nielsen_data,
                      w_tax = T,
                      fig_outfile = "Graphs/log_price_trends_compr_posttax_es")
 
-
 ### RESTRICTIVE DEFINITION ###
 es_price_application(all_nielsen_data,
                      treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
