@@ -146,13 +146,13 @@ remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
       )
     }
   } else if (calendar_time & !product_group_trend){
-    return(
-      residualize_outcome(input_data,
-                          outcome_var = outcome_var,
-                          discrete_vars = "month_trend",
-                          continuous_vars = NULL,
-                          weight_var = weight_var)
-    )
+    # we remove calendar_time effects by demeaning
+    input_data[, ct_mean := mean(get(outcome_var)), by = month_trend]
+    input_data[, (paste0(outcome_var, "_residual")) :=
+                 get(outcome_var) - ct_mean]
+    input_data[, (paste0(outcome_var, "_predicted")) := ct_mean]
+    input_data[, ct_mean := NULL]
+    return(input_data)
   } else if (product_group_trend & !calendar_time){
     assertSubset("product_group_code", names(input_data))
 

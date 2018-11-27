@@ -88,25 +88,15 @@ price_application(product_by_county_prices,
 
 ### COMPREHENSIVE DEFINITION ###
 price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_comprehensive.csv",
+                  treatment_data_path = "C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/tr_groups_comprehensive.csv",
                   time = "calendar",
                   weighting_var = "cty_base_sales",
                   pretax_var = "mld_price.wtd",
                   posttax_var = "mld_price_w_tax.wtd",
                   resid_type = "C",
                   w_tax = T,
-                  fig_outfile = "Graphs/log_price_trends_compr_posttax_C.png")
+                  fig_outfile = NULL)
 
-### RESTRICTIVE DEFINITION ###
-price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_restrictive.csv",
-                  time = "calendar",
-                  weighting_var = "cty_base_sales",
-                  pretax_var = "mld_price.wtd",
-                  posttax_var = "mld_price_w_tax.wtd",
-                  resid_type = "C",
-                  w_tax = T,
-                  fig_outfile = "Graphs/log_price_trends_restr_posttax_C.png")
 
 ##################################################################
 ### linear time trend and month effects on product-group level ###
@@ -114,25 +104,14 @@ price_application(product_by_county_prices,
 
 ### COMPREHENSIVE DEFINITION ###
 price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_comprehensive.csv",
+                  treatment_data_path = "C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/tr_groups_comprehensive.csv",
                   time = "calendar",
                   weighting_var = "cty_base_sales",
                   pretax_var = "mld_price.wtd",
                   posttax_var = "mld_price_w_tax.wtd",
                   resid_type = "D",
                   w_tax = T,
-                  fig_outfile = "Graphs/log_price_trends_compr_posttax_D.png")
-
-### RESTRICTIVE DEFINITION ###
-price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_restrictive.csv",
-                  time = "calendar",
-                  weighting_var = "cty_base_sales",
-                  pretax_var = "mld_price.wtd",
-                  posttax_var = "mld_price_w_tax.wtd",
-                  resid_type = "D",
-                  w_tax = T,
-                  fig_outfile = "Graphs/log_price_trends_restr_posttax_D.png")
+                  fig_outfile = NULL)
 
 
 #############################
@@ -141,22 +120,12 @@ price_application(product_by_county_prices,
 
 ### COMPREHENSIVE DEFINITION ###
 price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_comprehensive.csv",
+                  treatment_data_path = "C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/tr_groups_comprehensive.csv",
                   time = "calendar",
                   weighting_var = "cty_base_sales",
                   pretax_var = "mld_price.wtd",
                   posttax_var = "mld_price_w_tax.wtd",
                   resid_type = "E",
                   w_tax = T,
-                  fig_outfile = "Graphs/log_price_trends_compr_posttax_E.png")
+                  fig_outfile = NULL)
 
-### RESTRICTIVE DEFINITION ###
-price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_restrictive.csv",
-                  time = "calendar",
-                  weighting_var = "cty_base_sales",
-                  pretax_var = "mld_price.wtd",
-                  posttax_var = "mld_price_w_tax.wtd",
-                  resid_type = "E",
-                  w_tax = T,
-                  fig_outfile = "Graphs/log_price_trends_restr_posttax_E.png")
