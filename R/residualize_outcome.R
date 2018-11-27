@@ -123,7 +123,6 @@ remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
   } else if (calendar_time & product_group_trend){
     stop("`calendar_time' and `product_group_trend' cannot both be true")
   }
-
   input_data[, month_trend := (get(month_var) + get(year_var) * 12) -
                (1 + 2008 * 12)]
 
@@ -162,36 +161,58 @@ remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
   } else if (product_group_trend & !calendar_time){
     assertSubset("product_group_code", names(input_data))
 
-    input_data[, product_group_code := as.factor(product_group_code)]
-    input_data <- one_hot(input_data, cols = "product_group_code")
-    pgc_columns <- names(input_data)[grep("product_group_code_[0-9]", names(input_data))]
-    for (pgc_col in pgc_columns){
-      input_data[, (pgc_col) := get(pgc_col) * month_trend]
+    ################################### UNDER CONSTRUCTION #####################
+    ## The goal here is to residualize on a product-group level. The reason for
+    ## doing it this way is because the current method with one_hot doesn't
+    ## work with product-group specific trends.
+    group_codes <- unique(input_data$product_group_code)
+    grouped_input_data <- NULL
+    for (code in group_codes){
+      group_data <- input_data[product_group_code == code]
+      group_data <- remove_time_trends(input_data = group_data,
+                                       outcome_var = outcome_var,
+                                       month_var = month_var,
+                                       year_var = year_var,
+                                       month_dummies = month_dummies,
+                                       calendar_time = FALSE,
+                                       product_group_trend = FALSE,
+                                       weight_var = weight_var)
+      grouped_input_data <- rbind(grouped_input_data, group_data)
     }
-    if (!month_dummies){
-      input_data <- residualize_outcome(input_data,
-                                        outcome_var = outcome_var,
-                                        discrete_vars = NULL,
-                                        continuous_vars = pgc_columns,
-                                        weight_var = weight_var)
-      input_data[, (pgc_columns) := NULL]
-    return(input_data)
-    } else if (month_dummies){
-      # Need to add group specific month dummies
-      pgc_month_columns <- c()
-      for (pgc_col in pgc_columns){
-        pgc_month_col <- paste0(pgc_col, "_month_trend")
-        pgc_month_columns <- c(pgc_month_columns, pgc_month_col)
-        input_data[, (pgc_month_col) := get(pgc_col) * get(month_var)]
-      }
-      input_data <- residualize_outcome(input_data,
-                                        outcome_var = outcome_var,
-                                        discrete_vars = pgc_month_columns,
-                                        continuous_vars = pgc_columns,
-                                        weight_var = weight_var)
-      input_data[, c(pgc_columns, pgc_month_columns) := NULL]
-      return(input_data)
-    }
+    return(grouped_input_data)
+
+    ############################################################################
+
+    # input_data[, product_group_code := as.factor(product_group_code)]
+    # input_data <- one_hot(input_data, cols = "product_group_code")
+    # pgc_columns <- names(input_data)[grep("product_group_code_[0-9]", names(input_data))]
+    # for (pgc_col in pgc_columns){
+    #   input_data[, (pgc_col) := get(pgc_col) * month_trend]
+    # }
+    # if (!month_dummies){
+    #   input_data <- residualize_outcome(input_data,
+    #                                     outcome_var = outcome_var,
+    #                                     discrete_vars = NULL,
+    #                                     continuous_vars = pgc_columns,
+    #                                     weight_var = weight_var)
+    #   input_data[, (pgc_columns) := NULL]
+    # return(input_data)
+    # } else if (month_dummies){
+    #   # Need to add group specific month dummies
+    #   pgc_month_columns <- c()
+    #   for (pgc_col in pgc_columns){
+    #     pgc_month_col <- paste0(pgc_col, "_month_trend")
+    #     pgc_month_columns <- c(pgc_month_columns, pgc_month_col)
+    #     input_data[, (pgc_month_col) := get(pgc_col) * get(month_var)]
+    #   }
+    #   input_data <- residualize_outcome(input_data,
+    #                                     outcome_var = outcome_var,
+    #                                     discrete_vars = pgc_month_columns,
+    #                                     continuous_vars = pgc_columns,
+    #                                     weight_var = weight_var)
+    #   input_data[, c(pgc_columns, pgc_month_columns) := NULL]
+    #   return(input_data)
+    # }
   }
 
 }
