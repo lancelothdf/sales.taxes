@@ -52,7 +52,7 @@ es_price_application(all_nielsen_data,
                      weighting_var = "population",
                      price_var = "mld_price",
                      w_tax = F,
-                     fig_outfile = "Graphs/log_price_trends_compr_pretax_es")
+                     fig_outfile = "Graphs/log_price_trends_compr_pretax_es.png")
 
 es_price_application(all_nielsen_data,
                      treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
@@ -61,7 +61,7 @@ es_price_application(all_nielsen_data,
                      weighting_var = "population",
                      price_var = "mld_price_w_tax",
                      w_tax = T,
-                     fig_outfile = "Graphs/log_price_trends_compr_posttax_es")
+                     fig_outfile = "Graphs/log_price_trends_compr_posttax_es.png")
 
 ### RESTRICTIVE DEFINITION ###
 es_price_application(all_nielsen_data,
@@ -71,7 +71,7 @@ es_price_application(all_nielsen_data,
                      weighting_var = "population",
                      price_var = "mld_price",
                      w_tax = F,
-                     fig_outfile = "Graphs/log_price_trends_restr_pretax_es")
+                     fig_outfile = "Graphs/log_price_trends_restr_pretax_es.png")
 
 es_price_application(all_nielsen_data,
                      treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
@@ -80,7 +80,7 @@ es_price_application(all_nielsen_data,
                      weighting_var = "population",
                      price_var = "mld_price_w_tax",
                      w_tax = T,
-                     fig_outfile = "Graphs/log_price_trends_restr_posttax_es")
+                     fig_outfile = "Graphs/log_price_trends_restr_posttax_es.png")
 
 ## Weighted plots
 ### COMPREHENSIVE DEFINITION ###
@@ -91,7 +91,7 @@ es_price_application(all_nielsen_data,
                      weighting_var = "cty_base_sales",
                      price_var = "mld_price",
                      w_tax = F,
-                     fig_outfile = "Graphs/log_price_trends_compr_pretax_wtd_es")
+                     fig_outfile = "Graphs/log_price_trends_compr_pretax_wtd_es.png")
 
 es_price_application(all_nielsen_data,
                      treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
@@ -100,7 +100,7 @@ es_price_application(all_nielsen_data,
                      weighting_var = "cty_base_sales",
                      price_var = "mld_price_w_tax",
                      w_tax = T,
-                     fig_outfile = "Graphs/log_price_trends_compr_posttax_wtd_es")
+                     fig_outfile = "Graphs/log_price_trends_compr_posttax_wtd_es.png")
 
 ### RESTRICTIVE DEFINITION ###
 es_price_application(all_nielsen_data,
@@ -110,7 +110,7 @@ es_price_application(all_nielsen_data,
                      weighting_var = "cty_base_sales",
                      price_var = "mld_price",
                      w_tax = F,
-                     fig_outfile = "Graphs/log_price_trends_restr_pretax_wtd_es")
+                     fig_outfile = "Graphs/log_price_trends_restr_pretax_wtd_es.png")
 
 es_price_application(all_nielsen_data,
                      treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
@@ -119,5 +119,5 @@ es_price_application(all_nielsen_data,
                      weighting_var = "cty_base_sales",
                      price_var = "mld_price_w_tax",
                      w_tax = T,
-                     fig_outfile = "Graphs/log_price_trends_restr_posttax_wtd_es")
+                     fig_outfile = "Graphs/log_price_trends_restr_posttax_wtd_es.png")
 
