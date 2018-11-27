@@ -72,8 +72,8 @@ es_price_application <- function(price_data,
                                       by = c("fips_state", "fips_county"))
   }
 
-  price_data[, weights := get(weighting_var)]
-  price_data[, price_var := get(price_var)]
+  product_by_county_prices[, weights := get(weighting_var)]
+  product_by_county_prices[, price_var := get(price_var)]
 
   if (w_tax){
     y_label <- "Mean normalized ln(price) (post-tax)"
@@ -82,7 +82,7 @@ es_price_application <- function(price_data,
   }
 
   print("Collapsing and graphing...")
-  price_panel_not_na <- price_panel[!is.na(price_var)]
+  price_panel_not_na <- product_by_county_prices[!is.na(price_var)]
   # price_panel[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
   # price_panel <- price_panel[tt_event >= -24 & tt_event <= 24]
   es_price_collapsed <- price_panel_not_na[, list(mean_ln_price = weighted.mean(x = price_var,
