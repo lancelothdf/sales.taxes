@@ -74,26 +74,26 @@ product_by_county_prices <- merge(product_by_county_prices,
 ###############################
 
 ### COMPREHENSIVE DEFINITION ###
-price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_comprehensive.csv",
-                  time = "calendar",
-                  weighting_var = "cty_base_sales",
-                  pretax_var = "mld_price.wtd",
-                  posttax_var = "mld_price_w_tax.wtd",
-                  resid_type = "A",
-                  w_tax = T,
-                  fig_outfile = "Graphs/log_price_trends_compr_posttax_A.png")
-
-### RESTRICTIVE DEFINITION ###
-price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_restrictive.csv",
-                  time = "calendar",
-                  weighting_var = "cty_base_sales",
-                  pretax_var = "mld_price.wtd",
-                  posttax_var = "mld_price_w_tax.wtd",
-                  resid_type = "A",
-                  w_tax = T,
-                  fig_outfile = "Graphs/log_price_trends_restr_posttax_A.png")
+# price_application(product_by_county_prices,
+#                   treatment_data_path = "Data/tr_groups_comprehensive.csv",
+#                   time = "calendar",
+#                   weighting_var = "cty_base_sales",
+#                   pretax_var = "mld_price.wtd",
+#                   posttax_var = "mld_price_w_tax.wtd",
+#                   resid_type = "A",
+#                   w_tax = T,
+#                   fig_outfile = "Graphs/log_price_trends_compr_posttax_A.png")
+#
+# ### RESTRICTIVE DEFINITION ###
+# price_application(product_by_county_prices,
+#                   treatment_data_path = "Data/tr_groups_restrictive.csv",
+#                   time = "calendar",
+#                   weighting_var = "cty_base_sales",
+#                   pretax_var = "mld_price.wtd",
+#                   posttax_var = "mld_price_w_tax.wtd",
+#                   resid_type = "A",
+#                   w_tax = T,
+#                   fig_outfile = "Graphs/log_price_trends_restr_posttax_A.png")
 
 #####################################
 ### group-level linear time trend ###
@@ -125,27 +125,27 @@ price_application(product_by_county_prices,
 ### linear time trend and month effects ###
 ###########################################
 
-### COMPREHENSIVE DEFINITION ###
-price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_comprehensive.csv",
-                  time = "calendar",
-                  weighting_var = "cty_base_sales",
-                  pretax_var = "mld_price.wtd",
-                  posttax_var = "mld_price_w_tax.wtd",
-                  resid_type = "C",
-                  w_tax = T,
-                  fig_outfile = "Graphs/log_price_trends_compr_posttax_C.png")
-
-### RESTRICTIVE DEFINITION ###
-price_application(product_by_county_prices,
-                  treatment_data_path = "Data/tr_groups_restrictive.csv",
-                  time = "calendar",
-                  weighting_var = "cty_base_sales",
-                  pretax_var = "mld_price.wtd",
-                  posttax_var = "mld_price_w_tax.wtd",
-                  resid_type = "C",
-                  w_tax = T,
-                  fig_outfile = "Graphs/log_price_trends_restr_posttax_C.png")
+# ### COMPREHENSIVE DEFINITION ###
+# price_application(product_by_county_prices,
+#                   treatment_data_path = "Data/tr_groups_comprehensive.csv",
+#                   time = "calendar",
+#                   weighting_var = "cty_base_sales",
+#                   pretax_var = "mld_price.wtd",
+#                   posttax_var = "mld_price_w_tax.wtd",
+#                   resid_type = "C",
+#                   w_tax = T,
+#                   fig_outfile = "Graphs/log_price_trends_compr_posttax_C.png")
+#
+# ### RESTRICTIVE DEFINITION ###
+# price_application(product_by_county_prices,
+#                   treatment_data_path = "Data/tr_groups_restrictive.csv",
+#                   time = "calendar",
+#                   weighting_var = "cty_base_sales",
+#                   pretax_var = "mld_price.wtd",
+#                   posttax_var = "mld_price_w_tax.wtd",
+#                   resid_type = "C",
+#                   w_tax = T,
+#                   fig_outfile = "Graphs/log_price_trends_restr_posttax_C.png")
 
 ##################################################################
 ### linear time trend and month effects on product-group level ###
