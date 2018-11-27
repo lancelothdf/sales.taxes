@@ -41,15 +41,21 @@ normalize_price <- function(price_data, time_type, base_time, price_var, new_pri
     price_anchors <- price_data[year == base_year & month == base_month]
   }
 
-  eval(parse(
-    text = paste("price_anchors[, base_price :=", price_var, "]")
-  ))
+  price_anchors[, base_price := get(price_var)]
+
+  # eval(parse(
+  #   text = paste("price_anchors[, base_price :=", price_var, "]")
+  # ))
+
   if (time_type == "event"){
     #TODO: the following code is for debugging
     print(paste("Number of rows in price_anchors:", nrow(price_anchors[, .(store_code_uc, product_module_code,
                                                                            ref_year, ref_month)])))
     print(paste("Number of unique rows in price_anchors:", nrow(unique(price_anchors[, .(store_code_uc, product_module_code,
                                                                                          ref_year, ref_month)]))))
+    print(paste("Number of unique rows (including base price) in price_anchors:", nrow(unique(price_anchors[, .(store_code_uc, product_module_code,
+                                                                                                                ref_year, ref_month, base_price)]))))
+    fwrite(price_anchors, "/project2/igaarder/Data/price_anchors_check.csv")
 
     print("Debug check 1 (normalize_prices): ready to merge price_anchors")
     price_anchors <- price_anchors[, .(store_code_uc, product_module_code, base_price,
