@@ -35,7 +35,7 @@ residualize_outcome <- function(input_data,
   # run fast regression
   if (!is.null(weight_var)){
     weight_vector <- input_data[, get(weight_var)]
-    lm_fit_output <- .lm.wfit(covariate_matrix, outcome_vector, weight_vector)
+    lm_fit_output <- lm.wfit(covariate_matrix, outcome_vector, weight_vector)
   } else {
     lm_fit_output <- .lm.fit(covariate_matrix, outcome_vector)
   }
