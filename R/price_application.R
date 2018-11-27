@@ -36,7 +36,7 @@ price_application <- function(price_data,
                                         month_dummies = FALSE,
                                         calendar_time = FALSE,
                                         product_group_trend = FALSE,
-                                        weight_var = weights)
+                                        weight_var = "weights")
       price_panel[, posttax_price_var_old := posttax_price_var]
       price_panel[, posttax_price_var := posttax_price_var_residual]
       note <- "Note: Price is normalized by subtracting the log of the price in Jan 2008 from the log price.
@@ -49,7 +49,7 @@ price_application <- function(price_data,
                                         month_dummies = FALSE,
                                         calendar_time = FALSE,
                                         product_group_trend = TRUE,
-                                        weight_var = weights)
+                                        weight_var = "weights")
       price_panel[, posttax_price_var_old := posttax_price_var]
       price_panel[, posttax_price_var := posttax_price_var_residual]
       note <- "Note: Price is normalized by subtracting the log of the price in Jan 2008 from the log price.
@@ -62,7 +62,7 @@ price_application <- function(price_data,
                                         month_dummies = TRUE,
                                         calendar_time = FALSE,
                                         product_group_trend = FALSE,
-                                        weight_var = weights)
+                                        weight_var = "weights")
       price_panel[, posttax_price_var_old := posttax_price_var]
       price_panel[, posttax_price_var := posttax_price_var_residual]
       note <- "Note: Price is normalized by subtracting the log of the price in Jan 2008 from the log price.
@@ -75,7 +75,7 @@ price_application <- function(price_data,
                                         month_dummies = TRUE,
                                         calendar_time = FALSE,
                                         product_group_trend = TRUE,
-                                        weight_var = weights)
+                                        weight_var = "weights")
       price_panel[, posttax_price_var_old := posttax_price_var]
       price_panel[, posttax_price_var := posttax_price_var_residual]
       note <- "Note: Price is normalized by subtracting the log of the price in Jan 2008 from the log price.
@@ -89,7 +89,7 @@ price_application <- function(price_data,
                                         month_dummies = FALSE,
                                         calendar_time = TRUE,
                                         product_group_trend = FALSE,
-                                        weight_var = weights)
+                                        weight_var = "weights")
       price_panel[, posttax_price_var_old := posttax_price_var]
       price_panel[, posttax_price_var := posttax_price_var_residual]
       note <- "Note: Price is normalized by subtracting the log of the price in Jan 2008 from the log price.
