@@ -147,7 +147,13 @@ remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
     }
   } else if (calendar_time & !product_group_trend){
     # we remove calendar_time effects by demeaning
-    input_data[, ct_mean := mean(get(outcome_var)), by = month_trend]
+    if (!is.null(weight_var)){
+      input_data[, ct_mean := weighted.mean(x = get(outcome_var),
+                                            w = get(weight_var)), by = month_trend]
+    } else {
+      input_data[, ct_mean := mean(get(outcome_var)), by = month_trend]
+    }
+
     input_data[, (paste0(outcome_var, "_residual")) :=
                  get(outcome_var) - ct_mean]
     input_data[, (paste0(outcome_var, "_predicted")) := ct_mean]
