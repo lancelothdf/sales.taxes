@@ -99,7 +99,7 @@ es_price_application <- function(price_data,
                                                                 y = mean_ln_price,
                                                                 color = tr_count)) +
     labs(x = "Month", y = y_label, color = "Sales tax change",
-         caption = "Note: Price is normalized by subtracting the log of the price in event time t-1 from the log price")
+         caption = "Note: Price is normalized by subtracting the log of the price in event time t-1 from the log price") +
   geom_line() +
     theme_bw()
   if (!is.null(fig_outfile)){
