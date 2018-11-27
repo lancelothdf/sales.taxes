@@ -54,10 +54,11 @@ normalize_price <- function(price_data, time_type, base_time, price_var, new_pri
     print("Debug check 1 (normalize_prices): ready to merge price_anchors")
     price_anchors <- price_anchors[, .(store_code_uc, product_module_code, base_price,
                                        ref_year, ref_month)]
-    print(head(price_anchors[duplicated(price_anchors, by = c("store_code_uc",
-                                                              "product_module_code",
-                                                              "ref_year",
-                                                              "ref_month"))], 30))
+    price_dups <- price_anchors[duplicated(price_anchors, by = c("store_code_uc",
+                                                                 "product_module_code",
+                                                                 "ref_year",
+                                                                 "ref_month"))]
+    print(head(price_anchors[order(store_code_uc, product_module_code, ref_year, ref_month)], 30))
 
     # Need to be careful with merging the price anchors on...
     price_data <- merge(price_data, price_anchors,

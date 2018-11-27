@@ -59,7 +59,11 @@ product_by_county_prices <- all_nielsen_data[, list(mld_price = mean(normalized_
                                                     "product_module_code", "product_group_code",
                                                     "month", "year")]
 
-product_by_county_prices <- fread("Data/Nielsen/product_by_county_prices.csv")
+product_by_county_prices[, cty_base_sales := max(total_sales * as.integer(year == 2008 & month == 1)),
+                         by = c("fips_state", "fips_county", "product_module_code")]
+fwrite(product_by_county_prices, "Data/Nielsen/product_by_county_prices.csv")
+
+# product_by_county_prices <- fread("Data/Nielsen/product_by_county_prices.csv")
 
 # product_by_county_prices <- fread("Data/Nielsen/product_by_county_prices.csv")
 county_pop <- fread("Data/county_population.csv")
