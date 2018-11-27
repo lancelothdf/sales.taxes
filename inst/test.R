@@ -47,12 +47,43 @@ price_data <- merge_treatment(original_data = product_by_county_prices,
 
 price_data[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
 
-price_data <- normalize_price(price_data = price_data,
-                              time_type = "event",
-                              base_time = -1,
-                              price_var = "price",
-                              new_price_var = "normalized_price")
 
 
 
+
+price_application(product_by_county_prices,
+                  treatment_data_path = "C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/tr_groups_comprehensive.csv",
+                  time = "calendar",
+                  weighting_var = "population",
+                  pretax_var = "mld_price",
+                  posttax_var = "mld_price_w_tax",
+                  w_tax = F,
+                  fig_outfile = NULL)
+price_application(product_by_county_prices,
+                  treatment_data_path = "C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/tr_groups_comprehensive.csv",
+                  time = "calendar",
+                  weighting_var = "population",
+                  pretax_var = "mld_price",
+                  posttax_var = "mld_price_w_tax",
+                  w_tax = T,
+                  fig_outfile = NULL)
+
+## Weighted plots
+### COMPREHENSIVE DEFINITION ###
+price_application(product_by_county_prices,
+                  treatment_data_path = "C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/tr_groups_comprehensive.csv",
+                  time = "calendar",
+                  weighting_var = "total_sales",
+                  pretax_var = "mld_price.wtd",
+                  posttax_var = "mld_price_w_tax.wtd",
+                  w_tax = F,
+                  fig_outfile = NULL)
+price_application(product_by_county_prices,
+                  treatment_data_path = "C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/tr_groups_comprehensive.csv",
+                  time = "calendar",
+                  weighting_var = "total_sales",
+                  pretax_var = "mld_price.wtd",
+                  posttax_var = "mld_price_w_tax.wtd",
+                  w_tax = T,
+                  fig_outfile = NULL)
 

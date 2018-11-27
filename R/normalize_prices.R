@@ -49,27 +49,27 @@ normalize_price <- function(price_data, time_type, base_time, price_var, new_pri
 
   if (time_type == "event"){
     #TODO: the following code is for debugging
-    print(paste("Number of rows in price_anchors:", nrow(price_anchors[, .(store_code_uc, product_module_code,
-                                                                           ref_year, ref_month)])))
-    print(paste("Number of unique rows in price_anchors:", nrow(unique(price_anchors[, .(store_code_uc, product_module_code,
-                                                                                         ref_year, ref_month)]))))
-    print(paste("Number of unique rows (including base price) in price_anchors:", nrow(unique(price_anchors[, .(store_code_uc, product_module_code,
-                                                                                                                ref_year, ref_month, base_price)]))))
-    fwrite(price_anchors, "/project2/igaarder/Data/price_anchors_check.csv")
+    # print(paste("Number of rows in price_anchors:", nrow(price_anchors[, .(store_code_uc, product_module_code,
+    #                                                                        ref_year, ref_month)])))
+    # print(paste("Number of unique rows in price_anchors:", nrow(unique(price_anchors[, .(store_code_uc, product_module_code,
+    #                                                                                      ref_year, ref_month)]))))
+    # print(paste("Number of unique rows (including base price) in price_anchors:", nrow(unique(price_anchors[, .(store_code_uc, product_module_code,
+    #                                                                                                             ref_year, ref_month, base_price)]))))
+    # fwrite(price_anchors, "/project2/igaarder/Data/price_anchors_check.csv")
 
-    print("Debug check 1 (normalize_prices): ready to merge price_anchors")
+    # print("Debug check 1 (normalize_prices): ready to merge price_anchors")
     price_anchors <- price_anchors[, .(store_code_uc, product_module_code, base_price,
-                                       ref_year, ref_month)]
-    price_dups <- price_anchors[duplicated(price_anchors, by = c("store_code_uc",
-                                                                 "product_module_code",
-                                                                 "ref_year",
-                                                                 "ref_month"))]
-    print(head(price_anchors[order(store_code_uc, product_module_code, ref_year, ref_month)], 30))
+                                       ref_year, ref_month, tr_group)]
+    # price_dups <- price_anchors[duplicated(price_anchors, by = c("store_code_uc",
+    #                                                              "product_module_code",
+    #                                                              "ref_year",
+    #                                                              "ref_month"))]
+    # print(head(price_anchors[order(store_code_uc, product_module_code, ref_year, ref_month)], 30))
 
     # Need to be careful with merging the price anchors on...
     price_data <- merge(price_data, price_anchors,
                         by = c("store_code_uc", "product_module_code",
-                               "ref_year", "ref_month"))
+                               "ref_year", "ref_month", "tr_group"))
   } else if (time_type == "calendar"){
     price_anchors <- price_anchors[, .(store_code_uc, product_module_code, base_price)]
     # It's ok to just merge on store and product, since store x product gives

@@ -160,7 +160,7 @@ remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
     input_data <- one_hot(input_data, cols = "product_group_code")
     pgc_columns <- names(input_data)[grep("product_group_code_[0-9]", names(input_data))]
     for (pgc_col in pgc_columns){
-      input_data[, (pgc_column) := get(pgc_column) * month_trend]
+      input_data[, (pgc_col) := get(pgc_col) * month_trend]
     }
     if (!month_dummies){
       input_data <- residualize_outcome(input_data,
