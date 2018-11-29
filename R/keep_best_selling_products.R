@@ -29,7 +29,7 @@ keep_best_selling_products <- function(all_data,
     stop(paste(module_name_ad, "must be the name of a column in `all_data'"))
   }
 
-  keep_modules <- products_data[, module_name_pd]
+  keep_modules <- products_data[, get(module_name_pd)]
   all_data <- all_data[get(module_name_ad) %in% keep_modules]
   return(all_data)
 
