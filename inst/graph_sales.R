@@ -26,7 +26,7 @@ for (year in 2008:2014){
                                             module_name_ad = "product_module_code",
                                             products_data = best_selling_modules,
                                             module_name_pd = "Module")
-    store_id_file <- paste0("/project2/igaarder/Data/stores_",
+    store_id_file <- paste0("/project2/igaarder/Data/Nielsen/stores_",
                             year, ".dta")
 
     store_id <- as.data.table(read.dta13(store_id_file))
