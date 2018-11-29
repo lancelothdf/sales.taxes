@@ -159,7 +159,6 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                     treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
                     time = "event",
                     fig_outfile = restr_es_outfile)
-
 }
 
 # ### COMPREHENSIVE DEFINITION ###
