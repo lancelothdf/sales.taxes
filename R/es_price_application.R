@@ -6,6 +6,7 @@ es_price_application <- function(price_data,
                                  county_sales_weights = NULL,
                                  weighting_var,
                                  price_var,
+                                 resid_type = NULL,
                                  w_tax,
                                  fig_outfile = NULL){
   assertDataTable(price_data)
@@ -14,9 +15,12 @@ es_price_application <- function(price_data,
   assertDataTable(county_sales_weights, null.ok = T)
   assertCharacter(weighting_var)
   assertCharacter(price_var)
+  assertCharacter(resid_type, null.ok = T)
   assertLogical(w_tax)
-  on.exit(traceback(1))
 
+  if (!w_tax & !is.null(resid_type)){
+    warning("Code does not currently residualize pre-tax prices. Non-residualized graphs will be returned.")
+  }
   print("Merging treatment...")
   # Before normalizing, need to identify event times...
   price_data <- merge_treatment(original_data = price_data,
@@ -40,6 +44,78 @@ es_price_application <- function(price_data,
                                 base_time = -1,
                                 price_var = "price_w_tax",
                                 new_price_var = "normalized_price_w_tax")
+
+  if (w_tax & !is.null(resid_type)){
+    if (resid_type == "A"){
+      price_data <- remove_time_trends(input_data = price_data,
+                                        outcome_var = "normalized_price_w_tax",
+                                        month_var = "month",
+                                        year_var = "year",
+                                        month_dummies = FALSE,
+                                        calendar_time = FALSE,
+                                        product_group_trend = FALSE,
+                                        weight_var = "sales.weight")
+      price_data[, normalized_price_w_tax_old := normalized_price_w_tax]
+      price_data[, normalized_price_w_tax := normalized_price_w_tax_residual]
+      note <- "Note: Price is normalized by subtracting the log of the price in Jan 2008 from the log price.
+      A linear time trend has been residualized out."
+    } else if (resid_type == "B"){
+      price_data <- remove_time_trends(input_data = price_data,
+                                        outcome_var = "normalized_price_w_tax",
+                                        month_var = "month",
+                                        year_var = "year",
+                                        month_dummies = FALSE,
+                                        calendar_time = FALSE,
+                                        product_group_trend = TRUE,
+                                        weight_var = "sales.weight")
+      price_data[, normalized_price_w_tax_old := normalized_price_w_tax]
+      price_data[, normalized_price_w_tax := normalized_price_w_tax_residual]
+      note <- "Note: Price is normalized by subtracting the log of the price in Jan 2008 from the log price.
+      A linear time trend has been residualized out on each product-group level."
+    } else if (resid_type == "C"){
+      price_data <- remove_time_trends(input_data = price_data,
+                                        outcome_var = "normalized_price_w_tax",
+                                        month_var = "month",
+                                        year_var = "year",
+                                        month_dummies = TRUE,
+                                        calendar_time = FALSE,
+                                        product_group_trend = FALSE,
+                                        weight_var = "sales.weight")
+      price_data[, normalized_price_w_tax_old := normalized_price_w_tax]
+      price_data[, normalized_price_w_tax := normalized_price_w_tax_residual]
+      note <- "Note: Price is normalized by subtracting the log of the price in Jan 2008 from the log price.
+      Residualization was done by removing a linear time trend as well as month-of-year effects."
+    } else if (resid_type == "D"){
+      price_data <- remove_time_trends(input_data = price_data,
+                                        outcome_var = "normalized_price_w_tax",
+                                        month_var = "month",
+                                        year_var = "year",
+                                        month_dummies = TRUE,
+                                        calendar_time = FALSE,
+                                        product_group_trend = TRUE,
+                                        weight_var = "sales.weight")
+      price_data[, normalized_price_w_tax_old := normalized_price_w_tax]
+      price_data[, normalized_price_w_tax := normalized_price_w_tax_residual]
+      note <- "Note: Price is normalized by subtracting the log of the price in Jan 2008 from the log price.
+      Residualization was done by removing a linear time trend as well as month-of-year effects
+      on each product-group level."
+    } else if (resid_type == "E"){
+      price_data <- remove_time_trends(input_data = price_data,
+                                        outcome_var = "normalized_price_w_tax",
+                                        month_var = "month",
+                                        year_var = "year",
+                                        month_dummies = FALSE,
+                                        calendar_time = TRUE,
+                                        product_group_trend = FALSE,
+                                        weight_var = "sales.weight")
+      price_data[, normalized_price_w_tax_old := normalized_price_w_tax]
+      price_data[, normalized_price_w_tax := normalized_price_w_tax_residual]
+      note <- "Note: Price is normalized by subtracting the log of the price in Jan 2008 from the log price.
+      Residualization was done by removing calendar time (month-year) effects."
+    }
+  } else {
+    note <- "Note: Price is normalized by subtracting the log of the price in event time t-1 from the log price"
+  }
 
   print("Aggregating to county x product level...")
   # Aggregate to county x product level
@@ -74,8 +150,10 @@ es_price_application <- function(price_data,
 
   product_by_county_prices[, weights := get(weighting_var)]
   product_by_county_prices[, price_var := get(price_var)]
-
-  if (w_tax){
+  if (w_tax & !is.null(resid_type)){
+    y_label <- "Mean normalized residualized ln(price) (post-tax)"
+  }
+  else if (w_tax){
     y_label <- "Mean normalized ln(price) (post-tax)"
   } else {
     y_label <- "Mean normalized ln(price) (pre-tax)"
@@ -99,7 +177,7 @@ es_price_application <- function(price_data,
                                                                 y = mean_ln_price,
                                                                 color = tr_count)) +
     labs(x = "Month", y = y_label, color = "Sales tax change",
-         caption = "Note: Price is normalized by subtracting the log of the price in event time t-1 from the log price") +
+         caption = note) +
   geom_line() +
     theme_bw()
   if (!is.null(fig_outfile)){
