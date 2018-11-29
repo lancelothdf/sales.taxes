@@ -15,7 +15,20 @@ library(data.table)
 library(zoo)
 library(ggplot2)
 
-# best_selling_modules <- fread("Data/best_selling_modules.csv")
+best_selling_modules <- fread("Data/best_selling_modules.csv")
+sales_panel <- data.table(NULL)
+for (year in 2008:2014){
+  for (rn in c("I", "II", "III", "IV", "V")){
+    filename <- paste0("/project2/igaarder/Data/Nielsen/", year,
+                       "_monthly_master_file_part", rn, ".dta")
+    data_part <- as.data.table(read.dta13(filename))
+    data_part <- keep_best_selling_products(data_part,
+                                           module_name_ad = "product_module_code",
+                                           products_data = best_selling_modules,
+                                           module_name_pd = "Module")
+
+  }
+}
 #
 # sales_panel <- combine_scanner_data(folder = "Data/Nielsen/",
 #                                     file_tail = "_module_store_level",
@@ -37,6 +50,9 @@ library(ggplot2)
 #                                        by = c("fips_state", "fips_county",
 #                                               "product_module_code",
 #                                               "month", "year")]
+
+# TODO: read in new .dta files, save combined, merge on exemptions to remove
+# tax exempt items?
 
 # Prior code commented since files are saved
 product_by_county_sales <- fread("Data/Nielsen/product_by_county_sales.csv")
