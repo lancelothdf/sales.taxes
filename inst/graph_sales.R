@@ -35,7 +35,7 @@ for (year in 2008:2014){
     # are altered.
     setnames(store_id, old = "fips_state_code", new = "fips_state")
     setnames(store_id, old = "fips_county_code", new = "fips_county")
-    sales_data <- merge(data_part, store_id, by = "store_code_uc", all.x = T)
+    data_part <- merge(data_part, store_id, by = "store_code_uc", all.x = T)
 
     # keep stores we care about
     data_part <- data_part[channel_code %in% c("M", "F", "D")]
