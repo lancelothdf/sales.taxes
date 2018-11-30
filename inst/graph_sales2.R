@@ -89,7 +89,6 @@ preprocessed_sales <- merge(product_by_county_sales,
 for (resid_type in c("A", "B", "C", "D", "E")){
   # Question is: ok to residualize first? Should be...
   if (resid_type == "A"){
-    print(paste("Removing seasonality: method A"))
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
                                                   outcome_var = "ln_total_sales",
                                                   month_var = "month",
@@ -98,8 +97,8 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   calendar_time = FALSE,
                                                   product_group_trend = FALSE,
                                                   weight_var = "population")
+
   } else if (resid_type == "B"){
-    print(paste("Removing seasonality: method B"))
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
                                                   outcome_var = "ln_total_sales",
                                                   month_var = "month",
@@ -109,7 +108,6 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   product_group_trend = TRUE,
                                                   weight_var = "population")
   } else if (resid_type == "C"){
-    print(paste("Removing seasonality: method C"))
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
                                                   outcome_var = "ln_total_sales",
                                                   month_var = "month",
@@ -119,7 +117,6 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   product_group_trend = FALSE,
                                                   weight_var = "population")
   } else if (resid_type == "D"){
-    print(paste("Removing seasonality: method D"))
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
                                                   outcome_var = "ln_total_sales",
                                                   month_var = "month",
@@ -129,7 +126,6 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   product_group_trend = TRUE,
                                                   weight_var = "population")
   } else if (resid_type == "E"){
-    print(paste("Removing seasonality: method E"))
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
                                                   outcome_var = "ln_total_sales",
                                                   month_var = "month",
@@ -139,6 +135,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   product_group_trend = FALSE,
                                                   weight_var = "population")
   }
+  product_by_county_sales[, ln_total_sales := ln_total_sales_residual]
   compr_outfile <- paste0("Graphs/log_sales_residualized_compr_", resid_type, ".png")
   compr_es_outfile <- paste0("Graphs/log_sales_es_residualized_compr_", resid_type, ".png")
   restr_outfile <- paste0("Graphs/log_sales_residualized_restr_", resid_type, ".png")
