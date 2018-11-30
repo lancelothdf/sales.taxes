@@ -83,105 +83,27 @@ preprocessed_sales <- merge(product_by_county_sales,
                                  county_pop,
                                  by = c("fips_state", "fips_county"))
 
-# this would be a good place to residualize
-for (resid_type in c("A", "B", "C", "D", "E")){
-  # Question is: ok to residualize first? Should be...
-  if (resid_type == "A"){
-    product_by_county_sales <- remove_time_trends(preprocessed_sales,
-                                                  outcome_var = "ln_total_sales",
-                                                  month_var = "month",
-                                                  year_var = "year",
-                                                  month_dummies = FALSE,
-                                                  calendar_time = FALSE,
-                                                  product_group_trend = FALSE,
-                                                  weight_var = "population")
-  } else if (resid_type == "B"){
-    product_by_county_sales <- remove_time_trends(preprocessed_sales,
-                                                  outcome_var = "ln_total_sales",
-                                                  month_var = "month",
-                                                  year_var = "year",
-                                                  month_dummies = FALSE,
-                                                  calendar_time = FALSE,
-                                                  product_group_trend = TRUE,
-                                                  weight_var = "population")
-  } else if (resid_type == "C"){
-    product_by_county_sales <- remove_time_trends(preprocessed_sales,
-                                                  outcome_var = "ln_total_sales",
-                                                  month_var = "month",
-                                                  year_var = "year",
-                                                  month_dummies = TRUE,
-                                                  calendar_time = FALSE,
-                                                  product_group_trend = FALSE,
-                                                  weight_var = "population")
-  } else if (resid_type == "D"){
-    product_by_county_sales <- remove_time_trends(preprocessed_sales,
-                                                  outcome_var = "ln_total_sales",
-                                                  month_var = "month",
-                                                  year_var = "year",
-                                                  month_dummies = TRUE,
-                                                  calendar_time = FALSE,
-                                                  product_group_trend = TRUE,
-                                                  weight_var = "population")
-  } else if (resid_type == "E"){
-    product_by_county_sales <- remove_time_trends(preprocessed_sales,
-                                                  outcome_var = "ln_total_sales",
-                                                  month_var = "month",
-                                                  year_var = "year",
-                                                  month_dummies = FALSE,
-                                                  calendar_time = TRUE,
-                                                  product_group_trend = FALSE,
-                                                  weight_var = "population")
-  }
-  compr_outfile <- paste0("Graphs/log_sales_residualized_compr_", resid_type, ".png")
-  compr_es_outfile <- paste0("Graphs/log_sales_es_residualized_compr_", resid_type, ".png")
-  restr_outfile <- paste0("Graphs/log_sales_residualized_restr_", resid_type, ".png")
-  restr_es_outfile <- paste0("Graphs/log_sales_es_residualized_restr_", resid_type, ".png")
-  ### COMPREHENSIVE DEFINITION ###
-  sales_application(product_by_county_sales,
-                    treatment_data_path = "Data/tr_groups_comprehensive.csv",
-                    time = "calendar",
-                    fig_outfile = compr_outfile)
 
-  ### event study-like ###
-  sales_application(product_by_county_sales,
-                    treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
-                    time = "event",
-                    fig_outfile = compr_es_outfile)
+### COMPREHENSIVE DEFINITION ###
+sales_application(product_by_county_sales,
+                  treatment_data_path = "Data/tr_groups_comprehensive.csv",
+                  time = "calendar",
+                  fig_outfile = "Graphs/log_sales_trends_compr2.png")
 
-  ### RESTRICTIVE DEFINITION ###
-  sales_application(product_by_county_sales,
-                    treatment_data_path = "Data/tr_groups_restrictive.csv",
-                    time = "calendar",
-                    fig_outfile = restr_outfile)
+### event study-like ###
+sales_application(product_by_county_sales,
+                  treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
+                  time = "event",
+                  fig_outfile = "Graphs/log_sales_trends_es_compr2.png")
 
-  ### event study-like ###
-  sales_application(product_by_county_sales,
-                    treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
-                    time = "event",
-                    fig_outfile = restr_es_outfile)
+### RESTRICTIVE DEFINITION ###
+sales_application(product_by_county_sales,
+                  treatment_data_path = "Data/tr_groups_restrictive.csv",
+                  time = "calendar",
+                  fig_outfile = "Graphs/log_sales_trends_restr2.png")
 
-}
-
-# ### COMPREHENSIVE DEFINITION ###
-# sales_application(product_by_county_sales,
-#                   treatment_data_path = "Data/tr_groups_comprehensive.csv",
-#                   time = "calendar",
-#                   fig_outfile = "Graphs/log_sales_trends_compr2.png")
-#
-# ### event study-like ###
-# sales_application(product_by_county_sales,
-#                   treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
-#                   time = "event",
-#                   fig_outfile = "Graphs/log_sales_trends_es_compr2.png")
-#
-# ### RESTRICTIVE DEFINITION ###
-# sales_application(product_by_county_sales,
-#                   treatment_data_path = "Data/tr_groups_restrictive.csv",
-#                   time = "calendar",
-#                   fig_outfile = "Graphs/log_sales_trends_restr2.png")
-#
-# ### event study-like ###
-# sales_application(product_by_county_sales,
-#                   treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
-#                   time = "event",
-#                   fig_outfile = "Graphs/log_sales_trends_es_restr2.png")
+### event study-like ###
+sales_application(product_by_county_sales,
+                  treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
+                  time = "event",
+                  fig_outfile = "Graphs/log_sales_trends_es_restr2.png")
