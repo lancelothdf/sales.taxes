@@ -16,6 +16,8 @@ county_monthly_tax <- fread("Data/county_monthly_tax_rates.csv")
 county_monthly_tax <- county_monthly_tax[, .(fips_state, fips_county, year, month, sales_tax)]
 
 # limit data to Maricopa County, AZ and product to refrigerated milk
+print(nrow(all_nielsen_data[, fips_state == 4 & fips_county == 13]))
+print(nrow(all_nielsen_data[, product_module_code == 3625]))
 all_nielsen_data <- fread("Data/Nielsen/allyears_module_store_level.csv")
 maricopa_milk <- all_nielsen_data[, fips_state == 4 & fips_county == 13 &
                                     product_module_code == 3625]
