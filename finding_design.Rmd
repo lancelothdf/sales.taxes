@@ -1,0 +1,22 @@
+---
+output: pdf_document
+---
+
+The ultimate goal is to find a research design that will allow us to identify how changes in sales tax rates affect prices for consumers. We want to start with the most basic case and build up to something that we can implement on a larger scale.
+
+The first case we want to deal with is one county, one product. Then we can see how prices change for that single county
+after the implementation of the tax. The example I choose for this scenario is Maricopa County, AZ (`fips_state = 04`; `fips_county = 013`). The reason for Maricopa County is that Arizona still taxes grocery items, so all items are taxable at the same rate. The grocery item we look at is refrigerated milk (`product_module_code = 3625`).
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+summary(cars)
+```
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+plot(cars)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
