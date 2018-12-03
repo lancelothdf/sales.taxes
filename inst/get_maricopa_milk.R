@@ -18,13 +18,13 @@ print(unique(all_nielsen_data$fips_state))
 print(unique(all_nielsen_data$product_module_code))
 print(unique(all_nielsen_data[fips_state == 4, fips_county]))
 
-print(nrow(all_nielsen_data[, fips_state == 4 & fips_county == 19]))
-print(nrow(all_nielsen_data[, product_module_code == 7260]))
-print(nrow(all_nielsen_data[, fips_state == 4 & fips_county == 19 & product_module_code == 7260]))
-print(nrow(all_nielsen_data[, fips_state == 4 & fips_county == 19 & product_module_code == 7260 ]))
+print(nrow(all_nielsen_data[fips_state == 4 & fips_county == 19]))
+print(nrow(all_nielsen_data[product_module_code == 3625]))
+print(nrow(all_nielsen_data[fips_state == 4 & fips_county == 19 & product_module_code == 3625])) # milk
+print(nrow(all_nielsen_data[fips_state == 4 & fips_county == 19 & product_module_code == 7260 ])) # TP
 
-maricopa_tp <- all_nielsen_data[, fips_state == 4 & fips_county == 19 & product_module_code == 7260]
+maricopa_milk <- all_nielsen_data[fips_state == 4 & fips_county == 19 & product_module_code == 3625]
 
-print(nrow(maricopa_tp))
+print(nrow(maricopa_milk))
 
-fwrite(maricopa_tp, "Data/maricopa_tp.csv")
+fwrite(maricopa_milk, "Data/maricopa_milk.csv")
