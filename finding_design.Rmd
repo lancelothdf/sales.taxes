@@ -13,9 +13,15 @@ Maricopa county, so I switch to toilet paper (`product_module_code = 7260`). (No
 > print(nrow(all_nielsen_data[, fips_state == 4 & fips_county == 13]))
 NULL
 > print(nrow(all_nielsen_data[, product_module_code == 3625]))
-NULL`
+
+`
 
 We first examine the post-tax price response of Arizona's June 2010 tax increase, when sales tax increased by 0.1%, on post-tax prices in Maricopa county.
+
+# Note that I should create a function that allows the state, county, and product to be an input, and then creates output/graph based on these limited inputs #
+```{r}
+one_product_one_county()
+```
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 

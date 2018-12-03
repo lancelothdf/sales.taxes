@@ -16,7 +16,7 @@ sapply(all_nielsen_data, class)
 
 print(unique(all_nielsen_data$fips_state))
 print(unique(all_nielsen_data$product_module_code))
-print(unique(all_nielsen_data[, fips_state == 4]$fips_county))
+print(unique(all_nielsen_data[fips_state == 4, fips_county]))
 
 print(nrow(all_nielsen_data[, fips_state == 4 & fips_county == 19]))
 print(nrow(all_nielsen_data[, product_module_code == 7260]))
