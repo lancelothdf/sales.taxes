@@ -11,12 +11,19 @@ library(data.table)
 # limit data to Maricopa County, AZ and product to refrigerated milk
 all_nielsen_data <- fread("Data/Nielsen/allyears_module_store_level.csv")
 print(nrow(all_nielsen_data))
-print(nrow(all_nielsen_data[, fips_state == 4 & fips_county == 13]))
-print(nrow(all_nielsen_data[, product_module_code == 3625]))
-print(nrow(all_nielsen_data[, fips_state == 4 & fips_county == 13 & product_module_code == 3625]))
-print(nrow(all_nielsen_data[, fips_state == 4 & fips_county == 13 & product_module_code == 7260 ]))
+print(head(all_nielsen_data))
+sapply(all_nielsen_data, class)
 
-maricopa_tp <- all_nielsen_data[, fips_state == 4 & fips_county == 13 & product_module_code == 7260]
+print(unique(all_nielsen_data$fips_state))
+print(unique(all_nielsen_data$product_module_code))
+print(unique(all_nielsen_data[, fips_state == 4]$fips_county))
+
+print(nrow(all_nielsen_data[, fips_state == 4 & fips_county == 19]))
+print(nrow(all_nielsen_data[, product_module_code == 7260]))
+print(nrow(all_nielsen_data[, fips_state == 4 & fips_county == 19 & product_module_code == 7260]))
+print(nrow(all_nielsen_data[, fips_state == 4 & fips_county == 19 & product_module_code == 7260 ]))
+
+maricopa_tp <- all_nielsen_data[, fips_state == 4 & fips_county == 19 & product_module_code == 7260]
 
 print(nrow(maricopa_tp))
 
