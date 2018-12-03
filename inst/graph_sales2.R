@@ -45,13 +45,13 @@ for (year in 2008:2014){
   }
 }
 
-sales_panel <- combine_scanner_data(folder = "Data/Nielsen/",
-                                    file_tail = "_module_store_level",
-                                    file_type = "dta",
-                                    years = 2008:2014,
-                                    filters = 'channel_code %in% c("M", "F", "D")',
-                                    select_modules = T,
-                                    modules_data = best_selling_modules)
+# sales_panel <- combine_scanner_data(folder = "Data/Nielsen/",
+#                                     file_tail = "_module_store_level",
+#                                     file_type = "dta",
+#                                     years = 2008:2014,
+#                                     filters = 'channel_code %in% c("M", "F", "D")',
+#                                     select_modules = T,
+#                                     modules_data = best_selling_modules)
 
 fwrite(sales_panel, file = "Data/Nielsen/allyears_module_store_level.csv")
 # we only want stores that are balanced from Jan 2008 to Dec 2014 (84 months)
