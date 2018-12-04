@@ -13,7 +13,14 @@ We first examine the **post-tax** price response of Arizona's June 2010 tax incr
 
 # Note that I should create a function that allows the state, county, and product to be an input, and then creates output/graph based on these limited inputs #
 ```{r}
-one_product_one_county()
+one_cty_one_prod(product_data,
+                 fips_state,
+                 fips_county,
+                 product_module_code,
+                 product_name,
+                 month_of_reform,
+                 year_of_reform,
+                 county_monthly_tax_data)
 ```
 
 We now examine the post-tax **normalized** price response of Maricopa county for all goods.

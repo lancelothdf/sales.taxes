@@ -13,6 +13,9 @@
 #'     uniquely identify the panel units for which the weights are to be
 #'     calculated (character)
 #'
+#' @return The same \code{panel_data} dataset but with a new variable ending
+#'     in \code{".weight"} on the \code{panel_unit_vars} level
+#'
 
 make_fixed_weights <- function(panel_data, weight_time, weight_var,
                                panel_unit_vars){
