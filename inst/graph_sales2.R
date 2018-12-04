@@ -21,13 +21,16 @@ for (year in 2008:2014){
   for (rn in c("I", "II", "III", "IV", "V", "VI")){
     filename <- paste0("/project2/igaarder/Data/Nielsen/", year,
                        "_monthly_master_file_part", rn, ".dta")
+    print(paste("Loading", filename, "..."))
     data_part <- as.data.table(read.dta13(filename))
+    print("Keeping only best selling products")
     data_part <- keep_best_selling_products(data_part,
                                             module_name_ad = "product_module_code",
                                             products_data = best_selling_modules,
                                             module_name_pd = "Module")
     store_id_file <- paste0("/project2/igaarder/Data/Nielsen/stores_",
                             year, ".dta")
+    print(paste("Loading", store_id_file, "..."))
 
     store_id <- as.data.table(read.dta13(store_id_file))
 
@@ -35,12 +38,15 @@ for (year in 2008:2014){
     # are altered.
     setnames(store_id, old = "fips_state_code", new = "fips_state")
     setnames(store_id, old = "fips_county_code", new = "fips_county")
+    print(paste("Merging", store_id_file, "and", filename))
     data_part <- merge(data_part, store_id, by = "store_code_uc", all.x = T)
 
     # keep stores we care about
+    print(paste("Dropping unnecessary stores"))
     data_part <- data_part[channel_code %in% c("M", "F", "D")]
 
     data_part[, year := year]
+    print(paste("Binding sales_panel and", filename))
     sales_panel <- rbind(sales_panel, data_part)
   }
 }
