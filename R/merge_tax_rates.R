@@ -51,11 +51,17 @@ merge_tax_rates <- function(sales_data,
   sales_data <- merge(sales_data, applicable_tax,
                       by = c("fips_state", "fips_county", "year", "month",
                              "product_module_code"), all.x = T)
-  if (keep_taxable_only){
-    sales_data <- sales_data[applicable_tax != 0]
-  }
   if (remove_tax_missing){
-    sales_data <- sales_data[!is.na(applicable_tax)]
+    sales_data[, rm_missing := max(as.integer(is.na(applicable_tax))),
+               by = c("fips_state", "fips_county", "product_module_code")]
+    sales_data <- sales_data[rm_missing != 1]
+    sales_data[, rm_missing := NULL]
+  }
+  if (keep_taxable_only){
+    sales_data[, rm_nontaxable := max(as.integer(applicable_tax == 0)),
+               by = c("fips_state", "fips_county", "product_module_code")]
+    sales_data <- sales_data[rm_nontaxable != 1]
+    sales_data[, rm_nontaxable := NULL]
   }
   return(sales_data)
 }
