@@ -18,12 +18,12 @@ print(unique(all_nielsen_data$fips_state))
 print(unique(all_nielsen_data$product_module_code))
 print(unique(all_nielsen_data[fips_state == 4, fips_county]))
 
-print(nrow(all_nielsen_data[fips_state == 4 & fips_county == 19]))
+print(nrow(all_nielsen_data[fips_state == 4 & fips_county == 13]))
 print(nrow(all_nielsen_data[product_module_code == 3625]))
-print(nrow(all_nielsen_data[fips_state == 4 & fips_county == 19 & product_module_code == 3625])) # milk
-print(nrow(all_nielsen_data[fips_state == 4 & fips_county == 19 & product_module_code == 7260 ])) # TP
+print(nrow(all_nielsen_data[fips_state == 4 & fips_county == 13 & product_module_code == 3625])) # milk
+print(nrow(all_nielsen_data[fips_state == 4 & fips_county == 13 & product_module_code == 7260 ])) # TP
 
-maricopa_milk <- all_nielsen_data[fips_state == 4 & fips_county == 19 & product_module_code == 3625]
+maricopa_milk <- all_nielsen_data[fips_state == 4 & fips_county == 13 & product_module_code == 3625]
 
 print(nrow(maricopa_milk))
 
