@@ -24,7 +24,10 @@ print(nrow(all_nielsen_data[fips_state == 4 & fips_county == 13 & product_module
 print(nrow(all_nielsen_data[fips_state == 4 & fips_county == 13 & product_module_code == 7260 ])) # TP
 
 maricopa_milk <- all_nielsen_data[fips_state == 4 & fips_county == 13 & product_module_code == 3625]
+maricopa_tp <- all_nielsen_data[fips_state == 4 & fips_county == 13 & product_module_code == 7260]
 
 print(nrow(maricopa_milk))
+print(nrow(maricopa_tp))
 
 fwrite(maricopa_milk, "Data/maricopa_milk.csv")
+fwrite(maricopa_tp, "Data/maricopa_tp.csv")
