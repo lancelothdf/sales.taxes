@@ -17,6 +17,11 @@ balance_panel_data <- function(panel_data, n_periods, panel_unit){
   to_keep <- unique(panel_data, by = c("month", "year", panel_unit)) # check this
   to_keep[, count := .N, by = eval(panel_unit)]
   to_keep <- unique(to_keep[count == n_periods, eval(parse(text = panel_unit))])
+  original_length <- nrow(panel_data)
   panel_data <- panel_data[eval(parse(text = panel_unit)) %in% to_keep]
+  n_dropped <- original_length - nrow(panel_data)
+  if (n_dropped > 0){
+    warning(paste0(n_dropped, " out of ", original_length, " observations dropped when balancing panel"))
+  }
   return(panel_data)
 }

@@ -1,13 +1,19 @@
 #' Analyze outcome for one county, one product
 #'
 #' @description \code{one_cty_one_prod} analyzes the given data for a single
-#'     county for a single product type.
+#'     county for a single product type. The user must provide identifying
+#'     information for the county and for either a product module code or a UPC
+#'     (but not both).
 #' @param product_data Dataset to be analyzed (data.table). Should have columns
 #'     with \code{fips_county}, \code{fips_state}, \code{product_module_code}
 #' @param fips_state The state fips code of the desired state (integer)
 #' @param fips_county The county fips code of the desired county (integer)
 #' @param product_module_code The product module code of the desired product
 #'     (integer)
+#' @param upc The name of the UPC code (if product is given on UPC level) (integer).
+#'     \code{upc} may be a list if you would like to average over multiple
+#'     UPCs (if, for example, a brand replaces a product with another, similar
+#'     product)
 #' @param product_name The name of the product (for graph labeling) (character)
 #' @param month_of_reform The month of the tax reform (integer)
 #' @param year_of_reform The year of the tax reform (integer)
@@ -16,37 +22,74 @@
 #' @param module_exemptions_path The path to the .csv file containing a long
 #'     dataset of state-product level exemptions/special tax rates. The default
 #'     is "/project2/igaarder/Data/modules_exemptions_long.csv"
+#' @param balance_panel Force the panel to be balanced? (logical)
 #' @return A list including a \code{price_graph}, a \code{sales_graph}, and the
 #'     data collapsed to event-time level (\code{})
 #'
 
+#Hmm, how can this be modified to handle UPC level data?
+# Could have option allowing user to choose whether level == "upc" or "product",
+# then based on what the user specifies
 one_cty_one_prod <- function(product_data,
                              fips_state,
                              fips_county,
-                             product_module_code,
+                             product_module_code = NULL,
+                             upc = NULL,
                              product_name,
                              month_of_reform,
                              year_of_reform,
                              county_monthly_tax_data,
                              rm_month_effects = FALSE,
-                             module_exemptions_path = '/project2/igaarder/Data/modules_exemptions_long.csv'){
+                             module_exemptions_path = '/project2/igaarder/Data/modules_exemptions_long.csv',
+                             balance_panel = T){
+  #TODO: add checks for upc argument being integerish
   assertDataTable(product_data)
   assertIntegerish(fips_county)
   assertIntegerish(fips_state)
-  assertIntegerish(product_module_code)
+  assertIntegerish(product_module_code, null.ok = T)
   assertIntegerish(month_of_reform)
   assertIntegerish(year_of_reform)
   assertCharacter(product_name)
-  assertSubset(c("fips_county", "fips_state", "store_code_uc", "quantity", "sales",
-                 "product_module_code", "year", "month"), names(product_data))
+  assertLogical(balance_panel)
+  assertNumeric(upc, null.ok = T)
+  if (is.null(upc) & is.null(product_module_code)){
+    stop("Both `upc` and `product_module_code` cannot be NULL. Exactly one must be provided.")
+  } else if (!is.null(upc) & !is.null(product_module_code)){
+    stop("One of `upc` and `product_module_code` must be NULL. Either keep all of a product type or all of a UPC. See documentation.")
+  }
 
-  # first, extract the data for that subset
-  one_cty_prod <- product_data[fips_state == fips_state &
-                                 fips_county == fips_county &
-                                 product_module_code == product_module_code]
-  one_cty_prod <- balance_panel_data(one_cty_prod,
-                                    panel_unit = "store_code_uc",
-                                    n_periods = 84)
+  # I define a variable with a different name containing fips_state and
+  # fips_county (etc.) values because using the same name as the data.table
+  # column causes issues
+
+  fs_val <- fips_state
+  fc_val <- fips_county
+  if (!is.null(upc)){
+    assertSubset(c("fips_county", "fips_state", "store_code_uc", "quantity", "sales",
+                   "upc", "year", "month"), names(product_data))
+    upc_val <- upc
+    one_cty_prod <- product_data[fips_state == fs_val &
+                                 fips_county == fc_val &
+                                 upc %in% upc_val]
+  } else if (!is.null(product_module_code)){
+    assertSubset(c("fips_county", "fips_state", "store_code_uc", "quantity", "sales",
+                   "product_module_code", "year", "month"), names(product_data))
+    pmc_val <- product_module_code
+    one_cty_prod <- product_data[fips_state == fs_val &
+                                 fips_county == fc_val &
+                                 product_module_code == pmc_val]
+  }
+
+  # TODO: fix what happens when balance_panel = F (currently doesn't work)
+  if (min(one_cty_prod$year) < 2008 | max(one_cty_prod$year) > 2014){
+    warning("Dropping all data from before 2008 and after 2014")
+    one_cty_prod <- one_cty_prod[year >= 2008 & year <= 2014]
+  }
+  if (balance_panel){
+    one_cty_prod <- balance_panel_data(one_cty_prod,
+                                       panel_unit = "store_code_uc",
+                                       n_periods = 84)
+  }
   print(paste("Number of stores:", length(unique(one_cty_prod$store_code_uc))))
 
   if (!"price" %in% names(one_cty_prod)){
@@ -67,11 +110,7 @@ one_cty_one_prod <- function(product_data,
   }
   one_cty_prod[, event_time := year * 12 + month -
                  (year_of_reform * 12 + month_of_reform)]
-  one_cty_prod <- make_fixed_weights(panel_data = one_cty_prod,
-                                     weight_time = list(year = 2008,
-                                                        month = 1),
-                                     weight_var = "sales",
-                                     panel_unit_vars = "store_code_uc")
+
   note <- NULL
   if (rm_month_effects){
     pre_data <- one_cty_prod[event_time < 0]
@@ -95,10 +134,8 @@ one_cty_one_prod <- function(product_data,
 
 
   # then, collapse
-  one_cty_prod_collapsed <- one_cty_prod[, list(mean_price = weighted.mean(x = price,
-                                                                           w = sales.weight),
-                                                mean_price.taxed = weighted.mean(x = price_w_tax,
-                                                                                 w = sales.weight),
+  one_cty_prod_collapsed <- one_cty_prod[, list(mean_price = mean(price),
+                                                mean_price.taxed = mean(price_w_tax),
                                                 total_sales = sum(sales),
                                                 total_quantity = sum(quantity),
                                                 n_stores = .N),
