@@ -26,7 +26,7 @@ library(data.table)
 #fwrite(tp_sales_panel, file = "Data/Nielsen/allyears_toilet_tissue.csv")
 tp_sales_panel <- fread("Data/Nielsen/allyears_toilet_tissue.csv")
 master_products <- as.data.table(read.dta13("Data/Nielsen/master_products.dta"))
-tp_sales_panel <- merge(tp_sales_panel, master_products, all.x = T)
+tp_sales_panel <- merge(tp_sales_panel, master_products, by = "upc")
 fwrite(tp_sales_panel, file = "Data/Nielsen/allyears_toilet_tissue.csv")
 
 # limit data to Maricopa County, AZ
