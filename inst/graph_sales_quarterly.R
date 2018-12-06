@@ -29,7 +29,7 @@ sales_panel <- merge_tax_rates(sales_data = sales_panel,
 # Now aggregate to seasons
 sales_panel <- months_to_quarters(monthly_data = sales_panel,
                                   month_var = "month",
-                                  collapse_by = c("fips_state", "fips_county",
+                                  collapse_by = c("fips_state", "fips_county", "product_group_code",
                                                   "store_code_uc", "product_module_code"),
                                   collapse_var = "sales")
 fwrite(sales_panel, "Data/Nielsen/allyears_module_store_quarterly.csv")
