@@ -107,10 +107,10 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   weight_var = NULL)
   }
   product_by_county_sales[, ln_total_sales := ln_total_sales_residual]
-  compr_outfile <- paste0("Graphs/log_sales_residualized_compr_qly_allgoods_", resid_type, ".png")
-  compr_es_outfile <- paste0("Graphs/log_sales_es_residualized_compr_qly_allgoods_", resid_type, ".png")
-  restr_outfile <- paste0("Graphs/log_sales_residualized_restr_qly_allgoods_", resid_type, ".png")
-  restr_es_outfile <- paste0("Graphs/log_sales_es_residualized_restr_qly_allgoods_", resid_type, ".png")
+  compr_outfile <- paste0("Graphs/log_sales_residualized_compr_qly_allgoods_", resid_type, "region.png")
+  compr_es_outfile <- paste0("Graphs/log_sales_es_residualized_compr_qly_allgoods_", resid_type, "region.png")
+  restr_outfile <- paste0("Graphs/log_sales_residualized_restr_qly_allgoods_", resid_type, "region.png")
+  restr_es_outfile <- paste0("Graphs/log_sales_es_residualized_restr_qly_allgoods_", resid_type, "region.png")
   ### COMPREHENSIVE DEFINITION ###
   sales_application(product_by_county_sales,
                     treatment_data_path = "Data/tr_groups_comprehensive.csv",
