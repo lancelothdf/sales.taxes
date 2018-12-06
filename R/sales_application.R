@@ -4,7 +4,8 @@ sales_application <- function(sales_data,
                               treatment_data_path,
                               time,
                               fig_outfile = NULL,
-                              quarterly = F){
+                              quarterly = F,
+                              pop_weights){
   assertDataTable(sales_data)
   assertCharacter(treatment_data_path)
   assertCharacter(time)
@@ -24,11 +25,19 @@ sales_application <- function(sales_data,
   }
 
   if (time == "calendar"){
-    sales_collapsed <- sales_panel[, list(mean_log_sales = weighted.mean(x = ln_total_sales,
-                                                                            w = population),
-                                             n_counties = uniqueN(1000 * fips_state + fips_county),
-                                             n_stores = sum(n_stores)),
-                                      by = c("tr_group", "year", time_var)]
+    if (pop_weights){
+      sales_collapsed <- sales_panel[, list(mean_log_sales = weighted.mean(x = ln_total_sales,
+                                                                           w = population),
+                                            n_counties = uniqueN(1000 * fips_state + fips_county),
+                                            n_stores = sum(n_stores)),
+                                     by = c("tr_group", "year", time_var)]
+    } else {
+      sales_collapsed <- sales_panel[, list(mean_log_sales = mean(ln_total_sales),
+                                            n_counties = uniqueN(1000 * fips_state + fips_county),
+                                            n_stores = sum(n_stores)),
+                                     by = c("tr_group", "year", time_var)]
+    }
+
 
     sales_collapsed <- add_tr_count(collapsed_data = sales_collapsed,
                                     tr_group_name = "tr_group",
@@ -72,11 +81,20 @@ sales_application <- function(sales_data,
       sales_panel[, tt_event := as.integer(3 * year + quarter - (3 * ref_year + ref_quarter))]
       sales_panel <- sales_panel[tt_event >= -8 & tt_event <= 8]
     }
-    es_sales_collapsed <- sales_panel[, list(mean_log_sales = weighted.mean(x = ln_total_sales,
-                                                                            w = population),
-                                             n_counties = uniqueN(1000 * fips_state + fips_county),
-                                             n_stores = sum(n_stores)),
-                                      by = c("tr_group", "tt_event")]
+
+    if (pop_weights){
+      es_sales_collapsed <- sales_panel[, list(mean_log_sales = weighted.mean(x = ln_total_sales,
+                                                                              w = population),
+                                               n_counties = uniqueN(1000 * fips_state + fips_county),
+                                               n_stores = sum(n_stores)),
+                                        by = c("tr_group", "tt_event")]
+    } else {
+      es_sales_collapsed <- sales_panel[, list(mean_log_sales = mean(ln_total_sales),
+                                               n_counties = uniqueN(1000 * fips_state + fips_county),
+                                               n_stores = sum(n_stores)),
+                                        by = c("tr_group", "tt_event")]
+    }
+
     # add number of counties
     es_sales_collapsed <- add_tr_count(collapsed_data = es_sales_collapsed,
                                        tr_group_name = "tr_group",

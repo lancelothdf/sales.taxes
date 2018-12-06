@@ -33,35 +33,22 @@ library(ggplot2)
 #                                                   "store_code_uc", "product_module_code"),
 #                                   collapse_var = "sales")
 # fwrite(sales_panel, "Data/Nielsen/allyears_module_store_quarterly.csv")
-#
-# sales_panel <- make_fixed_weights(panel_data = sales_panel,
-#                                   weight_time = list(year = 2008, quarter = 1),
-#                                   weight_var = "sales",
-#                                   panel_unit_vars = c("fips_state", "fips_county", "store_code_uc", "product_module_code"))
-#
-# # Aggregate to county x product level
-# product_by_county_sales <- sales_panel[, list(ln_total_sales = log(sum(sales)),
-#                                               n_stores = .N),
-#                                        by = c("fips_state", "fips_county",
-#                                               "product_module_code", "product_group_code",
-#                                               "quarter", "year")]
-#
-# fwrite(product_by_county_sales, "Data/Nielsen/product_by_county_sales_quarterly.csv")
+sales_panel <- fread("Data/Nielsen/allyears_module_store_quarterly.csv")
 
-product_by_county_sales <- fread("Data/Nielsen/product_by_county_sales_quarterly.csv")
-product_by_county_sales <- make_fixed_weights(panel_data = product_by_county_sales,
+sales_panel <- make_fixed_weights(panel_data = sales_panel,
                                   weight_time = list(year = 2008, quarter = 1),
-                                  weight_var = "ln_total_sales",
-                                  panel_unit_vars = c("fips_state", "fips_county", "product_module_code"))
-product_by_county_sales[, ln_total_sales := ln_total_sales - ln_total_sales.weight]
+                                  weight_var = "sales",
+                                  panel_unit_vars = c("fips_state", "fips_county", "store_code_uc", "product_module_code"))
+sales_panel[, ln_total_sales := log(sales / sales.weight)]
 
 # product_by_county_sales <- fread("Data/Nielsen/product_by_county_sales.csv")
 
 # merge county population on to sales_panel for weights
-county_pop <- fread("Data/county_population.csv")
-preprocessed_sales <- merge(product_by_county_sales,
-                                 county_pop,
-                                 by = c("fips_state", "fips_county"))
+preprocessed_sales <- sales_panel
+# county_pop <- fread("Data/county_population.csv")
+# preprocessed_sales <- merge(product_by_county_sales,
+#                                  county_pop,
+#                                  by = c("fips_state", "fips_county"))
 
 # this would be a good place to residualize
 for (resid_type in c("A", "B", "C", "D", "E")){
@@ -74,7 +61,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = FALSE,
                                                   calendar_time = FALSE,
                                                   product_group_trend = FALSE,
-                                                  weight_var = "population")
+                                                  weight_var = NULL)
 
   } else if (resid_type == "B"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
@@ -84,7 +71,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = FALSE,
                                                   calendar_time = FALSE,
                                                   product_group_trend = TRUE,
-                                                  weight_var = "population")
+                                                  weight_var = NULL)
   } else if (resid_type == "C"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
                                                   outcome_var = "ln_total_sales",
@@ -93,7 +80,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = TRUE,
                                                   calendar_time = FALSE,
                                                   product_group_trend = FALSE,
-                                                  weight_var = "population")
+                                                  weight_var = NULL)
   } else if (resid_type == "D"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
                                                   outcome_var = "ln_total_sales",
@@ -102,7 +89,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = TRUE,
                                                   calendar_time = FALSE,
                                                   product_group_trend = TRUE,
-                                                  weight_var = "population")
+                                                  weight_var = NULL)
   } else if (resid_type == "E"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
                                                   outcome_var = "ln_total_sales",
@@ -111,7 +98,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = FALSE,
                                                   calendar_time = TRUE,
                                                   product_group_trend = FALSE,
-                                                  weight_var = "population")
+                                                  weight_var = NULL)
   }
   product_by_county_sales[, ln_total_sales := ln_total_sales_residual]
   compr_outfile <- paste0("Graphs/log_sales_residualized_compr_qly_", resid_type, ".png")
@@ -123,28 +110,32 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                     treatment_data_path = "Data/tr_groups_comprehensive.csv",
                     time = "calendar",
                     fig_outfile = compr_outfile,
-                    quarterly = T)
+                    quarterly = T,
+                    pop_weights = F)
 
   ### event study-like ###
   sales_application(product_by_county_sales,
                     treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
                     time = "event",
                     fig_outfile = compr_es_outfile,
-                    quarterly = T)
+                    quarterly = T,
+                    pop_weights = F)
 
   ### RESTRICTIVE DEFINITION ###
   sales_application(product_by_county_sales,
                     treatment_data_path = "Data/tr_groups_restrictive.csv",
                     time = "calendar",
                     fig_outfile = restr_outfile,
-                    quarterly = T)
+                    quarterly = T,
+                    pop_weights = F)
 
   ### event study-like ###
   sales_application(product_by_county_sales,
                     treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
                     time = "event",
                     fig_outfile = restr_es_outfile,
-                    quarterly = T)
+                    quarterly = T,
+                    pop_weights = F)
 }
 
 # ### COMPREHENSIVE DEFINITION ###
