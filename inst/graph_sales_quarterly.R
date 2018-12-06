@@ -15,39 +15,40 @@ library(data.table)
 library(zoo)
 library(ggplot2)
 
-sales_panel <- fread("Data/Nielsen/allyears_module_store_level.csv")
-# we only want stores that are balanced from Jan 2008 to Dec 2014 (84 months)
-sales_panel <- balance_panel_data(sales_panel,
-                                  panel_unit = "store_code_uc",
-                                  n_periods = 84)
-# remove tax-exempt items
-county_monthly_tax <- fread("Data/county_monthly_tax_rates.csv")
-county_monthly_tax <- county_monthly_tax[, .(fips_state, fips_county, year, month, sales_tax)]
-sales_panel <- merge_tax_rates(sales_data = sales_panel,
-                               keep_taxable_only = T,
-                               county_monthly_tax_data = county_monthly_tax)
-# Now aggregate to seasons
-sales_panel <- months_to_quarters(monthly_data = sales_panel,
-                                  month_var = "month",
-                                  collapse_by = c("fips_state", "fips_county", "product_group_code",
-                                                  "store_code_uc", "product_module_code"),
-                                  collapse_var = "sales")
-fwrite(sales_panel, "Data/Nielsen/allyears_module_store_quarterly.csv")
+# sales_panel <- fread("Data/Nielsen/allyears_module_store_level.csv")
+# # we only want stores that are balanced from Jan 2008 to Dec 2014 (84 months)
+# sales_panel <- balance_panel_data(sales_panel,
+#                                   panel_unit = "store_code_uc",
+#                                   n_periods = 84)
+# # remove tax-exempt items
+# county_monthly_tax <- fread("Data/county_monthly_tax_rates.csv")
+# county_monthly_tax <- county_monthly_tax[, .(fips_state, fips_county, year, month, sales_tax)]
+# sales_panel <- merge_tax_rates(sales_data = sales_panel,
+#                                keep_taxable_only = T,
+#                                county_monthly_tax_data = county_monthly_tax)
+# # Now aggregate to seasons
+# sales_panel <- months_to_quarters(monthly_data = sales_panel,
+#                                   month_var = "month",
+#                                   collapse_by = c("fips_state", "fips_county", "product_group_code",
+#                                                   "store_code_uc", "product_module_code"),
+#                                   collapse_var = "sales")
+# fwrite(sales_panel, "Data/Nielsen/allyears_module_store_quarterly.csv")
+#
+# sales_panel <- make_fixed_weights(panel_data = sales_panel,
+#                                   weight_time = list(year = 2008, quarter = 1),
+#                                   weight_var = "sales",
+#                                   panel_unit_vars = c("fips_state", "fips_county", "store_code_uc", "product_module_code"))
+#
+# # Aggregate to county x product level
+# product_by_county_sales <- sales_panel[, list(ln_total_sales = log(sum(sales)),
+#                                               n_stores = .N),
+#                                        by = c("fips_state", "fips_county",
+#                                               "product_module_code", "product_group_code",
+#                                               "quarter", "year")]
+#
+# fwrite(product_by_county_sales, "Data/Nielsen/product_by_county_sales_quarterly.csv")
 
-sales_panel <- make_fixed_weights(panel_data = sales_panel,
-                                  weight_time = list(year = 2008, quarter = 1),
-                                  weight_var = "sales",
-                                  panel_unit_vars = c("fips_state", "fips_county", "store_code_uc", "product_module_code"))
-
-# Aggregate to county x product level
-product_by_county_sales <- sales_panel[, list(ln_total_sales = log(sum(sales)),
-                                              n_stores = .N),
-                                       by = c("fips_state", "fips_county",
-                                              "product_module_code", "product_group_code",
-                                              "quarter", "year")]
-
-fwrite(product_by_county_sales, "Data/Nielsen/product_by_county_sales_quarterly.csv")
-
+product_by_county_sales <- fread("Data/Nielsen/product_by_county_sales_quarterly.csv")
 product_by_county_sales <- make_fixed_weights(panel_data = product_by_county_sales,
                                   weight_time = list(year = 2008, quarter = 1),
                                   weight_var = "ln_total_sales",

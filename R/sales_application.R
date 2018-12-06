@@ -20,6 +20,9 @@ sales_application <- function(sales_data,
                                  time = time,
                                  merge_by = c("fips_county", "fips_state"))
   if (quarterly){
+    print(head(sales_panel)) # for debugging
+    print(names(sales_panel)) # for debugging
+    print("Defining ref_quarter") # for debugging
     sales_panel[, ref_quarter := ceiling(ref_month / 3)]
   }
 
