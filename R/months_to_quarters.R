@@ -14,9 +14,9 @@ months_to_quarters <- function(monthly_data, month_var, collapse_by,
                                collapse_var, weights = F){
   assertDataTable(monthly_data)
   assertCharacter(month_var)
-  assertCharacter(collapse_vars)
+  assertCharacter(collapse_var)
   assertSubset(month_var, names(monthly_data))
-  assertSubset(collapse_vars, names(monthly_data))
+  assertSubset(collapse_var, names(monthly_data))
   assertSubset("year", names(monthly_data))
   assertNumeric(monthly_data[, get(month_var)])
   warning("`months_to_quarters()` currently aggregates by summing over months")
