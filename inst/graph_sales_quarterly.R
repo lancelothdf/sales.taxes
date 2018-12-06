@@ -38,7 +38,7 @@ sales_panel <- make_fixed_weights(panel_data = sales_panel,
                                   weight_time = list(year = 2008, quarter = 1),
                                   weight_var = "sales",
                                   panel_unit_vars = c("fips_state", "fips_county", "store_code_uc", "product_module_code"))
-sales_panel[, sales := sales - sales.weight]
+sales_panel[, sales := sales/sales.weight] #TODO: need to figure out what to do if this is negative...
 
 # Aggregate to county x product level
 product_by_county_sales <- sales_panel[, list(ln_total_sales = log(sum(sales)),
