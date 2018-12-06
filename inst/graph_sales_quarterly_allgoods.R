@@ -62,6 +62,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = FALSE,
                                                   calendar_time = FALSE,
                                                   product_group_trend = FALSE,
+                                                  census_region_trends = TRUE,
                                                   weight_var = NULL)
 
   } else if (resid_type == "B"){
@@ -72,6 +73,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = FALSE,
                                                   calendar_time = FALSE,
                                                   product_group_trend = TRUE,
+                                                  census_region_trends = TRUE,
                                                   weight_var = NULL)
   } else if (resid_type == "C"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
@@ -81,6 +83,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = TRUE,
                                                   calendar_time = FALSE,
                                                   product_group_trend = FALSE,
+                                                  census_region_trends = TRUE,
                                                   weight_var = NULL)
   } else if (resid_type == "D"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
@@ -90,6 +93,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = TRUE,
                                                   calendar_time = FALSE,
                                                   product_group_trend = TRUE,
+                                                  census_region_trends = TRUE,
                                                   weight_var = NULL)
   } else if (resid_type == "E"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
@@ -99,6 +103,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = FALSE,
                                                   calendar_time = TRUE,
                                                   product_group_trend = FALSE,
+                                                  census_region_trends = TRUE,
                                                   weight_var = NULL)
   }
   product_by_county_sales[, ln_total_sales := ln_total_sales_residual]

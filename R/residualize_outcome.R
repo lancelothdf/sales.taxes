@@ -58,7 +58,8 @@ residualize_outcome <- function(input_data,
 #' @param year_var The name of the year variable (character).
 #' @param month_dummies Residualize out month-of-year effects? (logical)
 #' @param calendar_time Residualize out calendar-time effects? (logical)
-#' @param product_group_trend Residualize out product-group-specific trends?
+#' @param product_group_trend Residualize out product-group-specific trends? (logical)
+#' @param census_region_trends Residualize out trends with census region cells? (logical)
 #' @param weight_var Optional. The name of the variable to weight the
 #'     regressions when residualizing (character).
 #' @details \code{remove_time_trends} is meant to residualize data in a variety
@@ -104,7 +105,8 @@ residualize_outcome <- function(input_data,
 
 remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
                                month_dummies = FALSE, calendar_time = FALSE,
-                               product_group_trend = FALSE, weight_var = NULL){
+                               product_group_trend = FALSE,
+                               census_region_trends = FALSE, weight_var = NULL){
   assertDataTable(input_data)
   assertCharacter(outcome_var)
   assertCharacter(month_var)
@@ -117,6 +119,34 @@ remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
   assertSubset(month_var, names(input_data))
   assertSubset(year_var, names(input_data))
   assertSubset(weight_var, names(input_data))
+
+  #### NEED TO TEST ####
+  if (census_region_trends){
+    assertSubset("fips_state", names(input_data))
+    regions <- list(
+      northeast = c(9, 23, 25, 33, 44, 50, 34, 36, 42),
+      midwest = c(17, 18, 26, 39, 55, 19, 20, 27, 29, 31, 38, 46),
+      south = c(10, 11, 12, 13, 24, 37, 45, 51, 54, 1, 21, 28, 47, 5, 22, 40, 48),
+      west = c(4, 8, 16, 30, 32, 35, 49, 56, 2, 6, 15, 41, 53)
+    )
+
+    return_data <- data.table(NULL)
+    for (region in regions){
+      return_data <- rbind(return_data,
+                           remove_time_trends(input_data = input_data[fips_state %in% region],
+                                              outcome_var = outcome_var,
+                                              month_var = month_var,
+                                              year_var = year_var,
+                                              month_dummies = month_dummies,
+                                              calendar_time = calendar_time,
+                                              product_group_trend = product_group_trend,
+                                              census_region_trends = FALSE,
+                                              weight_var = weight_var))
+    }
+    return(return_data)
+  }
+
+  ############################
 
   if (calendar_time & month_dummies){
     stop("`calendar_time' and `month_dummies' cannot both be true")
