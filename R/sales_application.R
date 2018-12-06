@@ -28,13 +28,11 @@ sales_application <- function(sales_data,
     if (pop_weights){
       sales_collapsed <- sales_panel[, list(mean_log_sales = weighted.mean(x = ln_total_sales,
                                                                            w = population),
-                                            n_counties = uniqueN(1000 * fips_state + fips_county),
-                                            n_stores = sum(n_stores)),
+                                            n_counties = uniqueN(1000 * fips_state + fips_county)),
                                      by = c("tr_group", "year", time_var)]
     } else {
       sales_collapsed <- sales_panel[, list(mean_log_sales = mean(ln_total_sales),
-                                            n_counties = uniqueN(1000 * fips_state + fips_county),
-                                            n_stores = sum(n_stores)),
+                                            n_counties = uniqueN(1000 * fips_state + fips_county)),
                                      by = c("tr_group", "year", time_var)]
     }
 
@@ -85,13 +83,11 @@ sales_application <- function(sales_data,
     if (pop_weights){
       es_sales_collapsed <- sales_panel[, list(mean_log_sales = weighted.mean(x = ln_total_sales,
                                                                               w = population),
-                                               n_counties = uniqueN(1000 * fips_state + fips_county),
-                                               n_stores = sum(n_stores)),
+                                               n_counties = uniqueN(1000 * fips_state + fips_county)),
                                         by = c("tr_group", "tt_event")]
     } else {
       es_sales_collapsed <- sales_panel[, list(mean_log_sales = mean(ln_total_sales),
-                                               n_counties = uniqueN(1000 * fips_state + fips_county),
-                                               n_stores = sum(n_stores)),
+                                               n_counties = uniqueN(1000 * fips_state + fips_county)),
                                         by = c("tr_group", "tt_event")]
     }
 
