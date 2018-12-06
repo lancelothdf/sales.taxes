@@ -102,10 +102,10 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   weight_var = NULL)
   }
   product_by_county_sales[, ln_total_sales := ln_total_sales_residual]
-  compr_outfile <- paste0("Graphs/log_sales_residualized_compr_qly_", resid_type, ".png")
-  compr_es_outfile <- paste0("Graphs/log_sales_es_residualized_compr_qly_", resid_type, ".png")
-  restr_outfile <- paste0("Graphs/log_sales_residualized_restr_qly_", resid_type, ".png")
-  restr_es_outfile <- paste0("Graphs/log_sales_es_residualized_restr_qly_", resid_type, ".png")
+  compr_outfile <- paste0("Graphs/log_sales_residualized_compr_qly_allgoods_", resid_type, ".png")
+  compr_es_outfile <- paste0("Graphs/log_sales_es_residualized_compr_qly_allgoods_", resid_type, ".png")
+  restr_outfile <- paste0("Graphs/log_sales_residualized_restr_qly_allgoods_", resid_type, ".png")
+  restr_es_outfile <- paste0("Graphs/log_sales_es_residualized_restr_qly_allgoods_", resid_type, ".png")
   ### COMPREHENSIVE DEFINITION ###
   sales_application(product_by_county_sales,
                     treatment_data_path = "Data/tr_groups_comprehensive.csv",
@@ -122,21 +122,21 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                     quarterly = T,
                     pop_weights = F)
 
-  ### RESTRICTIVE DEFINITION ###
-  sales_application(product_by_county_sales,
-                    treatment_data_path = "Data/tr_groups_restrictive.csv",
-                    time = "calendar",
-                    fig_outfile = restr_outfile,
-                    quarterly = T,
-                    pop_weights = F)
-
-  ### event study-like ###
-  sales_application(product_by_county_sales,
-                    treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
-                    time = "event",
-                    fig_outfile = restr_es_outfile,
-                    quarterly = T,
-                    pop_weights = F)
+  # ### RESTRICTIVE DEFINITION ###
+  # sales_application(product_by_county_sales,
+  #                   treatment_data_path = "Data/tr_groups_restrictive.csv",
+  #                   time = "calendar",
+  #                   fig_outfile = restr_outfile,
+  #                   quarterly = T,
+  #                   pop_weights = F)
+  #
+  # ### event study-like ###
+  # sales_application(product_by_county_sales,
+  #                   treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
+  #                   time = "event",
+  #                   fig_outfile = restr_es_outfile,
+  #                   quarterly = T,
+  #                   pop_weights = F)
 }
 
 # ### COMPREHENSIVE DEFINITION ###
