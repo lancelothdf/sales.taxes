@@ -176,6 +176,7 @@ remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
                                               census_division_trends = FALSE,
                                               weight_var = weight_var))
     }
+    return(return_data)
   }
 
   ############################
