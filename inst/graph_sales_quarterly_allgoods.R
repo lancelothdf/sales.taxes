@@ -62,7 +62,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = FALSE,
                                                   calendar_time = FALSE,
                                                   product_group_trend = FALSE,
-                                                  census_region_trends = TRUE,
+                                                  census_division_trends = TRUE,
                                                   weight_var = NULL)
 
   } else if (resid_type == "B"){
@@ -73,7 +73,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = FALSE,
                                                   calendar_time = FALSE,
                                                   product_group_trend = TRUE,
-                                                  census_region_trends = TRUE,
+                                                  census_division_trends = TRUE,
                                                   weight_var = NULL)
   } else if (resid_type == "C"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
@@ -83,7 +83,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = TRUE,
                                                   calendar_time = FALSE,
                                                   product_group_trend = FALSE,
-                                                  census_region_trends = TRUE,
+                                                  census_division_trends = TRUE,
                                                   weight_var = NULL)
   } else if (resid_type == "D"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
@@ -93,7 +93,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = TRUE,
                                                   calendar_time = FALSE,
                                                   product_group_trend = TRUE,
-                                                  census_region_trends = TRUE,
+                                                  census_division_trends = TRUE,
                                                   weight_var = NULL)
   } else if (resid_type == "E"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
@@ -103,14 +103,14 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = FALSE,
                                                   calendar_time = TRUE,
                                                   product_group_trend = FALSE,
-                                                  census_region_trends = TRUE,
+                                                  census_division_trends = TRUE,
                                                   weight_var = NULL)
   }
   product_by_county_sales[, ln_total_sales := ln_total_sales_residual]
-  compr_outfile <- paste0("Graphs/log_sales_residualized_compr_qly_allgoods_", resid_type, "region.png")
-  compr_es_outfile <- paste0("Graphs/log_sales_es_residualized_compr_qly_allgoods_", resid_type, "region.png")
-  restr_outfile <- paste0("Graphs/log_sales_residualized_restr_qly_allgoods_", resid_type, "region.png")
-  restr_es_outfile <- paste0("Graphs/log_sales_es_residualized_restr_qly_allgoods_", resid_type, "region.png")
+  compr_outfile <- paste0("Graphs/log_sales_residualized_compr_qly_allgoods_", resid_type, "district.png")
+  compr_es_outfile <- paste0("Graphs/log_sales_es_residualized_compr_qly_allgoods_", resid_type, "district.png")
+  restr_outfile <- paste0("Graphs/log_sales_residualized_restr_qly_allgoods_", resid_type, "district.png")
+  restr_es_outfile <- paste0("Graphs/log_sales_es_residualized_restr_qly_allgoods_", resid_type, "district.png")
   ### COMPREHENSIVE DEFINITION ###
   sales_application(product_by_county_sales,
                     treatment_data_path = "Data/tr_groups_comprehensive.csv",

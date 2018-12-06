@@ -60,6 +60,7 @@ residualize_outcome <- function(input_data,
 #' @param calendar_time Residualize out calendar-time effects? (logical)
 #' @param product_group_trend Residualize out product-group-specific trends? (logical)
 #' @param census_region_trends Residualize out trends with census region cells? (logical)
+#' @param census_division_trends Residualize out trends with census division cells? (logical)
 #' @param weight_var Optional. The name of the variable to weight the
 #'     regressions when residualizing (character).
 #' @details \code{remove_time_trends} is meant to residualize data in a variety
@@ -105,8 +106,8 @@ residualize_outcome <- function(input_data,
 
 remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
                                month_dummies = FALSE, calendar_time = FALSE,
-                               product_group_trend = FALSE,
-                               census_region_trends = FALSE, weight_var = NULL){
+                               product_group_trend = FALSE, census_region_trends = FALSE,
+                               census_division_trends = FALSE, weight_var = NULL){
   assertDataTable(input_data)
   assertCharacter(outcome_var)
   assertCharacter(month_var)
@@ -121,7 +122,7 @@ remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
   assertSubset(weight_var, names(input_data))
 
   #### NEED TO TEST ####
-  if (census_region_trends){
+  if (census_region_trends & !census_division_trends){
     assertSubset("fips_state", names(input_data))
     regions <- list(
       northeast = c(9, 23, 25, 33, 44, 50, 34, 36, 42),
@@ -141,9 +142,40 @@ remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
                                               calendar_time = calendar_time,
                                               product_group_trend = product_group_trend,
                                               census_region_trends = FALSE,
+                                              census_division_trends = FALSE,
                                               weight_var = weight_var))
     }
     return(return_data)
+  } else if (census_division_trends){
+    assertSubset("fips_state", names(input_data))
+    divisions <- list(
+      new_england <- c(9, 23, 25, 33, 44, 50),
+      middle_atlantic <- c(34, 36, 42),
+      east_north_central <- c(17, 18, 26, 39, 55),
+      west_north_central <- c(19, 20, 27, 29, 31, 38, 46),
+      south_atlantic <- c(10, 11, 12, 13, 24, 37, 45, 51, 54),
+      east_south_central <- c(1, 21, 28, 47),
+      west_south_central <- c(5, 22, 40, 48),
+      mountain <- c(4, 8, 16, 30, 32, 35, 49, 56),
+      pacific <- c(2, 6, 15, 41, 53)
+    )
+    if (census_region_trends){
+      warning("Both `census_region_trends` and `census_division_trends` were specified TRUE. Trends will only be residualized on the finer, division level.")
+    }
+    return_data <- data.table(NULL)
+    for (division in divisions){
+      return_data <- rbind(return_data,
+                           remove_time_trends(input_data = input_data[fips_state %in% division],
+                                              outcome_var = outcome_var,
+                                              month_var = month_var,
+                                              year_var = year_var,
+                                              month_dummies = month_dummies,
+                                              calendar_time = calendar_time,
+                                              product_group_trend = product_group_trend,
+                                              census_region_trends = FALSE,
+                                              census_division_trends = FALSE,
+                                              weight_var = weight_var))
+    }
   }
 
   ############################
