@@ -32,7 +32,7 @@ sales_panel <- months_to_quarters(monthly_data = sales_panel,
                                   collapse_by = c("fips_state", "fips_county",
                                                   "store_code_uc", "product_module_code"),
                                   collapse_var = "sales")
-fwrite("Data/Nielsen/allyears_module_store_quarterly.csv")
+fwrite(sales_panel, "Data/Nielsen/allyears_module_store_quarterly.csv")
 
 sales_panel <- make_fixed_weights(panel_data = sales_panel,
                                   weight_time = list(year = 2008, quarter = 1),
