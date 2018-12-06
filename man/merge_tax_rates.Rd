@@ -6,6 +6,7 @@
 \usage{
 merge_tax_rates(sales_data, county_monthly_tax_data,
   keep_taxable_only = F, remove_tax_missing = T,
+  module_exemptions = NULL,
   module_exemptions_path = "/project2/igaarder/Data/modules_exemptions_long.csv")
 }
 \arguments{
@@ -14,6 +15,10 @@ or sales information (but not tax rates) (data.table)}
 
 \item{county_monthly_tax_data}{A dataset of county-by-month tax rates
 (data.table)}
+
+\item{module_exemptions}{A dataset of state-product-year level exemptions/
+special tax rates (data.table) If left \code{NULL} (default), the program
+will read a dataset from the provided \code{module_exemptions_path}.}
 
 \item{module_exemptions_path}{The path to the .csv file containing a long
 dataset of state-product level exemptions/special tax rates. The default

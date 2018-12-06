@@ -6,7 +6,7 @@
 \usage{
 es_price_application(price_data, treatment_data_path,
   county_pop_data = NULL, county_sales_weights = NULL, weighting_var,
-  price_var, w_tax, fig_outfile = NULL)
+  price_var, resid_type = NULL, w_tax, fig_outfile = NULL)
 }
 \description{
 Make event study graphs for prices (temporary file)

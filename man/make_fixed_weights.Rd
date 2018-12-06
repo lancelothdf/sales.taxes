@@ -21,6 +21,10 @@ be used to create the weight (character)}
 uniquely identify the panel units for which the weights are to be
 calculated (character)}
 }
+\value{
+The same \code{panel_data} dataset but with a new variable ending
+    in \code{".weight"} on the \code{panel_unit_vars} level
+}
 \description{
 \code{make_fixed_weights} creates a weight for panel units
     based on a specific time period in the sample.
