@@ -5,10 +5,26 @@ sales_application <- function(sales_data,
                               time,
                               fig_outfile = NULL,
                               quarterly = F,
-                              pop_weights){
+                              pop_weights,
+                              create_es_control = F,
+                              control_counties = NULL){
   assertDataTable(sales_data)
   assertCharacter(treatment_data_path)
   assertCharacter(time)
+  assertCharacter(fig_outfile, null.ok = T)
+  assertLogical(quarterly)
+  assertLogical(pop_weights)
+  assertLogical(create_es_control)
+  assertDataTable(control_counties, null.ok = T)
+  if (pop_weights & create_es_control){
+    stop("Using population weights and creating an event study control is currently not an option.")
+  }
+  if (time == "calendar" & create_es_control){
+    print("Note: You specified `time == 'calendar'` and `create_es_control == T`. Control groups are always automatically included in calendar time graphs.")
+  }
+  if (create_es_control & is.null(control_counties) & time == "event"){
+    stop("To create an event study control group, a data.table of control observations must be provided")
+  }
 
   if (quarterly){
     time_var <- "quarter"
@@ -78,6 +94,13 @@ sales_application <- function(sales_data,
     } else {
       sales_panel[, tt_event := as.integer(3 * year + quarter - (3 * ref_year + ref_quarter))]
       sales_panel <- sales_panel[tt_event >= -8 & tt_event <= 8]
+    }
+    if (create_es_control){
+      time_var <- ifelse(quarterly, "quarter", "month")
+      sales_panel <- create_pseudo_control(es_data = sales_panel,
+                                           original_data = sales_data,
+                                           control_counties = control_counties,
+                                           time_var = time_var)
     }
 
     if (pop_weights){
