@@ -43,7 +43,6 @@ sales_panel <- make_fixed_weights(panel_data = sales_panel,
 sales_panel[, ln_total_sales := log(sales / sales.weight)]
 
 # product_by_county_sales <- fread("Data/Nielsen/product_by_county_sales.csv")
-
 # merge county population on to sales_panel for weights
 preprocessed_sales <- sales_panel
 # county_pop <- fread("Data/county_population.csv")
@@ -51,7 +50,10 @@ preprocessed_sales <- sales_panel
 #                                  county_pop,
 #                                  by = c("fips_state", "fips_county"))
 
-# this would be a good place to residualize
+compr_control_counties <- fread("Data/tr_groups_comprehensive.csv")
+compr_control_counties <- compr_control_counties[tr_group == "No change"]
+compr_control_counties <- unique(compr_control_counties[, .(fips_county, fips_state)])
+
 for (resid_type in c("A", "B", "C", "D", "E")){
   # Question is: ok to residualize first? Should be...
   if (resid_type == "A"){
@@ -62,7 +64,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = FALSE,
                                                   calendar_time = FALSE,
                                                   product_group_trend = FALSE,
-                                                  census_division_trends = TRUE,
+                                                  census_region_trends = TRUE,
                                                   weight_var = NULL)
 
   } else if (resid_type == "B"){
@@ -73,7 +75,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = FALSE,
                                                   calendar_time = FALSE,
                                                   product_group_trend = TRUE,
-                                                  census_division_trends = TRUE,
+                                                  census_region_trends = TRUE,
                                                   weight_var = NULL)
   } else if (resid_type == "C"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
@@ -83,7 +85,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = TRUE,
                                                   calendar_time = FALSE,
                                                   product_group_trend = FALSE,
-                                                  census_division_trends = TRUE,
+                                                  census_region_trends = TRUE,
                                                   weight_var = NULL)
   } else if (resid_type == "D"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
@@ -93,7 +95,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = TRUE,
                                                   calendar_time = FALSE,
                                                   product_group_trend = TRUE,
-                                                  census_division_trends = TRUE,
+                                                  census_region_trends = TRUE,
                                                   weight_var = NULL)
   } else if (resid_type == "E"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
@@ -103,21 +105,21 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                                                   month_dummies = FALSE,
                                                   calendar_time = TRUE,
                                                   product_group_trend = FALSE,
-                                                  census_division_trends = TRUE,
+                                                  census_region_trends = TRUE,
                                                   weight_var = NULL)
   }
   product_by_county_sales[, ln_total_sales := ln_total_sales_residual]
-  compr_outfile <- paste0("Graphs/log_sales_residualized_compr_qly_allgoods_", resid_type, "district.png")
-  compr_es_outfile <- paste0("Graphs/log_sales_es_residualized_compr_qly_allgoods_", resid_type, "district.png")
-  restr_outfile <- paste0("Graphs/log_sales_residualized_restr_qly_allgoods_", resid_type, "district.png")
-  restr_es_outfile <- paste0("Graphs/log_sales_es_residualized_restr_qly_allgoods_", resid_type, "district.png")
+  compr_outfile <- paste0("Graphs/log_sales_residualized_compr_qly_allgoods_", resid_type, "region.png")
+  compr_es_outfile <- paste0("Graphs/log_sales_es_residualized_compr_qly_allgoods_", resid_type, "region.png")
+  restr_outfile <- paste0("Graphs/log_sales_residualized_restr_qly_allgoods_", resid_type, "region.png")
+  restr_es_outfile <- paste0("Graphs/log_sales_es_residualized_restr_qly_allgoods_", resid_type, "region.png")
   ### COMPREHENSIVE DEFINITION ###
-  sales_application(product_by_county_sales,
-                    treatment_data_path = "Data/tr_groups_comprehensive.csv",
-                    time = "calendar",
-                    fig_outfile = compr_outfile,
-                    quarterly = T,
-                    pop_weights = F)
+  # sales_application(product_by_county_sales,
+  #                   treatment_data_path = "Data/tr_groups_comprehensive.csv",
+  #                   time = "calendar",
+  #                   fig_outfile = compr_outfile,
+  #                   quarterly = T,
+  #                   pop_weights = F)
 
   ### event study-like ###
   sales_application(product_by_county_sales,
@@ -125,7 +127,9 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                     time = "event",
                     fig_outfile = compr_es_outfile,
                     quarterly = T,
-                    pop_weights = F)
+                    pop_weights = F,
+                    create_es_control = T,
+                    control_counties = compr_control_counties)
 
   # ### RESTRICTIVE DEFINITION ###
   # sales_application(product_by_county_sales,
