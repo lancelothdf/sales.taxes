@@ -1,0 +1,280 @@
+---
+title: "Exploring Heterogeneity (Sales Taxes)"
+author: "John Bonney"
+date: "December 13, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Tasks
+
+I think that we could explore heterogeneity in covariates a little more and try to see if some of this heterogeneity can explain the different patters that we observe between our treatment and control groups.
+
+1. It would be nice to plot the distribution of reforms (separately for increases and decreases) over time.  Are these reforms all happening at the same time or at different times?  You can plot this at the quarter level.
+2. You already made a map showing the different groups.  That is great.  Include it in the document with the distribution of timing of reform.  It might be nice to also have a breakdown of how many counties per state are included in the two groups.
+    + Make table of columns: state name, # ever increase, # ever decrease, total counties
+3. The regressions like Manasi's paper may help.  Do counties in the three groups differ in terms of their demographics, median income, rural/urban status
+    + Fix time-varying characteristics to one point in time (Jan 2008)
+4. It might be good to look at the graphs together one more time today.  But If I remember correctly, the main concern was that seasonality was stronger in the increase group than other counties.  Another thing that we could do to deal with this is to "open the data" and try to identify which goods show the most seasonality then drop them from the sample.  It might be informative for us to do anyway (identify which types of good tend to show more seasonality).
+    + Take full-sample (all products, counties), estimate the season fixed effect at product-level -- then look at difference between min and max (within the four seasons) of the coefficients for each products -- that could give us a measure of seasonality
+
+## Distribution of Reforms
+```{r, include=FALSE}
+library(data.table)
+library(ggplot2)
+library(zoo)
+library(knitr)
+
+reforms <- fread("C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/tr_events_comprehensive.csv")
+reforms[, ref_quarter := ceiling(ref_month / 3)]
+reforms$year_qtr <- as.yearqtr(paste(as.integer(reforms$ref_year),
+                                     as.integer(reforms$ref_quarter)), "%Y %q")
+```
+
+### Distribution over time
+```{r, echo=FALSE, fig.cap = "Distribution of Sales Tax Increases"}
+ggplot(data = reforms[change == "Increase"], mapping = aes(x = year_qtr)) +
+  geom_histogram(binwidth = .25) +
+  scale_x_yearqtr(format = "%Y-%q") +
+  labs(x = "Quarter", y = "# of sales tax increases") +
+  theme_bw()
+```
+```{r, echo=FALSE, fig.cap = "Distribution of Sales Tax Decreases"}
+ggplot(data = reforms[change == "Decrease"], mapping = aes(x = year_qtr)) +
+  geom_histogram(binwidth = .25) +
+  scale_x_yearqtr(format = "%Y-%q") +
+  labs(x = "Quarter", y = "# of sales tax decreases") +
+  theme_bw()
+```
+
+As we can see, most of the increases are concentrated in 2010 Q3, and most of the decreases are concentrated in 2011 Q3. What exactly is going on?
+
+```{r, echo = TRUE}
+# Which states are driving the increase?
+table(reforms[change == "Increase" & year_qtr == "2010 Q3"]$fips_state)
+# FIPS: 20 = Kansas; 35 = New Mexico
+
+# Which states are driving the decrease?
+table(reforms[change == "Decrease" & year_qtr == "2011 Q3"]$fips_state)
+# FIPS: 37 = North Carolina; 6 = California
+```
+```{r, include = FALSE}
+changes <- fread("C:\\Users\\John Bonney\\Dropbox\\Sales tax\\Data\\tax_reforms_all_v2.csv")
+# increases
+changes[ref_year == 2010 & fips_state == 35] # New Mexico
+changes[ref_year == 2010 & fips_state == 20] # Kansas
+
+# decreases
+changes[ref_year == 2011 & fips_state == 37] # North Carolina
+changes[ref_year == 2011 & fips_state == 6]  # California
+```
+These spikes in tax decreases and tax increases were specifically driven by four reforms:
+
+* In July 2010, New Mexico **increased** its state sales tax by 0.125%, from 5% to 5.125% *(33 counties)*
+* In July 2010, Kansas **increased** its state sales tax by 1.0%, from 5.3% to 6.3% *(105 counties)*
+* In July 2011, North Carolina **decreased** its state sales tax by 1.0%, from 5.75% to 4.75% *(100 counties)*
+* In July 2011, California **decreased** its state sales tax by 1.0%, from 8.25% to 7.25% *(58 counties)*
+
+### Geographical distribution
+![Tax Changes by County](C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/figs/maps/tax_compr.png)
+
+### Distribution by state
+```{r, include = FALSE}
+## Calculate the number of increasers/decreasers/total counties by state
+county_changes <- reforms
+county_changes[, ever_increase := max(as.integer(change == "Increase")),
+              by = .(fips_state, fips_county)]
+county_changes[, ever_decrease := max(as.integer(change == "Decrease")),
+              by = .(fips_state, fips_county)]
+county_changes <- unique(county_changes[, .(fips_state, fips_county,
+                                          ever_increase, ever_decrease)])
+
+dist_by_state <- county_changes[, list(increasers = sum(ever_increase),
+                                      decreasers = sum(ever_decrease)),
+                               by = fips_state]
+
+## This is a little convoluted since the reforms dataset only has state fips
+## codes, so I need to match those up to real names (as well as total # of
+## counties in each state)
+
+counties <- fread("C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/data/us_counties_from_wikipedia.csv")
+state_fips <- fread("C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/data/state_fips_master.csv")
+
+counties <- counties[, .(n_counties = .N), by = State]
+setnames(counties, old = "State", new = "state_name")
+setnames(state_fips, old = "fips", new = "fips_state")
+counties <- merge(counties,
+                  state_fips[, .(state_name, fips_state, state_abbr)],
+                  by = "state_name")
+
+dist_by_state <- merge(dist_by_state, counties, by = "fips_state", all = T)
+dist_by_state[is.na(increasers), increasers := 0]
+dist_by_state[is.na(decreasers), decreasers := 0]
+setcolorder(dist_by_state, c("fips_state", "state_name", "state_abbr",
+                             "increasers", "decreasers", "n_counties"))
+setnames(dist_by_state,
+         old = c("state_name", "increasers", "decreasers", "n_counties"),
+         new = c("State", "# ever increase", "# ever decrease",
+                 "Total"))
+```
+
+```{r, echo = FALSE}
+kable(dist_by_state[, .(State, `# ever increase`, `# ever decrease`, Total)],
+      padding = 0,
+      caption = "Number of counties that increased/decreased sales taxes between 2010 and 2012 (by state)")
+```
+
+## Predictive characteristics
+    
+```{r, include = FALSE}
+main_dir <- "C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/data/"
+zillow_path <- paste0(main_dir, "zillow/zillow_long_by_county_clean.csv")
+nhgis_path <- paste0(main_dir, "nhgis/nhgis_county_clean.csv")
+qcew_path <- paste0(main_dir, "bls_qcew/qcew_clean.csv")
+unemp_path <- paste0(main_dir, "bls_cty_unemp/county_unemployment_clean.csv")
+
+tr_groups <- fread(
+  "C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/tr_groups_comprehensive.csv"
+  )[, .(fips_county, fips_state, tr_group)]
+
+## create dummies for treatment groups
+tr_groups[, ever_increase := max(tr_group == "Ever increase"),
+          by = .(fips_state, fips_county)]
+tr_groups[, ever_decrease := max(tr_group == "Ever decrease"),
+          by = .(fips_state, fips_county)]
+tr_groups <- unique(tr_groups[, .(fips_state, fips_county,
+                                  ever_increase, ever_decrease)])
+
+## read in covariates
+zillow_data <- fread(zillow_path)[year == 2006 & as.integer(round(month)) == 1]
+nhgis_data <- fread(nhgis_path)[year == 2000]
+setnames(nhgis_data, old = c("statefp", "countyfp"),
+                     new = c("fips_state", "fips_county"))
+qcew_data <- fread(qcew_path)[year == 2006]
+qcew_data[, fips_state := as.integer(substring(area_fips, 0, 2))]
+qcew_data[, fips_county := as.integer(substring(area_fips, 3, 5))]
+qcew_data[, c("V1", "area_fips", "year") := NULL]
+unemp_data <- fread(unemp_path)[year == 2006]
+setnames(unemp_data, old = c("statefp", "countyfp"),
+                     new = c("fips_state", "fips_county"))
+
+## merge on covariates
+tr_groups <- merge(tr_groups, zillow_data[, .(fips_state, fips_county,
+                                              SizeRank, median_home_price)],
+                   by = c("fips_state", "fips_county"),
+                   all.x = T)
+tr_groups <- merge(tr_groups,
+                   nhgis_data[, .(fips_state, fips_county, pop, pop_urban,
+                                  pop_black, pop_over_65, pop_under_25,
+                                  pct_pop_over_65, pct_pop_under_25,
+                                  pct_pop_black, pct_pop_urban,
+                                  pct_pop_no_college, pct_pop_bachelors,
+                                  median_income, total_housing,
+                                  owner_occupied_housing,
+                                  housing_ownership_share)],
+                   by = c("fips_state", "fips_county"),
+                   all.x = T)
+tr_groups <- merge(tr_groups, qcew_data, by = c("fips_state", "fips_county"))
+tr_groups <- merge(tr_groups, unemp_data[, .(fips_state, fips_county,
+                                             laborforce, employed,
+                                             unemployed, unemp_rate)],
+                   by = c("fips_state", "fips_county"),
+                   all.x = T)
+setnames(tr_groups, old = "total_employment", new = "annual_avg_emplvl")
+tr_groups[, ln_pop := log(pop)]
+tr_groups[, ln_median_income := log(median_income)]
+tr_groups[, ln_median_home_price := log(median_home_price)]
+tr_groups[, pct_establishments_retail := retail_establishments / total_establishments]
+tr_groups[, ln_retail_mean_wage := log(retail_mean_wage)]
+## Data is all cleaned up and merged now
+## Note that there are two different measures of employment (see https://www.bls.gov/lau/laumthd.htm)
+```
+We have some variables obtained from Zillow.com, IPUMS National Historical Geographic Information System (NHGIS), the Quarterly Census of Employment and Wages (QCEW), and the Local Area Unemployment Statistics. We can use these data (restricted to information determined prior to the tax change) to see which county characteristics "predict" sales tax changes:
+           
+Variable                     | Source | Description
+---------------------------- | ------ | ------------------------------------------------------------------
+SizeRank                     | Zillow | Rank of county size (by pop.) (Jan. 2006)
+median_home_price            | Zillow | Median home price (Jan. 2006)
+pop                          | NHGIS  | County pop. (2000)
+pop_urban                    | NHGIS  | Pop. living in urban areas (2000)
+pop_black                    | NHGIS  | Pop. identifying as black (2000)
+pop_over_65                  | NHGIS  | Pop. over age 65 (2000)
+pop_under_25                 | NHGIS  | Pop. under age 25 (2000)
+pct_pop_no_college           | NHGIS  | Pct. pop. without a college degree (2000)
+pct_pop_bachelors            | NHGIS  | Pct. pop. with bachelor's degree or higher (2000)
+median_income                | NHGIS  | Median income (2000)
+total_housing                | NHGIS  | Total housing units (2000)
+owner_occupied_housing       | NHGIS  | Total owner-occupied housing units (2000)
+annual_avg_emplvl            | QCEW   | Establishment employment level (2006)
+retail_employment            | QCEW   | Retail industry employment (2006)
+total_establishments         | QCEW   | Total number of establishments (2006)
+retail_establishments        | QCEW   | Total number of retail establishments (2006)
+food_and_drugstores_empshare | QCEW   | Fraction of employed workers working in food and drugstores (2006)
+total_mean_wage              | QCEW   | Mean wage (2006)
+retail_mean_wage             | QCEW   | Mean wage in retail industry (2006)
+laborforce                   | LAUS   | Labor force size (2006)
+employed                     | LAUS   | Total employment level (2006)
+unemployed                   | LAUS   | Unemployed level (2006)
+unemp_rate                   | LAUS   | Unemployment rate (2006)
+
+I also have industry employment shares for a number of different industries from the QCEW, and I created new variables (based on the variables in this table) to be in percentage and/or log terms.
+
+```{r eval=FALSE, include=FALSE}
+
+# TODO: work on the aesthetics here
+
+## Run predictive Manasi-style regression
+baseline_covariates <- paste0(
+  "ln_pop + unemp_rate + ln_median_home_price + pct_pop_urban + pct_pop_black + ",
+  "pct_pop_over_65 + pct_pop_under_25 + pct_pop_no_college + ln_median_income + ",
+  "housing_ownership_share"
+  )
+
+industry_shares <- paste0(
+  "retail_empshare + construction_empshare + finance_insurance_empshare + ",
+  "manufacturing_empshare + public_admin_empshare + realestate_empshare"
+)
+
+
+baseline_formula <- as.formula(paste0("ever_increase ~ ", baseline_covariates))
+baseline_model <- glm(formula = baseline_formula, data = tr_groups, family = "binomial")
+summary(baseline_model)
+
+ind_shares_formula <- as.formula(paste0("ever_increase ~ ", industry_shares))
+model2 <- glm(formula = ind_shares_formula, data = tr_groups, family = "binomial")
+summary(model2)
+
+full_formula <- as.formula(paste0("ever_increase ~ ",
+                                  baseline_covariates, "+",
+                                  industry_shares))
+model3 <- glm(formula = full_formula, data = tr_groups, family = "binomial")
+summary(model3)
+
+## Interesting -- those with higher percent retail employment share were less likely to increase sales taxes
+
+## Now let's look at decreases
+baseline_formula <- as.formula(paste0("ever_decrease ~ ", baseline_covariates))
+baseline_model <- glm(formula = baseline_formula, data = tr_groups, family = "binomial")
+summary(baseline_model)
+
+ind_shares_formula <- as.formula(paste0("ever_decrease ~ ", industry_shares))
+model2 <- glm(formula = ind_shares_formula, data = tr_groups, family = "binomial")
+summary(model2)
+
+full_formula <- as.formula(paste0("ever_decrease ~ ",
+                                  baseline_covariates, "+",
+                                  industry_shares))
+model3 <- glm(formula = full_formula, data = tr_groups, family = "binomial")
+summary(model3)
+
+## Hmm, things are suspiciously significant...
+# TODO: come back to this later
+```
+
+## Seasonality in the goods
+
+<!-- I will need to dig into the data on the server to figure this out -->
+
