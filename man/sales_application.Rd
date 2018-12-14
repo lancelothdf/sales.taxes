@@ -5,7 +5,8 @@
 \title{Make event study graphs for sales (temporary file)}
 \usage{
 sales_application(sales_data, treatment_data_path, time,
-  fig_outfile = NULL, quarterly = F)
+  fig_outfile = NULL, quarterly = F, pop_weights,
+  create_es_control = F, control_counties = NULL)
 }
 \description{
 Make event study graphs for sales (temporary file)

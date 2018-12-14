@@ -4,16 +4,18 @@
 \alias{remove_time_trends}
 \title{Remove time trends}
 \usage{
-remove_time_trends(input_data, outcome_var, month_var, year_var,
+remove_time_trends(input_data, outcome_var, month_or_quarter, year_var,
   month_dummies = FALSE, calendar_time = FALSE,
-  product_group_trend = FALSE, weight_var = NULL)
+  product_group_trend = FALSE, census_region_trends = FALSE,
+  census_division_trends = FALSE, weight_var = NULL)
 }
 \arguments{
 \item{input_data}{The data containing the outcome and covariates (data.table).}
 
 \item{outcome_var}{The name of the outcome variable (character).}
 
-\item{month_var}{The name of the month variable (character).}
+\item{month_or_quarter}{Is time on month or quarter level? Should be either
+\code{"month"} or \code{"quarter"} (character).}
 
 \item{year_var}{The name of the year variable (character).}
 
@@ -21,7 +23,11 @@ remove_time_trends(input_data, outcome_var, month_var, year_var,
 
 \item{calendar_time}{Residualize out calendar-time effects? (logical)}
 
-\item{product_group_trend}{Residualize out product-group-specific trends?}
+\item{product_group_trend}{Residualize out product-group-specific trends? (logical)}
+
+\item{census_region_trends}{Residualize out trends with census region cells? (logical)}
+
+\item{census_division_trends}{Residualize out trends with census division cells? (logical)}
 
 \item{weight_var}{Optional. The name of the variable to weight the
 regressions when residualizing (character).}
