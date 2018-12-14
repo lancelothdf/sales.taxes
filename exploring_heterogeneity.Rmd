@@ -278,11 +278,9 @@ summary(model3)
 
 <!-- I will need to dig into the data on the server to figure this out -->
 
-The goal here is to identify which goods exhibit the most seasonality over time. However, this must be done on the server due to the size of the dataset. On the server, I estimate the following model[^1]: $$ y_{psqy} = \alpha_{qp} + \epsilon_{psqy} $$ on the product ($p$), store ($s$), quarter ($q$), year ($y$) level, where $$ y_{psqy} = \textrm{ln}\left(\frac{sales_{psqy}}{sales_{psJan2008}}\right) $$ and $\alpha_{qp}$ is a product-quarter fixed effect[^2]. I then calculate a seasonality range for each product, $$SR_p = \max_{q}(\alpha_{qp})-\min_{q}(\alpha_{qp}).$$ A practical
+The goal here is to identify which goods exhibit the most seasonality over time. However, this must be done on the server due to the size of the dataset. On the server, I estimate the following model[^1]: $$ y_{psqy} = \alpha_{qp} + \gamma_ptime_{qy} + \epsilon_{psqy} $$ on the product ($p$), store ($s$), quarter ($q$), year ($y$) level, where $$ y_{psqy} = \textrm{ln}\left(\frac{sales_{psqy}}{sales_{psQ_12008}}\right) $$ and $\alpha_{qp}$ is a product-quarter fixed effect[^2]. I then calculate a seasonality range for each product, $$SR_p = \max_{q}(\alpha_{qp})-\min_{q}(\alpha_{qp}).$$ A practical
 
 [^1]: For computational purposes, I instead take the mean of $y_{psqy}$ over all stores $s$ and years $y$ for each product-quarter pair. This is equivalent to what estimated product-quarter fixed effects would be (without an intercept).
-
-[^2]: Note that, since sales generally increase over time, using this $y_{psqy} implicitly places more weight on later years in the dataset than earlier years. 
 
 We can examine the distribution of seasonality within the 265 best-selling products in our balanced panel.
 

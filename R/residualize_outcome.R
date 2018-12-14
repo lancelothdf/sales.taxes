@@ -54,7 +54,8 @@ residualize_outcome <- function(input_data,
 #'     detrends the data based on preferences provided by the user.
 #' @param input_data The data containing the outcome and covariates (data.table).
 #' @param outcome_var The name of the outcome variable (character).
-#' @param month_var The name of the month variable (character).
+#' @param month_or_quarter Is time on month or quarter level? Should be either
+#'     \code{"month"} or \code{"quarter"} (character).
 #' @param year_var The name of the year variable (character).
 #' @param month_dummies Residualize out month-of-year effects? (logical)
 #' @param calendar_time Residualize out calendar-time effects? (logical)
@@ -104,20 +105,21 @@ residualize_outcome <- function(input_data,
 #'
 
 
-remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
+remove_time_trends <- function(input_data, outcome_var, month_or_quarter, year_var,
                                month_dummies = FALSE, calendar_time = FALSE,
                                product_group_trend = FALSE, census_region_trends = FALSE,
                                census_division_trends = FALSE, weight_var = NULL){
   assertDataTable(input_data)
   assertCharacter(outcome_var)
-  assertCharacter(month_var)
+  assertCharacter(month_or_quarter)
   assertCharacter(year_var)
   assertLogical(month_dummies)
   assertLogical(calendar_time)
   assertLogical(product_group_trend)
   assertCharacter(weight_var, null.ok = T)
   assertSubset(outcome_var, names(input_data))
-  assertSubset(month_var, names(input_data))
+  assertSubset(month_or_quarter, c("month", "quarter"))
+  assertSubset(month_or_quarter, names(input_data))
   assertSubset(year_var, names(input_data))
   assertSubset(weight_var, names(input_data))
 
@@ -136,7 +138,7 @@ remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
       return_data <- rbind(return_data,
                            remove_time_trends(input_data = input_data[fips_state %in% region],
                                               outcome_var = outcome_var,
-                                              month_var = month_var,
+                                              month_or_quarter = month_or_quarter,
                                               year_var = year_var,
                                               month_dummies = month_dummies,
                                               calendar_time = calendar_time,
@@ -167,7 +169,7 @@ remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
       return_data <- rbind(return_data,
                            remove_time_trends(input_data = input_data[fips_state %in% division],
                                               outcome_var = outcome_var,
-                                              month_var = month_var,
+                                              month_or_quarter = month_or_quarter,
                                               year_var = year_var,
                                               month_dummies = month_dummies,
                                               calendar_time = calendar_time,
@@ -186,8 +188,13 @@ remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
   } else if (calendar_time & product_group_trend){
     stop("`calendar_time' and `product_group_trend' cannot both be true")
   }
-  input_data[, month_trend := (get(month_var) + get(year_var) * 12) -
-               (1 + 2008 * 12)]
+  if (month_or_quarter == "quarter"){
+    input_data[, month_trend := (get(month_or_quarter) + get(year_var) * 4) -
+                 (1 + 2008 * 4)]
+  } else if (month_or_quarter == "month"){
+    input_data[, month_trend := (get(month_or_quarter) + get(year_var) * 12) -
+                 (1 + 2008 * 12)]
+  }
 
   if (!calendar_time & !product_group_trend){
     if (!month_dummies){
@@ -202,7 +209,7 @@ remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
       return(
         residualize_outcome(input_data,
                             outcome_var = outcome_var,
-                            discrete_vars = month_var,
+                            discrete_vars = month_or_quarter,
                             continuous_vars = "month_trend",
                             weight_var = weight_var)
       )
@@ -234,7 +241,7 @@ remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
       group_data <- input_data[product_group_code == code]
       group_data <- remove_time_trends(input_data = group_data,
                                        outcome_var = outcome_var,
-                                       month_var = month_var,
+                                       month_or_quarter = month_or_quarter,
                                        year_var = year_var,
                                        month_dummies = month_dummies,
                                        calendar_time = FALSE,
@@ -266,7 +273,7 @@ remove_time_trends <- function(input_data, outcome_var, month_var, year_var,
     #   for (pgc_col in pgc_columns){
     #     pgc_month_col <- paste0(pgc_col, "_month_trend")
     #     pgc_month_columns <- c(pgc_month_columns, pgc_month_col)
-    #     input_data[, (pgc_month_col) := get(pgc_col) * get(month_var)]
+    #     input_data[, (pgc_month_col) := get(pgc_col) * get(month_or_quarter)]
     #   }
     #   input_data <- residualize_outcome(input_data,
     #                                     outcome_var = outcome_var,

@@ -13,6 +13,7 @@ library(ggplot2)
 
 sales_panel <- fread("Data/Nielsen/allyears_module_store_quarterly.csv")
 
+## normalize sales variable
 sales_panel <- make_fixed_weights(panel_data = sales_panel,
                                   weight_time = list(year = 2008, quarter = 1),
                                   weight_var = "sales",
@@ -21,11 +22,23 @@ sales_panel[, ln_total_sales := log(sales / sales.weight)]
 sales_panel[, linear_quarter := (year - 2008) * 4 + quarter]
 
 ## remove linear time trend
-sales_panel <- residualize_outcome(input_data = sales_panel,
-                                   outcome_var = ln_total_sales,
-                                   discrete_vars = NULL,
-                                   continuous_vars = linear_quarter,
+group_codes <- unique(sales_panel$product_module_code)
+grouped_input_data <- NULL
+
+for (code in group_codes){
+  group_data <- sales_panel[product_module_code == code]
+  group_data <- remove_time_trends(input_data = group_data,
+                                   outcome_var = "ln_total_sales",
+                                   month_var = "quarter",
+                                   year_var = "year",
+                                   month_dummies = FALSE,
+                                   calendar_time = FALSE,
+                                   product_group_trend = FALSE,
                                    weight_var = NULL)
+  grouped_input_data <- rbind(grouped_input_data, group_data)
+}
+
+sales_panel <- grouped_input_data
 
 sales_panel[, season_effect := mean(ln_total_sales_residual),
             by = .(product_module_code, quarter)]
