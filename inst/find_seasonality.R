@@ -29,7 +29,7 @@ for (code in group_codes){
   group_data <- sales_panel[product_module_code == code]
   group_data <- remove_time_trends(input_data = group_data,
                                    outcome_var = "ln_total_sales",
-                                   month_var = "quarter",
+                                   month_or_quarter = "quarter",
                                    year_var = "year",
                                    month_dummies = FALSE,
                                    calendar_time = FALSE,
