@@ -59,7 +59,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
   if (resid_type == "A"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
                                                   outcome_var = "ln_total_sales",
-                                                  month_var = "quarter",
+                                                  month_or_quarter = "quarter",
                                                   year_var = "year",
                                                   month_dummies = FALSE,
                                                   calendar_time = FALSE,
@@ -70,7 +70,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
   } else if (resid_type == "B"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
                                                   outcome_var = "ln_total_sales",
-                                                  month_var = "quarter",
+                                                  month_or_quarter = "quarter",
                                                   year_var = "year",
                                                   month_dummies = FALSE,
                                                   calendar_time = FALSE,
@@ -80,7 +80,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
   } else if (resid_type == "C"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
                                                   outcome_var = "ln_total_sales",
-                                                  month_var = "quarter",
+                                                  month_or_quarter = "quarter",
                                                   year_var = "year",
                                                   month_dummies = TRUE,
                                                   calendar_time = FALSE,
@@ -90,7 +90,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
   } else if (resid_type == "D"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
                                                   outcome_var = "ln_total_sales",
-                                                  month_var = "quarter",
+                                                  month_or_quarter = "quarter",
                                                   year_var = "year",
                                                   month_dummies = TRUE,
                                                   calendar_time = FALSE,
@@ -100,7 +100,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
   } else if (resid_type == "E"){
     product_by_county_sales <- remove_time_trends(copy(preprocessed_sales),
                                                   outcome_var = "ln_total_sales",
-                                                  month_var = "quarter",
+                                                  month_or_quarter = "quarter",
                                                   year_var = "year",
                                                   month_dummies = FALSE,
                                                   calendar_time = TRUE,
