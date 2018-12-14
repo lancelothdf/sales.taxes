@@ -278,19 +278,31 @@ summary(model3)
 
 <!-- I will need to dig into the data on the server to figure this out -->
 
-The goal here is to identify which goods exhibit the most seasonality over time. However, this must be done on the server due to the size of the dataset. On the server, I estimate the following model[^1]: $$ y_{psqy} = \alpha_{qp} + \gamma_ptime_{qy} + \epsilon_{psqy} $$ on the product ($p$), store ($s$), quarter ($q$), year ($y$) level, where $$ y_{psqy} = \textrm{ln}\left(\frac{sales_{psqy}}{sales_{psQ_12008}}\right) $$ and $\alpha_{qp}$ is a product-quarter fixed effect[^2]. I then calculate a seasonality range for each product, $$SR_p = \max_{q}(\alpha_{qp})-\min_{q}(\alpha_{qp}).$$ A practical
+The goal here is to identify which goods exhibit the most seasonality over time. However, this must be done on the server due to the size of the dataset. On the server, I estimate the following model:[^1] $$ y_{psqy} = \alpha_{qp} + \gamma_ptime_{t(q,y)} + \epsilon_{psqy} $$ on the product ($p$), store ($s$), quarter ($q$), year ($y$) level, where $$ y_{psqy} = \textrm{ln}\left(\frac{sales_{psqy}}{sales_{psQ_12008}}\right),$$ $\gamma_p$ is a product-specific linear time effect, and $\alpha_{qp}$ is a product-quarter fixed effect. I then calculate a seasonality range for each product, $$SR_p = \max_{q}(\alpha_{qp})-\min_{q}(\alpha_{qp}).$$ This $SR_p$ measure is difficult to interpret in a straightforward way, but it is essentially the product-specific range across seasons of normalized log sales. We use it primarily to compare seasonality across goods.
 
-[^1]: For computational purposes, I instead take the mean of $y_{psqy}$ over all stores $s$ and years $y$ for each product-quarter pair. This is equivalent to what estimated product-quarter fixed effects would be (without an intercept).
+[^1]: For computational purposes, I instead residualize out the linear time trend to obtain $\tilde{y}_{psqy} = y_{psqy} - \gamma_ptime_{t(q,y)}$ and then take the mean of $\tilde{y}_{psqy}$ over all stores $s$ and years $y$ for each product-quarter pair to obtain $\alpha_{qp}$. This is functionally equivalent to what the estimated product-quarter fixed effects would be (without an intercept).
 
-We can examine the distribution of seasonality within the 265 best-selling products in our balanced panel.
+We can use the resulting $SR_p$ indicators to examine the distribution of seasonality within the 265 best-selling products in our balanced panel.
 
 ```{r, echo = FALSE}
 seasonality <- fread("C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/server/product_seasonality.csv")
-setorder(seasonality, seasonality_range)
 ggplot(data = seasonality, mapping = aes(x = seasonality_range)) +
   geom_histogram(bins = 30) +
   theme_bw() +
   labs(x = expression(italic(SR["p"])), y = "Number of products")
 ```
 
-Most products appear to exhibit some sort of seasonality. 
+Most products appear to exhibit some sort of seasonality. However, there are clearly some outliers. Which products are these?
+
+```{r}
+setorder(seasonality, -seasonality_range)
+head(seasonality, 10)
+```
+
+Not surprisingly, these are goods one would expect to be correlated with
+
+* Holidays (chocolate, video games)
+* Summer (fans, sunscreens & sunblocks, charcoal, ice)
+* Back-to-school (binders & folders)
+* Seasonal production (fresh strawberries)
+* Seasonal transportation costs (ground beef)

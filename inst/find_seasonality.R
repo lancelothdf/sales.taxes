@@ -45,7 +45,9 @@ sales_panel[, season_effect := mean(ln_total_sales_residual),
 
 ## calculate season-product effects
 sales_collapsed <- sales_panel[, list(max_season = max(season_effect),
-                                      min_season = min(season_effect)),
+                                      min_season = min(season_effect),
+                                      max_season_type = max(as.integer(season_effect == max(season_effect)) * quarter),
+                                      min_season_type = max(as.integer(season_effect == min(season_effect)) * quarter)),
                                by = product_module_code]
 
 sales_collapsed[, seasonality_range := max_season - min_season]
