@@ -114,12 +114,12 @@ for (resid_type in c("A", "B", "C", "D", "E")){
   restr_outfile <- paste0("Graphs/log_sales_residualized_restr_qly_allgoods_", resid_type, "region.png")
   restr_es_outfile <- paste0("Graphs/log_sales_es_residualized_restr_qly_allgoods_", resid_type, "region.png")
   ### COMPREHENSIVE DEFINITION ###
-  # sales_application(product_by_county_sales,
-  #                   treatment_data_path = "Data/tr_groups_comprehensive.csv",
-  #                   time = "calendar",
-  #                   fig_outfile = compr_outfile,
-  #                   quarterly = T,
-  #                   pop_weights = F)
+  sales_application(product_by_county_sales,
+                    treatment_data_path = "Data/tr_groups_comprehensive.csv",
+                    time = "calendar",
+                    fig_outfile = compr_outfile,
+                    quarterly = T,
+                    pop_weights = F)
 
   ### event study-like ###
   sales_application(product_by_county_sales,
