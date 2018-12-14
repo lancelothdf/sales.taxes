@@ -200,31 +200,31 @@ We have some variables obtained from Zillow.com and IPUMS National Historical Ge
            
 Variable                     | Source | Description
 ---------------------------- | ------ | ------------------------------------------------------------------
-SizeRank                     | Zillow | Rank of county size (by pop.) (Jan. 2006)
-median_home_price            | Zillow | Median home price (Jan. 2006)
-pop                          | NHGIS  | County pop. (2000)
-pop_urban                    | NHGIS  | Pop. living in urban areas (2000)
-pop_black                    | NHGIS  | Pop. identifying as black (2000)
-pop_over_65                  | NHGIS  | Pop. over age 65 (2000)
-pop_under_25                 | NHGIS  | Pop. under age 25 (2000)
-pct_pop_no_college           | NHGIS  | Pct. pop. without a college degree (2000)
-pct_pop_bachelors            | NHGIS  | Pct. pop. with bachelor's degree or higher (2000)
-median_income                | NHGIS  | Median income (2000)
-total_housing                | NHGIS  | Total housing units (2000)
-owner_occupied_housing       | NHGIS  | Total owner-occupied housing units (2000)
-annual_avg_emplvl[^1]        | QCEW   | Establishment employment level (2006)
-retail_employment            | QCEW   | Retail industry employment (2006)
-total_establishments         | QCEW   | Total number of establishments (2006)
-retail_establishments        | QCEW   | Total number of retail establishments (2006)
-food_and_drugstores_empshare | QCEW   | Fraction of employed workers working in food and drugstores (2006)
-total_mean_wage              | QCEW   | Mean wage (2006)
-retail_mean_wage             | QCEW   | Mean wage in retail industry (2006)
-laborforce                   | LAUS   | Labor force size (2006)
-employed[^2]                 | LAUS   | Total employment level (2006)
-unemployed                   | LAUS   | Unemployed level (2006)
-unemp_rate                   | LAUS   | Unemployment rate (2006)
+`SizeRank                     `| Zillow | Rank of county size (by pop.) (Jan. 2006)
+`median_home_price            `| Zillow | Median home price (Jan. 2006)
+`pop                          `| NHGIS  | County pop. (2000)
+`pop_urban                    `| NHGIS  | Pop. living in urban areas (2000)
+`pop_black                    `| NHGIS  | Pop. identifying as black (2000)
+`pop_over_65                  `| NHGIS  | Pop. over age 65 (2000)
+`pop_under_25                 `| NHGIS  | Pop. under age 25 (2000)
+`pct_pop_no_college           `| NHGIS  | Pct. pop. without a college degree (2000)
+`pct_pop_bachelors            `| NHGIS  | Pct. pop. with bachelor's degree or higher (2000)
+`median_income                `| NHGIS  | Median income (2000)
+`total_housing                `| NHGIS  | Total housing units (2000)
+`owner_occupied_housing       `| NHGIS  | Total owner-occupied housing units (2000)
+`annual_avg_emplvl`[^1]        | QCEW   | Establishment employment level (2006)
+`retail_employment            `| QCEW   | Retail industry employment (2006)
+`total_establishments         `| QCEW   | Total number of establishments (2006)
+`retail_establishments        `| QCEW   | Total number of retail establishments (2006)
+`food_and_drugstores_empshare `| QCEW   | Fraction of employed workers working in food and drugstores (2006)
+`total_mean_wage              `| QCEW   | Mean wage (2006)
+`retail_mean_wage             `| QCEW   | Mean wage in retail industry (2006)
+`laborforce                   `| LAUS   | Labor force size (2006)
+`employed`[^2]                 | LAUS   | Total employment level (2006)
+`unemployed                   `| LAUS   | Unemployed level (2006)
+`unemp_rate                   `| LAUS   | Unemployment rate (2006)
 
-[^1]: Note that there are two measures of employment, one from the QCEW (annual_avg_emplvl) and one from the LAUS (employed). This is because the QCEW estimates employment levels using establishment data, but the BLS adjusts these measures using commutation factors calculated from the Census Bureau’s American Community Survey (ACS). For more information, see the BLS [estimation methodology](https://www.bls.gov/lau/laumthd.htm).
+[^1]: Note that there are two measures of employment, one from the QCEW (`annual_avg_emplvl`) and one from the LAUS (`employed`). This is because the QCEW estimates employment levels using establishment data, but the BLS adjusts these measures using commutation factors calculated from the Census Bureau’s American Community Survey (ACS). For more information, see the BLS [estimation methodology](https://www.bls.gov/lau/laumthd.htm).
 
 [^2]: See footnote 1.
 
@@ -274,6 +274,15 @@ model3 <- glm(formula = full_formula, data = tr_groups, family = "binomial")
 res3 <- summary(model3)$coefficients
 
 ## TODO: think of some good way to present these results
+
+increase_results <- data.table(variable = rownames(res3),
+                               coef = res3[, "Estimate"],
+                               std_err = res3[, "Std. Error"],
+                               z_val = res3[, "z value"],
+                               p_val = res3[, "Pr(>|z|)"],
+                               model = 3)
+
+# TODO: join on the other two results and put into a pretty table!
 
 ## Interesting -- those with higher percent retail employment share were less likely to increase sales taxes
 

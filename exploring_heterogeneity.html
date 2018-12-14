@@ -526,125 +526,125 @@ with(reforms[change == &quot;Decrease&quot; &amp; year_qtr == &quot;2011 Q3&quot
 </thead>
 <tbody>
 <tr class="odd">
-<td>SizeRank</td>
+<td><code>SizeRank</code></td>
 <td>Zillow</td>
 <td>Rank of county size (by pop.) (Jan. 2006)</td>
 </tr>
 <tr class="even">
-<td>median_home_price</td>
+<td><code>median_home_price</code></td>
 <td>Zillow</td>
 <td>Median home price (Jan. 2006)</td>
 </tr>
 <tr class="odd">
-<td>pop</td>
+<td><code>pop</code></td>
 <td>NHGIS</td>
 <td>County pop. (2000)</td>
 </tr>
 <tr class="even">
-<td>pop_urban</td>
+<td><code>pop_urban</code></td>
 <td>NHGIS</td>
 <td>Pop. living in urban areas (2000)</td>
 </tr>
 <tr class="odd">
-<td>pop_black</td>
+<td><code>pop_black</code></td>
 <td>NHGIS</td>
 <td>Pop. identifying as black (2000)</td>
 </tr>
 <tr class="even">
-<td>pop_over_65</td>
+<td><code>pop_over_65</code></td>
 <td>NHGIS</td>
 <td>Pop. over age 65 (2000)</td>
 </tr>
 <tr class="odd">
-<td>pop_under_25</td>
+<td><code>pop_under_25</code></td>
 <td>NHGIS</td>
 <td>Pop. under age 25 (2000)</td>
 </tr>
 <tr class="even">
-<td>pct_pop_no_college</td>
+<td><code>pct_pop_no_college</code></td>
 <td>NHGIS</td>
 <td>Pct. pop. without a college degree (2000)</td>
 </tr>
 <tr class="odd">
-<td>pct_pop_bachelors</td>
+<td><code>pct_pop_bachelors</code></td>
 <td>NHGIS</td>
 <td>Pct. pop. with bachelor’s degree or higher (2000)</td>
 </tr>
 <tr class="even">
-<td>median_income</td>
+<td><code>median_income</code></td>
 <td>NHGIS</td>
 <td>Median income (2000)</td>
 </tr>
 <tr class="odd">
-<td>total_housing</td>
+<td><code>total_housing</code></td>
 <td>NHGIS</td>
 <td>Total housing units (2000)</td>
 </tr>
 <tr class="even">
-<td>owner_occupied_housing</td>
+<td><code>owner_occupied_housing</code></td>
 <td>NHGIS</td>
 <td>Total owner-occupied housing units (2000)</td>
 </tr>
 <tr class="odd">
-<td>annual_avg_emplvl<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a></td>
+<td><code>annual_avg_emplvl</code><a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a></td>
 <td>QCEW</td>
 <td>Establishment employment level (2006)</td>
 </tr>
 <tr class="even">
-<td>retail_employment</td>
+<td><code>retail_employment</code></td>
 <td>QCEW</td>
 <td>Retail industry employment (2006)</td>
 </tr>
 <tr class="odd">
-<td>total_establishments</td>
+<td><code>total_establishments</code></td>
 <td>QCEW</td>
 <td>Total number of establishments (2006)</td>
 </tr>
 <tr class="even">
-<td>retail_establishments</td>
+<td><code>retail_establishments</code></td>
 <td>QCEW</td>
 <td>Total number of retail establishments (2006)</td>
 </tr>
 <tr class="odd">
-<td>food_and_drugstores_empshare</td>
+<td><code>food_and_drugstores_empshare</code></td>
 <td>QCEW</td>
 <td>Fraction of employed workers working in food and drugstores (2006)</td>
 </tr>
 <tr class="even">
-<td>total_mean_wage</td>
+<td><code>total_mean_wage</code></td>
 <td>QCEW</td>
 <td>Mean wage (2006)</td>
 </tr>
 <tr class="odd">
-<td>retail_mean_wage</td>
+<td><code>retail_mean_wage</code></td>
 <td>QCEW</td>
 <td>Mean wage in retail industry (2006)</td>
 </tr>
 <tr class="even">
-<td>laborforce</td>
+<td><code>laborforce</code></td>
 <td>LAUS</td>
 <td>Labor force size (2006)</td>
 </tr>
 <tr class="odd">
-<td>employed<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a></td>
+<td><code>employed</code><a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a></td>
 <td>LAUS</td>
 <td>Total employment level (2006)</td>
 </tr>
 <tr class="even">
-<td>unemployed</td>
+<td><code>unemployed</code></td>
 <td>LAUS</td>
 <td>Unemployed level (2006)</td>
 </tr>
 <tr class="odd">
-<td>unemp_rate</td>
+<td><code>unemp_rate</code></td>
 <td>LAUS</td>
 <td>Unemployment rate (2006)</td>
 </tr>
 </tbody>
 </table>
-<p>I also have industry employment shares for a number of different industries from the QCEW. I created new variables (based on the raw variables in this table) to be in percentage or log terms.</p>
+<p>In addition to these variables, I have industry employment shares for a number of different industries from the QCEW. I adapted many of the vairables in this table to be in percentage or log terms for comparability across counties.</p>
 <p>To determine what features are indicative of a future sales tax change, I run predictive regressions similar to those run by Deshpande and Li (2018). I estimate three different models for each type of sales tax reform (increase and decrease). In both cases, I include only counties that underwent the relevant reform (e.g., for the increase outcome, include counties that ever increased their sales tax between 2010 and 2011) as well as counties that never experienced any sales tax reform during the same time period as a control group.</p>
-<p>The first model includes population-specific covariates relating to housing, employment, income, race, and education. The second model includes industry employment shares for the county for six specific industries. <!--
+<p>The first model includes population-specific covariates relating to housing, employment, income, race, and education. The second model includes industry employment shares for the county for six specific industries. The third model combines the covariates from the first two models. <!--
 The first model includes population-specific covariates, and is specified as follows:
 
 $$
@@ -688,8 +688,8 @@ Distribution of seasonality range across products
 <div class="footnotes">
 <hr />
 <ol>
-<li id="fn1"><p>Note that there are two measures of employment, one from the QCEW and one from the LAUS. This is because the QCEW estimates employment levels using establishment data, but the BLS adjusts these measures using commutation factors calculated from the Census Bureau’s American Community Survey (ACS). For more information, see the BLS <a href="https://www.bls.gov/lau/laumthd.htm">estimation methodology</a>.<a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p>Note that there are two measures of employment, one from the QCEW and one from the LAUS. This is because the QCEW estimates employment levels using establishment data, but the BLS adjusts these measures using commutation factors calculated from the Census Bureau’s American Community Survey (ACS). For more information, see the BLS <a href="https://www.bls.gov/lau/laumthd.htm">estimation methodology</a>.<a href="#fnref2">↩</a></p></li>
+<li id="fn1"><p>Note that there are two measures of employment, one from the QCEW (<code>annual_avg_emplvl</code>) and one from the LAUS (<code>employed</code>). This is because the QCEW estimates employment levels using establishment data, but the BLS adjusts these measures using commutation factors calculated from the Census Bureau’s American Community Survey (ACS). For more information, see the BLS <a href="https://www.bls.gov/lau/laumthd.htm">estimation methodology</a>.<a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p>See footnote 1.<a href="#fnref2">↩</a></p></li>
 <li id="fn3"><p>For computational purposes, I instead residualize out the linear time trend to obtain <span class="math inline">\(\tilde{y}_{psqy} = y_{psqy} - \gamma_ptime_{t(q,y)}\)</span> and then take the mean of <span class="math inline">\(\tilde{y}_{psqy}\)</span> over all stores <span class="math inline">\(s\)</span> and years <span class="math inline">\(y\)</span> for each product-quarter pair to obtain <span class="math inline">\(\alpha_{qp}.\)</span> This is functionally equivalent to what the estimated product-quarter fixed effects would be (without an intercept).<a href="#fnref3">↩</a></p></li>
 <li id="fn4"><p>Consider this measure restricted to only one store <span class="math inline">\(s\)</span> in just one year, <span class="math inline">\(y=2008.\)</span> See that <span class="math display">\[\alpha_{qp} = \ln{\frac{sales_{pq}}{sales_{pQ_1}}}.\]</span> Then we have <span class="math display">\[
 \begin{aligned}
