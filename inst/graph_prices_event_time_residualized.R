@@ -59,16 +59,16 @@ for (resid_type in c("A", "B", "C", "D", "E")){
                        fig_outfile = compr_graph_name)
 
   ### RESTRICTIVE DEFINITION ###
-  restr_graph_name <- paste0("Graphs/log_price_trends_restr_posttax_es_resid_", resid_type, ".png")
-  es_price_application(all_nielsen_data,
-                       treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
-                       county_pop_data = NULL,
-                       county_sales_weights = county_module_weights,
-                       weighting_var = "cty_base_sales",
-                       price_var = "mld_price_w_tax",
-                       resid_type = resid_type,
-                       w_tax = T,
-                       fig_outfile = restr_graph_name)
+  # restr_graph_name <- paste0("Graphs/log_price_trends_restr_posttax_es_resid_", resid_type, ".png")
+  # es_price_application(all_nielsen_data,
+  #                      treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
+  #                      county_pop_data = NULL,
+  #                      county_sales_weights = county_module_weights,
+  #                      weighting_var = "cty_base_sales",
+  #                      price_var = "mld_price_w_tax",
+  #                      resid_type = resid_type,
+  #                      w_tax = T,
+  #                      fig_outfile = restr_graph_name)
 }
 
 
