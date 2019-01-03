@@ -3,6 +3,7 @@
 sales_application <- function(sales_data,
                               treatment_data_path,
                               time,
+                              pre_post_periods = NULL,
                               fig_outfile = NULL,
                               quarterly = F,
                               pop_weights,
@@ -16,6 +17,7 @@ sales_application <- function(sales_data,
   assertLogical(pop_weights)
   assertLogical(create_es_control)
   assertDataTable(control_counties, null.ok = T)
+  assertNumeric(pre_post_periods, null.ok = T)
 
   fig_note <- NULL
 
@@ -27,6 +29,9 @@ sales_application <- function(sales_data,
   }
   if (create_es_control & is.null(control_counties) & time == "event"){
     stop("To create an event study control group, a data.table of control observations must be provided")
+  }
+  if (time == "event" & is.null(pre_post_periods)){
+    stop("User must specify how many pre- (and, implicitly, post-) periods to include in the event plot.")
   }
 
   if (quarterly){
@@ -92,11 +97,11 @@ sales_application <- function(sales_data,
   } else if (time == "event"){
     if (!quarterly){
       sales_panel[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
-      sales_panel <- sales_panel[tt_event >= -24 & tt_event <= 24]
+      sales_panel <- sales_panel[tt_event >= -1 * pre_post_periods & tt_event <= pre_post_periods]
 
     } else {
       sales_panel[, tt_event := as.integer(3 * year + quarter - (3 * ref_year + ref_quarter))]
-      sales_panel <- sales_panel[tt_event >= -8 & tt_event <= 8]
+      sales_panel <- sales_panel[tt_event >= -1 * pre_post_periods & tt_event <= pre_post_periods]
     }
     if (create_es_control){
       time_var <- ifelse(quarterly, "quarter", "month")
