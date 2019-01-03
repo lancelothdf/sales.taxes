@@ -16,6 +16,9 @@ sales_application <- function(sales_data,
   assertLogical(pop_weights)
   assertLogical(create_es_control)
   assertDataTable(control_counties, null.ok = T)
+
+  fig_note <- NULL
+
   if (pop_weights & create_es_control){
     stop("Using population weights and creating an event study control is currently not an option.")
   }
@@ -101,6 +104,8 @@ sales_application <- function(sales_data,
                                            original_data = sales_data,
                                            control_counties = control_counties,
                                            time_var = time_var)
+      fig_note <- "Note: The control groups are created by merge the 'no change' group average to treated counties
+      by calendar time, then taking the event-time averages over these calendar-time averages."
     }
 
     if (pop_weights){
@@ -122,7 +127,7 @@ sales_application <- function(sales_data,
     log_sales <- ggplot(data = es_sales_collapsed, mapping = aes(x = tt_event,
                                                                  y = mean_log_sales,
                                                                  color = tr_count)) +
-      labs(x = "Time to reform", y = "Mean ln(sales)", color = "Sales tax change") +
+      labs(x = "Time to reform", y = "Mean ln(sales)", color = "Sales tax change", caption = fig_note) +
       geom_line() +
       theme_bw()
     if (!is.null(fig_outfile)){

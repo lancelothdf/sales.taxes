@@ -34,7 +34,7 @@ create_pseudo_control <- function(es_data, original_data, control_counties, time
   matched_control_data <- es_data[, .(control_ln_total_sales, tt_event, tr_group)]
 
   matched_control_data[, ln_total_sales := control_ln_total_sales]
-  matched_control_data[, tr_group := paste("matched control for", tr_group)]
+  matched_control_data[, tr_group := paste0("No change (", tr_group, ")")]
   matched_control_data[, control_ln_total_sales := NULL]
   es_data <- rbind(es_data, matched_control_data, fill = T)
   return(es_data)
