@@ -2,6 +2,7 @@
 
 es_price_application <- function(price_data,
                                  treatment_data_path,
+                                 pre_post_periods = NULL,
                                  county_pop_data = NULL,
                                  county_sales_weights = NULL,
                                  weighting_var,
@@ -17,6 +18,7 @@ es_price_application <- function(price_data,
   assertCharacter(price_var)
   assertCharacter(resid_type, null.ok = T)
   assertLogical(w_tax)
+  assertNumeric(pre_post_periods, null.ok = T)
 
   if (!w_tax & !is.null(resid_type)){
     warning("Code does not currently residualize pre-tax prices. Non-residualized graphs will be returned.")
@@ -131,7 +133,7 @@ es_price_application <- function(price_data,
                                                       "product_module_code",
                                                       "tt_event", "tr_group")]
 
-  product_by_county_prices <- product_by_county_prices[tt_event >= -24 & tt_event <= 24]
+  product_by_county_prices <- product_by_county_prices[tt_event >= -1 * pre_post_periods & tt_event <= pre_post_periods]
 
   print("Adding weights...")
   if (!is.null(county_sales_weights)){
