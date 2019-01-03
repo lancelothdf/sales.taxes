@@ -125,6 +125,7 @@ for (resid_type in c("A", "B", "C", "D", "E")){
   sales_application(product_by_county_sales,
                     treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
                     time = "event",
+                    pre_post_periods = 4, # 4 quarters pre/post
                     fig_outfile = compr_es_outfile,
                     quarterly = T,
                     pop_weights = F,
