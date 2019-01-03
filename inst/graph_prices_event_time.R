@@ -64,23 +64,23 @@ es_price_application(all_nielsen_data,
                      fig_outfile = "Graphs/log_price_trends_compr_posttax_es.png")
 
 ### RESTRICTIVE DEFINITION ###
-es_price_application(all_nielsen_data,
-                     treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
-                     county_pop_data = county_pop,
-                     county_sales_weights = NULL,
-                     weighting_var = "population",
-                     price_var = "mld_price",
-                     w_tax = F,
-                     fig_outfile = "Graphs/log_price_trends_restr_pretax_es.png")
-
-es_price_application(all_nielsen_data,
-                     treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
-                     county_pop_data = county_pop,
-                     county_sales_weights = NULL,
-                     weighting_var = "population",
-                     price_var = "mld_price_w_tax",
-                     w_tax = T,
-                     fig_outfile = "Graphs/log_price_trends_restr_posttax_es.png")
+# es_price_application(all_nielsen_data,
+#                      treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
+#                      county_pop_data = county_pop,
+#                      county_sales_weights = NULL,
+#                      weighting_var = "population",
+#                      price_var = "mld_price",
+#                      w_tax = F,
+#                      fig_outfile = "Graphs/log_price_trends_restr_pretax_es.png")
+#
+# es_price_application(all_nielsen_data,
+#                      treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
+#                      county_pop_data = county_pop,
+#                      county_sales_weights = NULL,
+#                      weighting_var = "population",
+#                      price_var = "mld_price_w_tax",
+#                      w_tax = T,
+#                      fig_outfile = "Graphs/log_price_trends_restr_posttax_es.png")
 
 ## Weighted plots
 ### COMPREHENSIVE DEFINITION ###
@@ -103,21 +103,21 @@ es_price_application(all_nielsen_data,
                      fig_outfile = "Graphs/log_price_trends_compr_posttax_wtd_es.png")
 
 ### RESTRICTIVE DEFINITION ###
-es_price_application(all_nielsen_data,
-                     treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
-                     county_pop_data = NULL,
-                     county_sales_weights = county_module_weights,
-                     weighting_var = "cty_base_sales",
-                     price_var = "mld_price",
-                     w_tax = F,
-                     fig_outfile = "Graphs/log_price_trends_restr_pretax_wtd_es.png")
-
-es_price_application(all_nielsen_data,
-                     treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
-                     county_pop_data = NULL,
-                     county_sales_weights = county_module_weights,
-                     weighting_var = "cty_base_sales",
-                     price_var = "mld_price_w_tax",
-                     w_tax = T,
-                     fig_outfile = "Graphs/log_price_trends_restr_posttax_wtd_es.png")
+# es_price_application(all_nielsen_data,
+#                      treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
+#                      county_pop_data = NULL,
+#                      county_sales_weights = county_module_weights,
+#                      weighting_var = "cty_base_sales",
+#                      price_var = "mld_price",
+#                      w_tax = F,
+#                      fig_outfile = "Graphs/log_price_trends_restr_pretax_wtd_es.png")
+#
+# es_price_application(all_nielsen_data,
+#                      treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
+#                      county_pop_data = NULL,
+#                      county_sales_weights = county_module_weights,
+#                      weighting_var = "cty_base_sales",
+#                      price_var = "mld_price_w_tax",
+#                      w_tax = T,
+#                      fig_outfile = "Graphs/log_price_trends_restr_posttax_wtd_es.png")
 
