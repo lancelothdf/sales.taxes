@@ -1,7 +1,7 @@
 ---
-title: "Exploring Heterogeneity (Sales Taxes)"
+title: "Exploring Heterogeneity (Sales Taxes, 2009-2013)"
 author: "John Bonney"
-date: "December 18, 2018"
+date: "January 3, 2019"
 output:
   pdf_document:
     fig_caption: yes
@@ -18,6 +18,8 @@ library(zoo)
 library(tidyr)
 ```
 
+This document serves as an update to the Dec. 18 version, which focused on sales tax changes implemented between 2010 and 2012. We now focus on changes implemented between 2009 and 2013. My comments have been updated to reflect the changed results.
+
 ## Distribution of Reforms
 ```{r load_reforms, include=FALSE}
 
@@ -28,6 +30,8 @@ reforms <- merge(reforms, state_fips[, .(state_name, fips_state)],
 reforms[, ref_quarter := ceiling(ref_month / 3)]
 reforms$year_qtr <- as.yearqtr(paste(as.integer(reforms$ref_year),
                                      as.integer(reforms$ref_quarter)), "%Y %q")
+reforms[, qtr_total_increase := sum(change == "Increase"), by = "year_qtr"]
+reforms[, qtr_total_decrease := sum(change == "Decrease"), by = "year_qtr"]
 ```
 
 ### When are reforms happening?
@@ -45,21 +49,27 @@ decreases <- ggplot(data = reforms[change == "Decrease"], mapping = aes(x = year
 plot_grid(increases, decreases)
 ```
 
-As we can see in Figure \ref{fig:plot_dist}, most of the increases are concentrated in 2010 Q3, and most of the decreases are concentrated in 2011 Q3. What is driving these large spikes?
+As we can see in Figure \ref{fig:plot_dist}, we have five "spikes" of more than 50 sales tax increases occuring in one quarter and two "spikes" of similar decreases. Are these spikes individual state-level reforms, or are they different reforms that happen to coincide?
 
 ```{r find_spikes_increase, echo=TRUE}
-# Which states are driving the spike in increases?
-with(reforms[change == "Increase" & year_qtr == "2010 Q3"],
-     table(state_name, change))
+
+# Which states are driving the spikes in increases?
+
+with(reforms[change == "Increase" & qtr_total_increase >= 50],
+     table(state_name, year_qtr))
 ```
+
+The spikes in tax increases appear to be driven by eleven different state-level reforms (as well as some county-specific reforms in other states) in Arkansas, California (twice), Kansas, Massachusetts, Minnesota, Nevada, New Mexico, North Carolina, Ohio, and Virginia.
+
 ```{r find_spikes_decrease, echo = TRUE}
 # Which states are driving the spike in decreases?
-with(reforms[change == "Decrease" & year_qtr == "2011 Q3"],
-     table(state_name, change))
+
+with(reforms[change == "Decrease" & qtr_total_decrease >= 50],
+     table(state_name, year_qtr))
 ```
 
 ```{r pinpoint_changes, eval=FALSE, include=FALSE}
-changes <- fread("C:/Users/John Bonney/Dropbox/Sales tax/Data/tax_reforms_all_v2.csv")
+changes <- fread("C:/Users/John Bonney/Dropbox/Sales tax/Data/tax_reforms_all.csv")
 # increases
 changes[ref_year == 2010 & fips_state == 35] # New Mexico
 changes[ref_year == 2010 & fips_state == 20] # Kansas
@@ -67,22 +77,36 @@ changes[ref_year == 2010 & fips_state == 20] # Kansas
 # decreases
 changes[ref_year == 2011 & fips_state == 37] # North Carolina
 changes[ref_year == 2011 & fips_state == 6]  # California
+changes[ref_year == 2013 & fips_state == 20] # Kansas
+
+# past increases for decreasing states
+changes[ref_year == 2009 & fips_state == 37]
+changes[ref_year == 2009 & fips_state == 6]
+changes[ref_year == 2010 & fips_state == 20]
+
+
 ```
 
-These spikes in tax decreases and tax increases were specifically driven by four reforms:
+The spikes in tax decreases were specifically driven by three reforms:
 
-* In July 2010, New Mexico **increased** its state sales tax by 0.125%, from 5% to 5.125% *(33 counties)*
-* In July 2010, Kansas **increased** its state sales tax by 1.0%, from 5.3% to 6.3% *(105 counties)*
 * In July 2011, North Carolina **decreased** its state sales tax by 1.0%, from 5.75% to 4.75% *(100 counties)*
 * In July 2011, California **decreased** its state sales tax by 1.0%, from 8.25% to 7.25% *(58 counties)*
+* In July 2013, Kansas **decreased** its state sales tax by 0.15%, from 6.3% to 6.15% *(105 counties)*
+
+Note that North Carolina and California had increased sales taxes in 2009 and Kansas had increased sales taxes in 2010 (all three of these increases were by 1.0%). Consequently, these decreases aren't abrupt changes in a long-standing policy, but rather a full or partial reversal of a recent policy change.
 
 ### Where are reforms happening?
 
-![\label{fig:map}Geographical Distribution of Sales Tax Changes](C:/Users/tax_compr.png)
+![\label{fig:map}Geographical Distribution of Sales Tax Changes](C:/Users/tax_compr_2009-2013.png)
 
 <!-- C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/figs/maps/tax_compr.png -->
 
-The only state-wide tax change that shows up in this map (Figure \ref{fig:map}) but is not captured in the previous analysis is Arizona's June 2010 tax increase, which increased state sales tax by 1%, from 5.6% to 6.6%.
+The only state-wide tax changes that appear in this map (Figure \ref{fig:map}) but are not captured in the previous analysis are:
+
+* Arizona's June 2010 reform, which **increased** state sales tax by 1%, from 5.6% to 6.6%
+* Arizona's June 2013 reform, which **decreased** state sales tax by 1%, from 6.6% to 5.6%
+* Connecticut's July 2011 reform, which **increased** state sales tax by 0.35%, from 6.0% to 6.35%
+* Maine's October 2013 reform, which **increased** state sales tax by 0.5%, from 5.0% to 5.5%
 
 ```{r merge_covariates, include = FALSE}
 ## Calculate the number of increasers/decreasers/total counties by state
@@ -124,7 +148,7 @@ setnames(dist_by_state,
 ```{r table_state_changes, echo = FALSE}
 kable(dist_by_state[, .(State, `# ever increase`, `# ever decrease`, Total)],
                 booktabs = T,
-                caption = "Number of counties that increased/decreased sales taxes between 2010 and 2012 (by state)")
+                caption = "Number of counties that increased/decreased sales taxes between 2009 and 2013 (by state)")
 ```
 
 I show a breakdown of all county-level changes, state-by-state, in Table 1.
