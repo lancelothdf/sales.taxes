@@ -46,6 +46,7 @@ es_price_application <- function(price_data,
                                 base_time = -1,
                                 price_var = "price_w_tax",
                                 new_price_var = "normalized_price_w_tax")
+  print("Prices normalized!")
 
   if (w_tax & !is.null(resid_type)){
     if (resid_type == "A"){

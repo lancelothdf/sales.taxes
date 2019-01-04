@@ -44,7 +44,7 @@ county_module_weights <- all_nielsen_data[year == 2008 & month == 1,
                                           list(cty_base_sales = sum(sales)),
                                           by = c("fips_state", "fips_county", "product_module_code")]
 
-for (resid_type in c("A", "B", "C", "D", "E")){
+for (resid_type in c("B", "C", "D", "E", "A")){
   ## Weighted plots
   ### COMPREHENSIVE DEFINITION ###
   compr_graph_name <- paste0("Graphs/log_price_trends_compr_posttax_es_resid_", resid_type, ".png")
