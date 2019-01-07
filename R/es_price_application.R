@@ -83,7 +83,8 @@ es_price_application <- function(price_data,
                                         month_dummies = TRUE,
                                         calendar_time = FALSE,
                                         product_group_trend = FALSE,
-                                        weight_var = "sales.weight")
+                                        weight_var = "sales.weight",
+                                        use_one_hot = FALSE)
       price_data[, normalized_price_w_tax_old := normalized_price_w_tax]
       price_data[, normalized_price_w_tax := normalized_price_w_tax_residual]
       note <- "Note: Price is normalized by subtracting the log of the price in Jan 2008 from the log price.
@@ -96,7 +97,8 @@ es_price_application <- function(price_data,
                                         month_dummies = TRUE,
                                         calendar_time = FALSE,
                                         product_group_trend = TRUE,
-                                        weight_var = "sales.weight")
+                                        weight_var = "sales.weight",
+                                        use_one_hot = FALSE)
       price_data[, normalized_price_w_tax_old := normalized_price_w_tax]
       price_data[, normalized_price_w_tax := normalized_price_w_tax_residual]
       note <- "Note: Price is normalized by subtracting the log of the price in Jan 2008 from the log price.
@@ -110,7 +112,8 @@ es_price_application <- function(price_data,
                                         month_dummies = FALSE,
                                         calendar_time = TRUE,
                                         product_group_trend = FALSE,
-                                        weight_var = "sales.weight")
+                                        weight_var = "sales.weight",
+                                        use_one_hot = FALSE)
       price_data[, normalized_price_w_tax_old := normalized_price_w_tax]
       price_data[, normalized_price_w_tax := normalized_price_w_tax_residual]
       note <- "Note: Price is normalized by subtracting the log of the price in Jan 2008 from the log price.
