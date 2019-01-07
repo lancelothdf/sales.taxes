@@ -15,7 +15,8 @@ residualize_outcome <- function(input_data,
                                 outcome_var,
                                 discrete_vars,
                                 continuous_vars,
-                                weight_var = NULL) {
+                                weight_var = NULL,
+                                use_one_hot = TRUE) {
 
   # extractions
   covariates <- c(discrete_vars, continuous_vars)
@@ -24,10 +25,20 @@ residualize_outcome <- function(input_data,
   invisible(gc())
 
   # prepare covariate matrix
-  for (discrete_var in discrete_vars) {
-    covariate_matrix[, (discrete_var) := as.factor(get(discrete_var))]
-    covariate_matrix <- one_hot(covariate_matrix, cols = discrete_var)
+  if (use_one_hot){
+    for (discrete_var in discrete_vars) {
+      covariate_matrix[, (discrete_var) := as.factor(get(discrete_var))]
+      covariate_matrix <- one_hot(covariate_matrix, cols = discrete_var)
+    }
+  } else {
+    for (discrete_var in discrete_vars) {
+      vals <- unique(covariate_matrix[, .(discrete_var)])
+      for (val in vals){
+        covariate_matrix[, paste0(discrete_var, "_", val) := as.integer(get(discrete_var) == val)]
+      }
+    }
   }
+
   covariate_matrix[, ones := 1]
   covariate_matrix <- as.matrix(covariate_matrix)
   invisible(gc())
@@ -108,7 +119,8 @@ residualize_outcome <- function(input_data,
 remove_time_trends <- function(input_data, outcome_var, month_or_quarter, year_var,
                                month_dummies = FALSE, calendar_time = FALSE,
                                product_group_trend = FALSE, census_region_trends = FALSE,
-                               census_division_trends = FALSE, weight_var = NULL){
+                               census_division_trends = FALSE, weight_var = NULL,
+                               use_one_hot = TRUE){
   assertDataTable(input_data)
   assertCharacter(outcome_var)
   assertCharacter(month_or_quarter)
@@ -145,7 +157,8 @@ remove_time_trends <- function(input_data, outcome_var, month_or_quarter, year_v
                                               product_group_trend = product_group_trend,
                                               census_region_trends = FALSE,
                                               census_division_trends = FALSE,
-                                              weight_var = weight_var))
+                                              weight_var = weight_var,
+                                              use_one_hot = use_one_hot))
     }
     return(return_data)
   } else if (census_division_trends){
@@ -176,7 +189,8 @@ remove_time_trends <- function(input_data, outcome_var, month_or_quarter, year_v
                                               product_group_trend = product_group_trend,
                                               census_region_trends = FALSE,
                                               census_division_trends = FALSE,
-                                              weight_var = weight_var))
+                                              weight_var = weight_var,
+                                              use_one_hot = use_one_hot))
     }
     return(return_data)
   }
@@ -203,7 +217,8 @@ remove_time_trends <- function(input_data, outcome_var, month_or_quarter, year_v
                             outcome_var = outcome_var,
                             discrete_vars = NULL,
                             continuous_vars = "month_trend",
-                            weight_var = weight_var)
+                            weight_var = weight_var,
+                            use_one_hot = use_one_hot)
              )
     } else if (month_dummies){
       return(
@@ -211,7 +226,8 @@ remove_time_trends <- function(input_data, outcome_var, month_or_quarter, year_v
                             outcome_var = outcome_var,
                             discrete_vars = month_or_quarter,
                             continuous_vars = "month_trend",
-                            weight_var = weight_var)
+                            weight_var = weight_var,
+                            use_one_hot = use_one_hot)
       )
     }
   } else if (calendar_time & !product_group_trend){
@@ -246,7 +262,8 @@ remove_time_trends <- function(input_data, outcome_var, month_or_quarter, year_v
                                        month_dummies = month_dummies,
                                        calendar_time = FALSE,
                                        product_group_trend = FALSE,
-                                       weight_var = weight_var)
+                                       weight_var = weight_var,
+                                       use_one_hot = use_one_hot)
       grouped_input_data <- rbind(grouped_input_data, group_data)
     }
     return(grouped_input_data)
