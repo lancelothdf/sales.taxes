@@ -1,7 +1,7 @@
 ---
 title: "Exploring Heterogeneity (Sales Taxes, 2009-2013)"
 author: "John Bonney"
-date: "January 3, 2019"
+date: "January 7, 2019"
 output:
   pdf_document:
     fig_caption: yes
@@ -538,6 +538,8 @@ summary(robustness_check2)
 
 
 ```
+# Seasonality
+
 ## Product-specific seasonality
 
 The goal here is to identify which goods exhibit the most seasonality over time. I do this on the server due to the size of the dataset. I estimate the following model on the product-store-quarter-year ($psqy$) level:[^3] $$ y_{psqy} = \alpha_{qp} + \gamma_ptime_{t(q,y)} + \epsilon_{psqy},$$ where $$y_{psqy} = \textrm{ln}\left(\frac{sales_{psqy}}{sales_{psQ_12008}}\right),$$ $\gamma_p$ is a product-specific linear time effect, and $\alpha_{qp}$ is a product-quarter fixed effect. I then calculate a seasonality range for each product, $$SR_p = \max_{q}(\alpha_{qp})-\min_{q}(\alpha_{qp}).$$ $SR_p$ is then essentially the product-specific ratio of normalized log sales of the season with the highest average sales (peak-season) to the season with the lowest average sales (low-season).[^4] Taking $e^{SR_p}$ gives a rough estimate of the actual ratio of peak-season sales to low-season sales.[^5] We use $SR_p$ primarily as an index to compare seasonality across goods.
@@ -593,4 +595,54 @@ kable(seasonality[c(1:15, 251:265), .(module_description, seasonality_range, exp
   kable_styling() %>%
   group_rows("Highest $SR_p$", 1, 15, escape = F) %>%
   group_rows("Lowest $SR_p$", 16, 30, escape = F)
+```
+
+## County-specific seasonality
+
+I also estimate county-specific seasonality, using the same method I used to estimate product-specific seasonality (but replacing product-level season effects with county-level season effects). Note that this implicitly weights all store-product level sales equally within each county and does not account for interactions between product and county seasonality. I denote the resulting seasonality range $SR_c.$
+
+```{r plot_seasonality_county, echo = FALSE, fig.cap = "\\label{fig:fig4}Distribution of Seasonality Range across Counties"}
+cty_seasonality <- fread("C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/server/county_seasonality.csv")
+ggplot(data = cty_seasonality, mapping = aes(x = seasonality_range)) +
+  geom_histogram(bins = 70) +
+  theme_bw() +
+  labs(x = expression(italic(SR["c"])), y = "Number of counties")
+```
+
+We can see in (Figure \ref{fig:fig4}) that county-specific seasonality follows a similar pattern as product-specific seasonality, but with a shorter right tail (note the differences in the x-axis scale between Figure \ref{fig:fig3} and Figure \ref{fig:fig4}). There are some outliers on the right tail of the distribution.
+
+A t-test shows that the mean populations of counties with $SR_c < 0.3$ and those with $SR_c >= 0.3$ are significantly different (t-stat = 6.1) - counties with abnormally large $SR_c$ are on average smaller counties.[^6]
+
+[^6]: These results hold when population is replaced with an ordered population-rank variable (t-stat = -3.5)
+
+```{r table_seasonality_county, echo = FALSE}
+county_names <- fread('C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/data/county_fips_master.csv')
+county_names <- county_names[, .(fips, long_name)]
+cty_seasonality <- merge(cty_seasonality, county_names, by = "fips")
+
+setorder(cty_seasonality, -seasonality_range)
+cty_seasonality[, exp_SR_p := exp(seasonality_range)]
+kable(cty_seasonality[c(1:15, 251:265), .(long_name, seasonality_range, exp_SR_p, min_season_type, max_season_type)],
+                booktabs = T,
+                caption = "Counties with highest/lowest seasonality range",
+      col.names = c("County", "$SR_p$", "$e^{SR_p}$", "Low season", "Peak season"),
+      escape = F,
+      digits = 2) %>%
+  kable_styling() %>%
+  group_rows("Highest $SR_p$", 1, 15, escape = F) %>%
+  group_rows("Lowest $SR_p$", 16, 30, escape = F)
+```
+
+```{r explore_county_seasonality, eval=FALSE, include=FALSE}
+county_pop <- fread("C:/Users/John Bonney/Dropbox/Sales tax/Data/county_population.csv")
+county_pop[, fips := fips_state * 1000 + fips_county]
+cty_seasonality <- merge(cty_seasonality, county_pop, by = "fips")
+setorder(cty_seasonality, -population)
+cty_seasonality$poporder <- 1:nrow(cty_seasonality)
+# Test difference in means of below and above .3 SR
+t.test(cty_seasonality %>% filter(seasonality_range <= .3) %>% pull(population),
+       cty_seasonality %>% filter(seasonality_range > .3) %>% pull(population))
+t.test(cty_seasonality %>% filter(seasonality_range <= .3) %>% pull(poporder),
+       cty_seasonality %>% filter(seasonality_range > .3) %>% pull(poporder))
+setorder(cty_seasonality, -seasonality_range)
 ```
