@@ -1,0 +1,119 @@
+#' Maintained by: John Bonney
+#' Last modified: 12/6/2018
+#'
+#' Graphs:
+#' Plot log of sales quarterly for ALL GOODS (not just tax-exempt goods)
+#' Note that this is an adaptation of graph_sales_quarterly.R
+#'
+
+rm(list=ls())
+wd <- "/project2/igaarder"
+setwd(wd)
+
+library(sales.taxes)
+library(readstata13)
+library(data.table)
+library(zoo)
+library(ggplot2)
+
+sales_panel <- fread("Data/Nielsen/allyears_module_store_level.csv")
+# we only want stores that are balanced from Jan 2008 to Dec 2014 (84 months)
+sales_panel <- balance_panel_data(sales_panel,
+                                  panel_unit = "store_code_uc",
+                                  n_periods = 84)
+# # remove tax-exempt items
+county_monthly_tax <- fread("Data/county_monthly_tax_rates.csv")
+county_monthly_tax <- county_monthly_tax[, .(fips_state, fips_county, year, month, sales_tax)]
+sales_panel <- merge_tax_rates(sales_data = sales_panel,
+                               keep_taxable_only = T,
+                               county_monthly_tax_data = county_monthly_tax)
+# Now aggregate to seasons
+sales_panel <- months_to_quarters(monthly_data = sales_panel,
+                                  month_var = "month",
+                                  collapse_by = c("fips_state", "fips_county", "product_group_code",
+                                                  "store_code_uc", "product_module_code"),
+                                  collapse_var = "sales")
+# fwrite(sales_panel, "Data/Nielsen/allyears_module_store_quarterly.csv")
+# sales_panel <- fread("Data/Nielsen/allyears_module_store_quarterly.csv")
+
+sales_panel <- make_fixed_weights(panel_data = sales_panel,
+                                  weight_time = list(year = 2008, quarter = 1),
+                                  weight_var = "sales",
+                                  panel_unit_vars = c("fips_state", "fips_county", "store_code_uc", "product_module_code"))
+sales_panel[, ln_total_sales := log(sales / sales.weight)]
+
+# product_by_county_sales <- fread("Data/Nielsen/product_by_county_sales.csv")
+# merge county population on to sales_panel for weights
+
+# county_pop <- fread("Data/county_population.csv")
+# preprocessed_sales <- merge(product_by_county_sales,
+#                                  county_pop,
+#                                  by = c("fips_state", "fips_county"))
+
+compr_control_counties <- fread("Data/tr_groups_comprehensive.csv")
+compr_control_counties <- compr_control_counties[tr_group == "No change"]
+compr_control_counties <- unique(compr_control_counties[, .(fips_county, fips_state)])
+
+  compr_outfile <- paste0("Graphs/log_sales_residualized_compr_qly_allgoods.png")
+  compr_es_outfile <- paste0("Graphs/log_sales_es_residualized_compr_qly_allgoods.png")
+  restr_outfile <- paste0("Graphs/log_sales_residualized_restr_qly_allgoods.png")
+  restr_es_outfile <- paste0("Graphs/log_sales_es_residualized_restr_qly_allgoods.png")
+
+  ### COMPREHENSIVE DEFINITION ###
+  sales_application(sales_panel,
+                    treatment_data_path = "Data/tr_groups_comprehensive.csv",
+                    time = "calendar",
+                    fig_outfile = compr_outfile,
+                    quarterly = T,
+                    pop_weights = F)
+
+  ### event study-like ###
+  sales_application(sales_panel,
+                    treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
+                    time = "event",
+                    pre_post_periods = 4, # 4 quarters pre/post
+                    fig_outfile = compr_es_outfile,
+                    quarterly = T,
+                    pop_weights = F,
+                    create_es_control = T,
+                    control_counties = compr_control_counties)
+
+  # ### RESTRICTIVE DEFINITION ###
+  # sales_application(product_by_county_sales,
+  #                   treatment_data_path = "Data/tr_groups_restrictive.csv",
+  #                   time = "calendar",
+  #                   fig_outfile = restr_outfile,
+  #                   quarterly = T,
+  #                   pop_weights = F)
+  #
+  # ### event study-like ###
+  # sales_application(product_by_county_sales,
+  #                   treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
+  #                   time = "event",
+  #                   fig_outfile = restr_es_outfile,
+  #                   quarterly = T,
+  #                   pop_weights = F)
+
+# ### COMPREHENSIVE DEFINITION ###
+# sales_application(product_by_county_sales,
+#                   treatment_data_path = "Data/tr_groups_comprehensive.csv",
+#                   time = "calendar",
+#                   fig_outfile = "Graphs/log_sales_trends_compr2.png")
+#
+# ### event study-like ###
+# sales_application(product_by_county_sales,
+#                   treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
+#                   time = "event",
+#                   fig_outfile = "Graphs/log_sales_trends_es_compr2.png")
+#
+# ### RESTRICTIVE DEFINITION ###
+# sales_application(product_by_county_sales,
+#                   treatment_data_path = "Data/tr_groups_restrictive.csv",
+#                   time = "calendar",
+#                   fig_outfile = "Graphs/log_sales_trends_restr2.png")
+#
+# ### event study-like ###
+# sales_application(product_by_county_sales,
+#                   treatment_data_path = "Data/event_study_tr_groups_restrictive.csv",
+#                   time = "event",
+#                   fig_outfile = "Graphs/log_sales_trends_es_restr2.png")

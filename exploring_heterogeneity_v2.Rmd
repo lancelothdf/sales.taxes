@@ -646,3 +646,11 @@ t.test(cty_seasonality %>% filter(seasonality_range <= .3) %>% pull(poporder),
        cty_seasonality %>% filter(seasonality_range > .3) %>% pull(poporder))
 setorder(cty_seasonality, -seasonality_range)
 ```
+
+List of figures to include
+-- Create quarterly figures for prices
+-- Price graph -- compr posttax es resid A and D
+-- Price graph -- calendar time A and D
+-- Sales graph -- taxable only -- calendar time, A and D
+-- Create raw figure for taxable only goods for sales
+-- Sales graph -- taxable only -- event time, A and D
