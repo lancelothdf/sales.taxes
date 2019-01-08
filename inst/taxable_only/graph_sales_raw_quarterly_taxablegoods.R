@@ -54,10 +54,10 @@ compr_control_counties <- fread("Data/tr_groups_comprehensive.csv")
 compr_control_counties <- compr_control_counties[tr_group == "No change"]
 compr_control_counties <- unique(compr_control_counties[, .(fips_county, fips_state)])
 
-  compr_outfile <- paste0("Graphs/log_sales_residualized_compr_qly_allgoods.png")
-  compr_es_outfile <- paste0("Graphs/log_sales_es_residualized_compr_qly_allgoods.png")
-  restr_outfile <- paste0("Graphs/log_sales_residualized_restr_qly_allgoods.png")
-  restr_es_outfile <- paste0("Graphs/log_sales_es_residualized_restr_qly_allgoods.png")
+  compr_outfile <- paste0("Graphs/log_sales_residualized_compr_qly_taxablegoods.png")
+  compr_es_outfile <- paste0("Graphs/log_sales_es_residualized_compr_qly_taxablegoods.png")
+  restr_outfile <- paste0("Graphs/log_sales_residualized_restr_qly_taxablegoods.png")
+  restr_es_outfile <- paste0("Graphs/log_sales_es_residualized_restr_qly_taxablegoods.png")
 
   ### COMPREHENSIVE DEFINITION ###
   sales_application(sales_panel,
