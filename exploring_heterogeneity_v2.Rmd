@@ -648,7 +648,7 @@ setorder(cty_seasonality, -seasonality_range)
 ```
 
 List of figures to include
--- Create quarterly figures for prices
+-- Create quarterly figures for prices (SUBMITTED for Calendar Time, not event time...)
 -- Price graph -- compr posttax es resid A and D
 -- Price graph -- calendar time A and D
 -- Sales graph -- taxable only -- calendar time, A and D
