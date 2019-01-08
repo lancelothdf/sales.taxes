@@ -107,8 +107,7 @@ price_application <- function(price_data,
       price_panel_not_na <- price_panel[!is.na(pretax_price_var)]
       price_collapsed <- price_panel_not_na[, list(mean_ln_price = weighted.mean(x = pretax_price_var,
                                                                                  w = weights),
-                                            n_counties = uniqueN(1000 * fips_state + fips_county),
-                                            n_stores = sum(n_stores)),
+                                            n_counties = uniqueN(1000 * fips_state + fips_county)),
                                      by = c("tr_group", "year", "month")]
 
       price_collapsed <- add_tr_count(collapsed_data = price_collapsed,
@@ -136,8 +135,7 @@ price_application <- function(price_data,
       price_panel_not_na <- price_panel[!is.na(posttax_price_var)]
       price_collapsed <- price_panel_not_na[, list(mean_ln_price = weighted.mean(x = posttax_price_var,
                                                                                  w = weights),
-                                            n_counties = uniqueN(1000 * fips_state + fips_county),
-                                            n_stores = sum(n_stores)),
+                                            n_counties = uniqueN(1000 * fips_state + fips_county)),
                                      by = c("tr_group", "year", "month")]
 
       price_collapsed <- add_tr_count(collapsed_data = price_collapsed,

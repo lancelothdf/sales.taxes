@@ -652,5 +652,5 @@ List of figures to include
 -- Price graph -- compr posttax es resid A and D
 -- Price graph -- calendar time A and D
 -- Sales graph -- taxable only -- calendar time, A and D
--- Create raw figure for taxable only goods for sales (SUBMITTED)
+-- Create raw figure for taxable only goods for sales (DONE)
 -- Sales graph -- taxable only -- event time, A and D
