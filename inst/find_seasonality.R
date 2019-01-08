@@ -113,7 +113,7 @@ sales_panel <- copy(sales_data)
 sales_panel[, fips := 1000 * fips_state + fips_county]
 sales_panel[, fips_prod := 10000 * fips + product_module_code]
 
-sales_panel[, season_effect := mean(ln_total_sales_residual),
+sales_panel[, season_effect := mean(ln_total_sales),
             by = .(fips, product_module_code, quarter)]
 
 ## calculate season-product effects
