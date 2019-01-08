@@ -35,7 +35,7 @@ all_nielsen_data <- make_fixed_weights(all_nielsen_data,
                                        weight_var = "sales",
                                        panel_unit_vars = c("fips_state", "fips_county", "store_code_uc", "product_module_code"))
 
-county_pop <- fread("Data/county_population.csv")
+# county_pop <- fread("Data/county_population.csv")
 
 ## at this point, we have
 ## all_nielsen_data -- contains price and price_w_tax on module-store-month level
@@ -44,20 +44,20 @@ county_pop <- fread("Data/county_population.csv")
 #                                           list(cty_base_sales = sum(sales)),
 #                                           by = c("fips_state", "fips_county", "product_module_code")]
 
-for (resid_type in c("C", "D", "E", "A", "B")){
+for (resid_type in c("A", "D")){
   ## Weighted plots
   ### COMPREHENSIVE DEFINITION ###
-  compr_graph_name <- paste0("Graphs/log_price_trends_compr_posttax_es_resid_", resid_type, ".png")
+  compr_graph_name <- paste0("Graphs/log_price_trends_compr_posttax_es_qly_resid_", resid_type, ".png")
   es_price_application(all_nielsen_data,
                        treatment_data_path = "Data/event_study_tr_groups_comprehensive.csv",
                        county_pop_data = NULL,
                        pre_post_periods = 12, # 12 months pre and post
-                       county_sales_weights = county_module_weights,
-                       weighting_var = "cty_base_sales",
-                       price_var = "mld_price_w_tax",
+                       county_sales_weights = NULL,
+                       weighting_var = "sales.weight",
                        resid_type = resid_type,
                        w_tax = T,
-                       fig_outfile = compr_graph_name)
+                       fig_outfile = compr_graph_name,
+                       month_or_quarter = "quarter")
   gc()
 
   ### RESTRICTIVE DEFINITION ###

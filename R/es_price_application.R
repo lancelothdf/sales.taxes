@@ -6,10 +6,11 @@ es_price_application <- function(price_data,
                                  county_pop_data = NULL,
                                  county_sales_weights = NULL,
                                  weighting_var,
-                                 price_var,
+                                 price_var = "normalized_price_w_tax",
                                  resid_type = NULL,
                                  w_tax,
-                                 fig_outfile = NULL){
+                                 fig_outfile = NULL,
+                                 month_or_quarter = "month"){
   assertDataTable(price_data)
   assertCharacter(treatment_data_path)
   assertDataTable(county_pop_data, null.ok = T)
@@ -31,8 +32,12 @@ es_price_application <- function(price_data,
                                 merge_by = c("fips_county", "fips_state"))
   print("Treatment merged!")
   # now we have time of treatment attached
-
-  price_data[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
+  if (month_or_quarter == "month"){
+    price_data[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
+  } else if (month_or_quarter == "quarter"){
+    price_data[, ref_quarter := ceiling(ref_month / 4)]
+    price_data[, tt_event := as.integer(4 * year + quarter - (4 * ref_year + ref_quarter))]
+  }
   # now we have an event time variable
   print("Normalizing pre-tax price...")
   price_data <- normalize_price(price_data = price_data,
@@ -52,7 +57,7 @@ es_price_application <- function(price_data,
     if (resid_type == "A"){
       price_data <- remove_time_trends(input_data = price_data,
                                         outcome_var = "normalized_price_w_tax",
-                                        month_or_quarter = "month",
+                                        month_or_quarter = month_or_quarter,
                                         year_var = "year",
                                         month_dummies = FALSE,
                                         calendar_time = FALSE,
@@ -65,7 +70,7 @@ es_price_application <- function(price_data,
     } else if (resid_type == "B"){
       price_data <- remove_time_trends(input_data = price_data,
                                         outcome_var = "normalized_price_w_tax",
-                                        month_or_quarter = "month",
+                                        month_or_quarter = month_or_quarter,
                                         year_var = "year",
                                         month_dummies = FALSE,
                                         calendar_time = FALSE,
@@ -78,7 +83,7 @@ es_price_application <- function(price_data,
     } else if (resid_type == "C"){
       price_data <- remove_time_trends(input_data = price_data,
                                         outcome_var = "normalized_price_w_tax",
-                                        month_or_quarter = "month",
+                                        month_or_quarter = month_or_quarter,
                                         year_var = "year",
                                         month_dummies = TRUE,
                                         calendar_time = FALSE,
@@ -92,7 +97,7 @@ es_price_application <- function(price_data,
     } else if (resid_type == "D"){
       price_data <- remove_time_trends(input_data = price_data,
                                         outcome_var = "normalized_price_w_tax",
-                                        month_or_quarter = "month",
+                                        month_or_quarter = month_or_quarter,
                                         year_var = "year",
                                         month_dummies = TRUE,
                                         calendar_time = FALSE,
@@ -107,7 +112,7 @@ es_price_application <- function(price_data,
     } else if (resid_type == "E"){
       price_data <- remove_time_trends(input_data = price_data,
                                         outcome_var = "normalized_price_w_tax",
-                                        month_or_quarter = "month",
+                                        month_or_quarter = month_or_quarter,
                                         year_var = "year",
                                         month_dummies = FALSE,
                                         calendar_time = TRUE,
@@ -123,21 +128,22 @@ es_price_application <- function(price_data,
     note <- "Note: Price is normalized by subtracting the log of the price in event time t-1 from the log price"
   }
 
-  print("Aggregating to county x product level...")
-  # Aggregate to county x product level
-  product_by_county_prices <- price_data[, list(mld_price = mean(normalized_price),
-                                                mld_price_w_tax = mean(normalized_price_w_tax),
-                                                mld_price.wtd = weighted.mean(x = normalized_price,
-                                                                              w = sales.weight),
-                                                mld_price_w_tax.wtd = weighted.mean(x = normalized_price_w_tax,
-                                                                                    w = sales.weight),
-                                                total_sales = sum(sales),
-                                                n_stores = .N),
-                                               by = c("fips_state", "fips_county",
-                                                      "product_module_code",
-                                                      "tt_event", "tr_group")]
+  # print("Aggregating to county x product level...")
+  # # Aggregate to county x product level
+  # product_by_county_prices <- price_data[, list(mld_price = mean(normalized_price),
+  #                                               mld_price_w_tax = mean(normalized_price_w_tax),
+  #                                               mld_price.wtd = weighted.mean(x = normalized_price,
+  #                                                                             w = sales.weight),
+  #                                               mld_price_w_tax.wtd = weighted.mean(x = normalized_price_w_tax,
+  #                                                                                   w = sales.weight),
+  #                                               total_sales = sum(sales),
+  #                                               n_stores = .N),
+  #                                              by = c("fips_state", "fips_county",
+  #                                                     "product_module_code",
+  #                                                     "tt_event", "tr_group")]
 
-  product_by_county_prices <- product_by_county_prices[tt_event >= -1 * pre_post_periods & tt_event <= pre_post_periods]
+  # product_by_county_prices <- product_by_county_prices[tt_event >= -1 * pre_post_periods & tt_event <= pre_post_periods]
+  product_by_county_prices <- price_data[tt_event >= -1 * pre_post_periods & tt_event <= pre_post_periods]
 
   print("Adding weights...")
   if (!is.null(county_sales_weights)){
@@ -182,7 +188,7 @@ es_price_application <- function(price_data,
   log_prices <- ggplot(data = es_price_collapsed, mapping = aes(x = tt_event,
                                                                 y = mean_ln_price,
                                                                 color = tr_count)) +
-    labs(x = "Month", y = y_label, color = "Sales tax change",
+    labs(x = month_or_quarter, y = y_label, color = "Sales tax change",
          caption = note) +
   geom_line() +
     theme_bw()
