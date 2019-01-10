@@ -68,7 +68,7 @@ residualize_outcome <- function(input_data,
 #' @param month_or_quarter Is time on month or quarter level? Should be either
 #'     \code{"month"} or \code{"quarter"} (character).
 #' @param year_var The name of the year variable (character).
-#' @param month_dummies Residualize out month-of-year effects? (logical)
+#' @param month_dummies Residualize out month-of-year (or quarter-of-year) effects? (logical)
 #' @param calendar_time Residualize out calendar-time effects? (logical)
 #' @param product_group_trend Residualize out product-group-specific trends? (logical)
 #' @param census_region_trends Residualize out trends with census region cells? (logical)
@@ -203,10 +203,10 @@ remove_time_trends <- function(input_data, outcome_var, month_or_quarter, year_v
     stop("`calendar_time' and `product_group_trend' cannot both be true")
   }
   if (month_or_quarter == "quarter"){
-    input_data[, month_trend := (get(month_or_quarter) + get(year_var) * 4) -
+    input_data[, linear_trend := (get(month_or_quarter) + get(year_var) * 3) -
                  (1 + 2008 * 4)]
   } else if (month_or_quarter == "month"){
-    input_data[, month_trend := (get(month_or_quarter) + get(year_var) * 12) -
+    input_data[, linear_trend := (get(month_or_quarter) + get(year_var) * 12) -
                  (1 + 2008 * 12)]
   }
 
@@ -216,7 +216,7 @@ remove_time_trends <- function(input_data, outcome_var, month_or_quarter, year_v
         residualize_outcome(input_data,
                             outcome_var = outcome_var,
                             discrete_vars = NULL,
-                            continuous_vars = "month_trend",
+                            continuous_vars = "linear_trend",
                             weight_var = weight_var,
                             use_one_hot = use_one_hot)
              )
@@ -225,7 +225,7 @@ remove_time_trends <- function(input_data, outcome_var, month_or_quarter, year_v
         residualize_outcome(input_data,
                             outcome_var = outcome_var,
                             discrete_vars = month_or_quarter,
-                            continuous_vars = "month_trend",
+                            continuous_vars = "linear_trend",
                             weight_var = weight_var,
                             use_one_hot = use_one_hot)
       )
@@ -234,9 +234,9 @@ remove_time_trends <- function(input_data, outcome_var, month_or_quarter, year_v
     # we remove calendar_time effects by demeaning
     if (!is.null(weight_var)){
       input_data[, ct_mean := weighted.mean(x = get(outcome_var),
-                                            w = get(weight_var)), by = month_trend]
+                                            w = get(weight_var)), by = linear_trend]
     } else {
-      input_data[, ct_mean := mean(get(outcome_var)), by = month_trend]
+      input_data[, ct_mean := mean(get(outcome_var)), by = linear_trend]
     }
 
     input_data[, (paste0(outcome_var, "_residual")) :=
@@ -247,10 +247,10 @@ remove_time_trends <- function(input_data, outcome_var, month_or_quarter, year_v
   } else if (product_group_trend & !calendar_time){
     assertSubset("product_group_code", names(input_data))
 
-    ################################### UNDER CONSTRUCTION #####################
     ## The goal here is to residualize on a product-group level. The reason for
     ## doing it this way is because the current method with one_hot doesn't
     ## work with product-group specific trends.
+
     group_codes <- unique(input_data$product_group_code)
     grouped_input_data <- NULL
     for (code in group_codes){
@@ -268,38 +268,6 @@ remove_time_trends <- function(input_data, outcome_var, month_or_quarter, year_v
     }
     return(grouped_input_data)
 
-    ############################################################################
-
-    # input_data[, product_group_code := as.factor(product_group_code)]
-    # input_data <- one_hot(input_data, cols = "product_group_code")
-    # pgc_columns <- names(input_data)[grep("product_group_code_[0-9]", names(input_data))]
-    # for (pgc_col in pgc_columns){
-    #   input_data[, (pgc_col) := get(pgc_col) * month_trend]
-    # }
-    # if (!month_dummies){
-    #   input_data <- residualize_outcome(input_data,
-    #                                     outcome_var = outcome_var,
-    #                                     discrete_vars = NULL,
-    #                                     continuous_vars = pgc_columns,
-    #                                     weight_var = weight_var)
-    #   input_data[, (pgc_columns) := NULL]
-    # return(input_data)
-    # } else if (month_dummies){
-    #   # Need to add group specific month dummies
-    #   pgc_month_columns <- c()
-    #   for (pgc_col in pgc_columns){
-    #     pgc_month_col <- paste0(pgc_col, "_month_trend")
-    #     pgc_month_columns <- c(pgc_month_columns, pgc_month_col)
-    #     input_data[, (pgc_month_col) := get(pgc_col) * get(month_or_quarter)]
-    #   }
-    #   input_data <- residualize_outcome(input_data,
-    #                                     outcome_var = outcome_var,
-    #                                     discrete_vars = pgc_month_columns,
-    #                                     continuous_vars = pgc_columns,
-    #                                     weight_var = weight_var)
-    #   input_data[, c(pgc_columns, pgc_month_columns) := NULL]
-    #   return(input_data)
-    # }
   }
 
 }
