@@ -18,6 +18,7 @@ sales_application <- function(sales_data,
   assertLogical(create_es_control)
   assertDataTable(control_counties, null.ok = T)
   assertNumeric(pre_post_periods, null.ok = T)
+  assertSubset("ln_total_sales", names(sales_data))
 
   fig_note <- NULL
 
@@ -100,7 +101,7 @@ sales_application <- function(sales_data,
       sales_panel <- sales_panel[tt_event >= -1 * pre_post_periods & tt_event <= pre_post_periods]
 
     } else {
-      sales_panel[, tt_event := as.integer(3 * year + quarter - (3 * ref_year + ref_quarter))]
+      sales_panel[, tt_event := as.integer(4 * year + quarter - (4 * ref_year + ref_quarter))]
       sales_panel <- sales_panel[tt_event >= -1 * pre_post_periods & tt_event <= pre_post_periods]
     }
     if (create_es_control){
