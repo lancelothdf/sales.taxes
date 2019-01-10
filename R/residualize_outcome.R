@@ -203,7 +203,7 @@ remove_time_trends <- function(input_data, outcome_var, month_or_quarter, year_v
     stop("`calendar_time' and `product_group_trend' cannot both be true")
   }
   if (month_or_quarter == "quarter"){
-    input_data[, linear_trend := (get(month_or_quarter) + get(year_var) * 3) -
+    input_data[, linear_trend := (get(month_or_quarter) + get(year_var) * 4) -
                  (1 + 2008 * 4)]
   } else if (month_or_quarter == "month"){
     input_data[, linear_trend := (get(month_or_quarter) + get(year_var) * 12) -
