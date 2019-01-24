@@ -29,9 +29,9 @@ months_to_quarters <- function(monthly_data, month_var, collapse_by,
   }
 
   monthly_data <- merge(monthly_data, quarters, by = month_var)
-  quarterly_data <- eval(parse(text = paste0(
-    "monthly_data[, list(", collapse_var, "= sum(", collapse_var, ")), by = .(quarter, year,",
-    paste(collapse_by, collapse = ","), ")]"
-  )))
+  quarterly_data <- monthly_data[, .(sum(get(collapse_var))),
+                                 by = c("quarter", "year", collapse_by)]
+  quarterly_data[, (collapse_var) := V1]
+  quarterly_data[, V1 := NULL]
   return(quarterly_data)
 }

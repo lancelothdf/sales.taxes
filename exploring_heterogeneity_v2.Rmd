@@ -2,9 +2,12 @@
 title: "Exploring Heterogeneity (Sales Taxes, 2009-2013)"
 author: "John Bonney"
 date: "January 7, 2019"
+header-includes:
+  - \usepackage{subfig}
 output:
   pdf_document:
     fig_caption: yes
+
 ---
 
 ```{r setup, include=FALSE}
@@ -647,10 +650,53 @@ t.test(cty_seasonality %>% filter(seasonality_range <= .3) %>% pull(poporder),
 setorder(cty_seasonality, -seasonality_range)
 ```
 
+# Plots by Treatment Group
+
+We have created a variety of plots, focusing on sales and prices amongst stores that experience tax changes. We would like to aggregate and/or smooth the data in such a way that any change at the time of the tax change would be sharp and easy to see.
+
+We normalize sales on the store level by taking $\ln(\frac{sales_{psqy}}{sales_{psQ_12008}})$. All sales plots use this normalized sales measure. Note then that all product-store observations are then weighted equally in the sales figures.
+
+-Show the raw means-
+
+We residualize on the Census-region level. The simplest residualization removes a linear time trend from the data.
+
+- Show A plots -
+
+The more comprehensive residualization removes linear time trends and seasonal effects on the product-group level (still residualizing on the Census-region level).
+
+** Include equation??
+
+- Show D plots -
+
+```{r plot_twofigs, fig.cap="two plots", fig.subcap=c("one plot", "the other one"), fig.ncol = 2}
+include_graphics("C:/Users/figs/log_price_trends_compr_posttax_A.png")
+include_graphics("C:/Users/figs/log_price_trends_compr_posttax_A.png")
+
+```
+
+<!--
+![\label{fig:Fig5}Prices by Calendar Time](C:/Users/figs/log_price_trends_compr_posttax_A.png)
+![\label{fig:Fig6}Prices by Calendar Time](C:/Users/figs/log_price_trends_compr_posttax_D.png)
+![\label{fig:Fig7}Prices by Event Time](C:/Users/figs/log_price_trends_compr_posttax_es_resid_A.png)
+![\label{fig:Fig8}Prices by Event Time](C:/Users/figs/log_price_trends_compr_posttax_es_resid_D.png)
+![\label{fig:Fig9}Sales by Calendar Time](C:/Users/figs/log_sales_es_residualized_compr_qly_taxablegoods.png)
+![\label{fig:Fig10}Sales by Calendar Time](C:/Users/figs/log_sales_es_residualized_compr_qly_taxablegoods_Aregion.png)
+![\label{fig:Fig11}Sales by Calendar Time](C:/Users/figs/log_sales_es_residualized_compr_qly_taxablegoods_Dregion.png)
+![\label{fig:Fig12}Sales by Calendar Time](C:/Users/figs/log_sales_residualized_compr_qly_taxablegoods.png)
+![\label{fig:Fig13}Sales by Calendar Time](C:/Users/figs/log_sales_residualized_compr_qly_taxablegoods_Aregion.png)
+![\label{fig:Fig14}Sales by Calendar Time](C:/Users/figs/log_sales_residualized_compr_qly_taxablegoods_Dregion.png)
+-->
+
 List of figures to include
--- Create quarterly figures for prices (SUBMITTED for Calendar Time, not event time...)
+-- Create quarterly figures for prices (SUBMITTED for both CT and ET)
 -- Price graph -- compr posttax es resid A and D
 -- Price graph -- calendar time A and D
 -- Sales graph -- taxable only -- calendar time, A and D
 -- Create raw figure for taxable only goods for sales (DONE)
 -- Sales graph -- taxable only -- event time, A and D
+
+Outline:
+-Intro
+-Sales graphs
+--Plot calendar time and event time side by side
+-At end, have price graphs

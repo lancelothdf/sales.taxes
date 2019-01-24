@@ -22,7 +22,7 @@
 #'     different than \code{file_type}. (character)
 #' @param select_modules Do you want to specify specific product modules to
 #'     keep? (logical)
-#' @param modules_data If \code{select_modules = TRUE}, the dataset containing
+#' @param modules_to_keep If \code{select_modules = TRUE}, the dataset containing
 #'     the modules to be kept (data.table)
 #'
 
@@ -35,7 +35,7 @@ combine_scanner_data <- function(folder = NULL,
                                  store_info_prefix = "stores_",
                                  store_info_filetype = file_type,
                                  select_modules = F,
-                                 modules_data = NULL){
+                                 modules_to_keep = NULL){
   assertCharacter(folder, null.ok = T)
   assertCharacter(file_tail)
   assertCharacter(file_type)
@@ -45,8 +45,8 @@ combine_scanner_data <- function(folder = NULL,
   assertCharacter(store_info_prefix)
   assertCharacter(store_info_filetype)
   assertLogical(select_modules)
-  assertDataTable(modules_data, null.ok = T
-                  )
+  assertDataTable(modules_to_keep, null.ok = T)
+
   read_file <- function(file, type){
     if (type %in% c("dta", ".dta")){
       as.data.table(read.dta13(file))
@@ -71,10 +71,9 @@ combine_scanner_data <- function(folder = NULL,
     sales_data <- read_file(nielsen_file, file_type)
 
     if (select_modules){
-      sales_data <- keep_best_selling_products(sales_data,
-                                               module_name_ad = "product_module_code",
-                                               products_data = modules_data,
-                                               module_name_pd = "Module")
+      sales_data <- select_products(sales_data,
+                                    module_name_col = "product_module_code",
+                                    products = modules_to_keep)
     }
 
     # Merge onto store identifiers
