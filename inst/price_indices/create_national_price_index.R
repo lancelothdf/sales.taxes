@@ -39,13 +39,13 @@ print(paste0("N (balancing on store-level): ", nrow(pi_data)))
 
 ## renormalize index so that it equals 1 in 2007 Q1
 base_pi <- pi_data[year == 2007 & quarter == 1]
-base_pi[, base_pricei := pricei]
-base_pi <- base_pi[, .(store_code_uc, product_module_code, base_pricei)]
+base_pi[, base_cpricei := cpricei]
+base_pi <- base_pi[, .(store_code_uc, product_module_code, base_cpricei)]
 
 pi_data <- merge(pi_data, base_pi,
                  by = c("store_code_uc", "product_module_code"))
 
-pi_data[, pricei := pricei / base_pi]
+pi_data[, cpricei := cpricei / base_pi]
 
 ## merge sales shares onto cleaned price indices
 sales_data <- fread("Data/national_sales_shares.csv")
@@ -62,7 +62,7 @@ setkey(pi_data, store_code_uc, product_module_code, year, quarter)
 pi_data[, s_average := (sales_share + shift(sales_share, 1, type = "lag")) / 2,
         by = .(store_code_uc, product_module_code)]
 # create the base
-pi_data[, pi_change := pricei / shift(pricei, 1, type = "lag"),
+pi_data[, pi_change := cpricei / shift(cpricei, 1, type = "lag"),
         by = .(store_code_uc, product_module_code)]
 
 # compute P_t / P_{t-1}

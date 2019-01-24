@@ -18,5 +18,5 @@ national_sales <- sales_data[, .(total_sales = sum(sales)), by = .(quarter, year
 
 ## calculate sales shares for each store X product X quarter
 sales_data <- merge(sales_data, national_sales, by = c("quarter", "year"))
-sales_data[, sales_share := sales / national_sales] # this is our S_{j,r}^t
+sales_data[, sales_share := sales / total_sales] # this is our S_{j,r}^t
 fwrite(sales_data, "Data/national_sales_shares.csv")
