@@ -17,6 +17,9 @@ sales_data <- months_to_quarters(monthly_data = sales_data, month_var = "month",
 national_sales <- sales_data[, .(total_sales = sum(sales)), by = .(quarter, year)]
 
 ## calculate sales shares for each store X product X quarter
+######### NOTE: this sales_share variable is not used, since it is calculated
+#########  before the panel is balanced and thus does not sum to 1 and should
+#########  not be used as a weight
 sales_data <- merge(sales_data, national_sales, by = c("quarter", "year"))
 sales_data[, sales_share := sales / total_sales] # this is our S_{j,r}^t
 fwrite(sales_data, "Data/national_sales_shares.csv")
