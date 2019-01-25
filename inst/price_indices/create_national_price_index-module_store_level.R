@@ -6,13 +6,13 @@ library(readstata13)
 library(data.table)
 
 ## for testing
-pi_data <- data.table(expand.grid(year = 2006:2008, quarter = 1:4,
-                                  store_code_uc = c("A", "B"),
-                                  product_module_code = c("goat", "cheese")))
-pi_data[, cpricei := runif(nrow(pi_data), 100, 300)]
-
-sales_data <- pi_data[, .(year, quarter, store_code_uc, product_module_code)]
-sales_data[, sales := runif(nrow(sales_data), 1000, 10000)]
+# pi_data <- data.table(expand.grid(year = 2006:2008, quarter = 1:4,
+#                                   store_code_uc = c("A", "B"),
+#                                   product_module_code = c("goat", "cheese")))
+# pi_data[, cpricei := runif(nrow(pi_data), 100, 300)]
+#
+# sales_data <- pi_data[, .(year, quarter, store_code_uc, product_module_code)]
+# sales_data[, sales := runif(nrow(sales_data), 1000, 10000)]
 
 setwd("/project2/igaarder")
 
@@ -81,7 +81,6 @@ pi_data[, pi_change := cpricei / shift(cpricei, 1, type = "lag"),
 
 ### compute P_t / P_{t-1}
 print(nrow(pi_data))
-#pi_data <- pi_data[!is.na(pi_change) & !is.na(s_average)] # drop 2006 Q4
 national_pi <- pi_data[, list(national_ratio = prod(pi_change^s_average)),
                        by = .(quarter, year)]
 national_pi[year == 2006 & quarter == 4, national_ratio := 1]
