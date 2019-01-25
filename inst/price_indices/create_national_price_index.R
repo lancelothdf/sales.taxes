@@ -6,13 +6,13 @@ library(readstata13)
 library(data.table)
 
 ## for testing
-pi_data <- data.table(expand.grid(year = 2006:2008, quarter = 1:4,
-                                  store_code_uc = c("A", "B"),
-                                  product_module_code = c("goat", "cheese")))
-pi_data[, cpricei := runif(nrow(pi_data), 100, 300)]
-
-sales_data <- pi_data[, .(year, quarter, store_code_uc, product_module_code)]
-sales_data[, sales := runif(nrow(sales_data), 1000, 10000)]
+# pi_data <- data.table(expand.grid(year = 2006:2008, quarter = 1:4,
+#                                   store_code_uc = c("A", "B"),
+#                                   product_module_code = c("goat", "cheese")))
+# pi_data[, cpricei := runif(nrow(pi_data), 100, 300)]
+#
+# sales_data <- pi_data[, .(year, quarter, store_code_uc, product_module_code)]
+# sales_data[, sales := runif(nrow(sales_data), 1000, 10000)]
 
 setwd("/project2/igaarder")
 
@@ -22,18 +22,27 @@ pi_data <- as.data.table(pi_data)
 fwrite(pi_data, "Data/Nielsen/price_quantity_indices_food.csv")
 
 print(paste0("N (raw): ", nrow(pi_data)))
+print(paste0("N stores (raw): ", length(unique(pi_data$store_code_uc))))
+print(paste0("N store-products (raw): ", nrow(unique(pi_data[, .(store_code_uc, product_module_code)]))))
 
 ## get rid of the observations for 2006 Q3 and earlier
 pi_data <- pi_data[year >= 2007 | (year == 2006 & quarter == 4)]
+
 print(paste0("N (dropping 2006 Q3 and earlier): ", nrow(pi_data)))
+print(paste0("N stores (dropping 2006 Q3 and earlier): ", length(unique(pi_data$store_code_uc))))
+print(paste0("N store-products (dropping 2006 Q3 and earlier): ",
+             nrow(unique(pi_data[, .(store_code_uc, product_module_code)]))))
 
 ## balance on store-level
 stores <- unique(pi_data, by = c("year", "quarter", "store_code_uc"))
 stores <- stores[, list(n = .N), by = store_code_uc]
 keep_stores <- stores[n == (2016 - 2006) * 4 + 1][["store_code_uc"]]
-
 pi_data <- pi_data[store_code_uc %in% keep_stores]
+
 print(paste0("N (balancing on store-level): ", nrow(pi_data)))
+print(paste0("N stores (balancing on store-level): ", length(unique(pi_data$store_code_uc))))
+print(paste0("N store-products (balancing on store-level): ",
+             nrow(unique(pi_data[, .(store_code_uc, product_module_code)]))))
 
 ## balance on module X store level
 # store_modules <- pi_data[, list(n = .N), by = .(store_code_uc, product_module_code)]
@@ -45,7 +54,10 @@ print(paste0("N (balancing on store-level): ", nrow(pi_data)))
 # pi_data[, balanced := ifelse(is.na(balanced), FALSE, balanced)]
 # pi_data <- pi_data[balanced == TRUE]
 # print(paste0("N (balancing on store-module-level): ", nrow(pi_data)))
-
+# print(paste0("N stores (balancing on store-module-level): ",
+#              length(unique(pi_data$store_code_uc))))
+# print(paste0("N store-products (balancing on store-module-level): ",
+#              nrow(unique(pi_data[, .(store_code_uc, product_module_code)]))))
 
 ## renormalize index so that it equals 1 in 2006 Q4
 base_pi <- pi_data[year == 2006 & quarter == 4]
@@ -74,7 +86,7 @@ if (nrow_base != nrow(pi_data)){
 
 ## compute sales shares
 pi_data[, national_sales := sum(sales), by = .(quarter, year)]
-pi_data[, sales_share := sales / national_sales]
+pi_data[, sales_share := sales / national_sales]  # this is our S_{j,r}^t
 fwrite(pi_data, "Data/Nielsen/price_quantity_indices_food.csv")
 
 ## calculate the price indices
@@ -88,7 +100,6 @@ pi_data[, pi_change := cpricei / shift(cpricei, 1, type = "lag"),
         by = .(store_code_uc, product_module_code)]
 
 ### compute P_t / P_{t-1}
-print(nrow(pi_data))
 national_pi <- pi_data[, list(national_ratio = prod(pi_change^s_average)),
                        by = .(quarter, year)]
 national_pi[year == 2006 & quarter == 4, national_ratio := 1]
@@ -96,4 +107,4 @@ national_pi[year == 2006 & quarter == 4, national_ratio := 1]
 national_pi[, national_index := cumprod(national_ratio)]
 
 print(national_pi[])
-fwrite(national_pi, "Data/national_price_index.csv")
+fwrite(national_pi, "Data/national_pi_store_balanced.csv")
