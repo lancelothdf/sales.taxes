@@ -8,6 +8,8 @@ library(readstata13)
 setwd("/project2/igaarder")
 
 best_selling_modules <- fread("Data/best_selling_modules.csv")
+keep_modules <- unique(best_selling_modules[, .(Module)][[1]])
+
 sales_panel <- data.table(NULL)
 for (year in 2006:2016){
   for (rn in c("I", "II", "III", "IV", "V", "VI")){
@@ -16,10 +18,8 @@ for (year in 2006:2016){
     print(paste("Loading", filename, "..."))
     data_part <- as.data.table(read.dta13(filename))
     print("Keeping only best selling products")
-    data_part <- keep_best_selling_products(data_part,
-                                            module_name_ad = "product_module_code",
-                                            products_data = best_selling_modules,
-                                            module_name_pd = "Module")
+    # keep only best selling modules
+    data_part <- data_part[product_module_code %in% keep_modules]
     store_id_file <- paste0("/project2/igaarder/Data/Nielsen/stores_",
                             year, ".dta")
     print(paste("Loading", store_id_file, "..."))
