@@ -43,7 +43,7 @@ for (year in 2006:2016){
   }
 }
 
-sales_quarterly <- months_to_quarters(monthly_data = sales_data, month_var = "month",
+sales_quarterly <- months_to_quarters(monthly_data = sales_panel, month_var = "month",
                                       collapse_by = c("fips_state", "fips_county", "product_group_code",
                                                       "store_code_uc", "product_module_code"),
                                       collapse_var = "sales")
