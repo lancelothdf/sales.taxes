@@ -10,8 +10,8 @@ setwd("/project2/igaarder")
 best_selling_modules <- fread("Data/best_selling_modules.csv")
 keep_modules <- unique(best_selling_modules[, .(Module)][[1]])
 
-sales_panel <- data.table(NULL)
 for (year in 2006:2016){
+  sales_panel <- data.table(NULL)
   for (rn in c("I", "II", "III", "IV", "V", "VI")){
     filename <- paste0("/project2/igaarder/Data/Nielsen/", year,
                        "_monthly_master_file_part", rn, ".dta")
@@ -41,12 +41,20 @@ for (year in 2006:2016){
     print(paste("Binding sales_panel and", filename))
     sales_panel <- rbind(sales_panel, data_part)
   }
+  print(paste("Converting", year, "data to quarterly"))
+  sales_panel <- months_to_quarters(monthly_data = sales_panel, month_var = "month",
+                                    collapse_by = c("fips_state", "fips_county", "product_group_code",
+                                                    "store_code_uc", "product_module_code"),
+                                    collapse_var = "sales")
+  annual_filename <- paste0("Data/sales_quarterly_", year, ".csv")
+  fwrite(sales_panel, annual_filename)
 }
 
-fwrite("Data/sales_monthly_2006-2016.csv")
+sales_combined <- data.table(NULL)
+for (year in 2006:2016){
+  annual_filename <- paste0("Data/sales_quarterly_", year, ".csv")
+  annual_sales <- fread(annual_filename)
+  sales_combined <- rbind(sales_combined, annual_sales)
+}
 
-sales_quarterly <- months_to_quarters(monthly_data = sales_panel, month_var = "month",
-                                      collapse_by = c("fips_state", "fips_county", "product_group_code",
-                                                      "store_code_uc", "product_module_code"),
-                                      collapse_var = "sales")
 fwrite(sales_quarterly, "Data/sales_quarterly_2006-2016.csv")
