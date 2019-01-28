@@ -70,7 +70,7 @@ pi_data <- merge(pi_data, base_pi,
 pi_data[, cpricei := cpricei / base_cpricei]
 
 ## merge sales shares onto cleaned price indices
-sales_data <- fread("Data/national_sales_shares.csv")
+sales_data <- fread("Data/sales_quarterly_2006-2016.csv")
 
  # this should be an inner merge
 nrow_base <- nrow(pi_data)
