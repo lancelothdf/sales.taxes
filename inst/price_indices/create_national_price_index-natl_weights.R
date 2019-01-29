@@ -33,9 +33,19 @@ gc()
 ## load price index data
 pi_data <- fread("Data/Nielsen/price_quantity_indices_food.csv")
 
+print(paste0("N (raw): ", nrow(pi_data)))
+print(paste0("N stores (raw): ", length(unique(pi_data$store_code_uc))))
+print(paste0("N store-products (raw): ",
+             nrow(unique(pi_data[, .(store_code_uc, product_module_code)]))))
+
 ## merge county variable
 pi_data <- merge(pi_data, store_to_counties, by = c("store_code_uc", "quarter", "year"))
 fwrite(pi_data, "Data/Nielsen/price_quantity_indices_food.csv")
+
+print(paste0("N (merging counties): ", nrow(pi_data)))
+print(paste0("N stores (merging counties): ", length(unique(pi_data$store_code_uc))))
+print(paste0("N store-products (merging counties): ",
+             nrow(unique(pi_data[, .(store_code_uc, product_module_code)]))))
 
 ## keep only 2006 Q4 and after
 pi_data <- pi_data[year >= 2007 | (year == 2006 & quarter == 4)]
