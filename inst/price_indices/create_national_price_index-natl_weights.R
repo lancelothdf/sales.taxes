@@ -39,7 +39,7 @@ print(paste0("N store-products (raw): ",
              nrow(unique(pi_data[, .(store_code_uc, product_module_code)]))))
 
 ## merge county variable
-pi_data <- merge(pi_data, store_to_counties, by = c("store_code_uc", "quarter", "year"))
+pi_data <- merge(pi_data, stores_to_counties, by = c("store_code_uc", "quarter", "year"))
 fwrite(pi_data, "Data/Nielsen/price_quantity_indices_food.csv")
 
 print(paste0("N (merging counties): ", nrow(pi_data)))
