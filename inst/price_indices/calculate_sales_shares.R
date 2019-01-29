@@ -57,4 +57,4 @@ for (year in 2006:2016){
   sales_combined <- rbind(sales_combined, annual_sales)
 }
 
-fwrite(sales_quarterly, "Data/sales_quarterly_2006-2016.csv")
+fwrite(sales_combined, "Data/sales_quarterly_2006-2016.csv")
