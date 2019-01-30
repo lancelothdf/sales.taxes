@@ -60,6 +60,16 @@ print(paste0("N stores (dropping 2006 Q3 and earlier): ", length(unique(pi_data$
 print(paste0("N store-products (dropping 2006 Q3 and earlier): ",
              nrow(unique(pi_data[, .(store_code_uc, product_module_code)]))))
 
+## renormalize index so that it equals 1 in 2006 Q4
+base_pi <- pi_data[year == 2006 & quarter == 4]
+base_pi[, base_cpricei := cpricei]
+base_pi <- base_pi[, .(store_code_uc, product_module_code, base_cpricei)]
+
+pi_data <- merge(pi_data, base_pi,
+                 by = c("store_code_uc", "product_module_code"))
+
+pi_data[, cpricei := cpricei / base_cpricei]
+
 ## merge on sales shares
 head(pi_data)
 head(national_sales)
@@ -104,8 +114,13 @@ county_pi[, county_index := cumprod(county_ratio)]
 county_pop <- fread("Data/county_population.csv")
 county_pi <- merge(county_pi, county_pop, by = c("fips_state", "fips_county"))
 
+print(nrow(county_pi[is.na(population)]))
+print(nrow(county_pi[is.na(county_index)]))
+
+county_pi <- county_pi[!is.na(population) & !is.na(county_index)]
+
 national_pi <- county_pi[, list(
-  national_index = weighted.mean(x = county_index, w = population)
+  national_index = weighted.mean(x = county_index, w = population, na.rm = T)
   ), by = .(quarter, year)]
 
 print(national_pi[])
