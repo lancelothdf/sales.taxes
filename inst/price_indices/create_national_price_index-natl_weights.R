@@ -2,18 +2,19 @@
 #' Purpose: Create national price index from county-level aggregated price
 #'     indices (weighting by county population).
 
+library(readstata13)
 library(data.table)
 
 setwd("/project2/igaarder")
 
 ## for testing
-pi_data <- data.table(expand.grid(year = 2006:2016, quarter = 1:4,
-                                  store_code_uc = c("A", "B"),
-                                  product_module_code = c("goat", "cheese")))
-pi_data[, cpricei := runif(nrow(pi_data), 100, 300)]
-
-sales_data <- pi_data[, .(year, quarter, store_code_uc, product_module_code)]
-sales_data[, sales := runif(nrow(sales_data), 1000, 10000)]
+# pi_data <- data.table(expand.grid(year = 2006:2016, quarter = 1:4,
+#                                   store_code_uc = c("A", "B"),
+#                                   product_module_code = c("goat", "cheese")))
+# pi_data[, cpricei := runif(nrow(pi_data), 100, 300)]
+#
+# sales_data <- pi_data[, .(year, quarter, store_code_uc, product_module_code)]
+# sales_data[, sales := runif(nrow(sales_data), 1000, 10000)]
 
 ## load sales data to compute sales shares
 sales_data <- fread("Data/sales_quarterly_2006-2016.csv")
@@ -27,11 +28,14 @@ national_sales[, sales_share := total_sales / total_national_sales]
 ## grab county/state information to attach to stores
 stores_to_counties <- unique(sales_data[, .(store_code_uc, fips_state, fips_county, quarter, year)])
 
-# rm(sales_data) # free up memory
-# gc()
+rm(sales_data) # free up memory
+gc()
 
 ## load price index data
-pi_data <- fread("Data/Nielsen/price_quantity_indices_food.csv")
+
+pi_data <- read.dta13("Data/Nielsen/Price_quantity_indices_food.dta")
+pi_data <- as.data.table(pi_data)
+fwrite(pi_data, "Data/Nielsen/price_quantity_indices_food.csv")
 
 print(paste0("N (raw): ", nrow(pi_data)))
 print(paste0("N stores (raw): ", length(unique(pi_data$store_code_uc))))
