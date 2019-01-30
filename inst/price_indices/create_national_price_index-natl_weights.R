@@ -26,25 +26,26 @@ national_sales[, total_national_sales := sum(total_sales), by = .(quarter, year)
 national_sales[, sales_share := total_sales / total_national_sales]
 
 ## grab county/state information to attach to stores
-stores_to_counties <- unique(sales_data[, .(store_code_uc, fips_state, fips_county, quarter, year)])
+# stores_to_counties <- unique(sales_data[, .(store_code_uc, fips_state, fips_county, quarter, year)])
 
 rm(sales_data) # free up memory
 gc()
 
 ## load price index data
 
-pi_data <- read.dta13("Data/Nielsen/Price_quantity_indices_food.dta")
-pi_data <- as.data.table(pi_data)
-fwrite(pi_data, "Data/Nielsen/price_quantity_indices_food.csv")
+# pi_data <- read.dta13("Data/Nielsen/Price_quantity_indices_food.dta")
+# pi_data <- as.data.table(pi_data)
+# fwrite(pi_data, "Data/Nielsen/price_quantity_indices_food.csv")
 
-print(paste0("N (raw): ", nrow(pi_data)))
-print(paste0("N stores (raw): ", length(unique(pi_data$store_code_uc))))
-print(paste0("N store-products (raw): ",
-             nrow(unique(pi_data[, .(store_code_uc, product_module_code)]))))
+# print(paste0("N (raw): ", nrow(pi_data)))
+# print(paste0("N stores (raw): ", length(unique(pi_data$store_code_uc))))
+# print(paste0("N store-products (raw): ",
+#              nrow(unique(pi_data[, .(store_code_uc, product_module_code)]))))
 
 ## merge county variable
-pi_data <- merge(pi_data, stores_to_counties, by = c("store_code_uc", "quarter", "year"))
-fwrite(pi_data, "Data/Nielsen/price_quantity_indices_food.csv")
+# pi_data <- merge(pi_data, stores_to_counties, by = c("store_code_uc", "quarter", "year"))
+# fwrite(pi_data, "Data/Nielsen/price_quantity_indices_food.csv")
+pi_data <- fread("Data/Nielsen/price_quantity_indices_food.csv")
 
 print(paste0("N (merging counties): ", nrow(pi_data)))
 print(paste0("N stores (merging counties): ", length(unique(pi_data$store_code_uc))))
@@ -104,7 +105,7 @@ county_pop <- fread("Data/county_population.csv")
 county_pi <- merge(county_pi, county_pop, by = c("fips_state", "fips_county"))
 
 national_pi <- county_pi[, list(
-  national_index = weighted.mean(x = county_pi, w = population)
+  national_index = weighted.mean(x = county_index, w = population)
   ), by = .(quarter, year)]
 
 print(national_pi[])
