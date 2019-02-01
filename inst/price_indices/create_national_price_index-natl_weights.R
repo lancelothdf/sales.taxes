@@ -108,7 +108,7 @@ county_pi <- pi_data[, list(county_ratio = prod(pi_change^s_average)),
                        by = .(quarter, year, fips_state, fips_county)]
 county_pi[year == 2006 & quarter == 4, county_ratio := 1]
 ## take cumulative product
-county_pi[, county_index := cumprod(county_ratio)]
+county_pi[, county_index := cumprod(county_ratio), by = .(fips_state, fips_county)]
 
 ## average county-level indices, weighting by county population
 county_pop <- fread("Data/county_population.csv")
