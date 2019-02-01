@@ -100,9 +100,9 @@ fwrite(national_pi, "Data/national_pi_popweights.csv")
 ##############################################
 
 ## load in national price indices
-national_pi2 <- read.dta13("/Data/Nielsen/Price_quantity_indices_national_food.dta")
+national_pi2 <- read.dta13("Data/Nielsen/Price_quantity_indices_national_food.dta")
 national_pi2 <- as.data.table(national_pi2)
-fwrite(national_pi2, "/Data/Nielsen/Price_quantity_indices_national_food.csv")
+fwrite(national_pi2, "Data/Nielsen/Price_quantity_indices_national_food.csv")
 
 ## keep only 2006 Q4 and after
 national_pi2 <- national_pi2[year >= 2007 | (year == 2006 & quarter == 4)]
