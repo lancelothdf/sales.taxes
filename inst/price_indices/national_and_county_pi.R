@@ -26,6 +26,8 @@ setwd("/project2/igaarder")
 ## load county price indices
 county_pi <- read.dta13("Data/Nielsen/Price_quantity_indices_county_food.dta")
 county_pi <- as.data.table(county_pi)
+county_pi[, fips_state := as.integer(fips_state)]
+county_pi[, fips_county := as.integer(fips_county)]
 fwrite(county_pi, "Data/Nielsen/Price_quantity_indices_county_food.csv")
 
 ## load sales data to compute sales shares
