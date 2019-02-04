@@ -25,6 +25,16 @@ tr_data_path <- "Data/event_study_tr_groups_comprehensive.csv"
 pi_data <- fread(pi_data_path)
 pi_data <- pi_data[year %in% 2008:2014] # years for which we have tax rates
 
+## merge on sales weights ------------------------------------------------------
+sales_weights <- fread("Data/sales_quarterly_2006-2016.csv")
+sales_weights <- sales_weights[year == 2008 & quarter == 1]
+sales_weights <- sales_weights[, .(store_code_uc, product_module_code, sales)]
+
+pi_data <- merge(pi_data, sales_weights,
+                 by = c("store_code_uc", "product_module_code"))
+rm(sales_weights)
+gc()
+
 ## balance on store-level ------------------------------------------------------
 pi_data <- balance_panel_data(pi_data, time_vars = c("quarter", "year"),
                               panel_unit = "store_code_uc", n_periods = 28)
@@ -52,26 +62,28 @@ pi_data <- normalize_price(price_data = pi_data,
 pi_data <- pi_data[tt_event >= -1 * 4 & tt_event <= 4]
 pi_data <- pi_data[!is.na(cpricei)]
 
-# *** NOTE: currently, we do not weight at all when aggregating. ***
-
 ## aggregate by treatment group ------------------------------------------------
-pi_collapsed <- pi_data[, list(mean_pi = mean(normalized.cpricei),
-                               n_counties = uniqueN(1000 * fips_state +
-                                                      fips_county),
-                               n_stores = uniqueN(store_code_uc)),
-                               by = c("tr_group", "tt_event")]
+pi_collapsed <- pi_data[,
+  list(mean_pi = weighted.mean(x = normalized.cpricei, w = sales),
+       n_counties = uniqueN(1000 * fips_state + fips_county),
+       n_stores = uniqueN(store_code_uc)),
+   by = c("tr_group", "tt_event")
+  ]
 
 pi_collapsed <- add_tr_count(collapsed_data = pi_collapsed,
                              tr_group_name = "tr_group",
                              count_col_name = "n_counties")
 
-fwrite(pi_collapsed, "Data/pi_raw_es.csv")
+fwrite(pi_collapsed, "Data/pi_sw_es.csv")
 
 ## plot and export result ------------------------------------------------------
 pi_plot <- ggplot(data = pi_collapsed,
                   mapping = aes(x = tt_event, y = mean_pi, color = tr_count)) +
-  labs(x = "tt_event", y = "Price index", color = "Sales tax change") +
+  labs(x = "tt_event",
+       y = "Price index",
+       color = "Sales tax change",
+       note = expression(paste("Weighted by sales in 2008 Q1. ", Y==0, " in ", T==-2))) +
   geom_line() +
   theme_bw()
 
-ggsave("Graphs/pi_raw_es.png")
+ggsave("Graphs/pi_sw_es.png")
