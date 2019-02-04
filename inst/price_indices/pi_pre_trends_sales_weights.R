@@ -79,8 +79,8 @@ fwrite(pi_collapsed, "Data/pi_sw_es.csv")
 ## plot and export result ------------------------------------------------------
 pi_plot <- ggplot(data = pi_collapsed,
                   mapping = aes(x = tt_event, y = mean_pi, color = tr_count)) +
-  labs(x = "tt_event",
-       y = "Price index",
+  labs(x = "Time to event",
+       y = "Log Price index",
        color = "Sales tax change",
        note = expression(paste("Weighted by sales in 2008 Q1. ", Y==0, " in ", T==-2))) +
   geom_line() +
