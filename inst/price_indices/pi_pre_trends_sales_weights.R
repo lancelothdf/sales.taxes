@@ -64,7 +64,7 @@ pi_data <- pi_data[!is.na(cpricei)]
 
 ## aggregate by treatment group ------------------------------------------------
 pi_collapsed <- pi_data[,
-  list(mean_pi = weighted.mean(x = normalized.cpricei, w = sales),
+  list(mean_pi = weighted.mean(x = log(normalized.cpricei), w = sales),
        n_counties = uniqueN(1000 * fips_state + fips_county),
        n_stores = uniqueN(store_code_uc)),
    by = c("tr_group", "tt_event")
