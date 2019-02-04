@@ -4,7 +4,7 @@
 
 # devtools::install_github("setzler/eventStudy/eventStudy")
 
-library(eventStudy)
+# library(eventStudy)
 library(data.table)
 library(sales.taxes)
 library(ggplot2)
