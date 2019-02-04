@@ -64,7 +64,7 @@ pi_data <- pi_data[!is.na(cpricei)]
 
 ## aggregate by treatment group ------------------------------------------------
 pi_collapsed <- pi_data[,
-  list(mean_pi = weighted.mean(x = log(normalized.cpricei), w = sales),
+  list(mean_pi = weighted.mean(x = normalized.cpricei, w = sales),
        n_counties = uniqueN(1000 * fips_state + fips_county),
        n_stores = uniqueN(store_code_uc)),
    by = c("tr_group", "tt_event")
@@ -80,7 +80,7 @@ fwrite(pi_collapsed, "Data/pi_sw_es.csv")
 pi_plot <- ggplot(data = pi_collapsed,
                   mapping = aes(x = tt_event, y = mean_pi, color = tr_count)) +
   labs(x = "Time to event",
-       y = "Log Price index",
+       y = "Log normalized price index",
        color = "Sales tax change",
        note = expression(paste("Weighted by sales in 2008 Q1. ", Y==0, " in ", T==-2))) +
   geom_line() +
