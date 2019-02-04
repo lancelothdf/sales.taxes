@@ -66,7 +66,7 @@ fwrite(pi_collapsed, "Data/pi_raw_es.csv")
 ## plot and export result ------------------------------------------------------
 pi_plot <- ggplot(data = pi_collapsed,
                   mapping = aes(x = tt_event, y = mean_pi, color = tr_count)) +
-  labs(x = month_or_quarter, y = y_label, color = "Sales tax change") +
+  labs(x = "tt_event", y = "Price index", color = "Sales tax change") +
   geom_line() +
   theme_bw()
 
