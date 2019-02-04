@@ -74,3 +74,7 @@ Improvements that can be made:
 * Allow weights to be used when averaging/summing over months
 * Allow multiple variables to be inputs
 * Allow different variables to be collapsed in different ways (e.g., may want to average prices but sum sales)
+
+### `balance_panel_data.R`
+
+* Added `time_vars` argument, taking the names of the variables defining the time. Note that the default is `time_vars = c("month", "year")`, as that's what was hard-coded in the function before.

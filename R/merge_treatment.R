@@ -1,7 +1,7 @@
 #' Merge treatment onto county-level sales data.
 #'
-#' @description This function takes a county-level dataset and merges another
-#'     dataset with treatment information onto the first dataset.
+#' @description This function takes a dataset without treatment info and merges
+#'     another dataset with treatment information onto the first dataset.
 #'
 #' @param original_data The panel data (without treatment status) (data.table)
 #' @param treatment_data_path The path to the treatment data (character)
@@ -35,6 +35,10 @@ merge_treatment <- function(original_data,
     tr_groups[, additional := 1]
 
     # by calendar time
+    # Note that such an m:m merge is usually bad form. However, in this case,
+    # we want to merge every store-module-time observation to all possible
+    # times of treatment.
+
     cal_panel_data <- merge(original_data, tr_groups,
                             by = merge_by,
                             all = TRUE,
