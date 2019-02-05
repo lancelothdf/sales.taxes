@@ -58,7 +58,7 @@ module_exemptions <- fread(module_exemptions_path)
 
 county_monthly_tax <- county_monthly_tax[, .(fips_state, fips_county, year,
                                              month, sales_tax)]
-applicable_tax <- merge(module_exemptions, county_quarterly_tax,
+applicable_tax <- merge(module_exemptions, county_monthly_tax,
                         by = c("fips_state", "year", "month"),
                         allow.cartesian = T)
 
