@@ -16,6 +16,7 @@ library(ggplot2)
 setwd("/project2/igaarder")
 pi_data_path <- "Data/Nielsen/price_quantity_indices_food.csv"
 tr_data_path <- "Data/event_study_tr_groups_comprehensive.csv"
+tr_groups_path <- "Data/tr_groups_comprehensive.csv"
 
 ## load in price index data (variables: "store_code_uc", "quarter", "year",
 ##                              "product_group_code", "product_module_code",
@@ -60,7 +61,31 @@ pi_data <- normalize_price(price_data = pi_data,
 
 ## limit data to two year window around reform ---------------------------------
 pi_data <- pi_data[tt_event >= -1 * 4 & tt_event <= 4]
-pi_data <- pi_data[!is.na(cpricei)]
+pi_data <- pi_data[!is.na(normalized.cpricei)]
+
+## add pseudo-control group ----------------------------------------------------
+
+### create unique dataset of never treated counties
+control_counties <- fread(tr_groups_path)
+control_counties <- control_counties[tr_group == "No change"]
+control_counties <- unique(control_counties[, .(fips_county, fips_state)])
+
+control_dt <- merge(pi_data, control_counties,
+                    by = c("fips_state", "fips_county"))
+
+### take the mean for each time period
+control_dt <- control_dt[,
+  list(control.cpricei = weighted.mean(x = normalized.cpricei, w = sales)),
+  by = .(quarter, year)
+  ]
+
+pi_data <- merge(pi_data, control_dt, by = c("quarter", "year"))
+matched_control_data <- pi_data[, .(control.cpricei, tt_event, tr_group, sales)]
+
+matched_control_data[, normalized.cpricei := control.cpricei]
+matched_control_data[, tr_group := paste0("No change (", tr_group, ")")]
+matched_control_data[, control.cpricei := NULL]
+pi_data <- rbind(pi_data, matched_control_data, fill = T)
 
 ## aggregate by treatment group ------------------------------------------------
 pi_collapsed <- pi_data[,
@@ -74,7 +99,7 @@ pi_collapsed <- add_tr_count(collapsed_data = pi_collapsed,
                              tr_group_name = "tr_group",
                              count_col_name = "n_counties")
 
-fwrite(pi_collapsed, "Data/pi_sw_es.csv")
+fwrite(pi_collapsed, "Data/pi_sw_control_es.csv")
 
 ## plot and export result ------------------------------------------------------
 pi_plot <- ggplot(data = pi_collapsed,
@@ -86,4 +111,4 @@ pi_plot <- ggplot(data = pi_collapsed,
   geom_line() +
   theme_bw()
 
-ggsave("Graphs/pi_sw_es.png")
+ggsave("Graphs/pi_sw_control_es.png")
