@@ -293,9 +293,15 @@ price_anchors <- all_pi[tt_event == -2]
 price_anchors[, base_price := cpricei]
 price_anchors <- price_anchors[, .(store_code_uc, product_module_code, base_price,
                                    ref_year, ref_quarter, tr_group)]
+print(nrow(unique(price_anchors)))
+print(nrow(unique(price_anchors[, .(store_code_uc, product_module_code,
+                                    ref_year, ref_quarter, tr_group)])))
 
 print(head(price_anchors))
 print(nrow(price_anchors))
+print(nrow(unique(all_pi)))
+print(nrow(unique(all_pi[, .(store_code_uc, product_module_code,
+                             ref_year, ref_quarter, tr_group)])))
 
 all_pi <- merge(all_pi, price_anchors,
                     by = c("store_code_uc", "product_module_code",
