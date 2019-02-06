@@ -225,6 +225,7 @@ all_pi <- fread(all_goods_pi_path)
 all_pi <- all_pi[year %in% 2008:2014 & !is.na(cpricei) & !is.na(sales)]
 all_pi <- balance_panel_data(all_pi, time_vars = c("quarter", "year"),
                              panel_unit = "store_code_uc", n_periods = 28)
+all_pi_original <- copy(all_pi)
 
 
 ## merge treatment, attach event times -----------------------------------------
@@ -249,6 +250,7 @@ all_pi <- normalize_price(price_data = all_pi,
                           base_time = -2,
                           price_var = "cpricei",
                           new_price_var = "normalized.cpricei")
+setorder(all_pi, store_code_uc, product_module_code, tt_event)
 print(head(all_pi))
 
 ## add pseudo-control group ----------------------------------------------------
@@ -259,8 +261,12 @@ control_counties <- control_counties[tr_group == "No change"]
 control_counties <- unique(control_counties[, .(fips_county, fips_state)])
 print(head(control_counties))
 
-control_dt <- merge(all_pi, control_counties, by = c("fips_state", "fips_county"))
+control_dt <- merge(all_pi_original, control_counties,
+                    by = c("fips_state", "fips_county"))
 print(head(control_dt))
+
+rm(all_pi_original)
+gc()
 
 ### take the mean for each time period
 control_dt <- control_dt[,
