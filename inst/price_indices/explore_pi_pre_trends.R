@@ -16,7 +16,7 @@ library(zoo)
 library(ggplot2)
 
 setwd("/project2/igaarder")
-prep_enviro <- T
+prep_enviro <- F
 
 ################################################################################
 ###### Prepare environment & create datasets of all goods and taxable only #####
@@ -33,42 +33,37 @@ taxable_pi_path <- "Data/Nielsen/price_quantity_indices_taxableitems.csv"
 
 if (prep_enviro){
   ## create .csv's of taxable and all goods ------------------------------------
-  # nonfood_pi <- read.dta13("Data/Nielsen/Price_quantity_indices_nonfood.dta")
-  # nonfood_pi <- as.data.table(nonfood_pi)
-  # fwrite(nonfood_pi, "Data/Nielsen/price_quantity_indices_nonfood.csv")
-  #
-  # food_pi <- fread("Data/Nielsen/price_quantity_indices_food.csv")
-  # food_pi[, c("fips_state", "fips_county") := NULL]
-  #
-  # all_pi <- rbind(food_pi, nonfood_pi)
-  # rm(nonfood_pi, food_pi)
-  # gc()
-  #
-  # ### attach county and state FIPS codes as well as sales ----------------------
-  # sales_data <- fread(sales_data_path)
-  # sales_data <- sales_data[, .(store_code_uc, product_module_code, fips_county,
-  #                              fips_state, quarter, year, sales)]
-  #
-  # all_pi <- merge(all_pi, sales_data, by = c("store_code_uc", "quarter", "year",
-  #                                            "product_module_code" ))
-  # fwrite(all_pi, all_goods_pi_path)
-  #
-  # rm(sales_data)
-  # gc()
+  nonfood_pi <- read.dta13("Data/Nielsen/Price_quantity_indices_nonfood.dta")
+  nonfood_pi <- as.data.table(nonfood_pi)
+  fwrite(nonfood_pi, "Data/Nielsen/price_quantity_indices_nonfood.csv")
+
+  food_pi <- fread("Data/Nielsen/price_quantity_indices_food.csv")
+  food_pi[, c("fips_state", "fips_county") := NULL]
+
+  all_pi <- rbind(food_pi, nonfood_pi)
+  rm(nonfood_pi, food_pi)
+  gc()
+
+  ### attach county and state FIPS codes as well as sales ----------------------
+  sales_data <- fread(sales_data_path)
+  sales_data <- sales_data[, .(store_code_uc, product_module_code, fips_county,
+                               fips_state, quarter, year, sales)]
+
+  all_pi <- merge(all_pi, sales_data, by = c("store_code_uc", "quarter", "year",
+                                             "product_module_code" ))
+  fwrite(all_pi, all_goods_pi_path)
+
+  rm(sales_data)
+  gc()
 
   ### create taxable only dataset ----------------------------------------------
-  all_pi <- fread(all_goods_pi_path)
-  all_pi <- all_pi[year %in% 2008:2014]
+  taxable_pi <- all_pi[year %in% 2008:2014]
 
   county_monthly_tax <- fread(tax_rates_path)
   module_exemptions <- fread(module_exemptions_path)
 
   county_monthly_tax <- county_monthly_tax[, .(fips_state, fips_county, year,
                                                month, sales_tax)]
-  ### some checks...
-  length(unique(module_exemptions$product_module_code))
-  length(unique(all_pi$product_module_code))
-  ###
 
   applicable_tax <- merge(module_exemptions, county_monthly_tax,
                           by = c("fips_state", "year", "month"), all = T,
@@ -82,22 +77,16 @@ if (prep_enviro){
   applicable_tax <- applicable_tax[, list(applicable_tax = max(applicable_tax)),
                                    by = .(fips_state, fips_county, year, quarter,
                                           product_module_code)]
-  print(table(applicable_tax$applicable_tax, useNA = "always"))
-  print(nrow(all_pi)) ## bug check
-  print(nrow(applicable_tax)) # bug check
-  taxable_pi <- merge(all_pi, applicable_tax,
+
+  taxable_pi <- merge(taxable_pi, applicable_tax,
                       by = c("fips_state", "fips_county", "year", "quarter",
                              "product_module_code"), all.x = T)
-  print(nrow(taxable_pi)) ## bug check
 
   taxable_pi[, rm_missing := max(as.integer(is.na(applicable_tax))),
              by = c("fips_state", "fips_county", "product_module_code")]
-  print(table(taxable_pi$rm_missing, useNA = "always"))
   taxable_pi[, rm_nontaxable := max(as.integer(applicable_tax == 0)),
              by = c("fips_state", "fips_county", "product_module_code")]
-  print(table(taxable_pi$rm_nontaxable, useNA = "always"))
   taxable_pi <- taxable_pi[rm_nontaxable != 1 & rm_missing != 1]
-  print(nrow(taxable_pi)) ## bug check
   taxable_pi <- taxable_pi[, .(store_code_uc, quarter, year, product_group_code,
                                product_module_code, pricei, quantityi, cpricei,
                                fips_state, fips_county, sales)]
@@ -106,10 +95,10 @@ if (prep_enviro){
 
   rm(county_monthly_tax, module_exemptions, applicable_tax)
   gc()
-} # else {
-#   all_pi <- fread(all_goods_pi_path)
-#   taxable_pi <- fread(taxable_pi_path)
-# }
+}  else {
+  all_pi <- fread(all_goods_pi_path)
+  taxable_pi <- fread(taxable_pi_path)
+}
 
 
 ################################################################################
@@ -239,8 +228,9 @@ all_pi <- fread(all_goods_pi_path)
 all_pi <- all_pi[year %in% 2008:2014 & !is.na(cpricei) & !is.na(sales)]
 all_pi <- balance_panel_data(all_pi, time_vars = c("quarter", "year"),
                              panel_unit = "store_code_uc", n_periods = 28)
-all_pi_original <- copy(all_pi)
 
+all_pi[, cpricei := log(cpricei)]
+all_pi_original <- copy(all_pi)
 
 ## merge treatment, attach event times -----------------------------------------
 print(head(all_pi))
@@ -279,14 +269,18 @@ control_dt <- control_dt[,
                          by = .(quarter, year)
                          ]
 print(head(control_dt))
+nrow(control_dt) # should be 28
 
-all_pi <- merge(all_pi, control_dt, by = c("quarter", "year"))
-print(head(all_pi))
-matched_control_data <- all_pi[, .(control.cpricei, tt_event, tr_group, sales,
-                                   ref_year, ref_quarter)]
+matched_control_data <- merge(all_pi, control_dt, by = c("quarter", "year"))
+print(head(matched_control_data))
+matched_control_data <- matched_control_data[, .(control.cpricei, tt_event,
+                                                 tr_group, sales, ref_year, ref_quarter)]
+print(nrow(matched_control_data))
+print(nrow(all_pi))
 
 matched_control_data[, cpricei := control.cpricei]
 matched_control_data[, tr_group := paste0("No change (", tr_group, ")")]
+print(head(matched_control_data))
 matched_control_data[, control.cpricei := NULL]
 all_pi <- rbind(all_pi, matched_control_data, fill = T)
 
@@ -314,7 +308,8 @@ all_pi <- merge(all_pi, price_anchors,
                     by = c("store_code_uc", "product_module_code",
                            "ref_year", "ref_quarter", "tr_group"))
 
-all_pi[, normalized.cpricei := log(cpricei) - log(base_price)]
+# note that this is still log cpricei
+all_pi[, normalized.cpricei := cpricei - base_price]
 all_pi[, base_price := NULL]
 
 # all_pi <- normalize_price(price_data = all_pi,
