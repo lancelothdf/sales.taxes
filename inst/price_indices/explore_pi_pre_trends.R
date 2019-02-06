@@ -228,9 +228,11 @@ all_pi <- balance_panel_data(all_pi, time_vars = c("quarter", "year"),
 
 
 ## merge treatment, attach event times -----------------------------------------
+print(head(all_pi))
 all_pi <- merge_treatment(original_data = all_pi,
                           treatment_data_path = eventstudy_tr_path,
                           merge_by = c("fips_county", "fips_state"))
+print(head(all_pi))
 
 ## define time to event --------------------------------------------------------
 all_pi[, ref_quarter := ceiling(ref_month / 4)]
@@ -238,14 +240,16 @@ all_pi[, tt_event := as.integer(4 * year + quarter -
                                    (4 * ref_year + ref_quarter))]
 
 ## limit data to two year window around reform ---------------------------------
-all_pi <- all_pi[tt_event >= -1 * 4 & tt_event <= 4]
+all_pi <- all_pi[tt_event >= -4 & tt_event <= 4]
 
 ## normalize price indices based on time to event ------------------------------
+print(head(all_pi))
 all_pi <- normalize_price(price_data = all_pi,
                           time_type = "event",
                           base_time = -2,
                           price_var = "cpricei",
                           new_price_var = "normalized.cpricei")
+print(head(all_pi))
 
 ## add pseudo-control group ----------------------------------------------------
 
@@ -253,16 +257,20 @@ all_pi <- normalize_price(price_data = all_pi,
 control_counties <- fread(tr_groups_path)
 control_counties <- control_counties[tr_group == "No change"]
 control_counties <- unique(control_counties[, .(fips_county, fips_state)])
+print(head(control_counties))
 
 control_dt <- merge(all_pi, control_counties, by = c("fips_state", "fips_county"))
+print(head(control_dt))
 
 ### take the mean for each time period
 control_dt <- control_dt[,
   list(control.cpricei = weighted.mean(x = normalized.cpricei, w = sales)),
   by = .(quarter, year)
   ]
+print(head(control_dt))
 
 all_pi <- merge(all_pi, control_dt, by = c("quarter", "year"))
+print(head(all_pi))
 matched_control_data <- all_pi[, .(control.cpricei, tt_event, tr_group, sales)]
 
 matched_control_data[, normalized.cpricei := control.cpricei]

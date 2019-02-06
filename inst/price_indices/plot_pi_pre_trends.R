@@ -28,6 +28,7 @@ ct.all <- fread("pi_data/pi_all_calendar.csv")
 ct.all$year_qtr <- as.yearqtr(paste(
   as.integer(ct.all$year), as.integer(ct.all$quarter)
 ), "%Y %q")
+ct.all[, tr_count := gsub("=", " = ", tr_count)]
 
 all.calendar.plot <- ggplot(data = ct.all, mapping = aes(x = year_qtr,
                                                          y = mean.cpricei,
