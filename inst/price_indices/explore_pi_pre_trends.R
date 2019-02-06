@@ -223,6 +223,8 @@ if (prep_enviro){
 
 # All goods ====================================================================
 all_pi <- fread(all_goods_pi_path)
+print(nrow(all_pi[duplicated(all_pi)]))
+print(head(all_pi[duplicated(all_pi)]))
 
 ## balance sample on store-level from 2008 to 2014 -----------------------------
 all_pi <- all_pi[year %in% 2008:2014 & !is.na(cpricei) & !is.na(sales)]
@@ -282,7 +284,11 @@ matched_control_data[, cpricei := control.cpricei]
 matched_control_data[, tr_group := paste0("No change (", tr_group, ")")]
 print(head(matched_control_data))
 matched_control_data[, control.cpricei := NULL]
+print(nrow(matched_control_data[duplicated(match_control_d)]))
+print(head(matched_control_data[duplicated(match_control_data)]))
 all_pi <- rbind(all_pi, matched_control_data, fill = T)
+print(nrow(all_pi[duplicated(all_pi)]))
+print(head(all_pi[duplicated(all_pi)]))
 
 ## normalize price indices based on time to event ------------------------------
 print(head(all_pi))
@@ -294,6 +300,7 @@ price_anchors <- all_pi[tt_event == -2]
 price_anchors[, base_price := cpricei]
 price_anchors <- price_anchors[, .(store_code_uc, product_module_code, base_price,
                                    ref_year, ref_quarter, tr_group)]
+
 print(nrow(unique(price_anchors)))
 print(nrow(unique(price_anchors[, .(store_code_uc, product_module_code,
                                     ref_year, ref_quarter, tr_group)])))
@@ -303,6 +310,11 @@ print(nrow(price_anchors))
 print(nrow(unique(all_pi)))
 print(nrow(unique(all_pi[, .(store_code_uc, product_module_code,
                              ref_year, ref_quarter, tr_group)])))
+
+print(nrow(price_anchors[duplicated(price_anchors)]))
+print(head(price_anchors[duplicated(price_anchors)]))
+print(nrow(all_pi[duplicated(all_pi)]))
+print(head(all_pi[duplicated(all_pi)]))
 
 all_pi <- merge(all_pi, price_anchors,
                     by = c("store_code_uc", "product_module_code",
