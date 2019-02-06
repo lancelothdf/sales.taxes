@@ -16,7 +16,7 @@ library(zoo)
 library(ggplot2)
 
 setwd("/project2/igaarder")
-prep_enviro <- T
+prep_enviro <- F
 
 ################################################################################
 ###### Prepare environment & create datasets of all goods and taxable only #####
