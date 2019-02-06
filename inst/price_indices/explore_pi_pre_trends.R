@@ -58,7 +58,7 @@ if (prep_enviro){
 
   ### create taxable only dataset ----------------------------------------------
   all_pi <- fread(all_goods_pi_path)
-  all_pi <- all_goods_pi_path[year %in% 2008:2014]
+  all_pi <- all_pi[year %in% 2008:2014]
 
   county_monthly_tax <- fread(tax_rates_path)
   module_exemptions <- fread(module_exemptions_path)
