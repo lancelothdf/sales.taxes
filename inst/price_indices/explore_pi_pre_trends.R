@@ -243,16 +243,6 @@ all_pi[, tt_event := as.integer(4 * year + quarter -
 ## limit data to two year window around reform ---------------------------------
 all_pi <- all_pi[tt_event >= -4 & tt_event <= 4]
 
-## normalize price indices based on time to event ------------------------------
-print(head(all_pi))
-all_pi <- normalize_price(price_data = all_pi,
-                          time_type = "event",
-                          base_time = -2,
-                          price_var = "cpricei",
-                          new_price_var = "normalized.cpricei")
-setorder(all_pi, store_code_uc, product_module_code, tt_event)
-print(head(all_pi))
-
 ## add pseudo-control group ----------------------------------------------------
 
 ### create unique dataset of never treated counties
@@ -270,19 +260,29 @@ gc()
 
 ### take the mean for each time period
 control_dt <- control_dt[,
-  list(control.cpricei = weighted.mean(x = normalized.cpricei, w = sales)),
-  by = .(quarter, year)
-  ]
+                         list(control.cpricei = weighted.mean(x = cpricei, w = sales)),
+                         by = .(quarter, year)
+                         ]
 print(head(control_dt))
 
 all_pi <- merge(all_pi, control_dt, by = c("quarter", "year"))
 print(head(all_pi))
 matched_control_data <- all_pi[, .(control.cpricei, tt_event, tr_group, sales)]
 
-matched_control_data[, normalized.cpricei := control.cpricei]
+matched_control_data[, cpricei := control.cpricei]
 matched_control_data[, tr_group := paste0("No change (", tr_group, ")")]
 matched_control_data[, control.cpricei := NULL]
 all_pi <- rbind(all_pi, matched_control_data, fill = T)
+
+## normalize price indices based on time to event ------------------------------
+print(head(all_pi))
+all_pi <- normalize_price(price_data = all_pi,
+                          time_type = "event",
+                          base_time = -2,
+                          price_var = "cpricei",
+                          new_price_var = "normalized.cpricei")
+setorder(all_pi, store_code_uc, product_module_code, tt_event)
+print(head(all_pi))
 
 ## aggregate by treatment group ------------------------------------------------
 print(head(all_pi))
@@ -339,13 +339,6 @@ taxable_pi[, tt_event := as.integer(4 * year + quarter -
 ## limit data to two year window around reform ---------------------------------
 taxable_pi <- taxable_pi[tt_event >= -1 * 4 & tt_event <= 4]
 
-## normalize price indices based on time to event ------------------------------
-taxable_pi <- normalize_price(price_data = taxable_pi,
-                              time_type = "event",
-                              base_time = -2,
-                              price_var = "cpricei",
-                              new_price_var = "normalized.cpricei")
-
 ## add pseudo-control group ----------------------------------------------------
 
 ### create unique dataset of never treated counties
@@ -360,17 +353,24 @@ gc()
 
 ### take the mean for each time period
 control_dt <- control_dt[,
-                         list(control.cpricei = weighted.mean(x = normalized.cpricei, w = sales)),
+                         list(control.cpricei = weighted.mean(x = cpricei, w = sales)),
                          by = .(quarter, year)
                          ]
 
 taxable_pi <- merge(taxable_pi, control_dt, by = c("quarter", "year"))
 matched_control_data <- taxable_pi[, .(control.cpricei, tt_event, tr_group, sales)]
 
-matched_control_data[, normalized.cpricei := control.cpricei]
+matched_control_data[, cpricei := control.cpricei]
 matched_control_data[, tr_group := paste0("No change (", tr_group, ")")]
 matched_control_data[, control.cpricei := NULL]
 taxable_pi <- rbind(taxable_pi, matched_control_data, fill = T)
+
+## normalize price indices based on time to event ------------------------------
+taxable_pi <- normalize_price(price_data = taxable_pi,
+                              time_type = "event",
+                              base_time = -2,
+                              price_var = "cpricei",
+                              new_price_var = "normalized.cpricei")
 
 ## aggregate by treatment group ------------------------------------------------
 taxable_pi_es_collapsed <- taxable_pi[,
@@ -437,13 +437,6 @@ taxexempt_pi[, tt_event := as.integer(4 * year + quarter -
 ## limit data to two year window around reform ---------------------------------
 taxexempt_pi <- taxexempt_pi[tt_event >= -1 * 4 & tt_event <= 4]
 
-## normalize price indices based on time to event ------------------------------
-taxexempt_pi <- normalize_price(price_data = taxexempt_pi,
-                              time_type = "event",
-                              base_time = -2,
-                              price_var = "cpricei",
-                              new_price_var = "normalized.cpricei")
-
 ## add pseudo-control group ----------------------------------------------------
 
 ### create unique dataset of never treated counties
@@ -458,17 +451,24 @@ gc()
 
 ### take the mean for each time period
 control_dt <- control_dt[,
-                         list(control.cpricei = weighted.mean(x = normalized.cpricei, w = sales)),
+                         list(control.cpricei = weighted.mean(x = cpricei, w = sales)),
                          by = .(quarter, year)
                          ]
 
 taxexempt_pi <- merge(taxexempt_pi, control_dt, by = c("quarter", "year"))
 matched_control_data <- taxexempt_pi[, .(control.cpricei, tt_event, tr_group, sales)]
 
-matched_control_data[, normalized.cpricei := control.cpricei]
+matched_control_data[, cpricei := control.cpricei]
 matched_control_data[, tr_group := paste0("No change (", tr_group, ")")]
 matched_control_data[, control.cpricei := NULL]
 taxexempt_pi <- rbind(taxexempt_pi, matched_control_data, fill = T)
+
+## normalize price indices based on time to event ------------------------------
+taxexempt_pi <- normalize_price(price_data = taxexempt_pi,
+                              time_type = "event",
+                              base_time = -2,
+                              price_var = "cpricei",
+                              new_price_var = "normalized.cpricei")
 
 ## aggregate by treatment group ------------------------------------------------
 taxexempt_pi_es_collapsed <- taxexempt_pi[,
