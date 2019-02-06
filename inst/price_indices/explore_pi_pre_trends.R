@@ -233,6 +233,7 @@ print(head(all_pi))
 all_pi <- merge_treatment(original_data = all_pi,
                           treatment_data_path = eventstudy_tr_path,
                           merge_by = c("fips_county", "fips_state"))
+setnames(all_pi,"V1", "event_ID")
 print(head(all_pi))
 
 ## define time to event --------------------------------------------------------
@@ -267,7 +268,7 @@ print(head(control_dt))
 
 all_pi <- merge(all_pi, control_dt, by = c("quarter", "year"))
 print(head(all_pi))
-matched_control_data <- all_pi[, .(control.cpricei, tt_event, tr_group, sales)]
+matched_control_data <- all_pi[, .(control.cpricei, tt_event, tr_group, sales, event_ID)]
 
 matched_control_data[, cpricei := control.cpricei]
 matched_control_data[, tr_group := paste0("No change (", tr_group, ")")]
@@ -276,6 +277,7 @@ all_pi <- rbind(all_pi, matched_control_data, fill = T)
 
 ## normalize price indices based on time to event ------------------------------
 print(head(all_pi))
+all_pi[, store_code_uc := .GRP, by = .(tr_group, event_ID)]
 all_pi <- normalize_price(price_data = all_pi,
                           time_type = "event",
                           base_time = -2,
@@ -330,6 +332,7 @@ taxable_pi_original <- copy(taxable_pi)
 taxable_pi <- merge_treatment(original_data = taxable_pi,
                               treatment_data_path = eventstudy_tr_path,
                               merge_by = c("fips_county", "fips_state"))
+setnames(taxable_pi,"V1", "event_ID")
 
 ## define time to event --------------------------------------------------------
 taxable_pi[, ref_quarter := ceiling(ref_month / 4)]
@@ -358,7 +361,7 @@ control_dt <- control_dt[,
                          ]
 
 taxable_pi <- merge(taxable_pi, control_dt, by = c("quarter", "year"))
-matched_control_data <- taxable_pi[, .(control.cpricei, tt_event, tr_group, sales)]
+matched_control_data <- taxable_pi[, .(control.cpricei, tt_event, tr_group, sales, event_ID)]
 
 matched_control_data[, cpricei := control.cpricei]
 matched_control_data[, tr_group := paste0("No change (", tr_group, ")")]
@@ -366,6 +369,7 @@ matched_control_data[, control.cpricei := NULL]
 taxable_pi <- rbind(taxable_pi, matched_control_data, fill = T)
 
 ## normalize price indices based on time to event ------------------------------
+taxable_pi[, store_code_uc := .GRP, by = .(tr_group, event_ID)]
 taxable_pi <- normalize_price(price_data = taxable_pi,
                               time_type = "event",
                               base_time = -2,
@@ -428,6 +432,7 @@ taxexempt_pi_original <- copy(taxexempt_pi)
 taxexempt_pi <- merge_treatment(original_data = taxexempt_pi,
                               treatment_data_path = eventstudy_tr_path,
                               merge_by = c("fips_county", "fips_state"))
+setnames(taxexempt_pi,"V1", "event_ID")
 
 ## define time to event --------------------------------------------------------
 taxexempt_pi[, ref_quarter := ceiling(ref_month / 4)]
@@ -456,7 +461,7 @@ control_dt <- control_dt[,
                          ]
 
 taxexempt_pi <- merge(taxexempt_pi, control_dt, by = c("quarter", "year"))
-matched_control_data <- taxexempt_pi[, .(control.cpricei, tt_event, tr_group, sales)]
+matched_control_data <- taxexempt_pi[, .(control.cpricei, tt_event, tr_group, sales, event_ID)]
 
 matched_control_data[, cpricei := control.cpricei]
 matched_control_data[, tr_group := paste0("No change (", tr_group, ")")]
@@ -464,6 +469,7 @@ matched_control_data[, control.cpricei := NULL]
 taxexempt_pi <- rbind(taxexempt_pi, matched_control_data, fill = T)
 
 ## normalize price indices based on time to event ------------------------------
+taxexempt_pi[, store_code_uc := .GRP, by = .(tr_group, event_ID)]
 taxexempt_pi <- normalize_price(price_data = taxexempt_pi,
                               time_type = "event",
                               base_time = -2,
