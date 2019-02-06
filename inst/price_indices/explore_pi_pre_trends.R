@@ -324,12 +324,12 @@ taxable_pi <- fread(taxable_pi_path)
 taxable_pi <- taxable_pi[year %in% 2008:2014 & !is.na(cpricei) & !is.na(sales)]
 taxable_pi <- balance_panel_data(taxable_pi, time_vars = c("quarter", "year"),
                              panel_unit = "store_code_uc", n_periods = 28)
-
+taxable_pi_original <- copy(taxable_pi)
 
 ## merge treatment, attach event times -----------------------------------------
 taxable_pi <- merge_treatment(original_data = taxable_pi,
-                          treatment_data_path = eventstudy_tr_path,
-                          merge_by = c("fips_county", "fips_state"))
+                              treatment_data_path = eventstudy_tr_path,
+                              merge_by = c("fips_county", "fips_state"))
 
 ## define time to event --------------------------------------------------------
 taxable_pi[, ref_quarter := ceiling(ref_month / 4)]
@@ -341,10 +341,10 @@ taxable_pi <- taxable_pi[tt_event >= -1 * 4 & tt_event <= 4]
 
 ## normalize price indices based on time to event ------------------------------
 taxable_pi <- normalize_price(price_data = taxable_pi,
-                          time_type = "event",
-                          base_time = -2,
-                          price_var = "cpricei",
-                          new_price_var = "normalized.cpricei")
+                              time_type = "event",
+                              base_time = -2,
+                              price_var = "cpricei",
+                              new_price_var = "normalized.cpricei")
 
 ## add pseudo-control group ----------------------------------------------------
 
@@ -353,7 +353,10 @@ control_counties <- fread(tr_groups_path)
 control_counties <- control_counties[tr_group == "No change"]
 control_counties <- unique(control_counties[, .(fips_county, fips_state)])
 
-control_dt <- merge(taxable_pi, control_counties, by = c("fips_state", "fips_county"))
+control_dt <- merge(taxable_pi_original, control_counties,
+                    by = c("fips_state", "fips_county"))
+rm(taxable_pi_original)
+gc()
 
 ### take the mean for each time period
 control_dt <- control_dt[,
@@ -419,7 +422,7 @@ gc()
 taxexempt_pi <- taxexempt_pi[year %in% 2008:2014 & !is.na(cpricei) & !is.na(sales)]
 taxexempt_pi <- balance_panel_data(taxexempt_pi, time_vars = c("quarter", "year"),
                                  panel_unit = "store_code_uc", n_periods = 28)
-
+taxexempt_pi_original <- copy(taxexempt_pi)
 
 ## merge treatment, attach event times -----------------------------------------
 taxexempt_pi <- merge_treatment(original_data = taxexempt_pi,
@@ -448,7 +451,10 @@ control_counties <- fread(tr_groups_path)
 control_counties <- control_counties[tr_group == "No change"]
 control_counties <- unique(control_counties[, .(fips_county, fips_state)])
 
-control_dt <- merge(taxexempt_pi, control_counties, by = c("fips_state", "fips_county"))
+control_dt <- merge(taxexempt_pi_original, control_counties,
+                    by = c("fips_state", "fips_county"))
+rm(taxexempt_pi_original)
+gc()
 
 ### take the mean for each time period
 control_dt <- control_dt[,
