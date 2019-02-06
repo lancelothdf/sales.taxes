@@ -58,11 +58,19 @@ if (prep_enviro){
 
   ### create taxable only dataset ----------------------------------------------
   all_pi <- fread(all_goods_pi_path)
+  all_pi <- all_goods_pi_path[year %in% 2008:2014]
+
   county_monthly_tax <- fread(tax_rates_path)
   module_exemptions <- fread(module_exemptions_path)
 
   county_monthly_tax <- county_monthly_tax[, .(fips_state, fips_county, year,
                                                month, sales_tax)]
+  setnames(county_monthly_tax, sales_tax, applicable_tax)
+  ### some checks...
+  length(unique(module_exemptions$product_module_code))
+  length(unique(all_pi$product_module_code))
+  ###
+
   applicable_tax <- merge(module_exemptions, county_monthly_tax,
                           by = c("fips_state", "year", "month"), all = T,
                           allow.cartesian = T)
