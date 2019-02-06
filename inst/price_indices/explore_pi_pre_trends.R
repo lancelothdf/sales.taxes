@@ -193,7 +193,7 @@ taxable_pi_collapsed <- taxable_pi[, list(
 taxable_pi_collapsed <- add_tr_count(collapsed_data = taxable_pi_collapsed,
                                      tr_group_name = "tr_group",
                                      count_col_name = "n_counties")
-fwrite("Data/taxable_pi_collapsed.csv")
+fwrite(taxable_pi_collapsed, "Data/taxable_pi_collapsed.csv")
 
 ## prepare plot-----------------------------------------------------------------
 taxable_pi_collapsed$year_qtr <- as.yearqtr(paste(
