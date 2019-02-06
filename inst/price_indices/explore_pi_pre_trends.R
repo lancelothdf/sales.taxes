@@ -131,7 +131,7 @@ all_pi <- merge_treatment(original_data = all_pi,
 ## aggregate across treatment groups -------------------------------------------
 
 all_pi_collapsed <- all_pi[, list(
-  mean.cpricei = weighted.mean(x = base.cpricei, w = sales),
+  mean.cpricei = weighted.mean(x = normalized.cpricei, w = sales),
   n_counties = uniqueN(1000 * fips_state + fips_county)
   ), by = c("tr_group", "year", "quarter")]
 
@@ -186,7 +186,7 @@ taxable_pi <- merge_treatment(original_data = taxable_pi,
 ## aggregate across treatment groups -------------------------------------------
 
 taxable_pi_collapsed <- taxable_pi[, list(
-  mean.cpricei = weighted.mean(x = base.cpricei, w = sales),
+  mean.cpricei = weighted.mean(x = normalized.cpricei, w = sales),
   n_counties = uniqueN(1000 * fips_state + fips_county)
 ), by = c("tr_group", "year", "quarter")]
 
@@ -470,7 +470,7 @@ taxexempt_pi_es_plot <- ggplot(data = taxexempt_pi_es_collapsed,
   geom_line() +
   theme_bw()
 
-ggsave("Graphs/pi_taxexemptegoods_es.png")
+ggsave("Graphs/pi_taxexemptgoods_es.png")
 
 rm(taxexempt_pi)
 gc()
