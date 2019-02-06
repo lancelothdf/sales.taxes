@@ -149,7 +149,7 @@ all.calendar.plot <- ggplot(data = all_pi_collapsed, mapping = aes(x = year_qtr,
                                                            y = mean.cpricei,
                                                            color = tr_count)) +
   labs(x = "Quarter", y = "Mean normalized ln(index)", color = "Sales tax change",
-       caption = note) +
+       caption = "Weighted by sales in 2008 Q1.") +
   scale_x_yearqtr(format = "%Y Q%q") +
   geom_line() +
   theme_bw()
@@ -204,7 +204,7 @@ taxable.calendar.plot <- ggplot(taxable_pi_collapsed, aes(x = year_qtr,
                                                           y = mean.cpricei,
                                                           color = tr_count)) +
   labs(x = "Quarter", y = "Mean normalized ln(index)", color = "Sales tax change",
-       caption = note) +
+       caption = "Weighted by sales in 2008 Q1.") +
   scale_x_yearqtr(format = "%Y Q%q") +
   geom_line() +
   theme_bw()
@@ -290,7 +290,7 @@ all_pi_es_plot <- ggplot(data = all_pi_es_collapsed,
   labs(x = "Time to event",
        y = "Log normalized price index",
        color = "Sales tax change",
-       note = expression(paste("Weighted by sales in 2008 Q1. ", Y==0, " in ", T==-2))) +
+       caption = expression(paste("Weighted by sales in 2008 Q1. ", Y==0, " in ", T==-2))) +
   geom_line() +
   theme_bw()
 
@@ -371,7 +371,7 @@ taxable_pi_es_plot <- ggplot(data = taxable_pi_es_collapsed,
   labs(x = "Time to event",
        y = "Log normalized price index",
        color = "Sales tax change",
-       note = expression(paste("Weighted by sales in 2008 Q1. ", Y==0, " in ", T==-2))) +
+       caption = expression(paste("Weighted by sales in 2008 Q1. ", Y==0, " in ", T==-2))) +
   geom_line() +
   theme_bw()
 
@@ -466,7 +466,7 @@ taxexempt_pi_es_plot <- ggplot(data = taxexempt_pi_es_collapsed,
   labs(x = "Time to event",
        y = "Log normalized price index",
        color = "Sales tax change",
-       note = expression(paste("Weighted by sales in 2008 Q1. ", Y==0, " in ", T==-2))) +
+       caption = expression(paste("Weighted by sales in 2008 Q1. ", Y==0, " in ", T==-2))) +
   geom_line() +
   theme_bw()
 
