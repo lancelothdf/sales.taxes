@@ -36,7 +36,7 @@ merge_tax_rates <- function(sales_data,
                names(module_exemptions))
 
   applicable_tax <- merge(module_exemptions, county_monthly_tax_data,
-                          by = c("fips_state", "year", "month"),
+                          by = c("fips_state", "year", "month"), all = T,
                           allow.cartesian = T)
   applicable_tax[is.na(taxable), applicable_tax := sales_tax.y]
   applicable_tax[taxable == 1 & is.na(sales_tax.x), applicable_tax := sales_tax.y]
