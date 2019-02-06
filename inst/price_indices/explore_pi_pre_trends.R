@@ -65,7 +65,6 @@ if (prep_enviro){
 
   county_monthly_tax <- county_monthly_tax[, .(fips_state, fips_county, year,
                                                month, sales_tax)]
-  setnames(county_monthly_tax, sales_tax, applicable_tax)
   ### some checks...
   length(unique(module_exemptions$product_module_code))
   length(unique(all_pi$product_module_code))
