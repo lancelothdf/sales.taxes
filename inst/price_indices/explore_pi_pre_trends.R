@@ -67,7 +67,7 @@ applicable_tax[taxable == 1 & is.na(sales_tax.x), applicable_tax := sales_tax.y]
 applicable_tax[taxable == 1 & !is.na(sales_tax.x), applicable_tax := sales_tax.x]
 applicable_tax[taxable == 0, applicable_tax := 0]
 applicable_tax[, quarter := ceiling(month / 3)]
-applicable_tax <- applicable_tax[, list( applicable_tax := max(applicable_tax)),
+applicable_tax <- applicable_tax[, list(applicable_tax = max(applicable_tax)),
                                  by = .(fips_state, fips_county, year, quarter)]
 
 taxable_pi <- merge(all_pi, applicable_tax,
