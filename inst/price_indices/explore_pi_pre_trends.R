@@ -64,7 +64,7 @@ if (prep_enviro){
   county_monthly_tax <- county_monthly_tax[, .(fips_state, fips_county, year,
                                                month, sales_tax)]
   applicable_tax <- merge(module_exemptions, county_monthly_tax,
-                          by = c("fips_state", "year", "month"),
+                          by = c("fips_state", "year", "month"), all = T,
                           allow.cartesian = T)
 
   applicable_tax[is.na(taxable), applicable_tax := sales_tax.y]
