@@ -284,7 +284,7 @@ matched_control_data[, cpricei := control.cpricei]
 matched_control_data[, tr_group := paste0("No change (", tr_group, ")")]
 print(head(matched_control_data))
 matched_control_data[, control.cpricei := NULL]
-print(nrow(matched_control_data[duplicated(match_control_d)]))
+print(nrow(matched_control_data[duplicated(match_control_data)]))
 print(head(matched_control_data[duplicated(match_control_data)]))
 all_pi <- rbind(all_pi, matched_control_data, fill = T)
 print(nrow(all_pi[duplicated(all_pi)]))
