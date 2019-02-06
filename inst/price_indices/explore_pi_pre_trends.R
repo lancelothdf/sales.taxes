@@ -75,6 +75,7 @@ if (prep_enviro){
   applicable_tax <- applicable_tax[, list(applicable_tax = max(applicable_tax)),
                                    by = .(fips_state, fips_county, year, quarter,
                                           product_module_code)]
+  table(applicable_tax$applicable_tax, useNA = "always")
   print(nrow(all_pi)) ## bug check
   print(nrow(applicable_tax)) # bug check
   taxable_pi <- merge(all_pi, applicable_tax,
@@ -84,8 +85,10 @@ if (prep_enviro){
 
   taxable_pi[, rm_missing := max(as.integer(is.na(applicable_tax))),
              by = c("fips_state", "fips_county", "product_module_code")]
+  table(taxable_pi$rm_missing, useNA = "always")
   taxable_pi[, rm_nontaxable := max(as.integer(applicable_tax == 0)),
              by = c("fips_state", "fips_county", "product_module_code")]
+  table(taxable_pi$rm_nontaxable, useNA = "always")
   taxable_pi <- taxable_pi[rm_nontaxable != 1 & rm_missing != 1]
   print(nrow(taxable_pi)) ## bug check
   taxable_pi <- taxable_pi[, .(store_code_uc, quarter, year, product_group_code,
@@ -283,11 +286,16 @@ all_pi <- rbind(all_pi, matched_control_data, fill = T)
 ## normalize price indices based on time to event ------------------------------
 print(head(all_pi))
 all_pi[, event_ID := .GRP, by = .(tr_group, event_ID)]
+print(length(unique(all_pi$event_ID)))
+print(nrow(all_pi))
 
 price_anchors <- all_pi[tt_event == -2]
 price_anchors[, base_price := cpricei]
 price_anchors <- price_anchors[, .(store_code_uc, product_module_code, base_price,
                                    ref_year, ref_quarter, tr_group)]
+
+print(head(price_anchors))
+print(nrow(price_anchors))
 
 all_pi <- merge(all_pi, price_anchors,
                     by = c("store_code_uc", "product_module_code",
