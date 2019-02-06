@@ -244,7 +244,7 @@ setnames(all_pi,"V1", "event_ID")
 print(head(all_pi))
 
 ## define time to event --------------------------------------------------------
-all_pi[, ref_quarter := ceiling(ref_month / 4)]
+all_pi[, ref_quarter := ceiling(ref_month / 3)]
 all_pi[, tt_event := as.integer(4 * year + quarter -
                                    (4 * ref_year + ref_quarter))]
 
@@ -361,7 +361,7 @@ taxable_pi <- merge_treatment(original_data = taxable_pi,
 setnames(taxable_pi,"V1", "event_ID")
 
 ## define time to event --------------------------------------------------------
-taxable_pi[, ref_quarter := ceiling(ref_month / 4)]
+taxable_pi[, ref_quarter := ceiling(ref_month / 3)]
 taxable_pi[, tt_event := as.integer(4 * year + quarter -
                                   (4 * ref_year + ref_quarter))]
 
@@ -461,7 +461,7 @@ taxexempt_pi <- merge_treatment(original_data = taxexempt_pi,
 setnames(taxexempt_pi,"V1", "event_ID")
 
 ## define time to event --------------------------------------------------------
-taxexempt_pi[, ref_quarter := ceiling(ref_month / 4)]
+taxexempt_pi[, ref_quarter := ceiling(ref_month / 3)]
 taxexempt_pi[, tt_event := as.integer(4 * year + quarter -
                                       (4 * ref_year + ref_quarter))]
 
