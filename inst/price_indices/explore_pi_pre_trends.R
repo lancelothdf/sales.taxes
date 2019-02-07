@@ -241,9 +241,18 @@ uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "quarter", "year"
 all_pi <- merge_treatment(original_data = all_pi,
                           treatment_data_path = eventstudy_tr_path,
                           merge_by = c("fips_county", "fips_state"))
+
+setnames(all_pi, "V1", "event_ID")
+
 nrow(all_pi)
 uniqueN(all_pi)
-uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "ref_year", "ref_month", "quarter", "year"))
+uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "event_ID", "quarter", "year", "tr_group"))
+if (nrow(all_pi) != uniqueN(all_pi)){
+  stop()
+}
+if (uniqueN(all_pi) != uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "event_ID", "quarter", "year", "tr_group"))){
+  stop()
+}
 
 ## define time to event --------------------------------------------------------
 all_pi[, ref_quarter := ceiling(ref_month / 3)]
@@ -251,7 +260,7 @@ all_pi[, tt_event := as.integer(4 * year + quarter -
                                    (4 * ref_year + ref_quarter))]
 nrow(all_pi)
 uniqueN(all_pi)
-uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "ref_year", "ref_quarter", "tt_event"))
+uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "event_ID", "tt_event", "tr_group"))
 
 ## limit data to two year window around reform ---------------------------------
 all_pi <- all_pi[tt_event >= -4 & tt_event <= 4]
@@ -275,7 +284,7 @@ control_dt <- control_dt[,
                          ]
 
 matched_control_data <- merge(all_pi, control_dt, by = c("quarter", "year"))
-matched_control_data <- matched_control_data[, .(control.cpricei, tt_event,
+matched_control_data <- matched_control_data[, .(control.cpricei, tt_event, event_ID,
                                                  store_code_uc, product_module_code,
                                                  tr_group, sales, ref_year, ref_quarter)]
 
@@ -286,12 +295,19 @@ nrow(matched_control_data)
 uniqueN(matched_control_data)
 nrow(all_pi)
 uniqueN(all_pi)
-uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "tt_event", "tr_group", "ref_year", "ref_quarter"))
+uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "tt_event",
+                       "tr_group", "ref_year", "ref_quarter", "event_ID"))
 all_pi <- rbind(all_pi, matched_control_data, fill = T)
 nrow(all_pi)
 uniqueN(all_pi)
 print(nrow(all_pi[duplicated(all_pi)]))
 print(head(all_pi[duplicated(all_pi)]))
+if (nrow(all_pi) != uniqueN(all_pi)){
+  stop()
+}
+if (uniqueN(all_pi) != uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "event_ID", "tt_event", "tr_group"))){
+  stop()
+}
 
 ## normalize price indices based on time to event ------------------------------
 print(head(all_pi))
@@ -300,17 +316,17 @@ print(nrow(all_pi))
 price_anchors <- all_pi[tt_event == -2]
 price_anchors[, base_price := cpricei]
 price_anchors <- price_anchors[, .(store_code_uc, product_module_code, base_price,
-                                   ref_year, ref_quarter, tr_group)]
+                                   ref_year, ref_quarter, tr_group, event_ID)]
 
 print(nrow(unique(price_anchors)))
 print(nrow(unique(price_anchors[, .(store_code_uc, product_module_code,
-                                    ref_year, ref_quarter, tr_group)])))
+                                    ref_year, ref_quarter, tr_group, event_ID)])))
 
 print(head(price_anchors))
 print(nrow(price_anchors))
 print(nrow(unique(all_pi)))
 print(nrow(unique(all_pi[, .(store_code_uc, product_module_code,
-                             ref_year, ref_quarter, tr_group)])))
+                             ref_year, ref_quarter, tr_group, event_ID)])))
 
 print(nrow(price_anchors[duplicated(price_anchors)]))
 print(head(price_anchors[duplicated(price_anchors)]))
@@ -319,7 +335,13 @@ print(head(all_pi[duplicated(all_pi)]))
 
 all_pi <- merge(all_pi, price_anchors,
                     by = c("store_code_uc", "product_module_code",
-                           "ref_year", "ref_quarter", "tr_group"))
+                           "ref_year", "ref_quarter", "tr_group", "event_ID"))
+if (nrow(all_pi) != uniqueN(all_pi)){
+  stop()
+}
+if (uniqueN(all_pi) != uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "event_ID", "tt_event", "tr_group"))){
+  stop()
+}
 
 # note that this is still log cpricei
 all_pi[, normalized.cpricei := cpricei - base_price]
@@ -330,7 +352,7 @@ all_pi[, base_price := NULL]
 #                           base_time = -2,
 #                           price_var = "cpricei",
 #                           new_price_var = "normalized.cpricei")
-setorder(all_pi, store_code_uc, product_module_code, tt_event)
+setorder(all_pi, store_code_uc, product_module_code, event_ID, tt_event)
 print(head(all_pi))
 
 ## aggregate by treatment group ------------------------------------------------

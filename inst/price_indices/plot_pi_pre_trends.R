@@ -1,6 +1,6 @@
 #' Author: John Bonney
 #'
-#' Plot price index pre-trends
+#' Plot **Laspeyres** price index pre-trends
 
 library(data.table)
 library(ggplot2)
@@ -76,9 +76,10 @@ plot_breaks <- c("ed", "nc.ed", "ei", "nc.ei", "io", "nc.io")
 plot_labels <- c("Ever decrease", "No change (Ever decrease)", "Ever increase",
                  "No change (Ever increase)", "Increase only", "No change (Increase only)")
 
-et.all.abbr <- data.table(tr_group = plot_labels, tr_abbr = plot_breaks)
-et.all <- et.all[et.all.abbr, on = "tr_group"]
+et.abbr <- data.table(tr_group = plot_labels, tr_abbr = plot_breaks)
+et.all <- et.all[et.abbr, on = "tr_group"]
 
+## add informative labels (until the add_tr_count is fixed?)
 for (i in 1:length(plot_labels)) {
   if (!grepl("\\(", plot_labels[i])) {
     new_lab <- paste0(
@@ -112,7 +113,7 @@ all.event.plot <- ggplot(et.all, aes(x = tt_event, y = mean_pi,
 all.event.plot
 
 ggsave("pi_figs/pretty/pi_all_event.png",
-       height = 120*1.2, width = 180*1.2, units = "mm")
+       height = 120 * 1.2, width = 180 * 1.2, units = "mm")
 
 
 ## taxable goods, event time ---------------------------------------------------
