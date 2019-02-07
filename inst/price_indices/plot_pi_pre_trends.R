@@ -70,6 +70,19 @@ taxable.calendar.plot
 ggsave("pi_figs/pretty/pi_taxable_calendar.png", height = 120, width = 180, units = "mm")
 
 ## all goods, event time -------------------------------------------------------
+et.all <- fread("pi_data/pi_allgoods_es.csv")
+
+all.event.plot <- ggplot(data = et.all,
+                                aes(x = tt_event, y = mean_pi, color = tr_count)) +
+  geom_line(size = 1) +
+  labs(x = "Quarters from event time", y = expression(paste("Normalized ln(", italic("price index"), ")")), color = NULL,
+       caption = expression(paste(italic("Note: "), "Weighted by sales in 2008 Q1. ",
+                                  "Sales tax changes are any changes occuring between 2009 and 2013."))) +
+  ggtitle("Price index by sales tax change (taxable goods)") +
+  scale_y_continuous(breaks = seq(0, 0.13, .04), expand = c(0.005, 0.005)) +
+  myTheme +
+  theme(legend.position = c(0.8, 0.2), axis.ticks.length = unit(-0.15, "cm"))
+all.event.plot
 
 ## taxable goods, event time ---------------------------------------------------
 
