@@ -1,6 +1,6 @@
 #' Author: John Bonney
 #'
-#' Plot Lance's **geometric** price indices, comparing to CPI (**in logs**)
+#' Plot Lance's **geometric** price indices, comparing to CPI
 
 setwd("C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes")
 
@@ -10,7 +10,7 @@ library(zoo)
 geometric_path <- "output/server/national_pi_geo.csv"
 laspeyres_path <- "output/server/national_pi_store_balanced.csv"
 cpi_path <- "data/CPI/national_monthly_food_beverage_chained_cpi.csv"
-outfile_figpath <- "reports/figs/comparing_geom_logs.png"
+outfile_figpath <- "reports/figs/comparing_geom.png"
 
 ### Import and clean geometric price indices -----------------------------------
 pi_store_balanced <- read.csv(geometric_path)
@@ -18,7 +18,6 @@ pi_store_balanced$t <- with(pi_store_balanced,
                             as.yearqtr(paste0(year, " Q", quarter)))
 
 pi_store_balanced <- pi_store_balanced %>%
-  mutate(national_index = log(national_index)) %>%
   select(year, quarter, chained_food_cpi = national_index, t) %>%
   mutate(index = "geometric")
 
@@ -34,7 +33,6 @@ pi_laspeyres$t <- with(pi_laspeyres,
                             as.yearqtr(paste0(year, " Q", quarter)))
 
 pi_laspeyres <- pi_laspeyres %>%
-  mutate(national_index = log(national_index)) %>%
   select(year, quarter, chained_food_cpi = national_index, t) %>%
   mutate(index = "laspeyres")
 
@@ -62,7 +60,6 @@ cpi_data <- cpi_data %>%
 
 cpi_data <- base::rbind.data.frame(ungroup(cpi_data),
                                    pi_store_balanced, pi_laspeyres)
-
 
 ### compare the two indices ----------------------------------------------------
 ggplot(mapping = aes(x = t, y = chained_food_cpi, linetype = index, color = index)) +
