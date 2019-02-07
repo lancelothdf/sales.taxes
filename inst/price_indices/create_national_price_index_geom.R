@@ -20,7 +20,7 @@ library(data.table)
 setwd("/project2/igaarder")
 
 ## load and convert .dta to .csv -----------------------------------------------
-pi_data <- read.dta13("Data/Nielsen/Geo_prices_quantity_indices_food.dta")
+pi_data <- read.dta13("Data/Nielsen/Geo_price_quantity_indices_food.dta")
 pi_data <- as.data.table(pi_data)
 fwrite(pi_data, "Data/Nielsen/Geo_price_quantity_indices_food.csv")
 
