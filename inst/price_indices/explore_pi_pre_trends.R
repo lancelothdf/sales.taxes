@@ -16,7 +16,7 @@ library(ggplot2)
 
 setwd("/project2/igaarder")
 prep_enviro <- F
-make.ct <- F
+make.ct <- T
 
 ################################################################################
 ###### Prepare environment & create datasets of all goods and taxable only #####
