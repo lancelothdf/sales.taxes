@@ -71,15 +71,30 @@ ggsave("pi_figs/pretty/pi_taxable_calendar.png", height = 120, width = 180, unit
 
 ## all goods, event time -------------------------------------------------------
 et.all <- fread("pi_data/pi_allgoods_es.csv")
+# et.all[, change_type := gsub("\\s\\([A-Za-z]*\\)", "", tr_group)]
 
-all.event.plot <- ggplot(data = et.all,
-                                aes(x = tt_event, y = mean_pi, color = tr_count)) +
+plot_breaks <- c("Ever decrease", "No change (Ever decrease)", "Ever increase",
+                 "Increase only", "No change (Ever increase)", "No change (Increase only)")
+n_vals <- unique(et.all[, .(tr_group, n_counties)])[, .(n_counties)][[1]]
+plot_labels <- c(paste0(plot_breaks[1], " (n = ", n_vals[1], ")"),
+                 plot_breaks[2],
+                 paste0(plot_breaks[3], " (n = ", n_vals[3], ")"),
+                 paste0(plot_breaks[4], " (n = ", n_vals[4], ")"),
+                 plot_breaks[5], plot_breaks[6])
+
+# TODO: fix order (this isn't a good order)
+
+all.event.plot <- ggplot(data = et.all, aes(x = tt_event, y = mean_pi,
+                                            color = tr_group)) +
   geom_line(size = 1) +
   labs(x = "Quarters from event time", y = expression(paste("Normalized ln(", italic("price index"), ")")), color = NULL,
        caption = expression(paste(italic("Note: "), "Weighted by sales in 2008 Q1. ",
                                   "Sales tax changes are any changes occuring between 2009 and 2013."))) +
-  ggtitle("Price index by sales tax change (taxable goods)") +
+  ggtitle("Price index by sales tax change (all goods)") +
   scale_y_continuous(breaks = seq(0, 0.13, .04), expand = c(0.005, 0.005)) +
+  scale_color_manual(name = NULL,
+                     breaks = plot_breaks, labels = plot_labels,
+                     values = c("#F8766D", "#00BA38", "#619CFF", "#F8766D", "#00BA38", "#619CFF")) +
   myTheme +
   theme(legend.position = c(0.8, 0.2), axis.ticks.length = unit(-0.15, "cm"))
 all.event.plot

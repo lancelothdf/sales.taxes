@@ -17,6 +17,7 @@ library(ggplot2)
 
 setwd("/project2/igaarder")
 prep_enviro <- F
+make.ct <- F
 
 ################################################################################
 ###### Prepare environment & create datasets of all goods and taxable only #####
@@ -95,7 +96,7 @@ if (prep_enviro){
 
   rm(county_monthly_tax, module_exemptions, applicable_tax)
   gc()
-}  else {
+}  else if (make.ct) {
   all_pi <- fread(all_goods_pi_path)
   taxable_pi <- fread(taxable_pi_path)
 }
@@ -159,63 +160,63 @@ if (prep_enviro){
 #
 # ggsave("Graphs/pi_all_calendar.png")
 #
-# Taxable goods ================================================================
-
-## balance sample on store-level from 2008 to 2014 -----------------------------
-taxable_pi <- taxable_pi[year %in% 2008:2014 & !is.na(cpricei) & !is.na(sales)]
-taxable_pi <- balance_panel_data(taxable_pi, time_vars = c("quarter", "year"),
-                             panel_unit = "store_code_uc", n_periods = 28)
-
-## normalize price index -------------------------------------------------------
-price_base <- taxable_pi[year == 2008 & quarter == 1]
-price_base <- price_base[, .(store_code_uc, product_module_code, cpricei)]
-price_base[, base.cpricei := cpricei]
-price_base[, cpricei := NULL]
-
-taxable_pi <- merge(taxable_pi, price_base, by = c("store_code_uc", "product_module_code"))
-taxable_pi[, normalized.cpricei := log(cpricei) - log(base.cpricei)]
-taxable_pi[, base.cpricei := NULL]
-
-rm(price_base)
-gc()
-
-## merge treatment -------------------------------------------------------------
-taxable_pi <- merge_treatment(original_data = taxable_pi,
-                              treatment_data_path = tr_groups_path,
-                              time = "calendar",
-                              merge_by = c("fips_county", "fips_state"))
-
-
-## aggregate across treatment groups -------------------------------------------
-
-taxable_pi_collapsed <- taxable_pi[, list(
-  mean.cpricei = weighted.mean(x = normalized.cpricei, w = sales),
-  n_counties = uniqueN(1000 * fips_state + fips_county)
-), by = c("tr_group", "year", "quarter")]
-
-taxable_pi_collapsed <- add_tr_count(collapsed_data = taxable_pi_collapsed,
-                                     tr_group_name = "tr_group",
-                                     count_col_name = "n_counties")
-fwrite(taxable_pi_collapsed, "Data/taxable_pi_collapsed.csv")
-
-## prepare plot-----------------------------------------------------------------
-taxable_pi_collapsed$year_qtr <- as.yearqtr(paste(
-  as.integer(taxable_pi_collapsed$year), as.integer(taxable_pi_collapsed$quarter)
-), "%Y %q")
-
-taxable.calendar.plot <- ggplot(taxable_pi_collapsed, aes(x = year_qtr,
-                                                          y = mean.cpricei,
-                                                          color = tr_count)) +
-  labs(x = "Quarter", y = "Mean normalized ln(index)", color = "Sales tax change",
-       caption = "Weighted by sales in 2008 Q1.") +
-  scale_x_yearqtr(format = "%Y Q%q") +
-  geom_line() +
-  theme_bw()
-
-ggsave("Graphs/pi_taxable_calendar.png")
-
-rm(all_pi, taxable_pi)
-gc()
+# # Taxable goods ================================================================
+#
+# ## balance sample on store-level from 2008 to 2014 -----------------------------
+# taxable_pi <- taxable_pi[year %in% 2008:2014 & !is.na(cpricei) & !is.na(sales)]
+# taxable_pi <- balance_panel_data(taxable_pi, time_vars = c("quarter", "year"),
+#                              panel_unit = "store_code_uc", n_periods = 28)
+#
+# ## normalize price index -------------------------------------------------------
+# price_base <- taxable_pi[year == 2008 & quarter == 1]
+# price_base <- price_base[, .(store_code_uc, product_module_code, cpricei)]
+# price_base[, base.cpricei := cpricei]
+# price_base[, cpricei := NULL]
+#
+# taxable_pi <- merge(taxable_pi, price_base, by = c("store_code_uc", "product_module_code"))
+# taxable_pi[, normalized.cpricei := log(cpricei) - log(base.cpricei)]
+# taxable_pi[, base.cpricei := NULL]
+#
+# rm(price_base)
+# gc()
+#
+# ## merge treatment -------------------------------------------------------------
+# taxable_pi <- merge_treatment(original_data = taxable_pi,
+#                               treatment_data_path = tr_groups_path,
+#                               time = "calendar",
+#                               merge_by = c("fips_county", "fips_state"))
+#
+#
+# ## aggregate across treatment groups -------------------------------------------
+#
+# taxable_pi_collapsed <- taxable_pi[, list(
+#   mean.cpricei = weighted.mean(x = normalized.cpricei, w = sales),
+#   n_counties = uniqueN(1000 * fips_state + fips_county)
+# ), by = c("tr_group", "year", "quarter")]
+#
+# taxable_pi_collapsed <- add_tr_count(collapsed_data = taxable_pi_collapsed,
+#                                      tr_group_name = "tr_group",
+#                                      count_col_name = "n_counties")
+# fwrite(taxable_pi_collapsed, "Data/taxable_pi_collapsed.csv")
+#
+# ## prepare plot-----------------------------------------------------------------
+# taxable_pi_collapsed$year_qtr <- as.yearqtr(paste(
+#   as.integer(taxable_pi_collapsed$year), as.integer(taxable_pi_collapsed$quarter)
+# ), "%Y %q")
+#
+# taxable.calendar.plot <- ggplot(taxable_pi_collapsed, aes(x = year_qtr,
+#                                                           y = mean.cpricei,
+#                                                           color = tr_count)) +
+#   labs(x = "Quarter", y = "Mean normalized ln(index)", color = "Sales tax change",
+#        caption = "Weighted by sales in 2008 Q1.") +
+#   scale_x_yearqtr(format = "%Y Q%q") +
+#   geom_line() +
+#   theme_bw()
+#
+# ggsave("Graphs/pi_taxable_calendar.png")
+#
+# rm(all_pi, taxable_pi)
+# gc()
 
 ################################################################################
 ################ Plots by Event Time (taxable and all goods) ###################
@@ -234,14 +235,23 @@ all_pi_original <- copy(all_pi)
 
 ## merge treatment, attach event times -----------------------------------------
 print(head(all_pi))
+nrow(all_pi)
+uniqueN(all_pi)
+uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "quarter", "year"))
 all_pi <- merge_treatment(original_data = all_pi,
                           treatment_data_path = eventstudy_tr_path,
                           merge_by = c("fips_county", "fips_state"))
+nrow(all_pi)
+uniqueN(all_pi)
+uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "ref_year", "ref_month", "quarter", "year"))
 
 ## define time to event --------------------------------------------------------
 all_pi[, ref_quarter := ceiling(ref_month / 3)]
 all_pi[, tt_event := as.integer(4 * year + quarter -
                                    (4 * ref_year + ref_quarter))]
+nrow(all_pi)
+uniqueN(all_pi)
+uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "ref_year", "ref_quarter", "tt_event"))
 
 ## limit data to two year window around reform ---------------------------------
 all_pi <- all_pi[tt_event >= -4 & tt_event <= 4]
@@ -270,7 +280,7 @@ matched_control_data <- matched_control_data[, .(control.cpricei, tt_event,
                                                  tr_group, sales, ref_year, ref_quarter)]
 
 matched_control_data[, cpricei := control.cpricei]
-matched_control_data[, tr_group := paste0("No change (", tr_group, ")")]
+matched_control_data[, tr_group := paste0("No change (", tolower(tr_group), ")")]
 matched_control_data[, control.cpricei := NULL]
 nrow(matched_control_data)
 uniqueN(matched_control_data)
@@ -285,8 +295,6 @@ print(head(all_pi[duplicated(all_pi)]))
 
 ## normalize price indices based on time to event ------------------------------
 print(head(all_pi))
-all_pi[, event_ID := .GRP, by = .(tr_group, event_ID)]
-print(length(unique(all_pi$event_ID)))
 print(nrow(all_pi))
 
 price_anchors <- all_pi[tt_event == -2]
