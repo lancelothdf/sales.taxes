@@ -222,173 +222,104 @@ if (prep_enviro){
 ################ Plots by Event Time (taxable and all goods) ###################
 ################################################################################
 
-# All goods ====================================================================
-all_pi <- fread(all_goods_pi_path)
+# # All goods ====================================================================
+# all_pi <- fread(all_goods_pi_path)
+#
+# ## balance sample on store-level from 2008 to 2014 -----------------------------
+# all_pi <- all_pi[year %in% 2008:2014 & !is.na(cpricei) & !is.na(sales)]
+# all_pi <- balance_panel_data(all_pi, time_vars = c("quarter", "year"),
+#                              panel_unit = "store_code_uc", n_periods = 28)
+#
+# all_pi[, cpricei := log(cpricei)]
+# all_pi_original <- copy(all_pi)
+#
+# ## merge treatment, attach event times -----------------------------------------
+# all_pi <- merge_treatment(original_data = all_pi,
+#                           treatment_data_path = eventstudy_tr_path,
+#                           merge_by = c("fips_county", "fips_state"))
+#
+# setnames(all_pi, "V1", "event_ID")
+#
+# ## define time to event --------------------------------------------------------
+# all_pi[, ref_quarter := ceiling(ref_month / 3)]
+# all_pi[, tt_event := as.integer(4 * year + quarter -
+#                                    (4 * ref_year + ref_quarter))]
+#
+# ## limit data to two year window around reform ---------------------------------
+# all_pi <- all_pi[tt_event >= -4 & tt_event <= 4]
+#
+# ## add pseudo-control group ----------------------------------------------------
+#
+# ### create unique dataset of never treated counties
+# control_counties <- fread(tr_groups_path)
+# control_counties <- control_counties[tr_group == "No change"]
+# control_counties <- unique(control_counties[, .(fips_county, fips_state)])
+# control_dt <- merge(all_pi_original, control_counties,
+#                     by = c("fips_state", "fips_county"))
+#
+# rm(all_pi_original)
+# gc()
+#
+# ### take the mean for each time period
+# control_dt <- control_dt[,
+#                          list(control.cpricei = weighted.mean(x = cpricei, w = sales)),
+#                          by = .(quarter, year)
+#                          ]
+#
+# matched_control_data <- merge(all_pi, control_dt, by = c("quarter", "year"))
+# matched_control_data <- matched_control_data[, .(control.cpricei, tt_event, event_ID,
+#                                                  store_code_uc, product_module_code,
+#                                                  tr_group, sales, ref_year, ref_quarter)]
+#
+# matched_control_data[, cpricei := control.cpricei]
+# matched_control_data[, tr_group := paste0("No change (", tolower(tr_group), ")")]
+# matched_control_data[, control.cpricei := NULL]
+#
+# all_pi <- rbind(all_pi, matched_control_data, fill = T)
+#
+# ## normalize price indices based on time to event ------------------------------
+# price_anchors <- all_pi[tt_event == -2]
+# price_anchors[, base_price := cpricei]
+# price_anchors <- price_anchors[, .(store_code_uc, product_module_code, base_price,
+#                                    ref_year, ref_quarter, tr_group, event_ID)]
+#
+# all_pi <- merge(all_pi, price_anchors,
+#                     by = c("store_code_uc", "product_module_code",
+#                            "ref_year", "ref_quarter", "tr_group", "event_ID"))
+#
+# # note that this is still log cpricei
+# all_pi[, normalized.cpricei := cpricei - base_price]
+# all_pi[, base_price := NULL]
+#
+# ## aggregate by treatment group ------------------------------------------------
+# all_pi_es_collapsed <- all_pi[,
+#   list(mean_pi = weighted.mean(x = normalized.cpricei, w = sales),
+#        n_counties = uniqueN(1000 * fips_state + fips_county),
+#        n_stores = uniqueN(store_code_uc)),
+#    by = c("tr_group", "tt_event")
+#   ]
+#
+# all_pi_es_collapsed <- add_tr_count(collapsed_data = all_pi_es_collapsed,
+#                                     tr_group_name = "tr_group",
+#                                     count_col_name = "n_counties")
+#
+# fwrite(all_pi_es_collapsed, "Data/pi_allgoods_es.csv")
+#
+# ## plot and export result ------------------------------------------------------
+# all_pi_es_plot <- ggplot(data = all_pi_es_collapsed,
+#                   mapping = aes(x = tt_event, y = mean_pi, color = tr_count)) +
+#   labs(x = "Time to event",
+#        y = "Log normalized price index",
+#        color = "Sales tax change",
+#        caption = expression(paste("Weighted by sales in 2008 Q1. ", Y==0, " in ", T==-2))) +
+#   geom_line() +
+#   theme_bw()
+#
+# ggsave("Graphs/pi_allgoods_es.png")
+#
+# rm(all_pi)
+# gc()
 
-## balance sample on store-level from 2008 to 2014 -----------------------------
-all_pi <- all_pi[year %in% 2008:2014 & !is.na(cpricei) & !is.na(sales)]
-all_pi <- balance_panel_data(all_pi, time_vars = c("quarter", "year"),
-                             panel_unit = "store_code_uc", n_periods = 28)
-
-all_pi[, cpricei := log(cpricei)]
-all_pi_original <- copy(all_pi)
-
-## merge treatment, attach event times -----------------------------------------
-print(head(all_pi))
-nrow(all_pi)
-uniqueN(all_pi)
-uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "quarter", "year"))
-all_pi <- merge_treatment(original_data = all_pi,
-                          treatment_data_path = eventstudy_tr_path,
-                          merge_by = c("fips_county", "fips_state"))
-
-setnames(all_pi, "V1", "event_ID")
-
-nrow(all_pi)
-uniqueN(all_pi)
-uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "event_ID", "quarter", "year", "tr_group"))
-if (nrow(all_pi) != uniqueN(all_pi)){
-  stop()
-}
-if (uniqueN(all_pi) != uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "event_ID", "quarter", "year", "tr_group"))){
-  stop()
-}
-
-## define time to event --------------------------------------------------------
-all_pi[, ref_quarter := ceiling(ref_month / 3)]
-all_pi[, tt_event := as.integer(4 * year + quarter -
-                                   (4 * ref_year + ref_quarter))]
-nrow(all_pi)
-uniqueN(all_pi)
-uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "event_ID", "tt_event", "tr_group"))
-
-## limit data to two year window around reform ---------------------------------
-all_pi <- all_pi[tt_event >= -4 & tt_event <= 4]
-
-## add pseudo-control group ----------------------------------------------------
-
-### create unique dataset of never treated counties
-control_counties <- fread(tr_groups_path)
-control_counties <- control_counties[tr_group == "No change"]
-control_counties <- unique(control_counties[, .(fips_county, fips_state)])
-control_dt <- merge(all_pi_original, control_counties,
-                    by = c("fips_state", "fips_county"))
-
-rm(all_pi_original)
-gc()
-
-### take the mean for each time period
-control_dt <- control_dt[,
-                         list(control.cpricei = weighted.mean(x = cpricei, w = sales)),
-                         by = .(quarter, year)
-                         ]
-
-matched_control_data <- merge(all_pi, control_dt, by = c("quarter", "year"))
-matched_control_data <- matched_control_data[, .(control.cpricei, tt_event, event_ID,
-                                                 store_code_uc, product_module_code,
-                                                 tr_group, sales, ref_year, ref_quarter)]
-
-matched_control_data[, cpricei := control.cpricei]
-matched_control_data[, tr_group := paste0("No change (", tolower(tr_group), ")")]
-matched_control_data[, control.cpricei := NULL]
-nrow(matched_control_data)
-uniqueN(matched_control_data)
-nrow(all_pi)
-uniqueN(all_pi)
-uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "tt_event",
-                       "tr_group", "ref_year", "ref_quarter", "event_ID"))
-all_pi <- rbind(all_pi, matched_control_data, fill = T)
-nrow(all_pi)
-uniqueN(all_pi)
-print(nrow(all_pi[duplicated(all_pi)]))
-print(head(all_pi[duplicated(all_pi)]))
-if (nrow(all_pi) != uniqueN(all_pi)){
-  stop()
-}
-if (uniqueN(all_pi) != uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "event_ID", "tt_event", "tr_group"))){
-  stop()
-}
-
-## normalize price indices based on time to event ------------------------------
-print(head(all_pi))
-print(nrow(all_pi))
-
-price_anchors <- all_pi[tt_event == -2]
-price_anchors[, base_price := cpricei]
-price_anchors <- price_anchors[, .(store_code_uc, product_module_code, base_price,
-                                   ref_year, ref_quarter, tr_group, event_ID)]
-
-print(nrow(unique(price_anchors)))
-print(nrow(unique(price_anchors[, .(store_code_uc, product_module_code,
-                                    ref_year, ref_quarter, tr_group, event_ID)])))
-
-print(head(price_anchors))
-print(nrow(price_anchors))
-print(nrow(unique(all_pi)))
-print(nrow(unique(all_pi[, .(store_code_uc, product_module_code,
-                             ref_year, ref_quarter, tr_group, event_ID)])))
-
-print(nrow(price_anchors[duplicated(price_anchors)]))
-print(head(price_anchors[duplicated(price_anchors)]))
-print(nrow(all_pi[duplicated(all_pi)]))
-print(head(all_pi[duplicated(all_pi)]))
-
-all_pi <- merge(all_pi, price_anchors,
-                    by = c("store_code_uc", "product_module_code",
-                           "ref_year", "ref_quarter", "tr_group", "event_ID"))
-if (nrow(all_pi) != uniqueN(all_pi)){
-  stop()
-}
-if (uniqueN(all_pi) != uniqueN(all_pi, by = c("store_code_uc", "product_module_code", "event_ID", "tt_event", "tr_group"))){
-  stop()
-}
-
-# note that this is still log cpricei
-all_pi[, normalized.cpricei := cpricei - base_price]
-all_pi[, base_price := NULL]
-
-# all_pi <- normalize_price(price_data = all_pi,
-#                           time_type = "event",
-#                           base_time = -2,
-#                           price_var = "cpricei",
-#                           new_price_var = "normalized.cpricei")
-setorder(all_pi, store_code_uc, product_module_code, event_ID, tt_event)
-print(head(all_pi))
-
-## aggregate by treatment group ------------------------------------------------
-print(head(all_pi))
-all_pi_es_collapsed <- all_pi[,
-  list(mean_pi = weighted.mean(x = normalized.cpricei, w = sales),
-       n_counties = uniqueN(1000 * fips_state + fips_county),
-       n_stores = uniqueN(store_code_uc)),
-   by = c("tr_group", "tt_event")
-  ]
-
-fwrite(all_pi_es_collapsed, "Data/pi_allgoods_es.csv")
-print(head(all_pi_es_collapsed))
-
-all_pi_es_collapsed <- add_tr_count(collapsed_data = all_pi_es_collapsed,
-                                    tr_group_name = "tr_group",
-                                    count_col_name = "n_counties")
-
-fwrite(all_pi_es_collapsed, "Data/pi_allgoods_es.csv")
-
-## plot and export result ------------------------------------------------------
-all_pi_es_plot <- ggplot(data = all_pi_es_collapsed,
-                  mapping = aes(x = tt_event, y = mean_pi, color = tr_count)) +
-  labs(x = "Time to event",
-       y = "Log normalized price index",
-       color = "Sales tax change",
-       caption = expression(paste("Weighted by sales in 2008 Q1. ", Y==0, " in ", T==-2))) +
-  geom_line() +
-  theme_bw()
-
-ggsave("Graphs/pi_allgoods_es.png")
-
-rm(all_pi)
-gc()
-
-stop()
 
 # Taxable goods only ===========================================================
 taxable_pi <- fread(taxable_pi_path)
@@ -397,13 +328,16 @@ taxable_pi <- fread(taxable_pi_path)
 taxable_pi <- taxable_pi[year %in% 2008:2014 & !is.na(cpricei) & !is.na(sales)]
 taxable_pi <- balance_panel_data(taxable_pi, time_vars = c("quarter", "year"),
                              panel_unit = "store_code_uc", n_periods = 28)
+
+taxable_pi[, cpricei := log(cpricei)]
 taxable_pi_original <- copy(taxable_pi)
 
 ## merge treatment, attach event times -----------------------------------------
 taxable_pi <- merge_treatment(original_data = taxable_pi,
-                              treatment_data_path = eventstudy_tr_path,
-                              merge_by = c("fips_county", "fips_state"))
-setnames(taxable_pi,"V1", "event_ID")
+                          treatment_data_path = eventstudy_tr_path,
+                          merge_by = c("fips_county", "fips_state"))
+
+setnames(taxable_pi, "V1", "event_ID")
 
 ## define time to event --------------------------------------------------------
 taxable_pi[, ref_quarter := ceiling(ref_month / 3)]
@@ -411,7 +345,7 @@ taxable_pi[, tt_event := as.integer(4 * year + quarter -
                                   (4 * ref_year + ref_quarter))]
 
 ## limit data to two year window around reform ---------------------------------
-taxable_pi <- taxable_pi[tt_event >= -1 * 4 & tt_event <= 4]
+taxable_pi <- taxable_pi[tt_event >= -4 & tt_event <= 4]
 
 ## add pseudo-control group ----------------------------------------------------
 
@@ -419,9 +353,9 @@ taxable_pi <- taxable_pi[tt_event >= -1 * 4 & tt_event <= 4]
 control_counties <- fread(tr_groups_path)
 control_counties <- control_counties[tr_group == "No change"]
 control_counties <- unique(control_counties[, .(fips_county, fips_state)])
-
 control_dt <- merge(taxable_pi_original, control_counties,
                     by = c("fips_state", "fips_county"))
+
 rm(taxable_pi_original)
 gc()
 
@@ -431,21 +365,30 @@ control_dt <- control_dt[,
                          by = .(quarter, year)
                          ]
 
-taxable_pi <- merge(taxable_pi, control_dt, by = c("quarter", "year"))
-matched_control_data <- taxable_pi[, .(control.cpricei, tt_event, tr_group, sales, event_ID)]
+matched_control_data <- merge(taxable_pi, control_dt, by = c("quarter", "year"))
+matched_control_data <- matched_control_data[, .(control.cpricei, tt_event, event_ID,
+                                                 store_code_uc, product_module_code,
+                                                 tr_group, sales, ref_year, ref_quarter)]
 
 matched_control_data[, cpricei := control.cpricei]
-matched_control_data[, tr_group := paste0("No change (", tr_group, ")")]
+matched_control_data[, tr_group := paste0("No change (", tolower(tr_group), ")")]
 matched_control_data[, control.cpricei := NULL]
+
 taxable_pi <- rbind(taxable_pi, matched_control_data, fill = T)
 
 ## normalize price indices based on time to event ------------------------------
-taxable_pi[, store_code_uc := .GRP, by = .(tr_group, event_ID)]
-taxable_pi <- normalize_price(price_data = taxable_pi,
-                              time_type = "event",
-                              base_time = -2,
-                              price_var = "cpricei",
-                              new_price_var = "normalized.cpricei")
+price_anchors <- taxable_pi[tt_event == -2]
+price_anchors[, base_price := cpricei]
+price_anchors <- price_anchors[, .(store_code_uc, product_module_code, base_price,
+                                   ref_year, ref_quarter, tr_group, event_ID)]
+
+taxable_pi <- merge(taxable_pi, price_anchors,
+                by = c("store_code_uc", "product_module_code",
+                       "ref_year", "ref_quarter", "tr_group", "event_ID"))
+
+# note that this is still log cpricei
+taxable_pi[, normalized.cpricei := cpricei - base_price]
+taxable_pi[, base_price := NULL]
 
 ## aggregate by treatment group ------------------------------------------------
 taxable_pi_es_collapsed <- taxable_pi[,
@@ -459,7 +402,7 @@ taxable_pi_es_collapsed <- add_tr_count(collapsed_data = taxable_pi_es_collapsed
                                     tr_group_name = "tr_group",
                                     count_col_name = "n_counties")
 
-fwrite(taxable_pi_es_collapsed, "Data/pi_taxablegoods_es.csv")
+fwrite(taxable_pi_es_collapsed, "Data/pi_taxable_es.csv")
 
 ## plot and export result ------------------------------------------------------
 taxable_pi_es_plot <- ggplot(data = taxable_pi_es_collapsed,
@@ -471,7 +414,7 @@ taxable_pi_es_plot <- ggplot(data = taxable_pi_es_collapsed,
   geom_line() +
   theme_bw()
 
-ggsave("Graphs/pi_taxablegoods_es.png")
+ggsave("Graphs/pi_taxable_es.png")
 
 rm(taxable_pi)
 gc()
@@ -496,22 +439,25 @@ gc()
 ## balance sample on store-level from 2008 to 2014 -----------------------------
 taxexempt_pi <- taxexempt_pi[year %in% 2008:2014 & !is.na(cpricei) & !is.na(sales)]
 taxexempt_pi <- balance_panel_data(taxexempt_pi, time_vars = c("quarter", "year"),
-                                 panel_unit = "store_code_uc", n_periods = 28)
+                             panel_unit = "store_code_uc", n_periods = 28)
+
+taxexempt_pi[, cpricei := log(cpricei)]
 taxexempt_pi_original <- copy(taxexempt_pi)
 
 ## merge treatment, attach event times -----------------------------------------
 taxexempt_pi <- merge_treatment(original_data = taxexempt_pi,
-                              treatment_data_path = eventstudy_tr_path,
-                              merge_by = c("fips_county", "fips_state"))
-setnames(taxexempt_pi,"V1", "event_ID")
+                          treatment_data_path = eventstudy_tr_path,
+                          merge_by = c("fips_county", "fips_state"))
+
+setnames(taxexempt_pi, "V1", "event_ID")
 
 ## define time to event --------------------------------------------------------
 taxexempt_pi[, ref_quarter := ceiling(ref_month / 3)]
 taxexempt_pi[, tt_event := as.integer(4 * year + quarter -
-                                      (4 * ref_year + ref_quarter))]
+                                  (4 * ref_year + ref_quarter))]
 
 ## limit data to two year window around reform ---------------------------------
-taxexempt_pi <- taxexempt_pi[tt_event >= -1 * 4 & tt_event <= 4]
+taxexempt_pi <- taxexempt_pi[tt_event >= -4 & tt_event <= 4]
 
 ## add pseudo-control group ----------------------------------------------------
 
@@ -519,9 +465,9 @@ taxexempt_pi <- taxexempt_pi[tt_event >= -1 * 4 & tt_event <= 4]
 control_counties <- fread(tr_groups_path)
 control_counties <- control_counties[tr_group == "No change"]
 control_counties <- unique(control_counties[, .(fips_county, fips_state)])
-
 control_dt <- merge(taxexempt_pi_original, control_counties,
                     by = c("fips_state", "fips_county"))
+
 rm(taxexempt_pi_original)
 gc()
 
@@ -531,39 +477,48 @@ control_dt <- control_dt[,
                          by = .(quarter, year)
                          ]
 
-taxexempt_pi <- merge(taxexempt_pi, control_dt, by = c("quarter", "year"))
-matched_control_data <- taxexempt_pi[, .(control.cpricei, tt_event, tr_group, sales, event_ID)]
+matched_control_data <- merge(taxexempt_pi, control_dt, by = c("quarter", "year"))
+matched_control_data <- matched_control_data[, .(control.cpricei, tt_event, event_ID,
+                                                 store_code_uc, product_module_code,
+                                                 tr_group, sales, ref_year, ref_quarter)]
 
 matched_control_data[, cpricei := control.cpricei]
-matched_control_data[, tr_group := paste0("No change (", tr_group, ")")]
+matched_control_data[, tr_group := paste0("No change (", tolower(tr_group), ")")]
 matched_control_data[, control.cpricei := NULL]
+
 taxexempt_pi <- rbind(taxexempt_pi, matched_control_data, fill = T)
 
 ## normalize price indices based on time to event ------------------------------
-taxexempt_pi[, store_code_uc := .GRP, by = .(tr_group, event_ID)]
-taxexempt_pi <- normalize_price(price_data = taxexempt_pi,
-                              time_type = "event",
-                              base_time = -2,
-                              price_var = "cpricei",
-                              new_price_var = "normalized.cpricei")
+price_anchors <- taxexempt_pi[tt_event == -2]
+price_anchors[, base_price := cpricei]
+price_anchors <- price_anchors[, .(store_code_uc, product_module_code, base_price,
+                                   ref_year, ref_quarter, tr_group, event_ID)]
+
+taxexempt_pi <- merge(taxexempt_pi, price_anchors,
+                by = c("store_code_uc", "product_module_code",
+                       "ref_year", "ref_quarter", "tr_group", "event_ID"))
+
+# note that this is still log cpricei
+taxexempt_pi[, normalized.cpricei := cpricei - base_price]
+taxexempt_pi[, base_price := NULL]
 
 ## aggregate by treatment group ------------------------------------------------
 taxexempt_pi_es_collapsed <- taxexempt_pi[,
-                                      list(mean_pi = weighted.mean(x = normalized.cpricei, w = sales),
-                                           n_counties = uniqueN(1000 * fips_state + fips_county),
-                                           n_stores = uniqueN(store_code_uc)),
-                                      by = c("tr_group", "tt_event")
-                                      ]
+                              list(mean_pi = weighted.mean(x = normalized.cpricei, w = sales),
+                                   n_counties = uniqueN(1000 * fips_state + fips_county),
+                                   n_stores = uniqueN(store_code_uc)),
+                              by = c("tr_group", "tt_event")
+                              ]
 
 taxexempt_pi_es_collapsed <- add_tr_count(collapsed_data = taxexempt_pi_es_collapsed,
-                                        tr_group_name = "tr_group",
-                                        count_col_name = "n_counties")
+                                    tr_group_name = "tr_group",
+                                    count_col_name = "n_counties")
 
-fwrite(taxexempt_pi_es_collapsed, "Data/pi_taxexemptgoods_es.csv")
+fwrite(taxexempt_pi_es_collapsed, "Data/pi_taxexempt_es.csv")
 
 ## plot and export result ------------------------------------------------------
 taxexempt_pi_es_plot <- ggplot(data = taxexempt_pi_es_collapsed,
-                             mapping = aes(x = tt_event, y = mean_pi, color = tr_count)) +
+                         mapping = aes(x = tt_event, y = mean_pi, color = tr_count)) +
   labs(x = "Time to event",
        y = "Log normalized price index",
        color = "Sales tax change",
@@ -571,8 +526,7 @@ taxexempt_pi_es_plot <- ggplot(data = taxexempt_pi_es_collapsed,
   geom_line() +
   theme_bw()
 
-ggsave("Graphs/pi_taxexemptgoods_es.png")
+ggsave("Graphs/pi_taxexempt_es.png")
 
 rm(taxexempt_pi)
 gc()
-
