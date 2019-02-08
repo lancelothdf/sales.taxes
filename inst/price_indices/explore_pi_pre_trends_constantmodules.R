@@ -11,9 +11,9 @@ library(zoo)
 library(ggplot2)
 
 setwd("/project2/igaarder")
-prep_enviro <- T
+prep_enviro <- F
 make.ct <- F
-combine.tax.rates <- T
+combine.tax.rates <- F
 
 ################################################################################
 ###### Prepare environment & create datasets of all goods and taxable only #####
@@ -344,6 +344,8 @@ taxable_pi <- balance_panel_data(taxable_pi, time_vars = c("quarter", "year"),
                              panel_unit = "store_code_uc", n_periods = 28)
 
 taxable_pi[, cpricei := log(cpricei)]
+taxable_pi[, sales_tax := log(sales_tax)]
+
 taxable_pi_original <- copy(taxable_pi)
 
 ## merge treatment, attach event times -----------------------------------------
@@ -375,18 +377,21 @@ gc()
 
 ### take the mean for each time period for each product module code
 control_dt <- control_dt[,
-                         list(control.cpricei = weighted.mean(x = cpricei, w = base.sales)),
+                         list(control.cpricei = weighted.mean(x = cpricei, w = base.sales),
+                              control.sales_tax = weighted.mean(sales_tax, w = base.sales)),
                          by = .(quarter, year, product_module_code)
                          ]
 
 matched_control_data <- merge(all_pi, control_dt, by = c("quarter", "year", "product_module_code"))
 matched_control_data <- matched_control_data[, .(control.cpricei, tt_event, event_ID,
-                                                 store_code_uc, product_module_code,
+                                                 store_code_uc, product_module_code, control.sales_tax,
                                                  tr_group, base.sales, ref_year, ref_quarter)]
 
 matched_control_data[, cpricei := control.cpricei]
+matched_control_data[, sales_tax := control.sales_tax]
 matched_control_data[, tr_group := paste0("No change (", tolower(tr_group), ")")]
 matched_control_data[, control.cpricei := NULL]
+matched_control_data[, control.sales_tax := NULL]
 
 taxable_pi <- rbind(taxable_pi, matched_control_data, fill = T)
 
@@ -407,6 +412,7 @@ taxable_pi[, base_price := NULL]
 ## aggregate by treatment group ------------------------------------------------
 taxable_pi_es_collapsed <- taxable_pi[,
                               list(mean_pi = weighted.mean(x = normalized.cpricei, w = base.sales),
+                                   mean_tax = weighted.mean(sales_tax, w = base.sales),
                                    n_counties = uniqueN(1000 * fips_state + fips_county),
                                    n_stores = uniqueN(store_code_uc)),
                               by = c("tr_group", "tt_event")
@@ -456,6 +462,8 @@ taxexempt_pi <- balance_panel_data(taxexempt_pi, time_vars = c("quarter", "year"
                              panel_unit = "store_code_uc", n_periods = 28)
 
 taxexempt_pi[, cpricei := log(cpricei)]
+taxexempt_pi[, sales_tax := log(sales_tax)]
+
 taxexempt_pi_original <- copy(taxexempt_pi)
 
 ## merge treatment, attach event times -----------------------------------------
@@ -487,18 +495,21 @@ gc()
 
 ### take the mean for each time period for each product module code
 control_dt <- control_dt[,
-                         list(control.cpricei = weighted.mean(x = cpricei, w = base.sales)),
+                         list(control.cpricei = weighted.mean(x = cpricei, w = base.sales),
+                              control.sales_tax = weighted.mean(sales_tax, w = base.sales)),
                          by = .(quarter, year, product_module_code)
                          ]
 
 matched_control_data <- merge(all_pi, control_dt, by = c("quarter", "year", "product_module_code"))
 matched_control_data <- matched_control_data[, .(control.cpricei, tt_event, event_ID,
-                                                 store_code_uc, product_module_code,
+                                                 store_code_uc, product_module_code, control.sales_tax,
                                                  tr_group, base.sales, ref_year, ref_quarter)]
 
 matched_control_data[, cpricei := control.cpricei]
+matched_control_data[, sales_tax := control.sales_tax]
 matched_control_data[, tr_group := paste0("No change (", tolower(tr_group), ")")]
 matched_control_data[, control.cpricei := NULL]
+matched_control_data[, control.sales_tax := NULL]
 
 taxexempt_pi <- rbind(taxexempt_pi, matched_control_data, fill = T)
 
@@ -519,6 +530,7 @@ taxexempt_pi[, base_price := NULL]
 ## aggregate by treatment group ------------------------------------------------
 taxexempt_pi_es_collapsed <- taxexempt_pi[,
                               list(mean_pi = weighted.mean(x = normalized.cpricei, w = base.sales),
+                                   mean_tax = weighted.mean(sales_tax, w = base.sales),
                                    n_counties = uniqueN(1000 * fips_state + fips_county),
                                    n_stores = uniqueN(store_code_uc)),
                               by = c("tr_group", "tt_event")
