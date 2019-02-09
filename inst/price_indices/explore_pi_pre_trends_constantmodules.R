@@ -321,8 +321,6 @@ fwrite(all_pi_es_collapsed, "Data/pi_allgoods_es.csv")
 rm(all_pi)
 gc()
 
-stop()
-
 # Taxable goods only ===========================================================
 taxable_pi <- fread(taxable_pi_path)
 
@@ -382,7 +380,7 @@ control_dt <- control_dt[,
                          by = .(quarter, year, product_module_code)
                          ]
 
-matched_control_data <- merge(all_pi, control_dt, by = c("quarter", "year", "product_module_code"))
+matched_control_data <- merge(taxable_pi, control_dt, by = c("quarter", "year", "product_module_code"))
 matched_control_data <- matched_control_data[, .(control.cpricei, tt_event, event_ID,
                                                  store_code_uc, product_module_code, control.sales_tax,
                                                  tr_group, base.sales, ref_year, ref_quarter)]
@@ -500,7 +498,7 @@ control_dt <- control_dt[,
                          by = .(quarter, year, product_module_code)
                          ]
 
-matched_control_data <- merge(all_pi, control_dt, by = c("quarter", "year", "product_module_code"))
+matched_control_data <- merge(taxexempt_pi, control_dt, by = c("quarter", "year", "product_module_code"))
 matched_control_data <- matched_control_data[, .(control.cpricei, tt_event, event_ID,
                                                  store_code_uc, product_module_code, control.sales_tax,
                                                  tr_group, base.sales, ref_year, ref_quarter)]

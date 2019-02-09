@@ -1,0 +1,179 @@
+
+R version 3.5.1 (2018-07-02) -- "Feather Spray"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> #' Author: John Bonney
+> #' Purpose: Create national price index from store-category-level price indices
+> #'
+> #' Note that this is a reworking of create_national_price_index.R, it merely
+> #'     incorporates the new geometric price indices.
+> #'
+> 
+> library(readstata13)
+> library(data.table)
+> 
+> ## for testing
+> # pi_data <- data.table(expand.grid(year = 2006:2008, quarter = 1:4,
+> #                                   store_code_uc = c("A", "B"),
+> #                                   product_module_code = c("goat", "cheese")))
+> # pi_data[, geocpricei := runif(nrow(pi_data), 100, 300)]
+> #
+> # sales_data <- pi_data[, .(year, quarter, store_code_uc, product_module_code)]
+> # sales_data[, sales := runif(nrow(sales_data), 1000, 10000)]
+> 
+> setwd("/project2/igaarder")
+> 
+> ## load and convert .dta to .csv -----------------------------------------------
+> pi_data <- read.dta13("Data/Nielsen/Geo_price_quantity_indices_food.dta")
+> pi_data <- as.data.table(pi_data)
+> fwrite(pi_data, "Data/Nielsen/Geo_price_quantity_indices_food.csv")
+> 
+> print(paste0("N (raw): ", nrow(pi_data)))
+[1] "N (raw): 154390808"
+> print(paste0("N stores (raw): ", uniqueN(pi_data$store_code_uc)))
+[1] "N stores (raw): 40183"
+> print(paste0("N store-products (raw): ", uniqueN(pi_data[, .(store_code_uc, product_module_code)])))
+[1] "N store-products (raw): 4792701"
+> 
+> ## get rid of the observations for 2006 Q3 and earlier -------------------------
+> pi_data <- pi_data[year >= 2007 | (year == 2006 & quarter == 4)]
+> 
+> print(paste0("N (dropping 2006 Q3 and earlier): ", nrow(pi_data)))
+[1] "N (dropping 2006 Q3 and earlier): 145694717"
+> print(paste0("N stores (dropping 2006 Q3 and earlier): ", uniqueN(pi_data$store_code_uc)))
+[1] "N stores (dropping 2006 Q3 and earlier): 40183"
+> print(paste0("N store-products (dropping 2006 Q3 and earlier): ",
++              uniqueN(pi_data[, .(store_code_uc, product_module_code)])))
+[1] "N store-products (dropping 2006 Q3 and earlier): 4792701"
+> 
+> ## merge sales shares onto price indices ---------------------------------------
+> sales_data <- fread("Data/sales_quarterly_2006-2016.csv")
+> 
+> pi_data <- merge(pi_data, sales_data, by = c("store_code_uc", "product_module_code",
++                                              "quarter", "year"))
+> rm(sales_data)
+> gc()
+             used    (Mb) gc trigger    (Mb)   max used    (Mb)
+Ncells     416410    22.3     792937    42.4     627448    33.6
+Vcells 1824596509 13920.6 5190963575 39604.0 5617356682 42857.1
+> 
+> print(paste0("N (merging on sales): ", nrow(pi_data)))
+[1] "N (merging on sales): 141219330"
+> print(paste0("N stores (merging on sales): ", uniqueN(pi_data$store_code_uc)))
+[1] "N stores (merging on sales): 37589"
+> print(paste0("N store-products (merging on sales): ",
++              uniqueN(pi_data[, .(store_code_uc, product_module_code)])))
+[1] "N store-products (merging on sales): 4599106"
+> 
+> fwrite(pi_data, "Data/Nielsen/Geo_price_quantity_indices_food.csv")
+> 
+> ## balance on store-level ------------------------------------------------------
+> stores <- unique(pi_data, by = c("year", "quarter", "store_code_uc"))
+> stores <- stores[, list(n = .N), by = store_code_uc]
+> keep_stores <- stores[n == (2016 - 2006) * 4 + 1][["store_code_uc"]]
+> pi_data <- pi_data[store_code_uc %in% keep_stores]
+> 
+> print(paste0("N (balancing on store-level): ", nrow(pi_data)))
+[1] "N (balancing on store-level): 100663391"
+> print(paste0("N stores (balancing on store-level): ", uniqueN(pi_data$store_code_uc)))
+[1] "N stores (balancing on store-level): 22620"
+> print(paste0("N store-products (balancing on store-level): ",
++              uniqueN(pi_data[, .(store_code_uc, product_module_code)])))
+[1] "N store-products (balancing on store-level): 2803493"
+> 
+> ## renormalize index so that it equals 1 in 2006 Q4 ----------------------------
+> base_pi <- pi_data[year == 2006 & quarter == 4]
+> base_pi[, base_geocpricei := geocpricei]
+> base_pi <- base_pi[, .(store_code_uc, product_module_code, base_geocpricei)]
+> 
+> pi_data <- merge(pi_data, base_pi,
++                  by = c("store_code_uc", "product_module_code"))
+> 
+> pi_data[, geocpricei := geocpricei / base_geocpricei]
+> 
+> ## compute sales shares --------------------------------------------------------
+> pi_data[, national_sales := sum(sales), by = .(quarter, year)]
+> pi_data[, sales_share := sales / national_sales]  # this is our S_{j,r}^t
+> fwrite(pi_data, "Data/Nielsen/Geo_price_quantity_indices_food.csv")
+> 
+> ## calculate the price indices -------------------------------------------------
+> setkey(pi_data, store_code_uc, product_module_code, year, quarter)
+> 
+> ### create the exponent
+> pi_data[, s_average := (sales_share + shift(sales_share, 1, type = "lag")) / 2,
++         by = .(store_code_uc, product_module_code)]
+> ### create the base
+> pi_data[, pi_change := geocpricei / shift(geocpricei, 1, type = "lag"),
++         by = .(store_code_uc, product_module_code)]
+> 
+> ### compute P_t / P_{t-1}
+> national_pi <- pi_data[, list(national_ratio = prod(pi_change^s_average)),
++                        by = .(quarter, year)]
+> national_pi[year == 2006 & quarter == 4, national_ratio := 1]
+> # compute the P_t as a cumulative product
+> national_pi[, national_index := cumprod(national_ratio)]
+> 
+> print(national_pi[])
+    quarter year national_ratio national_index
+ 1:       4 2006      1.0000000       1.000000
+ 2:       1 2007      1.0168308       1.016831
+ 3:       2 2007      1.0053246       1.022245
+ 4:       3 2007      1.0156997       1.038294
+ 5:       4 2007      1.0121168       1.050875
+ 6:       1 2008      1.0147151       1.066339
+ 7:       2 2008      1.0139033       1.081164
+ 8:       3 2008      1.0239148       1.107020
+ 9:       4 2008      1.0103021       1.118425
+10:       1 2009      0.9974746       1.115600
+11:       2 2009      0.9803213       1.093647
+12:       3 2009      0.9899436       1.082648
+13:       4 2009      0.9995423       1.082153
+14:       1 2010      1.0073842       1.090144
+15:       2 2010      0.9921315       1.081566
+16:       3 2010      1.0012337       1.082900
+17:       4 2010      1.0069539       1.090431
+18:       1 2011      1.0208255       1.113139
+19:       2 2011      1.0099596       1.124226
+20:       3 2011      1.0173455       1.143726
+21:       4 2011      1.0101256       1.155307
+22:       1 2012      1.0066851       1.163030
+23:       2 2012      0.9886568       1.149838
+24:       3 2012      0.9959531       1.145185
+25:       4 2012      1.0080962       1.154456
+26:       1 2013      1.0243098       1.182521
+27:       2 2013      0.9931092       1.174372
+28:       3 2013      0.9936211       1.166881
+29:       4 2013      1.0012757       1.168370
+30:       1 2014      1.0076791       1.177342
+31:       2 2014      1.0024072       1.180176
+32:       3 2014      1.0036486       1.184482
+33:       4 2014      1.0091791       1.195354
+34:       1 2015      1.0032689       1.199262
+35:       2 2015      0.9902187       1.187531
+36:       3 2015      1.0057996       1.194419
+37:       4 2015      1.0035500       1.198659
+38:       1 2016      0.9964213       1.194369
+39:       2 2016      0.9909391       1.183547
+40:       3 2016      0.9885871       1.170039
+41:       4 2016      0.9995935       1.169564
+    quarter year national_ratio national_index
+> fwrite(national_pi, "Data/national_pi_geo.csv")
+> 
+> proc.time()
+   user  system elapsed 
+758.055 120.871 895.610 
