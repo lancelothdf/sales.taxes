@@ -132,9 +132,9 @@ taxable_pi <- balance_panel_data(taxable_pi, time_vars = c("quarter", "year"),
                              panel_unit = "store_code_uc", n_periods = 28)
 
 ## normalize price index -------------------------------------------------------
-taxable_pi[, `:=` (normalized.cpricei := log(cpricei) -
+taxable_pi[, `:=` (normalized.cpricei = log(cpricei) -
                      log(cpricei[year == 2008 & quarter == 1]),
-                   base.sales := sales[year == 2008 & quarter == 1]),
+                   base.sales = sales[year == 2008 & quarter == 1]),
            by = .(store_code_uc, product_module_code)]
 
 ## merge treatment -------------------------------------------------------------
