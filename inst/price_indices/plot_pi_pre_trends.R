@@ -73,6 +73,10 @@ taxable.calendar.plot
 
 ggsave("pi_figs/pretty/pi_taxable_calendar.png", height = 120, width = 180, units = "mm")
 
+################################################################################
+########################### plots by event time ################################
+################################################################################
+
 ## all goods, event time -------------------------------------------------------
 et.all <- fread("pi_data/pi_allgoods_es.csv")
 
@@ -118,10 +122,6 @@ all.event.plot
 
 ggsave("pi_figs/pretty/pi_all_event.png",
        height = 120 * 1.2, width = 180 * 1.2, units = "mm")
-
-################################################################################
-########################### plots by event time ################################
-################################################################################
 
 
 ## taxable goods, event time ---------------------------------------------------
@@ -227,15 +227,27 @@ et.tax <- rbind(et.taxable, et.taxexempt)
 et.tax[, taxable := ifelse(grepl("\\(", tr_group),
                            paste(taxable, "(no change)"),
                            taxable)]
+et.tax[, normalized_tax := mean_tax - mean_tax[tt_event == -2], .(tr_group, taxable)]
 
 et.decrease <- et.tax[tr_group %in% c("Ever decrease",
                                       "No change (ever decrease)")]
+tax.decrease <- et.decrease[taxable == "Taxable", .(tr_group, normalized_tax,
+                                                    tt_event)]
+nochange.decrease <- et.decrease[taxable == "Taxable (no change)",
+                                 .(tt_event, mean_pi)]
+tax.decrease <- merge(tax.decrease, nochange.decrease)
+tax.decrease[, mean_pi := normalized_tax + mean_pi]
+tax.decrease[, taxable := "no change mean + log tax"]
+
+et.decrease <- rbind(et.decrease, tax.decrease, fill = T)
 
 plot_breaks <- c("Taxable", "Taxable (no change)",
-                 "Tax-exempt", "Tax-exempt (no change)")
+                 "Tax-exempt", "Tax-exempt (no change)",
+                 "no change mean + log tax")
 
 plot_labs <- c("Taxable (ever decrease)", "Taxable (no change)",
-               "Tax-exempt (ever decrease)", "Tax-exempt (no change)")
+               "Tax-exempt (ever decrease)", "Tax-exempt (no change)",
+               "Taxable (no change) + ln(1 + tax rate)")
 
 decrease.event.plot <- ggplot(et.decrease, aes(x = tt_event, y = mean_pi,
                                                color = taxable, linetype = taxable)) +
@@ -249,9 +261,9 @@ decrease.event.plot <- ggplot(et.decrease, aes(x = tt_event, y = mean_pi,
   ggtitle("Price index by taxability") +
   scale_y_continuous(breaks = seq(-.03, 0.045, .015), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks, labels = plot_labs,
-                     values = c("#F8766D", "#F8766D", "#00BFC4", "#00BFC4")) +
+                     values = c("grey", "#F8766D", "#F8766D", "#00BFC4", "#00BFC4")) +
   scale_linetype_manual(name = NULL, breaks = plot_breaks, labels = plot_labs,
-                        values = c("solid", "11", "solid", "11")) +
+                        values = c("dotdash", "solid", "11", "solid", "11")) +
   geom_vline(xintercept = 0, color = "maroon", size = 0.8, alpha = 0.5, linetype = "dashed") +
   myTheme +
   theme(legend.position = c(0.2, 0.8), axis.ticks.length = unit(-0.15, "cm"))
@@ -263,12 +275,23 @@ ggsave("pi_figs/pretty/pi_everdecrease_event.png",
 ## taxable vs. non-taxable, ever increase --------------------------------------
 et.increase <- et.tax[tr_group %in% c("Ever increase",
                                       "No change (ever increase)")]
+tax.increase <- et.increase[taxable == "Taxable", .(tr_group, normalized_tax,
+                                                    tt_event)]
+nochange.increase <- et.increase[taxable == "Taxable (no change)",
+                                 .(tt_event, mean_pi)]
+tax.increase <- merge(tax.increase, nochange.increase)
+tax.increase[, mean_pi := normalized_tax + mean_pi]
+tax.increase[, taxable := "no change mean + log tax"]
+
+et.increase <- rbind(et.increase, tax.increase, fill = T)
 
 plot_breaks <- c("Taxable", "Taxable (no change)",
-                 "Tax-exempt", "Tax-exempt (no change)")
+                 "Tax-exempt", "Tax-exempt (no change)",
+                 "no change mean + log tax")
 
 plot_labs <- c("Taxable (ever increase)", "Taxable (no change)",
-               "Tax-exempt (ever increase)", "Tax-exempt (no change)")
+               "Tax-exempt (ever increase)", "Tax-exempt (no change)",
+               "Taxable (ever increase) + ln(1 + tax rate)")
 
 increase.event.plot <- ggplot(et.increase, aes(x = tt_event, y = mean_pi,
                                                color = taxable, linetype = taxable)) +
@@ -282,9 +305,9 @@ increase.event.plot <- ggplot(et.increase, aes(x = tt_event, y = mean_pi,
   ggtitle("Price index by taxability") +
   scale_y_continuous(breaks = seq(-.03, 0.045, .015), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks, labels = plot_labs,
-                     values = c("#F8766D", "#F8766D", "#00BFC4", "#00BFC4")) +
+                     values = c("grey", "#F8766D", "#F8766D", "#00BFC4", "#00BFC4")) +
   scale_linetype_manual(name = NULL, breaks = plot_breaks, labels = plot_labs,
-                        values = c("solid", "11", "solid", "11")) +
+                        values = c("dotdash", "solid", "11", "solid", "11")) +
   geom_vline(xintercept = 0, color = "maroon", size = 0.8, alpha = 0.5, linetype = "dashed") +
   myTheme +
   theme(legend.position = c(0.2, 0.8), axis.ticks.length = unit(-0.15, "cm"))
@@ -297,11 +320,20 @@ ggsave("pi_figs/pretty/pi_everincrease_event.png",
 et.increase.only <- et.tax[tr_group %in% c("Increase only",
                                            "No change (increase only)")]
 
+tax.increase.only <- et.increase.only[taxable == "Taxable", .(tr_group, normalized_tax,
+                                                    tt_event)]
+nochange.increase.only <- et.increase.only[taxable == "Taxable (no change)",
+                                           .(tt_event, mean_pi)]
+tax.increase.only <- merge(tax.increase.only, nochange.increase.only)
+tax.increase.only[, mean_pi := normalized_tax + mean_pi]
+tax.increase.only[, taxable := "no change mean + log tax"]
+et.increase.only <- rbind(et.increase.only, tax.increase.only, fill = T)
+
 plot_breaks <- c("Taxable", "Taxable (no change)",
-                 "Tax-exempt", "Tax-exempt (no change)")
+                 "Tax-exempt", "Tax-exempt (no change)", "no change mean + log tax")
 
 plot_labs <- c("Taxable (increase only)", "Taxable (no change)",
-               "Tax-exempt (increase only)", "Tax-exempt (no change)")
+               "Tax-exempt (increase only)", "Tax-exempt (no change)", "Taxable (no change) + ln(1 + tax rate)")
 
 increase.only.plot <- ggplot(et.increase.only, aes(x = tt_event, y = mean_pi,
                                                color = taxable, linetype = taxable)) +
@@ -315,9 +347,9 @@ increase.only.plot <- ggplot(et.increase.only, aes(x = tt_event, y = mean_pi,
   ggtitle("Price index by taxability") +
   scale_y_continuous(limits = c(-0.03, 0.03), breaks = seq(-.03, 0.045, .015), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks, labels = plot_labs,
-                     values = c("#F8766D", "#F8766D", "#00BFC4", "#00BFC4")) +
+                     values = c("grey", "#F8766D", "#F8766D", "#00BFC4", "#00BFC4")) +
   scale_linetype_manual(name = NULL, breaks = plot_breaks, labels = plot_labs,
-                        values = c("solid", "11", "solid", "11")) +
+                        values = c("dotdash", "solid", "11", "solid", "11")) +
   geom_vline(xintercept = 0, color = "maroon", size = 0.8, alpha = 0.5, linetype = "dashed") +
   myTheme +
   theme(legend.position = c(0.2, 0.8), axis.ticks.length = unit(-0.15, "cm"))

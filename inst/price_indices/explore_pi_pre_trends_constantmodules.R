@@ -165,6 +165,13 @@ price_base[, cpricei := NULL]
 price_base[, base.sales := sales]
 price_base[, sales := NULL]
 
+#' Improvements:
+#' taxable_pi[, base.sales := sales[year == 2008 & quarter == 1],
+#' .(store_code_uc, product_module_code)]
+#' taxable_pi[, sales := NULL]
+#' taxable_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2008 & quarter == 1],
+#' .(store_code_uc, product_module_code))]
+
 taxable_pi <- merge(taxable_pi, price_base, by = c("store_code_uc", "product_module_code"))
 taxable_pi[, normalized.cpricei := log(cpricei) - log(base.cpricei)]
 taxable_pi[, base.cpricei := NULL]
@@ -222,6 +229,7 @@ all_pi <- fread(all_goods_pi_path)
 ## balance sample on store-level from 2008 to 2014 -----------------------------
 all_pi <- all_pi[year %in% 2008:2014 & !is.na(cpricei)]
 
+# TODO: improve this for efficiency!! can replace with many less lines
 base_sales <- all_pi[year == 2008 & quarter == 1]
 base_sales[, base.sales := sales]
 base_sales <- base_sales[, .(store_code_uc, product_module_code, base.sales)]
@@ -281,6 +289,7 @@ matched_control_data <- matched_control_data[, .(control.cpricei, tt_event, even
                                                  tr_group, base.sales, ref_year,
                                                  ref_quarter, control.sales_tax)]
 
+# TODO: can replace these with setnames
 matched_control_data[, cpricei := control.cpricei]
 matched_control_data[, sales_tax := control.sales_tax]
 matched_control_data[, tr_group := paste0("No change (", tolower(tr_group), ")")]
