@@ -100,37 +100,17 @@ all_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2008 & quarter
 all_pi[, base.sales := sales[year == 2008 & quarter == 1],
        by = .(store_code_uc, product_module_code)]
 
-print(head(all_pi))
-print(nrow(all_pi[is.na(normalized.cpricei)]))
-print(head(all_pi[is.na(normalized.cpricei)]))
-print(nrow(all_pi[is.na(base.sales)]))
-print(head(all_pi[is.na(base.sales)]))
-
 ## balance sample on store-level from 2008 to 2014 -----------------------------
-print(nrow(all_pi))
-print(nrow(all_pi[year == 2008]))
 all_pi <- all_pi[!is.na(base.sales) & !is.na(normalized.cpricei)]
 all_pi <- balance_panel_data(all_pi, time_vars = c("quarter", "year"),
                              panel_unit = "store_code_uc", n_periods = 28)
 
-
-print(head(all_pi))
-print(nrow(all_pi[is.na(normalized.cpricei)]))
-print(head(all_pi[is.na(normalized.cpricei)]))
-print(nrow(all_pi[is.na(base.sales)]))
-print(head(all_pi[is.na(base.sales)]))
 
 ## merge treatment -------------------------------------------------------------
 all_pi <- merge_treatment(original_data = all_pi,
                           treatment_data_path = tr_groups_path,
                           time = "calendar",
                           merge_by = c("fips_county", "fips_state"))
-
-print(head(all_pi))
-print(nrow(all_pi[is.na(normalized.cpricei)]))
-print(head(all_pi[is.na(normalized.cpricei)]))
-print(nrow(all_pi[is.na(base.sales)]))
-print(head(all_pi[is.na(base.sales)]))
 
 ## aggregate across treatment groups -------------------------------------------
 
@@ -144,28 +124,26 @@ all_pi_collapsed <- add_tr_count(collapsed_data = all_pi_collapsed,
                                  count_col_name = "n_counties")
 print(all_pi_collapsed)
 fwrite(all_pi_collapsed, "Data/pi_all_calendar.csv")
-stop()
 
 # Taxable goods ================================================================
 
-## balance sample on store-level from 2008 to 2014 -----------------------------
-taxable_pi <- taxable_pi[year %in% 2008:2014 & !is.na(cpricei)]
-taxable_pi <- taxable_pi[year %in% 2009:2014 | quarter %in% 2:4 | !is.na(sales)]
-taxable_pi <- balance_panel_data(taxable_pi, time_vars = c("quarter", "year"),
-                             panel_unit = "store_code_uc", n_periods = 28)
-
 ## normalize price index -------------------------------------------------------
+taxable_pi <- taxable_pi[year %in% 2008:2014 & !is.na(cpricei)]
 taxable_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2008 & quarter == 1]),
            by = .(store_code_uc, product_module_code)]
 taxable_pi[, base.sales := sales[year == 2008 & quarter == 1],
            by = .(store_code_uc, product_module_code)]
+
+## balance sample on store-level from 2008 to 2014 -----------------------------
+taxable_pi <- taxable_pi[!is.na(base.sales) & !is.na(normalized.cpricei)]
+taxable_pi <- balance_panel_data(taxable_pi, time_vars = c("quarter", "year"),
+                             panel_unit = "store_code_uc", n_periods = 28)
 
 ## merge treatment -------------------------------------------------------------
 taxable_pi <- merge_treatment(original_data = taxable_pi,
                               treatment_data_path = tr_groups_path,
                               time = "calendar",
                               merge_by = c("fips_county", "fips_state"))
-
 
 ## aggregate across treatment groups -------------------------------------------
 
@@ -190,20 +168,39 @@ gc()
 # All goods ====================================================================
 all_pi <- fread(all_goods_pi_path)
 all_pi <- all_pi[year %in% 2008:2014 & !is.na(cpricei)]
+all_pi[, cpricei := log(cpricei)]
+all_pi[, sales_tax := log(sales_tax)]
+
+print(head(all_pi))
+print(nrow(all_pi))
+print(head(all_pi[is.na(sales)]))
+print(head(all_pi[is.na(cpricei)]))
 
 ## get sales weights -----------------------------------------------------------
 all_pi[, base.sales := sales[year == 2008 & quarter == 1],
        by = .(store_code_uc, product_module_code)]
 
+print(head(all_pi))
+print(nrow(all_pi))
+print(head(all_pi[is.na(base.sales)]))
+print(head(all_pi[is.na(cpricei)]))
+
 all_pi[, sales := NULL]
 all_pi <- all_pi[!is.na(base.sales)]
+
+print(head(all_pi))
+print(nrow(all_pi))
+print(head(all_pi[is.na(base.sales)]))
+print(head(all_pi[is.na(cpricei)]))
 
 ## balance panel ---------------------------------------------------------------
 all_pi <- balance_panel_data(all_pi, time_vars = c("quarter", "year"),
                              panel_unit = "store_code_uc", n_periods = 28)
 
-all_pi[, cpricei := log(cpricei)]
-all_pi[, sales_tax := log(sales_tax)]
+print(head(all_pi))
+print(nrow(all_pi))
+print(head(all_pi[is.na(base.sales)]))
+print(head(all_pi[is.na(cpricei)]))
 
 all_pi_original <- copy(all_pi)
 
