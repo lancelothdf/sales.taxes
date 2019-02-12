@@ -13,7 +13,7 @@ library(ggplot2)
 setwd("/project2/igaarder")
 prep_enviro <- F
 combine.tax.rates <- F
-make.ct <- T
+make.ct <- F
 
 ################################################################################
 ###### Prepare environment & create datasets of all goods and taxable only #####
