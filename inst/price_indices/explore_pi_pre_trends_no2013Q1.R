@@ -12,8 +12,6 @@ library(zoo)
 library(ggplot2)
 
 setwd("/project2/igaarder")
-prep_enviro <- F
-make.ct <- T
 
 ## useful filepaths ------------------------------------------------------------
 original.eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive.csv"
@@ -26,8 +24,6 @@ module_exemptions_path <- "Data/modules_exemptions_long.csv"
 all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems.csv"
 taxable_pi_path <- "Data/Nielsen/price_quantity_indices_taxableitems.csv"
 
-output.all.calendar.path <- "Data/pi_all_calendar_no2013Q1.csv"
-output.taxable.calendar.path <- "Data/pi_taxable_calendar_no2013Q1.csv"
 output.all.event.path <- "Data/pi_allgoods_es_no2013Q1.csv"
 output.taxable.event.path <-"Data/pi_taxable_es_no2013Q1.csv"
 output.taxexempt.event.path <-"Data/pi_taxexempt_es_no2013Q1.csv"
@@ -55,84 +51,6 @@ new.groups <- rbind(control.groups[, .(fips_county, fips_state, tr_group)],
 fwrite(new.events, eventstudy_tr_path)
 fwrite(new.groups, tr_groups_path)
 
-# TODO: **change the file paths for writing new results!**
-
-all_pi <- fread(all_goods_pi_path)
-taxable_pi <- fread(taxable_pi_path)
-
-################################################################################
-############## Plots by Calendar Time (taxable and all goods) ##################
-################################################################################
-if (make.ct) {
-  # All goods ====================================================================
-
-  ## balance sample on store-level from 2008 to 2014 -----------------------------
-  all_pi <- all_pi[year %in% 2008:2014 & !is.na(cpricei)]
-  all_pi <- all_pi[year %in% 2009:2014 | quarter %in% 2:4 | !is.na(sales)]
-  all_pi <- balance_panel_data(all_pi, time_vars = c("quarter", "year"),
-                               panel_unit = "store_code_uc", n_periods = 28)
-
-  ## normalize price index -------------------------------------------------------
-  all_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2008 & quarter == 1]),
-         by = .(store_code_uc, product_module_code)]
-  all_pi[, base.sales := sales[year == 2008 & quarter == 1],
-         by = .(store_code_uc, product_module_code)]
-
-  ## merge treatment -------------------------------------------------------------
-  all_pi <- merge_treatment(original_data = all_pi,
-                            treatment_data_path = tr_groups_path,
-                            time = "calendar",
-                            merge_by = c("fips_county", "fips_state"))
-
-  ## aggregate across treatment groups -------------------------------------------
-
-  all_pi_collapsed <- all_pi[, list(
-    mean.cpricei = weighted.mean(x = normalized.cpricei, w = base.sales),
-    n_counties = uniqueN(1000 * fips_state + fips_county)
-  ), by = c("tr_group", "year", "quarter")]
-
-  all_pi_collapsed <- add_tr_count(collapsed_data = all_pi_collapsed,
-                                   tr_group_name = "tr_group",
-                                   count_col_name = "n_counties")
-  fwrite(all_pi_collapsed, output.all.calendar.path)
-
-  # Taxable goods ================================================================
-
-  ## balance sample on store-level from 2008 to 2014 -----------------------------
-  taxable_pi <- taxable_pi[year %in% 2008:2014 & !is.na(cpricei)]
-  taxable_pi <- taxable_pi[year %in% 2009:2014 | quarter %in% 2:4 | !is.na(sales)]
-  taxable_pi <- balance_panel_data(taxable_pi, time_vars = c("quarter", "year"),
-                                   panel_unit = "store_code_uc", n_periods = 28)
-
-  ## normalize price index -------------------------------------------------------
-  taxable_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2008 & quarter == 1]),
-             by = .(store_code_uc, product_module_code)]
-  taxable_pi[, base.sales := sales[year == 2008 & quarter == 1],
-             by = .(store_code_uc, product_module_code)]
-
-  ## merge treatment -------------------------------------------------------------
-  taxable_pi <- merge_treatment(original_data = taxable_pi,
-                                treatment_data_path = tr_groups_path,
-                                time = "calendar",
-                                merge_by = c("fips_county", "fips_state"))
-
-
-  ## aggregate across treatment groups -------------------------------------------
-
-  taxable_pi_collapsed <- taxable_pi[, list(
-    mean.cpricei = weighted.mean(x = normalized.cpricei, w = base.sales),
-    n_counties = uniqueN(1000 * fips_state + fips_county)
-  ), by = c("tr_group", "year", "quarter")]
-
-  taxable_pi_collapsed <- add_tr_count(collapsed_data = taxable_pi_collapsed,
-                                       tr_group_name = "tr_group",
-                                       count_col_name = "n_counties")
-  fwrite(taxable_pi_collapsed, output.taxable.calendar.path)
-
-  rm(all_pi, taxable_pi)
-  gc()
-
-}
 ################################################################################
 ################ Plots by Event Time (taxable and all goods) ###################
 ################################################################################
@@ -140,6 +58,8 @@ if (make.ct) {
 # All goods ====================================================================
 all_pi <- fread(all_goods_pi_path)
 all_pi <- all_pi[year %in% 2008:2014 & !is.na(cpricei)]
+all_pi[, cpricei := log(cpricei)]
+all_pi[, sales_tax := log(sales_tax)]
 
 ## get sales weights -----------------------------------------------------------
 all_pi[, base.sales := sales[year == 2008 & quarter == 1],
@@ -151,9 +71,6 @@ all_pi <- all_pi[!is.na(base.sales)]
 ## balance panel ---------------------------------------------------------------
 all_pi <- balance_panel_data(all_pi, time_vars = c("quarter", "year"),
                              panel_unit = "store_code_uc", n_periods = 28)
-
-all_pi[, cpricei := log(cpricei)]
-all_pi[, sales_tax := log(sales_tax)]
 
 all_pi_original <- copy(all_pi)
 
@@ -207,6 +124,8 @@ all_pi <- rbind(all_pi, matched_control_data, fill = T)
 all_pi[, normalized.cpricei := cpricei - cpricei[tt_event == -2],
        by = .(store_code_uc, product_module_code, ref_year, ref_quarter,
               tr_group, event_ID)]
+all_pi <- all_pi[!is.na(normalized.cpricei)] # drops groups for which tt_event == -2
+# not available
 
 # note that this is the log difference (log was calculated earlier)
 
@@ -231,20 +150,19 @@ gc()
 # Taxable goods only ===========================================================
 taxable_pi <- fread(taxable_pi_path)
 taxable_pi <- taxable_pi[year %in% 2008:2014 & !is.na(cpricei)]
+taxable_pi[, cpricei := log(cpricei)]
+taxable_pi[, sales_tax := log(sales_tax)]
 
 ## get sales weights -----------------------------------------------------------
 taxable_pi[, base.sales := sales[year == 2008 & quarter == 1],
            by = .(store_code_uc, product_module_code)]
 
 taxable_pi[, sales := NULL]
-taxable_pi <- taxable_pi[!is.na(base.sales)]
+taxable_pi <- taxable_pi[!is.na(base.sales) & !is.na(cpricei)]
 
 ## balance sample on store-level from 2008 to 2014 -----------------------------
 taxable_pi <- balance_panel_data(taxable_pi, time_vars = c("quarter", "year"),
                                  panel_unit = "store_code_uc", n_periods = 28)
-
-taxable_pi[, cpricei := log(cpricei)]
-taxable_pi[, sales_tax := log(sales_tax)]
 
 taxable_pi_original <- copy(taxable_pi)
 
@@ -298,6 +216,8 @@ taxable_pi <- rbind(taxable_pi, matched_control_data, fill = T)
 taxable_pi[, normalized.cpricei := cpricei - cpricei[tt_event == - 2],
            by = .(store_code_uc, product_module_code, ref_year, ref_quarter,
                   tr_group, event_ID)]
+# drops groups for which tt_event == -2 not available
+taxable_pi <- taxable_pi[!is.na(normalized.cpricei)]
 # note that this is still log cpricei
 
 ## aggregate by treatment group ------------------------------------------------
@@ -341,14 +261,14 @@ taxexempt_pi <- taxexempt_pi[year %in% 2008:2014 & !is.na(cpricei)]
 taxexempt_pi[, base.sales := sales[year == 2008 & quarter == 1],
              by = .(store_code_uc, product_module_code)]
 taxexempt_pi[, sales := NULL]
-taxexempt_pi <- taxexempt_pi[!is.na(base.sales)]
+taxexempt_pi[, cpricei := log(cpricei)]
+taxexempt_pi[, sales_tax := log(sales_tax)]
+taxexempt_pi <- taxexempt_pi[!is.na(base.sales) & !is.na(cpricei)]
 
 ## balance sample on store-level from 2008 to 2014 -----------------------------
 taxexempt_pi <- balance_panel_data(taxexempt_pi, time_vars = c("quarter", "year"),
                                    panel_unit = "store_code_uc", n_periods = 28)
 
-taxexempt_pi[, cpricei := log(cpricei)]
-taxexempt_pi[, sales_tax := log(sales_tax)]
 taxexempt_pi_original <- copy(taxexempt_pi)
 
 ## merge treatment, attach event times -----------------------------------------
@@ -399,6 +319,8 @@ taxexempt_pi <- rbind(taxexempt_pi, matched_control_data, fill = T)
 taxexempt_pi[, normalized.cpricei := cpricei - cpricei[tt_event == -2],
              by = .(store_code_uc, product_module_code, ref_year, ref_quarter,
                     tr_group, event_ID)]
+# drops groups for which tt_event == -2 not available
+taxexempt_pi <- taxexempt_pi[!is.na(normalized.cpricei)]
 # note that this is still log cpricei
 
 ## aggregate by treatment group ------------------------------------------------
