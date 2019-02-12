@@ -93,21 +93,26 @@ if (prep_enviro){
 if (make.ct) {
 # All goods ====================================================================
 
-## balance sample on store-level from 2008 to 2014 -----------------------------
-all_pi <- all_pi[year %in% 2008:2014 & !is.na(cpricei)]
-all_pi <- all_pi[year %in% 2009:2014 | quarter %in% 2:4 | !is.na(sales)]
-all_pi <- balance_panel_data(all_pi, time_vars = c("quarter", "year"),
-                             panel_unit = "store_code_uc", n_periods = 28)
-
-print(head(all_pi))
-print(nrow(all_pi[is.na(cpricei)]))
-print(nrow(all_pi[year == 2008 & quarter == 1 & is.na(sales)]))
-
 ## normalize price index -------------------------------------------------------
+all_pi <- all_pi[year %in% 2008:2014 & !is.na(cpricei)]
 all_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2008 & quarter == 1]),
        by = .(store_code_uc, product_module_code)]
 all_pi[, base.sales := sales[year == 2008 & quarter == 1],
        by = .(store_code_uc, product_module_code)]
+
+print(head(all_pi))
+print(nrow(all_pi[is.na(normalized.cpricei)]))
+print(head(all_pi[is.na(normalized.cpricei)]))
+print(nrow(all_pi[is.na(base.sales)]))
+print(head(all_pi[is.na(base.sales)]))
+
+## balance sample on store-level from 2008 to 2014 -----------------------------
+print(nrow(all_pi))
+print(nrow(all_pi[year == 2008]))
+all_pi <- all_pi[!is.na(base.sales) & !is.na(normalized.cpricei)]
+all_pi <- balance_panel_data(all_pi, time_vars = c("quarter", "year"),
+                             panel_unit = "store_code_uc", n_periods = 28)
+
 
 print(head(all_pi))
 print(nrow(all_pi[is.na(normalized.cpricei)]))
