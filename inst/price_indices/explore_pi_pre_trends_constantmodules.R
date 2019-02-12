@@ -100,9 +100,9 @@ all_pi <- balance_panel_data(all_pi, time_vars = c("quarter", "year"),
                              panel_unit = "store_code_uc", n_periods = 28)
 
 ## normalize price index -------------------------------------------------------
-all_pi[, `:=` (normalized.cpricei = log(cpricei) -
-                 log(cpricei[year == 2008 & quarter == 1]),
-               base.sales := sales[year == 2008 & quarter == 1]),
+all_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2008 & quarter == 1]),
+       by = .(store_code_uc, product_module_code)]
+all_pi[, base.sales := sales[year == 2008 & quarter == 1],
        by = .(store_code_uc, product_module_code)]
 
 ## merge treatment -------------------------------------------------------------
@@ -132,9 +132,9 @@ taxable_pi <- balance_panel_data(taxable_pi, time_vars = c("quarter", "year"),
                              panel_unit = "store_code_uc", n_periods = 28)
 
 ## normalize price index -------------------------------------------------------
-taxable_pi[, `:=` (normalized.cpricei = log(cpricei) -
-                     log(cpricei[year == 2008 & quarter == 1]),
-                   base.sales = sales[year == 2008 & quarter == 1]),
+taxable_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2008 & quarter == 1]),
+           by = .(store_code_uc, product_module_code)]
+taxable_pi[, base.sales := sales[year == 2008 & quarter == 1],
            by = .(store_code_uc, product_module_code)]
 
 ## merge treatment -------------------------------------------------------------
@@ -179,7 +179,8 @@ all_pi <- all_pi[!is.na(base.sales)]
 all_pi <- balance_panel_data(all_pi, time_vars = c("quarter", "year"),
                              panel_unit = "store_code_uc", n_periods = 28)
 
-all_pi[, `:=` (cpricei = log(cpricei), sales_tax = log(sales_tax))]
+all_pi[, cpricei := log(cpricei)]
+all_pi[, sales_tax := log(sales_tax)]
 
 all_pi_original <- copy(all_pi)
 
@@ -259,7 +260,7 @@ taxable_pi <- fread(taxable_pi_path)
 taxable_pi <- taxable_pi[year %in% 2008:2014 & !is.na(cpricei)]
 
 ## get sales weights -----------------------------------------------------------
-taxable_pi[, `:=` (base.sales = sales[year == 2008 & quarter == 1]),
+taxable_pi[, base.sales := sales[year == 2008 & quarter == 1],
            by = .(store_code_uc, product_module_code)]
 
 taxable_pi[, sales := NULL]
@@ -269,7 +270,8 @@ taxable_pi <- taxable_pi[!is.na(base.sales)]
 taxable_pi <- balance_panel_data(taxable_pi, time_vars = c("quarter", "year"),
                              panel_unit = "store_code_uc", n_periods = 28)
 
-taxable_pi[, `:=` (cpricei = log(cpricei), sales_tax = log(sales_tax))]
+taxable_pi[, cpricei := log(cpricei)]
+taxable_pi[, sales_tax := log(sales_tax)]
 
 taxable_pi_original <- copy(taxable_pi)
 
@@ -372,7 +374,8 @@ taxexempt_pi <- taxexempt_pi[!is.na(base.sales)]
 taxexempt_pi <- balance_panel_data(taxexempt_pi, time_vars = c("quarter", "year"),
                              panel_unit = "store_code_uc", n_periods = 28)
 
-taxexempt_pi[, `:=` (cpricei = log(cpricei), sales_tax = log(sales_tax))]
+taxexempt_pi[, cpricei := log(cpricei)]
+taxexempt_pi[, sales_tax := log(sales_tax)]
 taxexempt_pi_original <- copy(taxexempt_pi)
 
 ## merge treatment, attach event times -----------------------------------------

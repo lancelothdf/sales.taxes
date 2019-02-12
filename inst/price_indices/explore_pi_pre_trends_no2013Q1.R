@@ -27,9 +27,11 @@ eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_no2013q1.csv"
 tr_groups_path <- "Data/tr_groups_comprehensive_no2013q1.csv"
 sales_data_path <- "Data/sales_quarterly_2006-2016.csv"
 tax_rates_path <- "Data/county_monthly_tax_rates.csv"
-module_exemptions_path <- "/project2/igaarder/Data/modules_exemptions_long.csv"
+module_exemptions_path <- "Data/modules_exemptions_long.csv"
 all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems.csv"
 taxable_pi_path <- "Data/Nielsen/price_quantity_indices_taxableitems.csv"
+
+
 
 ################################################################################
 ############################# Remove 2013 Q1 reforms ###########################
@@ -53,80 +55,10 @@ new.groups <- rbind(control.groups[, .(fips_county, fips_state, tr_group)],
 fwrite(new.events, eventstudy_tr_path)
 fwrite(new.groups, tr_groups_path)
 
-################################################################################
-###### Prepare environment & create datasets of all goods and taxable only #####
-################################################################################
-
 # TODO: **change the file paths for writing new results!**
 
-if (prep_enviro){
-  ## create .csv's of taxable and all goods ------------------------------------
-  nonfood_pi <- read.dta13("Data/Nielsen/Price_quantity_indices_nonfood.dta")
-  nonfood_pi <- as.data.table(nonfood_pi)
-  fwrite(nonfood_pi, "Data/Nielsen/price_quantity_indices_nonfood.csv")
-
-  food_pi <- fread("Data/Nielsen/price_quantity_indices_food.csv")
-  food_pi[, c("fips_state", "fips_county") := NULL]
-
-  all_pi <- rbind(food_pi, nonfood_pi)
-  rm(nonfood_pi, food_pi)
-  gc()
-
-  ### attach county and state FIPS codes as well as sales ----------------------
-  sales_data <- fread(sales_data_path)
-  sales_data <- sales_data[, .(store_code_uc, product_module_code, fips_county,
-                               fips_state, quarter, year, sales)]
-
-  all_pi <- merge(all_pi, sales_data, by = c("store_code_uc", "quarter", "year",
-                                             "product_module_code" ))
-  fwrite(all_pi, all_goods_pi_path)
-
-  rm(sales_data)
-  gc()
-
-  ### create taxable only dataset ----------------------------------------------
-  taxable_pi <- all_pi[year %in% 2008:2014]
-
-  county_monthly_tax <- fread(tax_rates_path)
-  module_exemptions <- fread(module_exemptions_path)
-
-  county_monthly_tax <- county_monthly_tax[, .(fips_state, fips_county, year,
-                                               month, sales_tax)]
-
-  applicable_tax <- merge(module_exemptions, county_monthly_tax,
-                          by = c("fips_state", "year", "month"), all = T,
-                          allow.cartesian = T)
-
-  applicable_tax[is.na(taxable), applicable_tax := sales_tax.y]
-  applicable_tax[taxable == 1 & is.na(sales_tax.x), applicable_tax := sales_tax.y]
-  applicable_tax[taxable == 1 & !is.na(sales_tax.x), applicable_tax := sales_tax.x]
-  applicable_tax[taxable == 0, applicable_tax := 0]
-  applicable_tax[, quarter := ceiling(month / 3)]
-  applicable_tax <- applicable_tax[, list(applicable_tax = max(applicable_tax)),
-                                   by = .(fips_state, fips_county, year, quarter,
-                                          product_module_code)]
-
-  taxable_pi <- merge(taxable_pi, applicable_tax,
-                      by = c("fips_state", "fips_county", "year", "quarter",
-                             "product_module_code"), all.x = T)
-
-  taxable_pi[, rm_missing := max(as.integer(is.na(applicable_tax))),
-             by = c("fips_state", "fips_county", "product_module_code")]
-  taxable_pi[, rm_nontaxable := max(as.integer(applicable_tax == 0)),
-             by = c("fips_state", "fips_county", "product_module_code")]
-  taxable_pi <- taxable_pi[rm_nontaxable != 1 & rm_missing != 1]
-  taxable_pi <- taxable_pi[, .(store_code_uc, quarter, year, product_group_code,
-                               product_module_code, pricei, quantityi, cpricei,
-                               fips_state, fips_county, sales)]
-
-  fwrite(taxable_pi, taxable_pi_path)
-
-  rm(county_monthly_tax, module_exemptions, applicable_tax)
-  gc()
-}  else if (make.ct) {
-  all_pi <- fread(all_goods_pi_path)
-  taxable_pi <- fread(taxable_pi_path)
-}
+all_pi <- fread(all_goods_pi_path)
+taxable_pi <- fread(taxable_pi_path)
 
 
 ################################################################################
