@@ -99,17 +99,33 @@ all_pi <- all_pi[year %in% 2009:2014 | quarter %in% 2:4 | !is.na(sales)]
 all_pi <- balance_panel_data(all_pi, time_vars = c("quarter", "year"),
                              panel_unit = "store_code_uc", n_periods = 28)
 
+print(head(all_pi))
+print(nrow(all_pi[is.na(cpricei)]))
+print(nrow(all_pi[year == 2008 & quarter == 1 & is.na(sales)]))
+
 ## normalize price index -------------------------------------------------------
 all_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2008 & quarter == 1]),
        by = .(store_code_uc, product_module_code)]
 all_pi[, base.sales := sales[year == 2008 & quarter == 1],
        by = .(store_code_uc, product_module_code)]
 
+print(head(all_pi))
+print(nrow(all_pi[is.na(normalized.cpricei)]))
+print(head(all_pi[is.na(normalized.cpricei)]))
+print(nrow(all_pi[is.na(base.sales)]))
+print(head(all_pi[is.na(base.sales)]))
+
 ## merge treatment -------------------------------------------------------------
 all_pi <- merge_treatment(original_data = all_pi,
                           treatment_data_path = tr_groups_path,
                           time = "calendar",
                           merge_by = c("fips_county", "fips_state"))
+
+print(head(all_pi))
+print(nrow(all_pi[is.na(normalized.cpricei)]))
+print(head(all_pi[is.na(normalized.cpricei)]))
+print(nrow(all_pi[is.na(base.sales)]))
+print(head(all_pi[is.na(base.sales)]))
 
 ## aggregate across treatment groups -------------------------------------------
 
@@ -121,7 +137,9 @@ all_pi_collapsed <- all_pi[, list(
 all_pi_collapsed <- add_tr_count(collapsed_data = all_pi_collapsed,
                                  tr_group_name = "tr_group",
                                  count_col_name = "n_counties")
+print(all_pi_collapsed)
 fwrite(all_pi_collapsed, "Data/pi_all_calendar.csv")
+stop()
 
 # Taxable goods ================================================================
 
