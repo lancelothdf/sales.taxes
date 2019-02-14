@@ -23,62 +23,11 @@ myTheme <- theme_bw() +  theme(
 )
 
 ################################################################################
-########################### plots by calendar time #############################
-################################################################################
-
-## all goods, calendar time ----------------------------------------------------
-
-ct.all <- fread("pi_data/pi_all_calendar.csv")
-ct.all$year_qtr <- as.yearqtr(paste(
-  as.integer(ct.all$year), as.integer(ct.all$quarter)
-), "%Y %q")
-ct.all[, tr_count := gsub("=", " = ", tr_count)]
-
-all.calendar.plot <- ggplot(data = ct.all, mapping = aes(x = year_qtr,
-                                                         y = mean.cpricei,
-                                                         color = tr_count)) +
-  geom_line(size = 1) +
-  labs(x = "Quarter", y = expression(paste("Normalized ln(", italic("price index"), ")")), color = NULL,
-       caption = expression(paste(italic("Note: "), "Weighted by sales in 2008 Q1. ",
-                                  "Sales tax changes are any changes occuring between 2009 and 2013."))) +
-  ggtitle("Price index by sales tax change (all goods)") +
-  scale_x_yearqtr(format = "%Y Q%q", expand = c(0.01, 0.01)) +
-  scale_y_continuous(breaks = seq(0, 0.13, .04), expand = c(0.005, 0.005)) +
-  myTheme +
-  theme(legend.position = c(0.8, 0.2), axis.ticks.length = unit(-0.15, "cm"))
-all.calendar.plot
-
-ggsave("pi_figs/pretty/pi_all_calendar.png", height = 120, width = 180, units = "mm")
-
-## taxable goods, calendar time ------------------------------------------------
-
-ct.taxable <- fread("pi_data/taxable_pi_collapsed.csv")
-ct.taxable$year_qtr <- as.yearqtr(paste(
-  as.integer(ct.taxable$year), as.integer(ct.taxable$quarter)
-), "%Y %q")
-ct.taxable[, tr_count := gsub("=", " = ", tr_count)]
-
-taxable.calendar.plot <- ggplot(data = ct.taxable,
-                                aes(x = year_qtr, y = mean.cpricei, color = tr_count)) +
-  geom_line(size = 1) +
-  labs(x = "Quarter", y = expression(paste("Normalized ln(", italic("price index"), ")")), color = NULL,
-       caption = expression(paste(italic("Note: "), "Weighted by sales in 2008 Q1. ",
-                                  "Sales tax changes are any changes occuring between 2009 and 2013."))) +
-  ggtitle("Price index by sales tax change (taxable goods)") +
-  scale_x_yearqtr(format = "%Y Q%q", expand = c(0.01, 0.01)) +
-  scale_y_continuous(breaks = seq(0, 0.13, .04), expand = c(0.005, 0.005)) +
-  myTheme +
-  theme(legend.position = c(0.8, 0.2), axis.ticks.length = unit(-0.15, "cm"))
-taxable.calendar.plot
-
-ggsave("pi_figs/pretty/pi_taxable_calendar.png", height = 120, width = 180, units = "mm")
-
-################################################################################
 ########################### plots by event time ################################
 ################################################################################
 
 ## all goods, event time -------------------------------------------------------
-et.all <- fread("pi_data/pi_allgoods_es.csv")
+et.all <- fread("pi_data/removing_2013Q1/pi_allgoods_es_no2013Q1.csv")
 
 plot_breaks <- c("ed", "nc.ed", "ei", "nc.ei", "io", "nc.io")
 plot_labels <- c("Ever decrease", "No change (ever decrease)", "Ever increase",
@@ -106,7 +55,8 @@ all.event.plot <- ggplot(et.all, aes(x = tt_event, y = mean_pi,
        color = NULL,
        caption = expression(paste(
          italic("Note: "),"Weighted by sales in 2008 Q1. ",
-         "Sales tax changes are any changes occuring between 2009 and 2013."))) +
+         "Sales tax changes are any changes occurring between 2009 and 2013. ",
+         "Excludes reforms occurring in 2013 Q1."))) +
   ggtitle("Price index by sales tax change (all goods)") +
   scale_y_continuous(breaks = seq(-.03, 0.03, .015), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks, labels = plot_labels,
@@ -120,12 +70,12 @@ all.event.plot <- ggplot(et.all, aes(x = tt_event, y = mean_pi,
   theme(legend.position = c(0.2, 0.8), axis.ticks.length = unit(-0.15, "cm"))
 all.event.plot
 
-ggsave("pi_figs/pretty/pi_all_event.png",
+ggsave("pi_figs/pretty/removing_2013Q1/pi_all_event_no2013Q1.png",
        height = 120 * 1.2, width = 180 * 1.2, units = "mm")
 
 
 ## taxable goods, event time ---------------------------------------------------
-et.taxable <- fread("pi_data/pi_taxable_es.csv")
+et.taxable <- fread("pi_data/removing_2013Q1/pi_taxable_es_no2013Q1.csv")
 
 plot_breaks <- c("ed", "nc.ed", "ei", "nc.ei", "io", "nc.io")
 plot_labels <- c("Ever decrease", "No change (ever decrease)", "Ever increase",
@@ -153,7 +103,8 @@ taxable.event.plot <- ggplot(et.taxable, aes(x = tt_event, y = mean_pi,
        color = NULL,
        caption = expression(paste(
          italic("Note: "),"Weighted by sales in 2008 Q1. ",
-         "Sales tax changes are any changes occuring between 2009 and 2013."))) +
+         "Sales tax changes are any changes occurring between 2009 and 2013. ",
+         "Excludes reforms occurring in 2013 Q1."))) +
   ggtitle("Price index by sales tax change (taxable goods)") +
   scale_y_continuous(breaks = seq(-.03, 0.03, .015), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks, labels = plot_labels,
@@ -167,11 +118,11 @@ taxable.event.plot <- ggplot(et.taxable, aes(x = tt_event, y = mean_pi,
   theme(legend.position = c(0.2, 0.8), axis.ticks.length = unit(-0.15, "cm"))
 taxable.event.plot
 
-ggsave("pi_figs/pretty/pi_taxable_event.png",
+ggsave("pi_figs/pretty/removing_2013Q1/pi_taxable_event_no2013Q1.png",
        height = 120 * 1.2, width = 180 * 1.2, units = "mm")
 
 ## tax exempt goods, event time ------------------------------------------------
-et.taxexempt <- fread("pi_data/pi_taxexempt_es.csv")
+et.taxexempt <- fread("pi_data/removing_2013Q1/pi_taxexempt_es_no2013Q1.csv")
 
 plot_breaks <- c("ed", "nc.ed", "ei", "nc.ei", "io", "nc.io")
 plot_labels <- c("Ever decrease", "No change (ever decrease)", "Ever increase",
@@ -199,7 +150,8 @@ taxexempt.event.plot <- ggplot(et.taxexempt, aes(x = tt_event, y = mean_pi,
        color = NULL,
        caption = expression(paste(
          italic("Note: "),"Weighted by sales in 2008 Q1. ",
-         "Sales tax changes are any changes occuring between 2009 and 2013."))) +
+         "Sales tax changes are any changes occurring between 2009 and 2013. ",
+         "Excludes reforms occurring in 2013 Q1."))) +
   ggtitle("Price index by sales tax change (tax-exempt goods)") +
   scale_y_continuous(breaks = seq(-.03, 0.045, .015), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks, labels = plot_labels,
@@ -213,7 +165,7 @@ taxexempt.event.plot <- ggplot(et.taxexempt, aes(x = tt_event, y = mean_pi,
   theme(legend.position = c(0.2, 0.8), axis.ticks.length = unit(-0.15, "cm"))
 taxexempt.event.plot
 
-ggsave("pi_figs/pretty/pi_taxexempt_event.png",
+ggsave("pi_figs/pretty/removing_2013Q1/pi_taxexempt_event_no2013Q1.png",
        height = 120 * 1.2, width = 180 * 1.2, units = "mm")
 
 ################################################################################
@@ -257,7 +209,8 @@ decrease.event.plot <- ggplot(et.decrease, aes(x = tt_event, y = mean_pi,
        color = NULL,
        caption = expression(paste(
          italic("Note: "),"Weighted by sales in 2008 Q1. ",
-         "Sales tax changes are any changes occuring between 2009 and 2013."))) +
+         "Sales tax changes are any changes occurring between 2009 and 2013. ",
+         "Excludes reforms occurring in 2013 Q1."))) +
   ggtitle("Price index by taxability") +
   scale_y_continuous(breaks = seq(-.03, 0.045, .015), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks, labels = plot_labs,
@@ -269,7 +222,7 @@ decrease.event.plot <- ggplot(et.decrease, aes(x = tt_event, y = mean_pi,
   theme(legend.position = c(0.2, 0.8), axis.ticks.length = unit(-0.15, "cm"))
 decrease.event.plot
 
-ggsave("pi_figs/pretty/pi_everdecrease_event.png",
+ggsave("pi_figs/pretty/removing_2013Q1/pi_everdecrease_event_no2013Q1.png",
        height = 120 * 1.2, width = 180 * 1.2, units = "mm")
 
 ## taxable vs. non-taxable, ever increase --------------------------------------
@@ -301,7 +254,8 @@ increase.event.plot <- ggplot(et.increase, aes(x = tt_event, y = mean_pi,
        color = NULL,
        caption = expression(paste(
          italic("Note: "),"Weighted by sales in 2008 Q1. ",
-         "Sales tax changes are any changes occuring between 2009 and 2013."))) +
+         "Sales tax changes are any changes occurring between 2009 and 2013. ",
+         "Excludes reforms occurring in 2013 Q1."))) +
   ggtitle("Price index by taxability") +
   scale_y_continuous(breaks = seq(-.03, 0.045, .015), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks, labels = plot_labs,
@@ -313,7 +267,7 @@ increase.event.plot <- ggplot(et.increase, aes(x = tt_event, y = mean_pi,
   theme(legend.position = c(0.2, 0.8), axis.ticks.length = unit(-0.15, "cm"))
 increase.event.plot
 
-ggsave("pi_figs/pretty/pi_everincrease_event.png",
+ggsave("pi_figs/pretty/removing_2013Q1/pi_everincrease_event_no2013Q1.png",
        height = 120 * 1.2, width = 180 * 1.2, units = "mm")
 
 ## taxable vs. non-taxable, increase only --------------------------------------
@@ -343,7 +297,8 @@ increase.only.plot <- ggplot(et.increase.only, aes(x = tt_event, y = mean_pi,
        color = NULL,
        caption = expression(paste(
          italic("Note: "),"Weighted by sales in 2008 Q1. ",
-         "Sales tax changes are any changes occuring between 2009 and 2013."))) +
+         "Sales tax changes are any changes occurring between 2009 and 2013. ",
+         "Excludes reforms occurring in 2013 Q1."))) +
   ggtitle("Price index by taxability") +
   scale_y_continuous(limits = c(-0.03, 0.03), breaks = seq(-.03, 0.045, .015), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks, labels = plot_labs,
@@ -355,5 +310,5 @@ increase.only.plot <- ggplot(et.increase.only, aes(x = tt_event, y = mean_pi,
   theme(legend.position = c(0.2, 0.8), axis.ticks.length = unit(-0.15, "cm"))
 increase.only.plot
 
-ggsave("pi_figs/pretty/pi_increaseonly_event.png",
+ggsave("pi_figs/pretty/removing_2013Q1/pi_increaseonly_event_no2013Q1.png",
        height = 120 * 1.2, width = 180 * 1.2, units = "mm")
