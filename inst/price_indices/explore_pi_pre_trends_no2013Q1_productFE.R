@@ -24,9 +24,9 @@ module_exemptions_path <- "Data/modules_exemptions_long.csv"
 all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems.csv"
 taxable_pi_path <- "Data/Nielsen/price_quantity_indices_taxableitems.csv"
 
-output.all.event.path <- "Data/pi_allgoods_es_no2013Q1.csv"
-output.taxable.event.path <-"Data/pi_taxable_es_no2013Q1.csv"
-output.taxexempt.event.path <-"Data/pi_taxexempt_es_no2013Q1.csv"
+output.all.event.path <- "Data/pi_allgoods_es_no2013Q1_productFE.csv"
+output.taxable.event.path <-"Data/pi_taxable_es_no2013Q1_productFE.csv"
+output.taxexempt.event.path <-"Data/pi_taxexempt_es_no2013Q1_productFE.csv"
 
 original.eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive.csv"
 original.tr_groups_path <- "Data/tr_groups_comprehensive.csv"
