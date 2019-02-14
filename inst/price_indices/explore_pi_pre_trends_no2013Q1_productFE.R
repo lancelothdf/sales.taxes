@@ -174,6 +174,10 @@ taxable_pi <- taxable_pi[!is.na(base.sales) & !is.na(cpricei)]
 taxable_pi <- balance_panel_data(taxable_pi, time_vars = c("quarter", "year"),
                                  panel_unit = "store_code_uc", n_periods = 28)
 
+## residualize product x calendar time FE (demeaning) --------------------------
+taxable_pi[, cpricei := cpricei - weighted.mean(cpricei, w = base.sales),
+       by = .(product_module_code, year, quarter)]
+
 taxable_pi_original <- copy(taxable_pi)
 
 ## merge treatment, attach event times -----------------------------------------
@@ -278,6 +282,10 @@ taxexempt_pi <- taxexempt_pi[!is.na(base.sales) & !is.na(cpricei)]
 ## balance sample on store-level from 2008 to 2014 -----------------------------
 taxexempt_pi <- balance_panel_data(taxexempt_pi, time_vars = c("quarter", "year"),
                                    panel_unit = "store_code_uc", n_periods = 28)
+
+## residualize product x calendar time FE (demeaning) --------------------------
+taxexempt_pi[, cpricei := cpricei - weighted.mean(cpricei, w = base.sales),
+           by = .(product_module_code, year, quarter)]
 
 taxexempt_pi_original <- copy(taxexempt_pi)
 
