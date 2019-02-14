@@ -53,10 +53,11 @@ all.event.plot <- ggplot(et.all, aes(x = tt_event, y = mean_pi,
   labs(x = "Quarters from event time",
        y = expression(paste("Normalized ln(", italic("price index"), ")")),
        color = NULL,
-       caption = expression(paste(
-         italic("Note: "),"Weighted by sales in 2008 Q1. ",
+       caption = paste(
+         "Note: Weighted by sales in 2008 Q1. ",
          "Sales tax changes are any changes occurring between 2009 and 2013. ",
-         "Excludes reforms occurring in 2013 Q1."))) +
+         "Excludes reforms occurring in 2013 Q1.",
+         "\nPrice indices are demeaned on the product x calendar time level.")) +
   ggtitle("Price index by sales tax change (all goods)") +
   scale_y_continuous(breaks = seq(-.03, 0.03, .015), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks, labels = plot_labels,
@@ -101,10 +102,11 @@ taxable.event.plot <- ggplot(et.taxable, aes(x = tt_event, y = mean_pi,
   labs(x = "Quarters from event time",
        y = expression(paste("Normalized ln(", italic("price index"), ")")),
        color = NULL,
-       caption = expression(paste(
-         italic("Note: "),"Weighted by sales in 2008 Q1. ",
+       caption = paste(
+         "Note: Weighted by sales in 2008 Q1. ",
          "Sales tax changes are any changes occurring between 2009 and 2013. ",
-         "Excludes reforms occurring in 2013 Q1."))) +
+         "Excludes reforms occurring in 2013 Q1.",
+         "\nPrice indices are demeaned on the product x calendar time level.")) +
   ggtitle("Price index by sales tax change (taxable goods)") +
   scale_y_continuous(breaks = seq(-.03, 0.03, .015), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks, labels = plot_labels,
@@ -148,10 +150,11 @@ taxexempt.event.plot <- ggplot(et.taxexempt, aes(x = tt_event, y = mean_pi,
   labs(x = "Quarters from event time",
        y = expression(paste("Normalized ln(", italic("price index"), ")")),
        color = NULL,
-       caption = expression(paste(
-         italic("Note: "),"Weighted by sales in 2008 Q1. ",
+       caption = paste(
+         "Note: Weighted by sales in 2008 Q1. ",
          "Sales tax changes are any changes occurring between 2009 and 2013. ",
-         "Excludes reforms occurring in 2013 Q1."))) +
+         "Excludes reforms occurring in 2013 Q1.",
+         "\nPrice indices are demeaned on the product x calendar time level.")) +
   ggtitle("Price index by sales tax change (tax-exempt goods)") +
   scale_y_continuous(breaks = seq(-.03, 0.045, .015), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks, labels = plot_labels,
@@ -207,10 +210,11 @@ decrease.event.plot <- ggplot(et.decrease, aes(x = tt_event, y = mean_pi,
   labs(x = "Quarters from event time",
        y = expression(paste("Normalized ln(", italic("price index"), ")")),
        color = NULL,
-       caption = expression(paste(
-         italic("Note: "),"Weighted by sales in 2008 Q1. ",
+       caption = paste(
+         "Note: Weighted by sales in 2008 Q1. ",
          "Sales tax changes are any changes occurring between 2009 and 2013. ",
-         "Excludes reforms occurring in 2013 Q1."))) +
+         "Excludes reforms occurring in 2013 Q1.",
+         "\nPrice indices are demeaned on the product x calendar time level.")) +
   ggtitle("Price index by taxability") +
   scale_y_continuous(breaks = seq(-.03, 0.045, .015), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks, labels = plot_labs,
@@ -252,10 +256,11 @@ increase.event.plot <- ggplot(et.increase, aes(x = tt_event, y = mean_pi,
   labs(x = "Quarters from event time",
        y = expression(paste("Normalized ln(", italic("price index"), ")")),
        color = NULL,
-       caption = expression(paste(
-         italic("Note: "),"Weighted by sales in 2008 Q1. ",
+       caption = paste(
+         "Note: Weighted by sales in 2008 Q1. ",
          "Sales tax changes are any changes occurring between 2009 and 2013. ",
-         "Excludes reforms occurring in 2013 Q1."))) +
+         "Excludes reforms occurring in 2013 Q1.",
+         "\nPrice indices are demeaned on the product x calendar time level.")) +
   ggtitle("Price index by taxability") +
   scale_y_continuous(breaks = seq(-.03, 0.045, .015), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks, labels = plot_labs,
@@ -295,10 +300,11 @@ increase.only.plot <- ggplot(et.increase.only, aes(x = tt_event, y = mean_pi,
   labs(x = "Quarters from event time",
        y = expression(paste("Normalized ln(", italic("price index"), ")")),
        color = NULL,
-       caption = expression(paste(
-         italic("Note: "),"Weighted by sales in 2008 Q1. ",
+       caption = paste(
+         "Note: Weighted by sales in 2008 Q1. ",
          "Sales tax changes are any changes occurring between 2009 and 2013. ",
-         "Excludes reforms occurring in 2013 Q1."))) +
+         "Excludes reforms occurring in 2013 Q1.",
+         "\nPrice indices are demeaned on the product x calendar time level.")) +
   ggtitle("Price index by taxability") +
   scale_y_continuous(limits = c(-0.03, 0.03), breaks = seq(-.03, 0.045, .015), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks, labels = plot_labs,
