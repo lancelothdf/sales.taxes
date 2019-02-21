@@ -42,7 +42,9 @@ setkey(all_pi, fips_county, fips_state)
 
 ## identify 2009 Q1 cohort -----------------------------------------------------
 tr.events <- fread(eventstudy_tr_path)
-tr.events <- tr.events[between(year, 2009, 2014) & month %in% 1:3 & tr_group == "Ever increase"]
+tr.events <- tr.events[between(as.integer(round(year)), 2009, 2014) &
+                         as.integer(round(month)) %in% 1:3 &
+                         tr_group == "Ever increase"]
 tr.events[, n_events := .N, by = .(fips_state, fips_county)]
 tr.events <- tr.events[, .(fips_county, fips_state, year, n_events)]
 setnames(tr.events, "year", "treatment_year")
