@@ -48,7 +48,7 @@ tr.events <- tr.events[, .(fips_county, fips_state, ref_year, n_events)]
 setnames(tr.events, "ref_year", "treatment_year")
 setkey(tr.events, fips_county, fips_state)
 
-tr.events.09Q1 <- unique(tr.events[year == 2009], by = c("fips_state", "fips_county"))
+tr.events.09Q1 <- unique(tr.events[treatment_year == 2009], by = c("fips_state", "fips_county"))
 setkey(tr.events.09Q1, fips_county, fips_state)
 
 taxable_pi.09Q1 <- all_pi[sales_tax > 1]
@@ -72,7 +72,7 @@ never.treated[, treatment_year := NA]
 never.treated[, n_events := NA]
 
 ## combine never treated + later cohorts
-all_pi <- all_pi[tr.events[year != 2009], allow = T]
+all_pi <- all_pi[tr.events[treatment_year != 2009], allow = T]
 all_pi <- rbind(all_pi, never.treated)
 
 all_pi[, cohort := ifelse(is.na(treatment_year, "No change", as.character(treatment_year)))]
@@ -114,11 +114,11 @@ n_counties.nochange <- uniqueN(tr.groups[tr_group == "No change"], by = c("fips_
 n_counties.other <- unique(tr.events[, .(fips_state, fips_county, n_events)],
                            by = c("fips_state", "fips_county", "n_events"))
 n_counties.other[, ones := 1]
-n_counties.other <- n_counties.other[, list(n_counties = sum(ones / n_events)), by = year]
-n_counties.other[, year := as.character(year)]
+n_counties.other <- n_counties.other[, list(n_counties = sum(ones / n_events)), by = treatment_year]
+n_counties.other[, treatment_year := as.character(treatment_year)]
 n_counties <- rbind(n_counties.other,
-                    data.table(year = "No change", n_counties = n_counties.nochange))
-setnames(n_counties, "year", "cohort")
+                    data.table(treatment_year = "No change", n_counties = n_counties.nochange))
+setnames(n_counties, "treatment_year", "cohort")
 taxable_pi.09Q1.collapsed <- merge(taxable_pi.09Q1.collapsed, n_counties,
                                    by = "cohort")
 
