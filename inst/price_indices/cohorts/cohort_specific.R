@@ -1,6 +1,6 @@
 #' Author: John Bonney
 #'
-#' This file groups tax-change cohorts by quarters, and focuses on 2009 Q1 cohort.
+#' This file groups tax-change cohorts by quarters, and focuses on 2009 cohort.
 
 library(data.table)
 library(readstata13)
@@ -40,25 +40,26 @@ setkey(keep_store_modules, store_code_uc, product_module_code)
 all_pi <- all_pi[keep_store_modules]
 setkey(all_pi, fips_county, fips_state)
 
-## identify 2009 Q1 cohort -----------------------------------------------------
+## identify 2009 cohort --------------------------------------------------------
 tr.events <- fread(eventstudy_tr_path)
-tr.events <- tr.events[between(ref_year, 2009, 2014) & ref_month %in% 1:3 & tr_group == "Ever increase"]
+tr.events <- tr.events[between(ref_year, 2009, 2014) & tr_group == "Ever increase"]
 tr.events[, n_events := .N, by = .(fips_state, fips_county)]
 tr.events <- tr.events[, .(fips_county, fips_state, ref_year, n_events)]
 setnames(tr.events, "ref_year", "treatment_year")
 setkey(tr.events, fips_county, fips_state)
 
-tr.events.09Q1 <- unique(tr.events[treatment_year == 2009], by = c("fips_state", "fips_county"))
-setkey(tr.events.09Q1, fips_county, fips_state)
+tr.events.09 <- unique(tr.events[treatment_year == 2009], by = c("fips_state", "fips_county"))
+setkey(tr.events.09, fips_county, fips_state)
 
-taxable_pi.09Q1 <- all_pi[sales_tax > 1]
-taxable_pi.09Q1 <- taxable_pi.09Q1[tr.events.09Q1]
+all_pi[, min.tax := min(sales_tax), by = c("store_code_uc", "product_module_code", "year")]
+taxable_pi.09 <- all_pi[min.tax > 1]
+taxable_pi.09 <- taxable_pi.09[tr.events.09]
 
-# at this point, we have the "treatment" group -- goods that are taxable in 2009 Q1 that experience
-# a tax change in 2009 Q1
+# at this point, we have the "treatment" group -- goods that are taxable in 2009 that experience
+# a tax change in 2009
 
 ## prepare data for later cohorts ----------------------------------------------
-constant.goods.set <- unique(taxable_pi.09Q1[year == 2009 & quarter == 1]$product_module_code)
+constant.goods.set <- unique(taxable_pi.09[year == 2009]$product_module_code)
 
 all_pi <- all_pi[product_module_code %in% constant.goods.set] # keep goods constant
 
@@ -75,7 +76,7 @@ never.treated[, n_events := NA]
 all_pi <- all_pi[tr.events[treatment_year != 2009], allow = T]
 all_pi <- rbind(all_pi, never.treated)
 
-all_pi[, cohort := ifelse(is.na(treatment_year, "No change", as.character(treatment_year)))]
+all_pi[, cohort := ifelse(is.na(treatment_year), "No change", as.character(treatment_year))]
 all_pi[, event.weight := ifelse(is.na(n_events), 1, 1 / n_events)]
 
 ## collapse to product x cohort x time level -----------------------------------
@@ -83,31 +84,31 @@ all_pi.collapsed <- all_pi[, list(
   control.cpricei = weighted.mean(normalized.cpricei, w = base.sales * event.weight)
 ), by = .(year, quarter, cohort, product_module_code)]
 
-## rearrange for simple merging all cohorts onto 2009 Q1 cohort
+## rearrange for simple merging all cohorts onto 2009 cohort
 all_pi.collapsed <- tidyr::spread(all_pi.collapsed, cohort, control.cpricei)
 
 ## merge onto the 2009 cohort by product
-taxable_pi.09Q1 <- merge(taxable_pi.09Q1, all_pi.collapsed,
+taxable_pi.09 <- merge(taxable_pi.09, all_pi.collapsed,
                          by = c("year", "quarter", "product_module_code"))
-taxable_pi.09Q1[, event.weight := 1 / n_events]
+taxable_pi.09[, event.weight := 1 / n_events]
 
 ## aggregate over calendar time ------------------------------------------------
 
-taxable_pi.09Q1.collapsed <- taxable_pi.09Q1[, list(
+taxable_pi.09.collapsed <- taxable_pi.09[, list(
   mean.cpricei = weighted.mean(normalized.cpricei, w = base.sales * event.weight),
   `2010` = weighted.mean(`2010`, w = base.sales * event.weight),
   `2011` = weighted.mean(`2011`, w = base.sales * event.weight),
   `2012` = weighted.mean(`2012`, w = base.sales * event.weight),
   `2013` = weighted.mean(`2013`, w = base.sales * event.weight),
-  `2014` = weighted.mean(`2014`, w = base.sales * event.weight),
+  #        `2014` = weighted.mean(`2014`, w = base.sales * event.weight),
   `No change` = weighted.mean(`No change`, w = base.sales * event.weight)
 ), by = .(year, quarter)]
 
-setnames(taxable_pi.09Q1.collapsed, "mean.cpricei", "2009")
-taxable_pi.09Q1.collapsed <- tidyr::gather(taxable_pi.09Q1.collapsed,
+setnames(taxable_pi.09.collapsed, "mean.cpricei", "2009")
+taxable_pi.09.collapsed <- tidyr::gather(taxable_pi.09.collapsed,
                                            key = cohort, value = cpricei,
                                            c(`mean.cpricei`, `2010`, `2011`,
-                                             `2012`, `2013`, `2014`, `No change`))
+                                             `2012`, `2013`, `No change`)) # deleted 2014 from here as well
 
 ## attach cohort sizes
 n_counties.nochange <- uniqueN(tr.groups[tr_group == "No change"], by = c("fips_state", "fips_county"))
@@ -119,8 +120,8 @@ n_counties.other[, treatment_year := as.character(treatment_year)]
 n_counties <- rbind(n_counties.other,
                     data.table(treatment_year = "No change", n_counties = n_counties.nochange))
 setnames(n_counties, "treatment_year", "cohort")
-taxable_pi.09Q1.collapsed <- merge(taxable_pi.09Q1.collapsed, n_counties,
+taxable_pi.09.collapsed <- merge(taxable_pi.09.collapsed, n_counties,
                                    by = "cohort")
 
-fwrite(all_pi.collapsed, "Data/pi_2009Q1_cohorts.csv")
+fwrite(all_pi.collapsed, "Data/pi_2009_cohorts.csv")
 
