@@ -106,7 +106,7 @@ taxable_pi.09Q1.collapsed <- taxable_pi.09Q1[, list(
 setnames(taxable_pi.09Q1.collapsed, "mean.cpricei", "2009")
 taxable_pi.09Q1.collapsed <- tidyr::gather(taxable_pi.09Q1.collapsed,
                                            key = cohort, value = cpricei,
-                                           c(`mean.cpricei`, `2010`, `2011`,
+                                           c(`2009`, `2010`, `2011`,
                                              `2012`, `2013`, `No change`)) # deleted 2014 from here as well
 
 ## attach cohort sizes
