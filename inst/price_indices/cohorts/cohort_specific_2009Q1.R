@@ -99,7 +99,7 @@ taxable_pi.09Q1.collapsed <- taxable_pi.09Q1[, list(
         `2011` = weighted.mean(`2011`, w = base.sales * event.weight),
         `2012` = weighted.mean(`2012`, w = base.sales * event.weight),
         `2013` = weighted.mean(`2013`, w = base.sales * event.weight),
-        `2014` = weighted.mean(`2014`, w = base.sales * event.weight),
+#        `2014` = weighted.mean(`2014`, w = base.sales * event.weight),
    `No change` = weighted.mean(`No change`, w = base.sales * event.weight)
   ), by = .(year, quarter)]
 
@@ -107,7 +107,7 @@ setnames(taxable_pi.09Q1.collapsed, "mean.cpricei", "2009")
 taxable_pi.09Q1.collapsed <- tidyr::gather(taxable_pi.09Q1.collapsed,
                                            key = cohort, value = cpricei,
                                            c(`mean.cpricei`, `2010`, `2011`,
-                                             `2012`, `2013`, `2014`, `No change`))
+                                             `2012`, `2013`, `No change`)) # deleted 2014 from here as well
 
 ## attach cohort sizes
 n_counties.nochange <- uniqueN(tr.groups[tr_group == "No change"], by = c("fips_state", "fips_county"))
