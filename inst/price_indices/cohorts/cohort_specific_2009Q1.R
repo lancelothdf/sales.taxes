@@ -85,8 +85,7 @@ event_df <- merge(tax_panel %>% select(fips_state, fips_county,
   arrange(event_id, time_since_event)
 
 event_df <- event_df %>% group_by(event_id) %>%
-  mutate(n = n()) %>%
-  filter(n == 25, between(ref_year, 2009, 2014)) # this was adjusted on 2/26/2019 to accommodate more reforms
+  filter(between(ref_year, 2009, 2014)) # this was adjusted on 2/26/2019 to accommodate more reforms
 
 event_df <- merge(event_df, tax_treatment,
                   by = c("fips_state", "fips_county"), all = T) %>%
