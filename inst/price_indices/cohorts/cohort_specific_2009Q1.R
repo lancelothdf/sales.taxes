@@ -66,7 +66,7 @@ all(duplicates_table["Increase only"] == raw_table["Increase only"],
       raw_table["Increase & decrease"])
 
 ## create new datasets
-tax_reforms_es <- read.csv(tax_reforms_file)
+tax_reforms_es <- read.csv(expanded.reforms.path)
 
 tax_reforms_es <- tax_reforms_es %>%
   mutate(change = ifelse(dtax < 0, "Decrease", "Increase"),
@@ -88,10 +88,6 @@ event_df <- event_df %>% group_by(event_id) %>%
   mutate(n = n()) %>%
   filter(n == 25, between(ref_year, 2009, 2014)) # this was adjusted on 2/26/2019 to accommodate more reforms
 
-write.csv(distinct(event_df %>% select(event_id, fips_state, fips_county,
-                                       ref_year, ref_month, change)),
-          "output/tr_events_w2014.csv")
-
 event_df <- merge(event_df, tax_treatment,
                   by = c("fips_state", "fips_county"), all = T) %>%
   filter(change == "Increase" & tr_group %in% c("Ever increase", "Increase only") |
@@ -105,20 +101,9 @@ counties_to_keep <- event_df %>% ungroup() %>%
   distinct() %>%
   mutate(balanced = TRUE)
 
-event_ts_N1 <- event_df %>%
-  group_by(time_since_event, tr_group) %>%
-  summarize(mean_tax = weighted.mean(x = sales_tax,
-                                     w = population),
-            count = n())
-
-event_ts_N1 <- event_ts_N1 %>% group_by(tr_group) %>%
-  mutate(tr_count = paste0(tr_group, " (n = ", mean(count), ")"))
-
 tax_panel_N1 <- merge(tax_panel, tax_treatment,
                       by = c("fips_county", "fips_state"), all = T)
 tax_panel_N1$tr_group <- tax_panel_N1$tr_group %>% replace_na("No change")
-tax_panel_N1 <- merge(tax_panel_N1, county_weights,
-                      by = c("fips_county", "fips_state"), all.x = T)
 tax_panel_N1 <- merge(tax_panel_N1, counties_to_keep,
                       by = c("fips_county", "fips_state", "tr_group"), all.x = T)
 save_counties <- tax_panel_N1 %>%
