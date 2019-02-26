@@ -9,6 +9,7 @@ library(sales.taxes)
 library(zoo)
 
 setwd("/project2/igaarder")
+prep_tax_ref <- F
 
 ## useful filepaths ------------------------------------------------------------
 eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_w2014.csv"
@@ -22,6 +23,7 @@ taxable_pi_path <- "Data/Nielsen/price_quantity_indices_taxableitems.csv"
 expanded.reforms.path <- "Data/tax_reforms_all_incl2014.csv"
 
 ## prepare tax reforms ---------------------------------------------------------
+if (prep_tax_ref) {
 
 tax_panel <- read.csv(tax_rates_path)
 tax_panel$year_month <- as.yearmon(paste(tax_panel$year,
@@ -111,26 +113,39 @@ save_counties <- tax_panel_N1 %>%
   mutate(balanced = ifelse(tr_group == "No change", TRUE, balanced))
 
 write.csv(save_counties, tr_groups_path)
+}
 
 ## load in and clean data ------------------------------------------------------
-all_pi <- fread(all_goods_pi_path)
 
-## normalize
-all_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2008 & quarter == 1]),
-           by = .(store_code_uc, product_module_code)]
-all_pi[, base.sales := sales[year == 2008 & quarter == 1],
-           by = .(store_code_uc, product_module_code)]
+# temp function
+gi <- function(dt) {
+  print(head(dt))
+}
+all_pi <- fread(all_goods_pi_path)
+all_pi <- all_pi[between(year, 2008, 2014)]
+gi(all_pi)
 
 ## balance on store-module level
 keep_store_modules <- all_pi[, list(n = .N),
-                                 by = .(store_code_uc, product_module_code)]
-keep_store_modules <- keep_store_modules[n == (2014 - 2008) * 4]
+                             by = .(store_code_uc, product_module_code)]
+keep_store_modules <- keep_store_modules[n == (2014 - 2007) * 4]
+gi(keep_store_modules)
 
 setkey(all_pi, store_code_uc, product_module_code)
 setkey(keep_store_modules, store_code_uc, product_module_code)
 
 all_pi <- all_pi[keep_store_modules]
 setkey(all_pi, fips_county, fips_state)
+gi(all_pi)
+
+
+## normalize
+all_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2008 & quarter == 1]),
+           by = .(store_code_uc, product_module_code)]
+all_pi[, base.sales := sales[year == 2008 & quarter == 1],
+           by = .(store_code_uc, product_module_code)]
+gi(all_pi)
+
 
 ## identify 2009 Q1 cohort -----------------------------------------------------
 tr.events <- fread(eventstudy_tr_path)
@@ -138,23 +153,29 @@ tr.events <- tr.events[between(ref_year, 2009, 2014) & ref_month %in% 1:3 & tr_g
 tr.events[, n_events := .N, by = .(fips_state, fips_county)]
 tr.events[, cohort_size := sum(1 / n_events), by = .(ref_year)]
 tr.events <- tr.events[, .(fips_county, fips_state, ref_year, n_events, cohort_size)]
+gi(tr.events)
+
 setnames(tr.events, "ref_year", "treatment_year")
 setkey(tr.events, fips_county, fips_state)
 
 tr.events.09Q1 <- unique(tr.events[treatment_year == 2009], by = c("fips_state", "fips_county"))
+gi(tr.events.09Q1)
 tr.events.09Q1[, cohort_size := NULL]
 setkey(tr.events.09Q1, fips_county, fips_state)
 
 taxable_pi.09Q1 <- all_pi[sales_tax > 1]
 taxable_pi.09Q1 <- taxable_pi.09Q1[tr.events.09Q1]
+gi(taxable_pi.09Q1)
 
 # at this point, we have the "treatment" group -- goods that are taxable in 2009 Q1 that experience
 # a tax change in 2009 Q1
 
 ## prepare data for later cohorts ----------------------------------------------
 constant.goods.set <- unique(taxable_pi.09Q1[year == 2009 & quarter == 1]$product_module_code)
+gi(constant.goods.set)
 
 all_pi <- all_pi[product_module_code %in% constant.goods.set] # keep goods constant
+gi(all_pi)
 
 ## identify never treated counties
 tr.groups <- fread(tr_groups_path)
@@ -164,10 +185,12 @@ setkey(never.treated, fips_state, fips_county)
 never.treated <- all_pi[never.treated]
 never.treated[, treatment_year := NA]
 never.treated[, n_events := NA]
+gi(never.treated)
 
 ## combine never treated + later cohorts
 all_pi <- all_pi[tr.events[treatment_year != 2009], allow = T]
 all_pi <- rbind(all_pi, never.treated, fill = T)
+gi(all_pi)
 
 all_pi[, cohort := ifelse(is.na(treatment_year), "No change", as.character(treatment_year))]
 all_pi[, event.weight := ifelse(is.na(n_events), 1, 1 / n_events)]
@@ -176,14 +199,17 @@ all_pi[, event.weight := ifelse(is.na(n_events), 1, 1 / n_events)]
 all_pi.collapsed <- all_pi[, list(
   control.cpricei = weighted.mean(normalized.cpricei, w = base.sales * event.weight)
 ), by = .(year, quarter, cohort, product_module_code)]
+gi(all_pi.collapsed)
 
 ## rearrange for simple merging all cohorts onto 2009 Q1 cohort
 all_pi.collapsed <- tidyr::spread(all_pi.collapsed, cohort, control.cpricei)
+gi(all_pi.collapsed)
 
 ## merge onto the 2009 cohort by product
 taxable_pi.09Q1 <- merge(taxable_pi.09Q1, all_pi.collapsed,
                          by = c("year", "quarter", "product_module_code"))
 taxable_pi.09Q1[, event.weight := 1 / n_events]
+gi(taxable_pi.09Q1)
 
 ## aggregate over calendar time ------------------------------------------------
 
@@ -197,11 +223,14 @@ taxable_pi.09Q1.collapsed <- taxable_pi.09Q1[, list(
    `No change` = weighted.mean(`No change`, w = base.sales * event.weight)
   ), by = .(year, quarter)]
 
+gi(taxable_pi.09Q1.collapsed)
+
 setnames(taxable_pi.09Q1.collapsed, "mean.cpricei", "2009")
 taxable_pi.09Q1.collapsed <- tidyr::gather(taxable_pi.09Q1.collapsed,
                                            key = cohort, value = cpricei,
                                            c(`2009`, `2010`, `2011`,
                                              `2012`, `2013`, `2014`, `No change`))
+gi(taxable_pi.09Q1.collapsed)
 
 ## attach cohort sizes
 n_counties.nochange <- uniqueN(tr.groups[tr_group == "No change"], by = c("fips_state", "fips_county"))
