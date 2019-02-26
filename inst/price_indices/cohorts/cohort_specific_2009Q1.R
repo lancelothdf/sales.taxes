@@ -168,7 +168,7 @@ never.treated[, n_events := NA]
 
 ## combine never treated + later cohorts
 all_pi <- all_pi[tr.events[treatment_year != 2009], allow = T]
-all_pi <- rbind(all_pi, never.treated)
+all_pi <- rbind(all_pi, never.treated, fill = T)
 
 all_pi[, cohort := ifelse(is.na(treatment_year), "No change", as.character(treatment_year))]
 all_pi[, event.weight := ifelse(is.na(n_events), 1, 1 / n_events)]
