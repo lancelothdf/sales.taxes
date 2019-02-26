@@ -1,79 +1,55 @@
 #' Author: John Bonney
 #'
-#' Plot Lance's **geometric** price indices, comparing to CPI
+#' Plot Lance's monthly (geometric and Laspeyres) price indices, comparing to CPI
 
 setwd("C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes")
 
 library(tidyverse)
 library(zoo)
 
-geometric_path <- "output/server/national_pi_geo.csv"
-laspeyres_path <- "output/server/national_pi_store_balanced.csv"
+lance.pi_path <- "output/server/national_pi_monthly.csv"
 cpi_path <- "data/CPI/national_monthly_food_beverage_chained_cpi.csv"
-outfile_figpath <- "reports/figs/comparing_geom.png"
+outfile_figpath <- "reports/figs/comparing_monthly.png"
 
 ### Import and clean geometric price indices -----------------------------------
-pi_store_balanced <- read.csv(geometric_path)
+pi_store_balanced <- read.csv(lance.pi_path) %>% select(-contains("ratio"))
 pi_store_balanced$t <- with(pi_store_balanced,
-                            as.yearqtr(paste0(year, " Q", quarter)))
+                            as.yearmon(paste0(year, "-", month)))
 
-pi_store_balanced <- pi_store_balanced %>%
-  select(year, quarter, chained_food_cpi = national_index, t) %>%
-  mutate(index = "geometric")
-
-base_index <- pi_store_balanced %>%
-  filter(year == 2006, quarter == 4) %>%
-  select(chained_food_cpi) %>% pull()
-pi_store_balanced <- pi_store_balanced %>%
-  mutate(chained_food_cpi = chained_food_cpi / base_index)
-
-### Import and clean Laspeyres indices -----------------------------------------
-pi_laspeyres <- read.csv(laspeyres_path)
-pi_laspeyres$t <- with(pi_laspeyres,
-                       as.yearqtr(paste0(year, " Q", quarter)))
-
-pi_laspeyres <- pi_laspeyres %>%
-  select(year, quarter, chained_food_cpi = national_index, t) %>%
-  mutate(index = "laspeyres")
-
-base_index <- pi_laspeyres %>%
-  filter(year == 2006, quarter == 4) %>%
-  select(chained_food_cpi) %>% pull()
-pi_laspeyres <- pi_laspeyres %>%
-  mutate(chained_food_cpi = chained_food_cpi / base_index)
+pi_all_balanced <- pi_store_balanced %>%
+  gather(index, chained_food_cpi,
+         national.cpricei.storebal:national.geocpricei.storeprodbal)
 
 ### Import and clean CPI data  -------------------------------------------------
-cpi_data <- read.csv(cpi_path) %>%
-  as.tibble() %>% filter(between(year, 2006, 2016)) %>%
-  mutate(quarter = as.integer(ceiling(month / 3))) %>%
-  group_by(year, quarter) %>%
-  summarize(chained_food_cpi = mean(chained_food_cpi))
-cpi_data$t <- with(cpi_data, as.yearqtr(paste0(year, " Q", quarter)))
+cpi_data <- read.csv(cpi_path) %>% select(-X) %>% filter(between(year, 2006, 2016))
+cpi_data$t <- with(cpi_data, as.yearmon(paste0(year, "-", month)))
 
 base_cpi <- cpi_data %>% ungroup() %>%
-  filter(year == 2006, quarter == 4) %>%
+  filter(year == 2006, month == 12) %>%
   select(chained_food_cpi) %>% pull()
 cpi_data <- cpi_data %>%
-  filter(year > 2006 | quarter == 4) %>%
+  filter(year > 2006 | month == 12) %>%
   mutate(chained_food_cpi = chained_food_cpi / base_cpi,
          index = "cpi")
 
-cpi_data <- base::rbind.data.frame(ungroup(cpi_data),
-                                   pi_store_balanced, pi_laspeyres)
+cpi_data <- base::rbind.data.frame(ungroup(cpi_data), pi_all_balanced)
+
+## the graph looks identical whether or not we balance on the store or store-produce level.
+cpi_data <- cpi_data %>% filter(!grepl("storebal", index))
 
 ### compare the two indices ----------------------------------------------------
 ggplot(mapping = aes(x = t, y = chained_food_cpi, linetype = index, color = index)) +
   geom_line(data = cpi_data, aes(group = index), size = 1) +
-  scale_x_yearqtr(format = "%Y Q%q", expand = c(0.01, 0.01), n = 6) +
+  scale_x_yearmon(expand = c(0.01, 0.01), n = 6) +
   scale_y_continuous(breaks = seq(0, 1.25, .05), expand = c(0.005, 0.005)) +
   theme_bw() +
-  labs(y = expression(bold("Price Index (Normalized 2006 Q4 = 1.00)")), x = expression(bold("Year-Quarter"))) +
-  scale_linetype_manual(name = NULL, breaks = c("cpi", "geometric", "laspeyres"),
+  labs(y = expression(bold("Price Index (Normalized Dec 2006 = 1.00)")), x = expression(bold("Month"))) +
+  scale_linetype_manual(name = NULL, breaks = c("cpi", "national.cpricei.storeprodbal", "national.geocpricei.storeprodbal"),
                         labels = c("Food & Beverage Chained CPI",
                                    "Retail Scanner Index (Geometric)",
                                    "Retail Scanner Index (Laspeyres)"),
                         values = c("solid", "33", "33")) +
-  scale_color_manual(name = NULL, breaks = c("cpi", "geometric", "laspeyres"),
+  scale_color_manual(name = NULL, breaks = c("cpi", "national.geocpricei.storeprodbal", "national.cpricei.storeprodbal"),
                      labels = c("Food & Beverage Chained CPI",
                                 "Retail Scanner Index (Geometric)",
                                 "Retail Scanner Index (Laspeyres)"),
