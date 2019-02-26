@@ -121,6 +121,15 @@ write.csv(save_counties, tr_groups_path)
 gi <- function(dt) {
   print(head(dt))
 }
+
+## normalize
+all_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2008 & quarter == 1]),
+       by = .(store_code_uc, product_module_code)]
+all_pi[, base.sales := sales[year == 2008 & quarter == 1],
+       by = .(store_code_uc, product_module_code)]
+all_pi <- all_pi[!is.na(normalized.cpricei) & !is.na(base.sales)]
+gi(all_pi)
+
 all_pi <- fread(all_goods_pi_path)
 all_pi <- all_pi[between(year, 2008, 2014)]
 gi(all_pi)
@@ -136,14 +145,6 @@ setkey(keep_store_modules, store_code_uc, product_module_code)
 
 all_pi <- all_pi[keep_store_modules]
 setkey(all_pi, fips_county, fips_state)
-gi(all_pi)
-
-
-## normalize
-all_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2008 & quarter == 1]),
-           by = .(store_code_uc, product_module_code)]
-all_pi[, base.sales := sales[year == 2008 & quarter == 1],
-           by = .(store_code_uc, product_module_code)]
 gi(all_pi)
 
 
@@ -243,5 +244,5 @@ setnames(n_counties, "treatment_year", "cohort")
 taxable_pi.09Q1.collapsed <- merge(taxable_pi.09Q1.collapsed, n_counties,
                                    by = "cohort")
 
-fwrite(all_pi.collapsed, "Data/pi_2009Q1_cohorts.csv")
+fwrite(taxable_pi.09Q1.collapsed, "Data/pi_2009Q1_cohorts.csv")
 
