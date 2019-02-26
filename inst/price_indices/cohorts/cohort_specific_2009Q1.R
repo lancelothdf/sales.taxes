@@ -143,6 +143,7 @@ setnames(tr.events, "ref_year", "treatment_year")
 setkey(tr.events, fips_county, fips_state)
 
 tr.events.09Q1 <- unique(tr.events[treatment_year == 2009], by = c("fips_state", "fips_county"))
+tr.events.09Q1[, cohort_size := NULL]
 setkey(tr.events.09Q1, fips_county, fips_state)
 
 taxable_pi.09Q1 <- all_pi[sales_tax > 1]
