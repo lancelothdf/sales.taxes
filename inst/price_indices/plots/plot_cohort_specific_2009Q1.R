@@ -11,4 +11,12 @@ library(zoo)
 data_path <- "output/server/pi_data/pi_2009Q1_cohorts.csv"
 outfile_figpath <- "reports/figs/pi_2009Q1_cohorts.png"
 
-dt <- fread(data_path)
+dt <- read.csv(data_path)
+
+dt <- dt %>% select(year, quarter, cohort, cpricei) %>%
+  filter(!is.na(year))
+
+dt$t <- as.yearqtr(paste0(dt$year, " Q", dt$quarter))
+
+ggplot(dt, mapping = aes(x = t, y = cpricei, color = cohort)) + geom_line()
+

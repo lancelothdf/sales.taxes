@@ -121,6 +121,9 @@ write.csv(save_counties, tr_groups_path)
 gi <- function(dt) {
   print(head(dt))
 }
+all_pi <- fread(all_goods_pi_path)
+all_pi <- all_pi[between(year, 2008, 2014)]
+gi(all_pi)
 
 ## normalize
 all_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2008 & quarter == 1]),
@@ -128,10 +131,6 @@ all_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2008 & quarter
 all_pi[, base.sales := sales[year == 2008 & quarter == 1],
        by = .(store_code_uc, product_module_code)]
 all_pi <- all_pi[!is.na(normalized.cpricei) & !is.na(base.sales)]
-gi(all_pi)
-
-all_pi <- fread(all_goods_pi_path)
-all_pi <- all_pi[between(year, 2008, 2014)]
 gi(all_pi)
 
 ## balance on store-module level
