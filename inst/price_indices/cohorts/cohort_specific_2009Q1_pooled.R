@@ -99,7 +99,7 @@ never.treated <- all_pi[never.treated]
 never.treated[, group := "No change"]
 
 ## identify not-yet-treated (but future treated) counties
-all_pi <- all_pi[tr.events[treatment_year != 2009 | quarter != 1]] # previously had allow = T; shouldn't be necessary in first event case
+all_pi <- all_pi[tr.events[treatment_year != 2009 | ref_quarter != 1]] # previously had allow = T; shouldn't be necessary in first event case
 all_pi[, treatment_quarter := 4 * treatment_year + ref_quarter]
 all_pi[, calendar_quarter := 4 * year + quarter]
 all_pi[, not_yet_treated := min(treatment_quarter) > calendar_quarter,
