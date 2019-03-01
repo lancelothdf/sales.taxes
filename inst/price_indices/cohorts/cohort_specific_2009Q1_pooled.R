@@ -126,7 +126,7 @@ all_pi <- rbind(all_pi, never.treated, fill = T)
 # all_pi[, event.weight := ifelse(is.na(n_events), 1, 1 / n_events)]
 
 ## collapse to product x group x time level -----------------------------------
-control.info <- all_pi[, list(n_counties := uniqueN(1000 * fips_state + fips_county)),
+control.info <- all_pi[, list(n_counties = uniqueN(1000 * fips_state + fips_county)),
                        by = .(year, quarter, group)]
 all.info <- rbind(control.info, treatment.info)
 
