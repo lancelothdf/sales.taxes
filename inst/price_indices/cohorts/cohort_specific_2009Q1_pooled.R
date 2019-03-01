@@ -100,9 +100,12 @@ all_pi <- all_pi[product_module_code %in% constant.goods.set] # keep goods const
 tr.groups <- fread(tr_groups_path)
 never.treated <- tr.groups[tr_group == "No change"]
 never.treated <- never.treated[, .(fips_state, fips_county)]
+print(nrow(never.treated))
+print(uniqueN(never.treated$fips_state * 1000 + never.treated$fips_county))
 setkey(never.treated, fips_state, fips_county)
 never.treated <- all_pi[never.treated]
 never.treated[, group := "No change"]
+g(never.treated)
 
 ## identify not-yet-treated (but future treated) counties
 all_pi <- all_pi[tr.events[treatment_year != 2009 | ref_quarter != 1]] # previously had allow = T; shouldn't be necessary in first event case
@@ -126,9 +129,11 @@ print(nrow(unique(all_pi, by = c("fips_county", "fips_state",
 all_pi <- all_pi[not_yet_treated == TRUE]
 all_pi[, not_yet_treated := NULL]
 all_pi[, group := "Future"]
+g(all_pi)
 
 ## combine never treated + later cohorts
 all_pi <- rbind(all_pi, never.treated, fill = T)
+g(all_pi)
 # all_pi[, event.weight := ifelse(is.na(n_events), 1, 1 / n_events)]
 
 ## collapse to product x group x time level -----------------------------------

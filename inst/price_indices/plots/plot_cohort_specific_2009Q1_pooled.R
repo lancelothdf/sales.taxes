@@ -30,19 +30,15 @@ outfile_figpath <- "reports/figs/pi_2009Q1_cohorts_pooled.png"
 
 dt <- read.csv(data_path)
 
-dt <- dt %>% select(year, quarter, cohort, cpricei, cohort_size) %>%
+dt <- dt %>% select(year, quarter, group, cpricei, n_counties) %>%
   filter(!is.na(year)) %>% filter(!is.na(cpricei))
 
 dt$t <- as.yearqtr(paste0(dt$year, " Q", dt$quarter))
 
-ggplot(dt, mapping = aes(x = t, y = cpricei, color = cohort)) +
+ggplot(dt, mapping = aes(x = t, y = cpricei, color = group)) +
   geom_line(size = .7) +
   geom_point(size = .8) +
   geom_vline(xintercept = 2009, color = "red", linetype = 1, alpha = .5) +
-  geom_vline(xintercept = 2010, color = "lightgrey", linetype = 2) +
-  geom_vline(xintercept = 2011, color = "lightgrey", linetype = 2) +
-  geom_vline(xintercept = 2013, color = "lightgrey", linetype = 2) +
-  geom_vline(xintercept = 2014, color = "lightgrey", linetype = 2) +
   theme_bw() +
   scale_x_yearqtr(format = "%Y Q%q", limits = c(2008, 2014), expand = c(.01, -.05)) +
   labs(x = "Quarter", y = "Normalized Price Index", color = "Cohort") +
