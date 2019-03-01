@@ -142,6 +142,8 @@ print(with(all_pi[group == "No change"], uniqueN(fips_state * 1000 + fips_county
 ## collapse to product x group x time level -----------------------------------
 control.info <- all_pi[, list(n_counties = uniqueN(1000 * fips_state + fips_county)),
                        by = .(year, quarter, group)]
+print(head(control.info[group == "No change"]))
+
 all.info <- rbind(control.info, treatment.info)
 g(all.info)
 
@@ -152,6 +154,7 @@ g(all_pi.collapsed)
 
 ## rearrange for simple merging of groups onto 2009 Q1 cohort
 all_pi.collapsed <- tidyr::spread(all_pi.collapsed, group, control.cpricei)
+g(all_pi.collapsed)
 
 g(taxable_pi.09Q1)
 ## merge onto the 2009 cohort by product
