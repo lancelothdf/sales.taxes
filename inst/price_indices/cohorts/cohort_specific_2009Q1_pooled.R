@@ -21,7 +21,10 @@ library(sales.taxes)
 library(zoo)
 
 setwd("/project2/igaarder")
-prep_tax_ref <- F
+# check function
+g <- function(dt) {
+  print(head(dt))
+}
 
 ## useful filepaths ------------------------------------------------------------
 eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_w2014.csv"
@@ -67,6 +70,7 @@ tr.events <- tr.events[min.event == T]
 tr.events[, ref_quarter := ceiling(ref_month / 3)]
 tr.events[, n_events := .N, by = .(fips_state, fips_county)]
 tr.events <- tr.events[, .(fips_county, fips_state, ref_year, ref_quarter, n_events)]
+g(tr.events)
 
 setnames(tr.events, "ref_year", "treatment_year")
 setkey(tr.events, fips_county, fips_state)
@@ -83,6 +87,8 @@ taxable_pi.09Q1 <- taxable_pi.09Q1[tr.events.09Q1]
 treatment.info <- taxable_pi.09Q1[, list(n_counties = uniqueN(1000 * fips_state + fips_county)),
                                   by = .(year, quarter)]
 treatment.info[, group := "Treated"]
+g(treatment.info)
+g(taxable_pi.09Q1)
 
 ## prepare control data --------------------------------------------------------
 
@@ -129,10 +135,12 @@ all_pi <- rbind(all_pi, never.treated, fill = T)
 control.info <- all_pi[, list(n_counties = uniqueN(1000 * fips_state + fips_county)),
                        by = .(year, quarter, group)]
 all.info <- rbind(control.info, treatment.info)
+g(all.info)
 
 all_pi.collapsed <- all_pi[, list(
   control.cpricei = weighted.mean(normalized.cpricei, w = base.sales)
 ), by = .(year, quarter, group, product_module_code)]
+g(all_pi.collapsed)
 
 ## rearrange for simple merging of groups onto 2009 Q1 cohort
 all_pi.collapsed <- tidyr::spread(all_pi.collapsed, group, control.cpricei)
@@ -140,6 +148,7 @@ all_pi.collapsed <- tidyr::spread(all_pi.collapsed, group, control.cpricei)
 ## merge onto the 2009 cohort by product
 taxable_pi.09Q1 <- merge(taxable_pi.09Q1, all_pi.collapsed,
                          by = c("year", "quarter", "product_module_code"))
+g(taxable_pi.09Q1)
 # taxable_pi.09Q1[, event.weight := 1 / n_events]
 
 ## aggregate over calendar time ------------------------------------------------
@@ -153,7 +162,7 @@ taxable_pi.09Q1.collapsed <- taxable_pi.09Q1[, list(
 setnames(taxable_pi.09Q1.collapsed, "mean.cpricei", "Treated")
 taxable_pi.09Q1.collapsed <- tidyr::gather(taxable_pi.09Q1.collapsed,
                                            key = group, value = cpricei,
-                                           c(Future, `No change`))
+                                           c(Treated, Future, `No change`))
 taxable_pi.09Q1.collapsed <- merge(taxable_pi.09Q1.collapsed, all.info,
                                    by = c("year", "quarter", "group"))
 
