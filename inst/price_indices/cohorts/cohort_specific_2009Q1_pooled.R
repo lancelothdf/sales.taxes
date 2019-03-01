@@ -106,6 +106,7 @@ setkey(never.treated, fips_state, fips_county)
 never.treated <- all_pi[never.treated]
 never.treated[, group := "No change"]
 g(never.treated)
+print(uniqueN(never.treated$fips_state * 1000 + never.treated$fips_county))
 
 ## identify not-yet-treated (but future treated) counties
 all_pi <- all_pi[tr.events[treatment_year != 2009 | ref_quarter != 1]] # previously had allow = T; shouldn't be necessary in first event case
@@ -134,6 +135,8 @@ g(all_pi)
 ## combine never treated + later cohorts
 all_pi <- rbind(all_pi, never.treated, fill = T)
 g(all_pi)
+print(with(all_pi[group == "No change"], uniqueN(fips_state * 1000 + fips_county)))
+
 # all_pi[, event.weight := ifelse(is.na(n_events), 1, 1 / n_events)]
 
 ## collapse to product x group x time level -----------------------------------
@@ -150,6 +153,7 @@ g(all_pi.collapsed)
 ## rearrange for simple merging of groups onto 2009 Q1 cohort
 all_pi.collapsed <- tidyr::spread(all_pi.collapsed, group, control.cpricei)
 
+g(taxable_pi.09Q1)
 ## merge onto the 2009 cohort by product
 taxable_pi.09Q1 <- merge(taxable_pi.09Q1, all_pi.collapsed,
                          by = c("year", "quarter", "product_module_code"))
