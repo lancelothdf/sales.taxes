@@ -7,15 +7,16 @@ library(readstata13)
 library(data.table)
 
 ## for testing
-# pi_data <- data.table(expand.grid(year = 2006:2008, month = 1:12,
-#                                   store_code_uc = c("A", "B"),
-#                                   product_module_code = c(36, 42)))
-# pi_data[, store_code_uc := as.character(store_code_uc)]
-# pi_data[, cpricei := runif(nrow(pi_data), 100, 300)]
-# pi_data[, geocpricei := rnorm(nrow(pi_data), 200, 50)]
-#
-# sales_data <- pi_data[, .(year, month, store_code_uc, product_module_code)]
-# sales_data[, sales := runif(nrow(sales_data), 1000, 10000)]
+pi_data <- data.table(expand.grid(year = 2006:2008, month = 1:12,
+                                  fips_code = 10001:10099,
+                                  product_module_code = c(36, 42)))
+pi_data[, fips_state := floor(fips_code / 1000)]
+pi_data[, fips_county := fips_code - fips_state * 1000]
+pi_data[, cpricei := runif(nrow(pi_data), 100, 300)]
+pi_data[, geocpricei := rnorm(nrow(pi_data), 200, 20)]
+
+sales_data <- pi_data[, .(year, month, fips_state, fips_county, product_module_code)]
+sales_data[, sales := runif(nrow(sales_data), 1000, 10000)]
 
 setwd("/project2/igaarder")
 
