@@ -75,7 +75,7 @@ g(tr.events)
 setnames(tr.events, "ref_year", "treatment_year")
 setkey(tr.events, fips_county, fips_state)
 
-cohort_sizes <- tr.events[, list(cohort_size = .N), by = .(ref_year, ref_quarter)]
+cohort_sizes <- tr.events[, list(cohort_size = .N), by = .(treatment_year, ref_quarter)]
 
 # for later use
 tr.groups <- fread(tr_groups_path)

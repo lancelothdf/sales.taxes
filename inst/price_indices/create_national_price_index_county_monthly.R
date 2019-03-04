@@ -6,17 +6,22 @@
 library(readstata13)
 library(data.table)
 
-## for testing
-pi_data <- data.table(expand.grid(year = 2006:2008, month = 1:12,
-                                  fips_code = 10001:10099,
-                                  product_module_code = c(36, 42)))
-pi_data[, fips_state := floor(fips_code / 1000)]
-pi_data[, fips_county := fips_code - fips_state * 1000]
-pi_data[, cpricei := runif(nrow(pi_data), 100, 300)]
-pi_data[, geocpricei := rnorm(nrow(pi_data), 200, 20)]
+# check function
+g <- function(dt) {
+  print(head(dt))
+}
 
-sales_data <- pi_data[, .(year, month, fips_state, fips_county, product_module_code)]
-sales_data[, sales := runif(nrow(sales_data), 1000, 10000)]
+## for testing
+# pi_data <- data.table(expand.grid(year = 2006:2008, month = 1:12,
+#                                   fips_code = 10001:10099,
+#                                   product_module_code = c(36, 42)))
+# pi_data[, fips_state := floor(fips_code / 1000)]
+# pi_data[, fips_county := fips_code - fips_state * 1000]
+# pi_data[, cpricei := runif(nrow(pi_data), 100, 300)]
+# pi_data[, geocpricei := rnorm(nrow(pi_data), 200, 20)]
+#
+# sales_data <- pi_data[, .(year, month, fips_state, fips_county, product_module_code)]
+# sales_data[, sales := runif(nrow(sales_data), 1000, 10000)]
 
 setwd("/project2/igaarder")
 
@@ -49,7 +54,7 @@ pi_data[, geocpricei := geocpricei / base_geocpricei]
 ## merge sales shares onto cleaned price indices
 sales_data <- fread("Data/sales_monthly_2006-2016.csv")
 sales_data <- sales_data[, list(sales = sum(sales)),
-                         by = .(fips_state, fips_county, month, year)]
+                         by = .(fips_state, fips_county, product_module_code, month, year)]
 
  # this should be an inner merge
 nrow_base <- nrow(pi_data)
