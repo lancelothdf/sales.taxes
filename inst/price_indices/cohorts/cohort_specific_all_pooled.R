@@ -88,6 +88,7 @@ master_res <- data.table(NULL)
 
 for (ref.year in 2009:2013) {
   for (ref.quarter in 1:4) {
+    print(paste("Year:", ref.year, "; Quarter:", ref.quarter))
     ## identify treated cohort -------------------------------------------------
     tr.events.09Q1 <- tr.events[treatment_year == ref.year & ref_quarter == ref.quarter]
     setkey(tr.events.09Q1, fips_county, fips_state)
@@ -140,24 +141,25 @@ for (ref.year in 2009:2013) {
     rm(ss_pi.collapsed)
 
     ## aggregate over calendar time ------------------------------------------------
+    g(taxable_pi.09Q1)
 
     taxable_pi.09Q1.collapsed <- taxable_pi.09Q1[, list(
       mean.cpricei = weighted.mean(normalized.cpricei, w = base.sales),
       Future = weighted.mean(Future, w = base.sales),
       `No change` = weighted.mean(`No change`, w = base.sales)
     ), by = .(year, quarter)]
-    rm(taxable_pi.09Q1)
+    g(taxable_pi.09Q1.collapsed)
 
     setnames(taxable_pi.09Q1.collapsed, "mean.cpricei", "Treated")
     taxable_pi.09Q1.collapsed <- tidyr::gather(taxable_pi.09Q1.collapsed,
                                                key = group, value = cpricei,
                                                c(Treated, Future, `No change`))
-
+    g(taxable_pi.09Q1.collapsed)
     taxable_pi.09Q1.collapsed[, ref_year := ref.year]
     taxable_pi.09Q1.collapsed[, ref_quarter := ref.quarter]
     master_res <- rbind(master_res, taxable_pi.09Q1.collapsed)
 
-    rm(taxable_pi.09Q1.collapsed)
+    rm(taxable_pi.09Q1.collapsed, taxable_pi.09Q1)
   }
 }
 
