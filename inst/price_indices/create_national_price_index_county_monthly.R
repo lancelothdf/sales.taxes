@@ -11,6 +11,8 @@ g <- function(dt) {
   print(head(dt))
 }
 
+skip_first <- T
+
 ## for testing
 # pi_data <- data.table(expand.grid(year = 2006:2008, month = 1:12,
 #                                   fips_code = 10001:10099,
@@ -28,7 +30,7 @@ setwd("/project2/igaarder")
 ################################################################################
 ############################### No balancing ###################################
 ################################################################################
-
+if (!skip_first) {
 ## load and convert .dta to .csv
 pi_data <- read.dta13("Data/Nielsen/Monthly_county_price_quantity_indices_food.dta")
 pi_data <- as.data.table(pi_data)
@@ -104,6 +106,8 @@ fwrite(
 rm(list=ls())
 gc()
 
+}
+
 ################################################################################
 ################### Balancing on module x county level #########################
 ################################################################################
@@ -155,7 +159,7 @@ pi_data[, geocpricei := geocpricei / base_geocpricei]
 ## merge sales shares onto cleaned price indices
 sales_data <- fread("Data/sales_monthly_2006-2016.csv")
 sales_data <- sales_data[, list(sales = sum(sales)),
-                         by = .(fips_state, fips_county, month, year)]
+                         by = .(fips_state, fips_county, product_module_code, month, year)]
 
 # this should be an inner merge
 nrow_base <- nrow(pi_data)
