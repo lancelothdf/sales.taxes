@@ -97,6 +97,10 @@ master_res <- data.table(NULL)
 
 for (ref.year in 2009:2013) {
   for (ref.quarter in 1:4) {
+    if ((ref.year == 2012 & ref.quarter == 4) | (ref.year == 2013 & ref.quarter %in% 1:2)) {
+      print(paste("Skipping", ref.year, "Q", ref.quarter))
+      next
+    }
     print(paste("Year:", ref.year, "; Quarter:", ref.quarter))
     ## identify treated cohort -------------------------------------------------
     tr.events.09Q1 <- tr.events[treatment_year == ref.year & ref_quarter == ref.quarter]
