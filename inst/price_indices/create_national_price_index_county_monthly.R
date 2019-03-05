@@ -90,9 +90,9 @@ pi_data[, pi_change := cpricei / shift(cpricei, 1, type = "lag"),
 pi_data[, geo.pi_change := geocpricei / shift(geocpricei, 1, type = "lag"),
         by = .(fips_state, fips_county, product_module_code)]
 g(pi_data)
-print(nrow(pi_data[is.na(pi_change)]))
+print(nrow(pi_data[is.na(pi_change) & !(year == 2006 & month == 12)]))
 g(pi_data[is.na(pi_change)])
-print(nrow(pi_data[is.na(geo.pi_change)]))
+print(nrow(pi_data[is.na(geo.pi_change) & !(year == 2006 & month == 12)]))
 g(pi_data[is.na(geo.pi_change)])
 
 

@@ -174,6 +174,7 @@ for (ref.year in 2009:2013) {
 
 fwrite(master_res, "Data/pi_all_cohorts_pooled.csv")
 
+setnames(cohort_sizes, "treatment_year", "ref_year")
 ## merge on cohort size
 master_res <- merge(master_res, cohort_sizes, by = c("ref_year", "ref_quarter"))
 fwrite(master_res, "Data/pi_all_cohorts_pooled.csv")
