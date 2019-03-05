@@ -203,10 +203,10 @@ national_pi[, national.geocpricei.bal := cumprod(geocpricei.ratio)]
 print(national_pi[])
 
 ## merge onto the unbalanced indices
-national_pi.old <- fread("Data/national_pi_monthly_county.csv")
+national_pi.old <- fread("Data/national_pi_county_monthly.csv")
 national_pi.all <- merge(
   national_pi.old,
   national_pi[, .(year, month, national.cpricei.bal, national.geocpricei.bal)],
   by = c("year", "month")
   )
-fwrite(national_pi.all, "Data/national_pi_monthly_county.csv")
+fwrite(national_pi.all, "Data/national_pi_county_monthly.csv")
