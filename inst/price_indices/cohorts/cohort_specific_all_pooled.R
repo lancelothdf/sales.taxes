@@ -95,17 +95,20 @@ for (ref.year in 2009:2013) {
 
     taxable_pi.09Q1 <- all_pi[sales_tax > 1]
     taxable_pi.09Q1 <- taxable_pi.09Q1[tr.events.09Q1]
+    g(taxable_pi.09Q1)
 
     ## prepare control data --------------------------------------------------------
 
     ## limit to goods that are taxable for the cohort (e.g., 2009 Q1)
     constant.goods.set <- unique(taxable_pi.09Q1[year == ref.year & quarter == ref.quarter]$product_module_code)
     ss_pi <- all_pi[product_module_code %in% constant.goods.set] # keep goods constant
+    g(ss_pi)
     rm(constant.goods.set)
 
     ## identify never treated counties
     never.treated <- ss_pi[never.treated.master]
     never.treated[, group := "No change"]
+    g(never.treated)
 
     ## identify not-yet-treated (but future treated) counties
     ss_pi <- ss_pi[tr.events[treatment_year > ref.year |
@@ -119,9 +122,11 @@ for (ref.year in 2009:2013) {
     ss_pi <- ss_pi[not_yet_treated == TRUE]
     ss_pi[, not_yet_treated := NULL]
     ss_pi[, group := "Future"]
+    g(ss_pi)
 
     ## combine never treated + later cohorts
     ss_pi <- rbind(ss_pi, never.treated, fill = T)
+    g(ss_pi)
     rm(never.treated)
 
     # ss_pi[, event.weight := ifelse(is.na(n_events), 1, 1 / n_events)]
@@ -131,9 +136,11 @@ for (ref.year in 2009:2013) {
       control.cpricei = weighted.mean(normalized.cpricei, w = base.sales)
     ), by = .(year, quarter, group, product_module_code)]
     rm(ss_pi)
+    g(ss_pi.collapsed)
 
     ## rearrange for simple merging of groups onto 2009 Q1 cohort
     ss_pi.collapsed <- tidyr::spread(ss_pi.collapsed, group, control.cpricei)
+    g(ss_pi.collapsed)
 
     ## merge onto the treated cohort by product
     taxable_pi.09Q1 <- merge(taxable_pi.09Q1, ss_pi.collapsed,
@@ -155,6 +162,8 @@ for (ref.year in 2009:2013) {
                                                key = group, value = cpricei,
                                                c(Treated, Future, `No change`))
     g(taxable_pi.09Q1.collapsed)
+    taxable_pi.09Q1.collapsed <- as.data.table(taxable_pi.09Q1.collapsed)
+    taxable_pi.09Q1.collapsed <- taxable_pi.09Q1.collapsed[!is.na(cpricei)]
     taxable_pi.09Q1.collapsed[, ref_year := ref.year]
     taxable_pi.09Q1.collapsed[, ref_quarter := ref.quarter]
     master_res <- rbind(master_res, taxable_pi.09Q1.collapsed)
