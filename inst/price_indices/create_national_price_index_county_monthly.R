@@ -90,6 +90,11 @@ pi_data[, pi_change := cpricei / shift(cpricei, 1, type = "lag"),
 pi_data[, geo.pi_change := geocpricei / shift(geocpricei, 1, type = "lag"),
         by = .(fips_state, fips_county, product_module_code)]
 g(pi_data)
+print(nrow(pi_data[is.na(pi_change)]))
+g(pi_data[is.na(pi_change)])
+print(nrow(pi_data[is.na(geo.pi_change)]))
+g(pi_data[is.na(geo.pi_change)])
+
 
 ### compute P_t / P_{t-1}
 national_pi <- pi_data[, list(cpricei.ratio = prod(pi_change^s_average),
