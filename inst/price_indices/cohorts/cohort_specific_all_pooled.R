@@ -41,6 +41,13 @@ expanded.reforms.path <- "Data/tax_reforms_all_incl2014.csv"
 all_pi <- fread(all_goods_pi_path)
 all_pi <- all_pi[between(year, 2008, 2014)]
 
+# do `arbitrary` correction for the 2013 Q1 jump in the data
+## calculate price index in 2013 Q1 / cpricei in 2012 Q4
+all_pi[, correction := pricei[year == 2013 & quarter == 1] / pricei[year == 2012 & quarter == 4],
+       by = .(store_code_uc, product_module_code)]
+## divide price index after 2013 Q1 (inclusive) by above value
+all_pi[year >= 2013, cpricei := cpricei / correction]
+
 ## normalize
 all_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2008 & quarter == 1]),
        by = .(store_code_uc, product_module_code)]
@@ -70,6 +77,8 @@ tr.events <- tr.events[min.event == T]
 tr.events[, ref_quarter := ceiling(ref_month / 3)]
 tr.events[, n_events := .N, by = .(fips_state, fips_county)]
 tr.events <- tr.events[, .(fips_county, fips_state, ref_year, ref_quarter, n_events)]
+# exclude 2012 Q4, 2013 Q1, 2013 Q2 reforms
+tr.events <- tr.events[!(ref_year == 2012 & ref_quarter == 4) & !(ref_year == 2013 & ref_quarter %in% 1:2)]
 g(tr.events)
 
 setnames(tr.events, "ref_year", "treatment_year")
