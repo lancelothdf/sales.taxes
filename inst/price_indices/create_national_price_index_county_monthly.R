@@ -11,7 +11,7 @@ g <- function(dt) {
   print(head(dt))
 }
 
-skip_first <- T
+# skip_first <- T
 
 ## for testing
 # pi_data <- data.table(expand.grid(year = 2006:2008, month = 1:12,
@@ -30,12 +30,13 @@ setwd("/project2/igaarder")
 ################################################################################
 ############################### No balancing ###################################
 ################################################################################
-if (!skip_first) {
+#if (!skip_first) {
 ## load and convert .dta to .csv
 pi_data <- read.dta13("Data/Nielsen/Monthly_county_price_quantity_indices_food.dta")
 pi_data <- as.data.table(pi_data)
 setnames(pi_data, old = c("fips_state_code", "fips_county_code"),
                   new = c("fips_state",      "fips_county"))
+g(pi_data)
 # fwrite(pi_data, "Data/Nielsen/monthly_county_price_quantity_indices_food.csv")
 
 ## get rid of the observations for 2006 Nov and earlier
@@ -49,6 +50,7 @@ setnames(base_pi,
 base_pi <- base_pi[, .(fips_state, fips_county, product_module_code, base_cpricei, base_geocpricei)]
 
 pi_data <- merge(pi_data, base_pi, by = c("fips_state", "fips_county", "product_module_code"))
+g(pi_data)
 
 pi_data[, cpricei := cpricei / base_cpricei]
 pi_data[, geocpricei := geocpricei / base_geocpricei]
@@ -57,11 +59,13 @@ pi_data[, geocpricei := geocpricei / base_geocpricei]
 sales_data <- fread("Data/sales_monthly_2006-2016.csv")
 sales_data <- sales_data[, list(sales = sum(sales)),
                          by = .(fips_state, fips_county, product_module_code, month, year)]
+g(sales_data)
 
  # this should be an inner merge
 nrow_base <- nrow(pi_data)
 pi_data <- merge(pi_data, sales_data, by = c("month", "year", "fips_state",
                                              "fips_county", "product_module_code"))
+g(pi_data)
 
 if (nrow_base != nrow(pi_data)){
   warning("Merging sales to indices changes the number of observations")
@@ -85,11 +89,13 @@ pi_data[, pi_change := cpricei / shift(cpricei, 1, type = "lag"),
         by = .(fips_state, fips_county, product_module_code)]
 pi_data[, geo.pi_change := geocpricei / shift(geocpricei, 1, type = "lag"),
         by = .(fips_state, fips_county, product_module_code)]
+g(pi_data)
 
 ### compute P_t / P_{t-1}
 national_pi <- pi_data[, list(cpricei.ratio = prod(pi_change^s_average),
                               geocpricei.ratio = prod(geo.pi_change^s_average)),
                        by = .(month, year)]
+g(national_pi)
 national_pi[year == 2006 & month == 12, cpricei.ratio := 1]
 national_pi[year == 2006 & month == 12, geocpricei.ratio := 1]
 
@@ -103,10 +109,11 @@ fwrite(
   "Data/national_pi_county_monthly.csv"
   )
 
+stop()
 rm(list=ls())
 gc()
 
-}
+#}
 
 ################################################################################
 ################### Balancing on module x county level #########################
