@@ -25,8 +25,8 @@ border_custom <- function(...){
 
 }
 
-data_path <- "output/server/pi_data/pi_all_cohorts_pooled_nocorrection.csv"
-outfile_figpath <- "reports/figs/pi_all_cohorts_pooled_nocorrection.png"
+data_path <- "output/server/pi_data/pi_all_cohorts_pooled.csv"
+outfile_figpath <- "reports/figs/pi_all_cohorts_pooled_no2013.png"
 
 dt <- read.csv(data_path)
 
@@ -48,7 +48,7 @@ dt.test <- dt %>%
   group_by(group, tt_ev) %>%
   summarize(cpricei.agg = weighted.mean(cpricei, w = cohort_size))
 
-ggplot(dt.agg, mapping = aes(x = tt_ev, y = cpricei.agg, color = group)) +
+ggplot(dt.test, mapping = aes(x = tt_ev, y = cpricei.agg, color = group)) +
   geom_line(size = .7) +
   geom_point(size = .8) +
   geom_vline(xintercept = 0, color = "red", linetype = "22", alpha = .5) +
@@ -62,7 +62,7 @@ ggplot(dt.agg, mapping = aes(x = tt_ev, y = cpricei.agg, color = group)) +
     strip.background = element_rect(colour="white", fill="white"),
     panel.spacing = unit(2, "lines"),
     panel.border = border_custom(),
-    legend.position = c(0.68, 0.27),
+    legend.position = c(0.2, 0.8),
     axis.ticks.length=unit(-0.15, "cm"),
     legend.margin = margin(t=-.2, r=0, b=-.2, l=0, unit="cm"),
     axis.text.x = element_text(margin=unit(rep(0.3, 4), "cm")),
@@ -91,7 +91,7 @@ for (pp in seq(2013.5, 2013.75, .25)) {
       strip.background = element_rect(colour="white", fill="white"),
       panel.spacing = unit(2, "lines"),
       panel.border = border_custom(),
-      legend.position = c(0.68, 0.27),
+      legend.position = c(0.2, 0.8),
       axis.ticks.length=unit(-0.15, "cm"),
       legend.margin = margin(t=-.2, r=0, b=-.2, l=0, unit="cm"),
       axis.text.x = element_text(margin=unit(rep(0.3, 4), "cm")),
@@ -106,10 +106,10 @@ for (pp in seq(2013.5, 2013.75, .25)) {
 # 2012 Q3
 # 2012 Q4
 
-ggplot(dt %>% filter(ref_t == 2013), mapping = aes(x = t, y = cpricei, color = group)) +
+ggplot(dt %>% filter(ref_t == 2010), mapping = aes(x = t, y = cpricei, color = group)) +
   geom_line(size = .7) +
   geom_point(size = .8) +
-  geom_vline(xintercept = 2009, color = "red", linetype = 1, alpha = .5) +
+  geom_vline(xintercept = 2010, color = "red", linetype = 1, alpha = .5) +
   theme_bw() +
   scale_x_yearqtr(format = "%Y Q%q", limits = c(2008, 2014), expand = c(.01, -.05)) +
   labs(x = "Quarter", y = "Normalized Price Index", color = "Cohort") +

@@ -57,8 +57,12 @@ pi_data[, geocpricei := geocpricei / base_geocpricei]
 
 ## merge sales shares onto cleaned price indices
 sales_data <- fread("Data/sales_monthly_2006-2016.csv")
-sales_data <- sales_data[, list(sales = sum(sales)),
+sales_data <- sales_data[, list(sales = sum(sales, na.rm = T)),
                          by = .(fips_state, fips_county, product_module_code, month, year)]
+## balance the sales data
+sales_data <- sales_data[year >= 2007 | (year == 2006 & month == 12)]
+sales_data[, N := .N, by = .(fips_state, fips_county, product_module_code, month, year)]
+sales_data <- sales_data[N == (2016 - 2006) * 12 + 1]
 g(sales_data)
 
  # this should be an inner merge
@@ -114,7 +118,6 @@ fwrite(
   "Data/national_pi_county_monthly.csv"
   )
 
-stop()
 rm(list=ls())
 gc()
 
@@ -170,8 +173,12 @@ pi_data[, geocpricei := geocpricei / base_geocpricei]
 
 ## merge sales shares onto cleaned price indices
 sales_data <- fread("Data/sales_monthly_2006-2016.csv")
-sales_data <- sales_data[, list(sales = sum(sales)),
+sales_data <- sales_data[, list(sales = sum(sales, na.rm = T)),
                          by = .(fips_state, fips_county, product_module_code, month, year)]
+## balance the sales data
+sales_data <- sales_data[year >= 2007 | (year == 2006 & month == 12)]
+sales_data[, N := .N, by = .(fips_state, fips_county, product_module_code, month, year)]
+sales_data <- sales_data[N == (2016 - 2006) * 12 + 1]
 
 # this should be an inner merge
 nrow_base <- nrow(pi_data)
