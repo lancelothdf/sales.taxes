@@ -17,7 +17,7 @@ pi_county$t <- with(pi_county, as.yearmon(paste0(year, "-", month)))
 
 pi_all_balanced <- pi_county %>%
   gather(index, chained_food_cpi,
-         national.cpricei.storebal:national.geocpricei.storeprodbal)
+         national.cpricei.unbal:national.geocpricei.bal)
 
 ### Import and clean CPI data  -------------------------------------------------
 cpi_data <- read.csv(cpi_path) %>% select(-X) %>% filter(between(year, 2006, 2016))
@@ -34,7 +34,8 @@ cpi_data <- cpi_data %>%
 cpi_data <- base::rbind.data.frame(ungroup(cpi_data), pi_all_balanced)
 
 ## the graph looks identical whether or not we balance on the store or store-produce level.
-cpi_data <- cpi_data %>% filter(!grepl("storebal", index))
+cpi_data <- cpi_data %>% filter(!grepl("unbal", index))
+#cpi_data <- cpi_data %>% filter(!index %in% c("national.geocpricei.bal", "national.cpricei.bal"))
 
 ### compare the two indices ----------------------------------------------------
 ggplot(mapping = aes(x = t, y = chained_food_cpi, linetype = index, color = index)) +
@@ -43,12 +44,12 @@ ggplot(mapping = aes(x = t, y = chained_food_cpi, linetype = index, color = inde
   scale_y_continuous(breaks = seq(0, 1.25, .05), expand = c(0.005, 0.005)) +
   theme_bw() +
   labs(y = expression(bold("Price Index (Normalized Dec 2006 = 1.00)")), x = expression(bold("Month"))) +
-  scale_linetype_manual(name = NULL, breaks = c("cpi", "national.cpricei.storeprodbal", "national.geocpricei.storeprodbal"),
+  scale_linetype_manual(name = NULL, breaks = c("cpi", "national.cpricei.bal", "national.geocpricei.bal"),
                         labels = c("Food & Beverage Chained CPI",
                                    "Retail Scanner Index (Geometric)",
                                    "Retail Scanner Index (Laspeyres)"),
                         values = c("solid", "33", "33")) +
-  scale_color_manual(name = NULL, breaks = c("cpi", "national.geocpricei.storeprodbal", "national.cpricei.storeprodbal"),
+  scale_color_manual(name = NULL, breaks = c("cpi", "national.geocpricei.bal", "national.cpricei.bal"),
                      labels = c("Food & Beverage Chained CPI",
                                 "Retail Scanner Index (Geometric)",
                                 "Retail Scanner Index (Laspeyres)"),
