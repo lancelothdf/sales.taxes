@@ -61,7 +61,7 @@ sales_data <- sales_data[, list(sales = sum(sales, na.rm = T)),
                          by = .(fips_state, fips_county, product_module_code, month, year)]
 ## balance the sales data
 sales_data <- sales_data[year >= 2007 | (year == 2006 & month == 12)]
-sales_data[, N := .N, by = .(fips_state, fips_county, product_module_code, month, year)]
+sales_data[, N := .N, by = .(fips_state, fips_county, product_module_code)]
 sales_data <- sales_data[N == (2016 - 2006) * 12 + 1]
 g(sales_data)
 
@@ -177,7 +177,7 @@ sales_data <- sales_data[, list(sales = sum(sales, na.rm = T)),
                          by = .(fips_state, fips_county, product_module_code, month, year)]
 ## balance the sales data
 sales_data <- sales_data[year >= 2007 | (year == 2006 & month == 12)]
-sales_data[, N := .N, by = .(fips_state, fips_county, product_module_code, month, year)]
+sales_data[, N := .N, by = .(fips_state, fips_county, product_module_code)]
 sales_data <- sales_data[N == (2016 - 2006) * 12 + 1]
 
 # this should be an inner merge
