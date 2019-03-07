@@ -32,7 +32,7 @@ setwd("/project2/igaarder")
 ################################################################################
 #if (!skip_first) {
 ## load and convert .dta to .csv
-pi_data <- read.dta13("Data/Nielsen/Monthly_county_price_quantity_indices_food.dta")
+pi_data <- read.dta13("Data/Nielsen/Monthly_county_balanced_price_quantity_indices_food.dta")
 pi_data <- as.data.table(pi_data)
 setnames(pi_data, old = c("fips_state_code", "fips_county_code"),
                   new = c("fips_state",      "fips_county"))
@@ -115,7 +115,7 @@ national_pi[, national.geocpricei.unbal := cumprod(geocpricei.ratio)]
 print(national_pi[])
 fwrite(
   national_pi[, .(year, month, national.cpricei.unbal, national.geocpricei.unbal)],
-  "Data/national_pi_county_monthly.csv"
+  "Data/national_pi_county_monthly_balanced.csv"
   )
 
 rm(list=ls())
@@ -222,10 +222,10 @@ national_pi[, national.geocpricei.bal := cumprod(geocpricei.ratio)]
 print(national_pi[])
 
 ## merge onto the unbalanced indices
-national_pi.old <- fread("Data/national_pi_county_monthly.csv")
+national_pi.old <- fread("Data/national_pi_county_monthly_balanced.csv")
 national_pi.all <- merge(
   national_pi.old,
   national_pi[, .(year, month, national.cpricei.bal, national.geocpricei.bal)],
   by = c("year", "month")
   )
-fwrite(national_pi.all, "Data/national_pi_county_monthly.csv")
+fwrite(national_pi.all, "Data/national_pi_county_monthly_balanced.csv")
