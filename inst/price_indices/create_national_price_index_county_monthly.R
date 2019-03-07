@@ -128,7 +128,7 @@ gc()
 ################################################################################
 
 ## load and convert .dta to .csv
-pi_data <- read.dta13("Data/Nielsen/Monthly_county_price_quantity_indices_food.dta")
+pi_data <- read.dta13("Data/Nielsen/Monthly_county_balanced_price_quantity_indices_food.dta")
 pi_data <- as.data.table(pi_data)
 setnames(pi_data, old = c("fips_state_code", "fips_county_code"),
          new = c("fips_state",      "fips_county"))
