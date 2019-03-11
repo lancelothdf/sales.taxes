@@ -25,8 +25,8 @@ border_custom <- function(...){
 
 }
 
-data_path <- "output/server/pi_data/pi_all_cohorts_pooled.csv"
-outfile_figpath <- "reports/figs/pi_all_cohorts_pooled_no2013.png"
+data_path <- "output/server/pi_data/pi_all_cohorts_pooled_extended.csv"
+outfile_figpath <- "reports/figs/pi_all_cohorts_pooled_extended.png"
 
 dt <- read.csv(data_path)
 
@@ -35,14 +35,14 @@ dt$ref_t <- as.yearqtr(paste0(dt$ref_year, " Q", dt$ref_quarter))
 dt$tt_ev <- (dt$t - dt$ref_t) * 4
 
 dt.agg <- dt %>%
-  filter(between(tt_ev, -4, 4)) %>%
+  filter(between(tt_ev, -12, 4)) %>%
   group_by(group, ref_t) %>%
-  mutate(cpricei = cpricei - cpricei[tt_ev == -2]) %>%
+  mutate(cpricei = cpricei - cpricei[tt_ev == -4]) %>%
   group_by(group, tt_ev) %>%
   summarize(cpricei.agg = weighted.mean(cpricei, w = cohort_size))
 
 dt.test <- dt %>%
-  filter(between(tt_ev, -4, 4) & ref_t <  2013.5) %>%
+  filter(between(tt_ev, -8, 4) & ref_t <  2013.5) %>%
   group_by(group, ref_t) %>%
   mutate(cpricei = cpricei - cpricei[tt_ev == -2]) %>%
   group_by(group, tt_ev) %>%
@@ -71,9 +71,9 @@ ggplot(dt.test, mapping = aes(x = tt_ev, y = cpricei.agg, color = group)) +
 
 ggsave(outfile_figpath, height = 120, width = 180, units = "mm")
 
-for (pp in seq(2013.5, 2013.75, .25)) {
+for (pp in seq(2009, 2013.75, .25)) {
   plot.dt <- dt %>%
-    filter(ref_t == pp, between(tt_ev, -4, 4)) %>%
+    filter(ref_t == pp, between(tt_ev, -6, 4)) %>%
     group_by(group) %>%
     mutate(cpricei = cpricei - cpricei[tt_ev == -2])
 

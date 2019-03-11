@@ -142,7 +142,7 @@ for (ref.year in 2009:2013) {
     tr.events.09Q1 <- tr.events[treatment_year == ref.year & ref_quarter == ref.quarter]
     setkey(tr.events.09Q1, fips_county, fips_state)
 
-    taxable_pi.09Q1 <- all_pi[sales_tax > 1]
+    taxable_pi.09Q1 <- all_pi[sales_tax > 1 | (year < 2008 & is.na(sales_tax))]
     taxable_pi.09Q1 <- taxable_pi.09Q1[tr.events.09Q1]
     g(taxable_pi.09Q1)
 
@@ -151,6 +151,7 @@ for (ref.year in 2009:2013) {
     ## limit to goods that are taxable for the cohort (e.g., 2009 Q1)
     constant.goods.set <- unique(taxable_pi.09Q1[year == ref.year & quarter == ref.quarter]$product_module_code)
     ss_pi <- all_pi[product_module_code %in% constant.goods.set] # keep goods constant
+    taxable_pi.09Q1
     g(ss_pi)
     rm(constant.goods.set)
 
@@ -192,6 +193,7 @@ for (ref.year in 2009:2013) {
     g(ss_pi.collapsed)
 
     ## merge onto the treated cohort by product
+    taxable_pi.09Q1 <- taxable_pi.09Q1[product_module_code %in% constant.goods.set]
     taxable_pi.09Q1 <- merge(taxable_pi.09Q1, ss_pi.collapsed,
                              by = c("year", "quarter", "product_module_code"))
     rm(ss_pi.collapsed)
