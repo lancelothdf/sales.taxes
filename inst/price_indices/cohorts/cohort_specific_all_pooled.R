@@ -21,6 +21,8 @@ library(sales.taxes)
 library(zoo)
 
 setwd("/project2/igaarder")
+prep.new.data <- T
+
 # check function
 g <- function(dt) {
   print(head(dt))
@@ -33,13 +35,47 @@ sales_data_path <- "Data/sales_quarterly_2006-2016.csv"
 tax_rates_path <- "Data/county_monthly_tax_rates.csv"
 quarterly_tax_path <- "Data/quarterly_tax_rates.csv"
 module_exemptions_path <- "Data/modules_exemptions_long.csv"
-all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems.csv"
+all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_notaxinfo.csv"
 taxable_pi_path <- "Data/Nielsen/price_quantity_indices_taxableitems.csv"
 expanded.reforms.path <- "Data/tax_reforms_all_incl2014.csv"
 
+## combine the data (addition of 2006 + 2007) ----------------------------------
+if (prep.new.data) {
+nonfood_pi <- read.dta13("Data/Nielsen/Price_quantity_indices_nonfood.dta")
+nonfood_pi <- as.data.table(nonfood_pi)
+# fwrite(nonfood_pi, "Data/Nielsen/price_quantity_indices_nonfood.csv")
+
+food_pi <- fread("Data/Nielsen/price_quantity_indices_food.csv")
+food_pi[, c("fips_state", "fips_county") := NULL]
+
+all_pi <- rbind(food_pi, nonfood_pi)
+all_pi <- all_pi[year <= 2014]
+rm(nonfood_pi, food_pi)
+gc()
+
+### attach county and state FIPS codes, sales ----------------------------------
+sales_data <- fread(sales_data_path)
+sales_data <- sales_data[, .(store_code_uc, product_module_code, fips_county,
+                             fips_state, quarter, year, sales)]
+sales_data <- sales_data[year <= 2014]
+
+all_pi <- merge(all_pi, sales_data, by = c("store_code_uc", "quarter", "year",
+                                           "product_module_code" ))
+rm(sales_data)
+gc()
+
+all.tax <- fread(quarterly_tax_path)
+all_pi <- merge(all_pi, all.tax, by = c("store_code_uc", "product_module_code",
+                                        "year", "quarter", "product_group_code"),
+                all.x = T)
+rm(all.tax)
+
+fwrite(all_pi, all_goods_pi_path)
+} else {
+  all_pi <- fread(all_goods_pi_path)
+}
+
 ## prep the data ---------------------------------------------------------------
-all_pi <- fread(all_goods_pi_path)
-all_pi <- all_pi[between(year, 2008, 2014)]
 
 # do `arbitrary` correction for the 2013 Q1 jump in the data
 ## calculate price index in 2013 Q1 / cpricei in 2012 Q4
@@ -49,7 +85,7 @@ all_pi[, correction := pricei[year == 2013 & quarter == 1] / pricei[year == 2012
 all_pi[year >= 2013, cpricei := cpricei / correction]
 
 ## normalize
-all_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2008 & quarter == 1]),
+all_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2006 & quarter == 1]),
        by = .(store_code_uc, product_module_code)]
 all_pi[, base.sales := sales[year == 2008 & quarter == 1],
        by = .(store_code_uc, product_module_code)]
@@ -58,7 +94,7 @@ all_pi <- all_pi[!is.na(normalized.cpricei) & !is.na(base.sales)]
 ## balance on store-module level
 keep_store_modules <- all_pi[, list(n = .N),
                              by = .(store_code_uc, product_module_code)]
-keep_store_modules <- keep_store_modules[n == (2014 - 2007) * 4]
+keep_store_modules <- keep_store_modules[n == (2014 - 2005) * 4]
 
 setkey(all_pi, store_code_uc, product_module_code)
 setkey(keep_store_modules, store_code_uc, product_module_code)
@@ -185,9 +221,9 @@ for (ref.year in 2009:2013) {
   }
 }
 
-fwrite(master_res, "Data/pi_all_cohorts_pooled.csv")
+fwrite(master_res, "Data/pi_all_cohorts_pooled_extended.csv")
 
 setnames(cohort_sizes, "treatment_year", "ref_year")
 ## merge on cohort size
 master_res <- merge(master_res, cohort_sizes, by = c("ref_year", "ref_quarter"))
-fwrite(master_res, "Data/pi_all_cohorts_pooled.csv")
+fwrite(master_res, "Data/pi_all_cohorts_pooled_extended.csv")

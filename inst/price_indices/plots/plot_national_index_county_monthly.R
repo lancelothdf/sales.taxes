@@ -7,9 +7,9 @@ setwd("C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes")
 library(tidyverse)
 library(zoo)
 
-lance.pi_path <- "output/server/national_pi_county_monthly.csv"
+lance.pi_path <- "output/server/national_pi_county_monthly_balanced.csv"
 cpi_path <- "data/CPI/national_monthly_food_beverage_chained_cpi.csv"
-outfile_figpath <- "reports/figs/comparing_county_monthly.png"
+outfile_figpath <- "reports/figs/comparing_county_monthly_balanced.png"
 
 ### Import and clean geometric price indices -----------------------------------
 pi_county <- read.csv(lance.pi_path) %>% select(-contains("ratio"))
