@@ -153,7 +153,6 @@ for (ref.year in 2009:2013) {
     ss_pi <- all_pi[product_module_code %in% constant.goods.set] # keep goods constant
     taxable_pi.09Q1
     g(ss_pi)
-    rm(constant.goods.set)
 
     ## identify never treated counties
     never.treated <- ss_pi[never.treated.master]
