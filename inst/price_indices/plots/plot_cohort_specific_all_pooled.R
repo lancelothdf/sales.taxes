@@ -42,7 +42,7 @@ dt.agg <- dt %>%
   summarize(cpricei.agg = weighted.mean(cpricei, w = cohort_size))
 
 dt.test <- dt %>%
-  filter(between(tt_ev, -8, 4) & ref_t <  2013.5) %>%
+  filter(between(tt_ev, -12, 4) & ref_t <  2013.5) %>%
   group_by(group, ref_t) %>%
   mutate(cpricei = cpricei - cpricei[tt_ev == -2]) %>%
   group_by(group, tt_ev) %>%
