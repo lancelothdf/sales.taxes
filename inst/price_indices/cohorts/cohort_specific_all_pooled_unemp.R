@@ -153,7 +153,7 @@ for (ref.year in 2009:2013) {
     g(unemp_ss.collapsed)
 
     ## rearrange for simple merging of groups onto 2009 m1 cohort
-    unemp_ss.collapsed <- tidyr::spread(unemp_ss.collapsed, group, normalized.rate)
+    unemp_ss.collapsed <- tidyr::spread(unemp_ss.collapsed, group, control.rate)
     g(unemp_ss.collapsed)
 
     ## merge onto the treated cohort by product

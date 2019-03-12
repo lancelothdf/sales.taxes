@@ -154,7 +154,7 @@ for (ref.year in 2009:2013) {
     g(zillow_ss.collapsed)
 
     ## rearrange for simple merging of groups onto 2009 m1 cohort
-    zillow_ss.collapsed <- tidyr::spread(zillow_ss.collapsed, group, normalized.homeprice)
+    zillow_ss.collapsed <- tidyr::spread(zillow_ss.collapsed, group, control.homeprice)
     g(zillow_ss.collapsed)
 
     ## merge onto the treated cohort by product
