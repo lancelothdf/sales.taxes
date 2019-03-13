@@ -113,6 +113,10 @@ for (ref.year in 2009:2013) {
     print(paste("Year:", ref.year, "; Month:", ref.month))
     ## identify treated cohort -------------------------------------------------
     tr.events.09m1 <- tr.events[treatment_year == ref.year & ref_month == ref.month]
+    if (nrow(tr.events.09m1) == 0) {
+      print("No events, skipping")
+      next
+    }
     setkey(tr.events.09m1, fips_county, fips_state)
 
     zillow.09m1 <- zillow_dt[tr.events.09m1]
@@ -133,11 +137,18 @@ for (ref.year in 2009:2013) {
     zillow_ss[, calendar_month := 12 * year + month]
     zillow_ss[, min_treat_month := min(treatment_month), by = .(fips_state, fips_county)]
 
-    zillow_ss_yearplus <- zillow_ss[min_treat_month > (12 * ref.year + ref.month + 12)]
-    zillow_ss <- zillow_ss[min_treat_month > calendar_month]
+    zillow_ss_yearplus <- zillow_ss[min_treat_month > (12 * ref.year + ref.month + 12) &
+                                      min_treat_month > calendar_month]
+    future_restr_grp <- T
+    if (nrow(zillow_ss_yearplus) == 0) {
+      future_restr_grp <- F
+    } else {
+      zillow_ss_yearplus[, group := "Future restricted"]
+    }
 
+    zillow_ss <- zillow_ss[min_treat_month > calendar_month]
     zillow_ss[, group := "Future"]
-    zillow_ss_yearplus[, group := "Future restricted"]
+
     g(zillow_ss)
     g(zillow_ss_yearplus)
 
@@ -167,12 +178,22 @@ for (ref.year in 2009:2013) {
     ## aggregate over calendar time ------------------------------------------------
     g(zillow.09m1)
 
-    zillow.09m1.collapsed <- zillow.09m1[, list(
-      mean.homeprice = weighted.mean(normalized.homeprice, w = base.sales),
-      Future = weighted.mean(Future, w = base.sales),
-      `Future restricted` = weighted.mean(`Future restricted`, w = base.sales),
-      `No change` = weighted.mean(`No change`, w = base.sales)
-    ), by = .(year, month)]
+    if (future_restr_grp) {
+      zillow.09m1.collapsed <- zillow.09m1[, list(
+        mean.homeprice = weighted.mean(normalized.homeprice, w = base.sales),
+        Future = weighted.mean(Future, w = base.sales),
+        `Future restricted` = weighted.mean(`Future restricted`, w = base.sales),
+        `No change` = weighted.mean(`No change`, w = base.sales)
+      ), by = .(year, month)]
+    } else {
+      zillow.09m1.collapsed <- zillow.09m1[, list(
+        mean.homeprice = weighted.mean(normalized.homeprice, w = base.sales),
+        Future = weighted.mean(Future, w = base.sales),
+        `No change` = weighted.mean(`No change`, w = base.sales)
+      ), by = .(year, month)]
+      zillow.09m1.collapsed[, `Future restricted` := NA]
+    }
+
     g(zillow.09m1.collapsed)
 
     setnames(zillow.09m1.collapsed, "mean.homeprice", "Treated")
