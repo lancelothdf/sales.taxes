@@ -36,12 +36,12 @@ dt$tt_ev <- round((dt$t - dt$ref_t) * 12)
 
 dt <- as.data.table(dt)
 dt.agg <- dt[between(tt_ev, -36, 12)]
-dt.agg <- dt.agg[, homeprice := homeprice - homeprice[tt_ev == -2], by = .(group, ref_t)]
+dt.agg <- dt.agg[, homeprice := homeprice - homeprice[tt_ev == -6], by = .(group, ref_t)]
 dt.agg <- dt.agg[, list(homeprice.agg = weighted.mean(homeprice, cohort_size)),
                  by = .(group, tt_ev)]
 
 dt.test <- dt[between(tt_ev, -36, 12) & ref_t <= 2013.5]
-dt.test <- dt.test[, homeprice := homeprice - homeprice[tt_ev == -2], by = .(group, ref_t)]
+dt.test <- dt.test[, homeprice := homeprice - homeprice[tt_ev == -6], by = .(group, ref_t)]
 dt.test <- dt.test[, list(homeprice.agg = weighted.mean(homeprice, cohort_size)),
                    by = .(group, tt_ev)]
 
@@ -68,19 +68,19 @@ ggplot(dt.test, mapping = aes(x = tt_ev, y = homeprice.agg, color = group)) +
 
 ggsave(outfile_figpath, height = 120, width = 180, units = "mm")
 
-for (pp in seq(2009, 2013.75, .25)) {
+for (pp in sort(unique(dt$ref_t))) {
   plot.dt <- dt %>%
-    filter(ref_t == pp, between(tt_ev, -6, 4)) %>%
+    filter(ref_t == pp, between(tt_ev, -36, 12)) %>%
     group_by(group) %>%
-    mutate(quantityi = quantityi - quantityi[tt_ev == -2])
+    mutate(homeprice = homeprice - homeprice[tt_ev == -6])
 
-  myplot <- ggplot(plot.dt, mapping = aes(x = t, y = quantityi, color = group)) +
+  myplot <- ggplot(plot.dt, mapping = aes(x = t, y = homeprice, color = group)) +
     geom_line(size = .7) +
     geom_point(size = .8) +
     geom_vline(xintercept = pp, color = "red", linetype = 1, alpha = .5) +
     theme_bw() +
-    scale_x_yearqtr(format = "%Y Q%q", expand = c(.01, -.05)) +
-    labs(x = "Quarter", y = "Normalized Price Index", color = "Cohort") +
+    scale_x_yearmon(format = "%Y %m", expand = c(.01, -.05)) +
+    labs(x = "Month", y = "Normalized Price Index", color = "Cohort") +
     theme(
       panel.grid.major.x = element_blank(),
       panel.grid.major.y = element_line(size = 0.1, colour = 'grey'),

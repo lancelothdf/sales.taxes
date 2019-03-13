@@ -131,18 +131,20 @@ for (ref.year in 2009:2013) {
                                     ref_month > ref.month)]]
     zillow_ss[, treatment_month := 12 * treatment_year + ref_month]
     zillow_ss[, calendar_month := 12 * year + month]
-    zillow_ss[, not_yet_treated := min(treatment_month) > calendar_month,
-           by = c("fips_state", "fips_county")]
+    zillow_ss[, min_treat_month := min(treatment_month), by = .(fips_state, fips_county)]
 
-    zillow_ss <- zillow_ss[not_yet_treated == TRUE]
-    zillow_ss[, not_yet_treated := NULL]
+    zillow_ss_yearplus <- zillow_ss[min_treat_month > (12 * ref.year + ref.month + 12)]
+    zillow_ss <- zillow_ss[min_treat_month > calendar_month]
+
     zillow_ss[, group := "Future"]
+    zillow_ss_yearplus[, group := "Future restricted"]
     g(zillow_ss)
+    g(zillow_ss_yearplus)
 
     ## combine never treated + later cohorts
-    zillow_ss <- rbind(zillow_ss, never.treated, fill = T)
+    zillow_ss <- rbind(zillow_ss, zillow_ss_yearplus, never.treated, fill = T)
     g(zillow_ss)
-    rm(never.treated)
+    rm(never.treated, zillow_ss_yearplus)
 
     # ss_pi[, event.weight := ifelse(is.na(n_events), 1, 1 / n_events)]
 
@@ -168,6 +170,7 @@ for (ref.year in 2009:2013) {
     zillow.09m1.collapsed <- zillow.09m1[, list(
       mean.homeprice = weighted.mean(normalized.homeprice, w = base.sales),
       Future = weighted.mean(Future, w = base.sales),
+      `Future restricted` = weighted.mean(`Future restricted`, w = base.sales),
       `No change` = weighted.mean(`No change`, w = base.sales)
     ), by = .(year, month)]
     g(zillow.09m1.collapsed)
@@ -175,7 +178,8 @@ for (ref.year in 2009:2013) {
     setnames(zillow.09m1.collapsed, "mean.homeprice", "Treated")
     zillow.09m1.collapsed <- tidyr::gather(zillow.09m1.collapsed,
                                                key = group, value = homeprice,
-                                               c(Treated, Future, `No change`))
+                                               c(Treated, Future,
+                                                 `Future restricted`, `No change`))
     g(zillow.09m1.collapsed)
     zillow.09m1.collapsed <- as.data.table(zillow.09m1.collapsed)
     zillow.09m1.collapsed <- zillow.09m1.collapsed[!is.na(homeprice)]
