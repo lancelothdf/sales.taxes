@@ -25,8 +25,8 @@ border_custom <- function(...){
 
 }
 
-data_path <- "output/server/pi_data/homeprice_all_cohorts_pooled_extended.csv"
-outfile_figpath <- "reports/figs/homeprice_all_cohorts_pooled_extended.png"
+data_path <- "output/server/pi_data/homeprice_all_cohorts_pooled_extended2.csv"
+outfile_figpath <- "reports/figs/homeprice_all_cohorts_pooled_extended2.png"
 
 dt <- read.csv(data_path)
 
@@ -44,6 +44,7 @@ dt.test <- dt[between(tt_ev, -36, 12) & ref_t <= 2013.5]
 dt.test <- dt.test[, homeprice := homeprice - homeprice[tt_ev == -6], by = .(group, ref_t)]
 dt.test <- dt.test[, list(homeprice.agg = weighted.mean(homeprice, cohort_size)),
                    by = .(group, tt_ev)]
+dt.test[group == "Future restricted", group := "Future (over one year)"]
 
 ggplot(dt.test, mapping = aes(x = tt_ev, y = homeprice.agg, color = group)) +
   geom_line(size = .7) +

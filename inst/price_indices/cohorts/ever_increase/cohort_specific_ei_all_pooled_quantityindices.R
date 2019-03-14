@@ -140,6 +140,10 @@ for (ref.year in 2009:2013) {
     print(paste("Year:", ref.year, "; Quarter:", ref.quarter))
     ## identify treated cohort -------------------------------------------------
     tr.events.09Q1 <- tr.events[treatment_year == ref.year & ref_quarter == ref.quarter]
+    if (nrow(tr.events.09Q1) == 0) {
+      print("No events, skipping")
+      next
+    }
     setkey(tr.events.09Q1, fips_county, fips_state)
 
     taxable_pi.09Q1 <- all_pi[sales_tax > 1 | (year < 2008 & is.na(sales_tax))]
@@ -165,18 +169,26 @@ for (ref.year in 2009:2013) {
                                     ref_quarter > ref.quarter)]]
     ss_pi[, treatment_quarter := 4 * treatment_year + ref_quarter]
     ss_pi[, calendar_quarter := 4 * year + quarter]
-    ss_pi[, not_yet_treated := min(treatment_quarter) > calendar_quarter,
-           by = c("fips_state", "fips_county")]
+    ss_pi[, min_treat_quarter := min(treatment_quarter), by = .(fips_state, fips_county)]
+    ss_pi_yearplus <- ss_pi[min_treat_quarter > (4 * ref.year + ref.quarter + 4) &
+                              min_treat_quarter > calendar_quarter]
+    future_restr_grp <- T
+    if (nrow(ss_pi_yearplus) == 0) {
+      future_restr_grp <- F
+    } else {
+      ss_pi_yearplus[, group := "Future restricted"]
+    }
 
-    ss_pi <- ss_pi[not_yet_treated == TRUE]
-    ss_pi[, not_yet_treated := NULL]
+    ss_pi <- ss_pi[min_treat_quarter > calendar_quarter]
     ss_pi[, group := "Future"]
+
     g(ss_pi)
+    g(ss_pi_yearplus)
 
     ## combine never treated + later cohorts
-    ss_pi <- rbind(ss_pi, never.treated, fill = T)
+    ss_pi <- rbind(ss_pi, ss_pi_yearplus, never.treated, fill = T)
     g(ss_pi)
-    rm(never.treated)
+    rm(never.treated, ss_pi_yearplus)
 
     # ss_pi[, event.weight := ifelse(is.na(n_events), 1, 1 / n_events)]
 
@@ -200,17 +212,29 @@ for (ref.year in 2009:2013) {
     ## aggregate over calendar time ------------------------------------------------
     g(taxable_pi.09Q1)
 
-    taxable_pi.09Q1.collapsed <- taxable_pi.09Q1[, list(
-      mean.quantityi = weighted.mean(normalized.quantityi, w = base.sales),
-      Future = weighted.mean(Future, w = base.sales),
-      `No change` = weighted.mean(`No change`, w = base.sales)
-    ), by = .(year, quarter)]
+    if (future_restr_grp) {
+      taxable_pi.09Q1.collapsed <- taxable_pi.09Q1[, list(
+        mean.quantityi = weighted.mean(normalized.quantityi, w = base.sales),
+        Future = weighted.mean(Future, w = base.sales),
+        `Future restricted` = weighted.mean(`Future restricted`, w = base.sales),
+        `No change` = weighted.mean(`No change`, w = base.sales)
+      ), by = .(year, quarter)]
+    } else {
+      taxable_pi.09Q1.collapsed <- taxable_pi.09Q1[, list(
+        mean.quantityi = weighted.mean(normalized.quantityi, w = base.sales),
+        Future = weighted.mean(Future, w = base.sales),
+        `No change` = weighted.mean(`No change`, w = base.sales)
+      ), by = .(year, quarter)]
+      taxable_pi.09Q1.collapsed[, `Future restricted` := NA]
+    }
+
     g(taxable_pi.09Q1.collapsed)
 
     setnames(taxable_pi.09Q1.collapsed, "mean.quantityi", "Treated")
     taxable_pi.09Q1.collapsed <- tidyr::gather(taxable_pi.09Q1.collapsed,
                                                key = group, value = quantityi,
-                                               c(Treated, Future, `No change`))
+                                               c(Treated, Future,
+                                                 `Future restricted`, `No change`))
     g(taxable_pi.09Q1.collapsed)
     taxable_pi.09Q1.collapsed <- as.data.table(taxable_pi.09Q1.collapsed)
     taxable_pi.09Q1.collapsed <- taxable_pi.09Q1.collapsed[!is.na(quantityi)]

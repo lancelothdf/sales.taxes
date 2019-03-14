@@ -25,8 +25,8 @@ border_custom <- function(...){
 
 }
 
-data_path <- "output/server/pi_data/pi_all_cohorts_pooled_extended.csv"
-outfile_figpath <- "reports/figs/pi_all_cohorts_pooled_extended.png"
+data_path <- "output/server/pi_data/increase_only/pi_all_cohorts_io_pooled_extended.csv"
+outfile_figpath <- "reports/figs/pi_all_cohorts_io_pooled_extended.png"
 
 dt <- read.csv(data_path)
 

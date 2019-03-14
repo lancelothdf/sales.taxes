@@ -25,8 +25,8 @@ border_custom <- function(...){
 
 }
 
-data_path <- "output/server/pi_data/unemprate_all_cohorts_pooled_extended.csv"
-outfile_figpath <- "reports/figs/unemp_all_cohorts_pooled_extended.png"
+data_path <- "output/server/pi_data/ever_decrease/unemprate_all_cohorts_ed_pooled_extended.csv"
+outfile_figpath <- "reports/figs/unemp_all_cohorts_ed_pooled_extended.png"
 
 dt <- read.csv(data_path)
 
@@ -36,12 +36,12 @@ dt$tt_ev <- round((dt$t - dt$ref_t) * 12)
 
 dt <- as.data.table(dt)
 dt.agg <- dt[between(tt_ev, -36, 12)]
-dt.agg <- dt.agg[, rate := rate - rate[tt_ev == -2], by = .(group, ref_t)]
+dt.agg <- dt.agg[, rate := rate - rate[tt_ev == -6], by = .(group, ref_t)]
 dt.agg <- dt.agg[, list(rate.agg = weighted.mean(rate, cohort_size)),
                  by = .(group, tt_ev)]
 
 dt.test <- dt[between(tt_ev, -36, 12) & ref_t <= 2013.5]
-dt.test <- dt.test[, rate := rate - rate[tt_ev == -2], by = .(group, ref_t)]
+dt.test <- dt.test[, rate := rate - rate[tt_ev == -6], by = .(group, ref_t)]
 dt.test <- dt.test[, list(rate.agg = weighted.mean(rate, cohort_size)),
                    by = .(group, tt_ev)]
 
