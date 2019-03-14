@@ -28,6 +28,9 @@ g <- function(dt) {
   print(head(dt))
 }
 
+change_of_interest <- "Ever increase"
+output_filepath <- "Data/quantityi_all_cohorts_pooled_extended.csv"
+
 ## useful filepaths ------------------------------------------------------------
 eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_w2014.csv"
 tr_groups_path <- "Data/tr_groups_comprehensive_w2014.csv"
@@ -104,7 +107,7 @@ setkey(all_pi, fips_county, fips_state)
 
 ## prep treatment events -------------------------------------------------------
 tr.events <- fread(eventstudy_tr_path)
-tr.events <- tr.events[tr_group == "Ever increase"]
+tr.events <- tr.events[tr_group == change_of_interest]
 tr.events[, treatment_month := 12 * ref_year + ref_month]
 ## we are only interested in the first event
 tr.events[, min.event := (treatment_month == min(treatment_month)),
@@ -130,6 +133,7 @@ setkey(never.treated.master, fips_state, fips_county)
 
 ## iterate over all quarters and years -----------------------------------------
 master_res <- data.table(NULL)
+pool_cohort_weights <- data.table(NULL)
 
 for (ref.year in 2009:2013) {
   for (ref.quarter in 1:4) {
@@ -149,6 +153,14 @@ for (ref.year in 2009:2013) {
     taxable_pi.09Q1 <- all_pi[sales_tax > 1 | (year < 2008 & is.na(sales_tax))]
     taxable_pi.09Q1 <- taxable_pi.09Q1[tr.events.09Q1]
     g(taxable_pi.09Q1)
+
+    ## get sum of sales in treated counties
+    pool_cohort_weights <- rbind(
+      pool_cohort_weights,
+      data.table(ref_year = ref.year, ref_quarter = ref.quarter,
+                 ## sum of all base sales weights in the cohort at time of treatment
+                 cohort_sales = sum(taxable_pi.09Q1[year == ref.year & quarter == ref.quarter]$base.sales))
+    )
 
     ## prepare control data --------------------------------------------------------
 
@@ -246,9 +258,11 @@ for (ref.year in 2009:2013) {
   }
 }
 
-fwrite(master_res, "Data/quantityi_all_cohorts_pooled_extended.csv")
+fwrite(master_res, output_filepath)
 
 setnames(cohort_sizes, "treatment_year", "ref_year")
 ## merge on cohort size
 master_res <- merge(master_res, cohort_sizes, by = c("ref_year", "ref_quarter"))
-fwrite(master_res, "Data/quantityi_all_cohorts_pooled_extended.csv")
+master_res <- merge(master_res, pool_cohort_weights, by = c("ref_year", "ref_quarter"))
+
+fwrite(master_res, output_filepath)

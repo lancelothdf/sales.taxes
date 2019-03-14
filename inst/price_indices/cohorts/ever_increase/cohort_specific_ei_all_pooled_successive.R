@@ -127,6 +127,7 @@ cohort_sizes <- tr.events[, list(cohort_size = .N), by = .(treatment_year, ref_q
 
 ## iterate over all quarters and years -----------------------------------------
 master_res <- data.table(NULL)
+pool_cohort_weights <- data.table(NULL)
 
 for (ref.year in 2009:2013) {
   for (ref.quarter in 1:4) {
@@ -147,6 +148,14 @@ for (ref.year in 2009:2013) {
     taxable_pi.09Q1 <- taxable_pi.09Q1[tr.events.09Q1]
     g(taxable_pi.09Q1)
 
+    ## get sum of sales in treated counties
+    pool_cohort_weights <- rbind(
+      pool_cohort_weights,
+      data.table(ref_year = ref.year, ref_quarter = ref.quarter,
+                 ## sum of all base sales weights in the cohort at time of treatment
+                 cohort_sales = sum(taxable_pi.09Q1[year == ref.year & quarter == ref.quarter]$base.sales))
+    )
+
     ## prepare control data --------------------------------------------------------
 
     ## limit to goods that are taxable for the cohort (e.g., 2009 Q1)
@@ -155,7 +164,7 @@ for (ref.year in 2009:2013) {
     taxable_pi.09Q1
     g(ss_pi)
 
-    ## identify not-yet-treated (but future treated) counties
+    ## identify future treated counties
     ss_pi <- ss_pi[tr.events[treatment_year > ref.year |
                                  (treatment_year == ref.year &
                                     ref_quarter > ref.quarter)]]
@@ -253,4 +262,5 @@ fwrite(master_res, output_filepath)
 setnames(cohort_sizes, "treatment_year", "ref_year")
 ## merge on cohort size
 master_res <- merge(master_res, cohort_sizes, by = c("ref_year", "ref_quarter"))
+master_res <- merge(master_res, pool_cohort_weights, by = c("ref_year", "ref_quarter"))
 fwrite(master_res, output_filepath)
