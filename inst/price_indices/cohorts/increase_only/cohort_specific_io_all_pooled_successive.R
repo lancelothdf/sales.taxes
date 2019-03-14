@@ -5,14 +5,8 @@
 #' to the ones you have been doing recently.  We revert back to defining cohorts
 #' by quarters.
 
-#' 3b)  Plot mean price index (tax inclusive) for all counties that increased
-#' their taxes at some point (ever increase group).  Then build two alternative
-#' control groups: A) same as we have been doing - use an average of counties
-#' that never change their taxes "matching" calendar time and product.  B) for
-#' each "treated cohort" build the control group by taking all counties from the
-#' ever increase group that have not yet increased their taxes (but will in the
-#' future) "matching" on calendar time and product - average over the different
-#' control groups for each treated cohortXproduct.
+#' The main difference between this and "cohort_specific_ei_all_pooled.R" is that
+#' this file creates control groups that are treated 1, 2, 3, 4 quarters after.
 
 library(tidyverse)
 library(data.table)
@@ -29,7 +23,7 @@ g <- function(dt) {
 }
 
 change_of_interest <- "Increase only"
-output_filepath <- "Data/quantityi_all_cohorts_io_pooled_extended.csv"
+output_filepath <- "Data/pi_all_cohorts_io_pooled_successive.csv"
 
 ## useful filepaths ------------------------------------------------------------
 eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_w2014.csv"
@@ -81,18 +75,18 @@ fwrite(all_pi, all_goods_pi_path)
 ## prep the data ---------------------------------------------------------------
 
 # do `arbitrary` correction for the 2013 Q1 jump in the data
-## calculate price index in 2013 Q1 / quantityi in 2012 Q4
-all_pi[, correction := quantityi[year == 2013 & quarter == 1] / quantityi[year == 2012 & quarter == 4],
+## calculate price index in 2013 Q1 / cpricei in 2012 Q4
+all_pi[, correction := pricei[year == 2013 & quarter == 1] / pricei[year == 2012 & quarter == 4],
        by = .(store_code_uc, product_module_code)]
 ## divide price index after 2013 Q1 (inclusive) by above value
-all_pi[year >= 2013, quantityi := quantityi / correction]
+all_pi[year >= 2013, cpricei := cpricei / correction]
 
 ## normalize
-all_pi[, normalized.quantityi := log(quantityi) - log(quantityi[year == 2006 & quarter == 1]),
+all_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2006 & quarter == 1]),
        by = .(store_code_uc, product_module_code)]
 all_pi[, base.sales := sales[year == 2008 & quarter == 1],
        by = .(store_code_uc, product_module_code)]
-all_pi <- all_pi[!is.na(normalized.quantityi) & !is.na(base.sales)]
+all_pi <- all_pi[!is.na(normalized.cpricei) & !is.na(base.sales)]
 
 ## balance on store-module level
 keep_store_modules <- all_pi[, list(n = .N),
@@ -126,10 +120,10 @@ setkey(tr.events, fips_county, fips_state)
 cohort_sizes <- tr.events[, list(cohort_size = .N), by = .(treatment_year, ref_quarter)]
 
 # for later use
-tr.groups <- fread(tr_groups_path)
-never.treated.master <- tr.groups[tr_group == "No change"]
-never.treated.master <- never.treated.master[, .(fips_state, fips_county)]
-setkey(never.treated.master, fips_state, fips_county)
+# tr.groups <- fread(tr_groups_path)
+# never.treated.master <- tr.groups[tr_group == "No change"]
+# never.treated.master <- never.treated.master[, .(fips_state, fips_county)]
+# setkey(never.treated.master, fips_state, fips_county)
 
 ## iterate over all quarters and years -----------------------------------------
 master_res <- data.table(NULL)
@@ -170,49 +164,53 @@ for (ref.year in 2009:2013) {
     taxable_pi.09Q1
     g(ss_pi)
 
-    ## identify never treated counties
-    never.treated <- ss_pi[never.treated.master]
-    never.treated[, group := "No change"]
-    g(never.treated)
-
-    ## identify not-yet-treated (but future treated) counties
+    ## identify future treated counties
     ss_pi <- ss_pi[tr.events[treatment_year > ref.year |
                                  (treatment_year == ref.year &
                                     ref_quarter > ref.quarter)]]
     ss_pi[, treatment_quarter := 4 * treatment_year + ref_quarter]
     ss_pi[, calendar_quarter := 4 * year + quarter]
     ss_pi[, min_treat_quarter := min(treatment_quarter), by = .(fips_state, fips_county)]
-    ss_pi_yearplus <- ss_pi[min_treat_quarter > (4 * ref.year + ref.quarter + 4) &
-                              min_treat_quarter > calendar_quarter]
-    future_restr_grp <- T
-    if (nrow(ss_pi_yearplus) == 0) {
-      future_restr_grp <- F
-    } else {
-      ss_pi_yearplus[, group := "Future restricted"]
-    }
 
-    ss_pi <- ss_pi[min_treat_quarter > calendar_quarter]
-    ss_pi[, group := "Future"]
+    ## subset future treated into four groups: +1 quarter, ..., +4 quarters
+    ss_pi_grp1 <- ss_pi[min_treat_quarter == (4 * ref.year + ref.quarter + 1)]
+    ss_pi_grp2 <- ss_pi[min_treat_quarter == (4 * ref.year + ref.quarter + 2)]
+    ss_pi_grp3 <- ss_pi[min_treat_quarter == (4 * ref.year + ref.quarter + 3)]
+    ss_pi_grp4 <- ss_pi[min_treat_quarter == (4 * ref.year + ref.quarter + 4)]
 
+    ss_pi_grp1[, group := "Future restricted (in 1 quarter)"]
+    ss_pi_grp2[, group := "Future restricted (in 2 quarters)"]
+    ss_pi_grp3[, group := "Future restricted (in 3 quarters)"]
+    ss_pi_grp4[, group := "Future restricted (in 4 quarters)"]
+
+    grp1 <- (nrow(ss_pi_grp1) != 0)
+    grp2 <- (nrow(ss_pi_grp2) != 0)
+    grp3 <- (nrow(ss_pi_grp3) != 0)
+    grp4 <- (nrow(ss_pi_grp4) != 0)
+
+    print("Group 1:")
+    g(ss_pi_grp1)
+    print("Group 2:")
+    g(ss_pi_grp2)
+    print("Group 3:")
+    g(ss_pi_grp3)
+    print("Group 4:")
+    g(ss_pi_grp4)
+
+    ## combine control cohorts
+    ss_pi <- rbind(ss_pi_grp1, ss_pi_grp2, ss_pi_grp3, ss_pi_grp4, fill = T)
     g(ss_pi)
-    g(ss_pi_yearplus)
-
-    ## combine never treated + later cohorts
-    ss_pi <- rbind(ss_pi, ss_pi_yearplus, never.treated, fill = T)
-    g(ss_pi)
-    rm(never.treated, ss_pi_yearplus)
-
-    # ss_pi[, event.weight := ifelse(is.na(n_events), 1, 1 / n_events)]
+    rm(ss_pi_grp1, ss_pi_grp2, ss_pi_grp3, ss_pi_grp4)
 
     ## collapse to product x group x time level -----------------------------------
     ss_pi.collapsed <- ss_pi[, list(
-      control.quantityi = weighted.mean(normalized.quantityi, w = base.sales)
+      control.cpricei = weighted.mean(normalized.cpricei, w = base.sales)
     ), by = .(year, quarter, group, product_module_code)]
     rm(ss_pi)
     g(ss_pi.collapsed)
 
-    ## rearrange for simple merging of groups onto 2009 Q1 cohort
-    ss_pi.collapsed <- tidyr::spread(ss_pi.collapsed, group, control.quantityi)
+    ## rearrange for simple merging of groups onto treated cohort
+    ss_pi.collapsed <- tidyr::spread(ss_pi.collapsed, group, control.cpricei)
     g(ss_pi.collapsed)
 
     ## merge onto the treated cohort by product
@@ -224,32 +222,33 @@ for (ref.year in 2009:2013) {
     ## aggregate over calendar time ------------------------------------------------
     g(taxable_pi.09Q1)
 
-    if (future_restr_grp) {
-      taxable_pi.09Q1.collapsed <- taxable_pi.09Q1[, list(
-        mean.quantityi = weighted.mean(normalized.quantityi, w = base.sales),
-        Future = weighted.mean(Future, w = base.sales),
-        `Future restricted` = weighted.mean(`Future restricted`, w = base.sales),
-        `No change` = weighted.mean(`No change`, w = base.sales)
-      ), by = .(year, quarter)]
-    } else {
-      taxable_pi.09Q1.collapsed <- taxable_pi.09Q1[, list(
-        mean.quantityi = weighted.mean(normalized.quantityi, w = base.sales),
-        Future = weighted.mean(Future, w = base.sales),
-        `No change` = weighted.mean(`No change`, w = base.sales)
-      ), by = .(year, quarter)]
-      taxable_pi.09Q1.collapsed[, `Future restricted` := NA]
-    }
+    ## need to have all variables declared, even if the group is empty
+    if (!grp1) taxable_pi.09Q1[, `Future restricted (in 1 quarter)` := NA]
+    if (!grp2) taxable_pi.09Q1[, `Future restricted (in 2 quarters)` := NA]
+    if (!grp3) taxable_pi.09Q1[, `Future restricted (in 3 quarters)` := NA]
+    if (!grp4) taxable_pi.09Q1[, `Future restricted (in 4 quarters)` := NA]
+
+    taxable_pi.09Q1.collapsed <- taxable_pi.09Q1[, list(
+      mean.cpricei = weighted.mean(normalized.cpricei, w = base.sales),
+      `Future restricted (in 1 quarter)` = weighted.mean(`Future restricted (in 1 quarter)`, w = base.sales),
+      `Future restricted (in 2 quarters)` = weighted.mean(`Future restricted (in 2 quarters)`, w = base.sales),
+      `Future restricted (in 3 quarters)` = weighted.mean(`Future restricted (in 3 quarters)`, w = base.sales),
+      `Future restricted (in 4 quarters)` = weighted.mean(`Future restricted (in 4 quarters)`, w = base.sales)
+    ), by = .(year, quarter)]
 
     g(taxable_pi.09Q1.collapsed)
 
-    setnames(taxable_pi.09Q1.collapsed, "mean.quantityi", "Treated")
+    setnames(taxable_pi.09Q1.collapsed, "mean.cpricei", "Treated")
     taxable_pi.09Q1.collapsed <- tidyr::gather(taxable_pi.09Q1.collapsed,
-                                               key = group, value = quantityi,
-                                               c(Treated, Future,
-                                                 `Future restricted`, `No change`))
+                                               key = group, value = cpricei,
+                                               c(Treated,
+                                                 `Future restricted (in 1 quarter)`,
+                                                 `Future restricted (in 2 quarters)`,
+                                                 `Future restricted (in 3 quarters)`,
+                                                 `Future restricted (in 4 quarters)`))
     g(taxable_pi.09Q1.collapsed)
     taxable_pi.09Q1.collapsed <- as.data.table(taxable_pi.09Q1.collapsed)
-    taxable_pi.09Q1.collapsed <- taxable_pi.09Q1.collapsed[!is.na(quantityi)]
+    taxable_pi.09Q1.collapsed <- taxable_pi.09Q1.collapsed[!is.na(cpricei)]
     taxable_pi.09Q1.collapsed[, ref_year := ref.year]
     taxable_pi.09Q1.collapsed[, ref_quarter := ref.quarter]
     master_res <- rbind(master_res, taxable_pi.09Q1.collapsed)
@@ -264,5 +263,4 @@ setnames(cohort_sizes, "treatment_year", "ref_year")
 ## merge on cohort size
 master_res <- merge(master_res, cohort_sizes, by = c("ref_year", "ref_quarter"))
 master_res <- merge(master_res, pool_cohort_weights, by = c("ref_year", "ref_quarter"))
-
 fwrite(master_res, output_filepath)

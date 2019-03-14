@@ -29,6 +29,7 @@ g <- function(dt) {
 }
 
 change_of_interest <- "Ever decrease"
+output_filepath <- "Data/unemprate_all_cohorts_ed_pooled_extended.csv"
 
 ## useful filepaths ------------------------------------------------------------
 eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_w2014.csv"
@@ -104,6 +105,7 @@ setkey(never.treated.master, fips_state, fips_county)
 
 ## iterate over all quarters and years -----------------------------------------
 master_res <- data.table(NULL)
+pool_cohort_weights <- data.table(NULL)
 
 for (ref.year in 2009:2013) {
   for (ref.month in 1:12) {
@@ -114,10 +116,22 @@ for (ref.year in 2009:2013) {
     print(paste("Year:", ref.year, "; Month:", ref.month))
     ## identify treated cohort -------------------------------------------------
     tr.events.09m1 <- tr.events[treatment_year == ref.year & ref_month == ref.month]
+    if (nrow(tr.events.09m1) == 0) {
+      print("No events, skipping")
+      next
+    }
     setkey(tr.events.09m1, fips_county, fips_state)
 
     unemp.09m1 <- unemp_dt[tr.events.09m1]
     g(unemp.09m1)
+
+    ## get sum of sales in treated counties
+    pool_cohort_weights <- rbind(
+      pool_cohort_weights,
+      data.table(ref_year = ref.year, ref_month = ref.month,
+                 ## sum of all base sales weights in the cohort at time of treatment
+                 cohort_sales = sum(unemp.09m1[year == ref.year & month == ref.month]$base.sales))
+    )
 
     ## prepare control data --------------------------------------------------------
 
@@ -132,18 +146,27 @@ for (ref.year in 2009:2013) {
                                     ref_month > ref.month)]]
     unemp_ss[, treatment_month := 12 * treatment_year + ref_month]
     unemp_ss[, calendar_month := 12 * year + month]
-    unemp_ss[, not_yet_treated := min(treatment_month) > calendar_month,
-           by = c("fips_state", "fips_county")]
+    unemp_ss[, min_treat_month := min(treatment_month), by = .(fips_state, fips_county)]
 
-    unemp_ss <- unemp_ss[not_yet_treated == TRUE]
-    unemp_ss[, not_yet_treated := NULL]
+    unemp_ss_yearplus <- unemp_ss[min_treat_month > (12 * ref.year + ref.month + 12) &
+                                    min_treat_month > calendar_month]
+    future_restr_grp <- T
+    if (nrow(unemp_ss_yearplus) == 0) {
+      future_restr_grp <- F
+    } else {
+      unemp_ss_yearplus[, group := "Future restricted"]
+    }
+
+    unemp_ss <- unemp_ss[min_treat_month > calendar_month]
     unemp_ss[, group := "Future"]
+
     g(unemp_ss)
+    g(unemp_ss_yearplus)
 
     ## combine never treated + later cohorts
-    unemp_ss <- rbind(unemp_ss, never.treated, fill = T)
+    unemp_ss <- rbind(unemp_ss, unemp_ss_yearplus, never.treated, fill = T)
     g(unemp_ss)
-    rm(never.treated)
+    rm(never.treated, unemp_ss_yearplus)
 
     # ss_pi[, event.weight := ifelse(is.na(n_events), 1, 1 / n_events)]
 
@@ -166,17 +189,29 @@ for (ref.year in 2009:2013) {
     ## aggregate over calendar time ------------------------------------------------
     g(unemp.09m1)
 
-    unemp.09m1.collapsed <- unemp.09m1[, list(
-      mean.rate = weighted.mean(normalized.rate, w = base.sales),
-      Future = weighted.mean(Future, w = base.sales),
-      `No change` = weighted.mean(`No change`, w = base.sales)
-    ), by = .(year, month)]
+    if (future_restr_grp) {
+      unemp.09m1.collapsed <- unemp.09m1[, list(
+        mean.rate = weighted.mean(normalized.rate, w = base.sales),
+        Future = weighted.mean(Future, w = base.sales),
+        `Future restricted` = weighted.mean(`Future restricted`, w = base.sales),
+        `No change` = weighted.mean(`No change`, w = base.sales)
+      ), by = .(year, month)]
+    } else {
+      unemp.09m1.collapsed <- unemp.09m1[, list(
+        mean.rate = weighted.mean(normalized.rate, w = base.sales),
+        Future = weighted.mean(Future, w = base.sales),
+        `No change` = weighted.mean(`No change`, w = base.sales)
+      ), by = .(year, month)]
+      unemp.09m1.collapsed[, `Future restricted` := NA]
+    }
+
     g(unemp.09m1.collapsed)
 
     setnames(unemp.09m1.collapsed, "mean.rate", "Treated")
     unemp.09m1.collapsed <- tidyr::gather(unemp.09m1.collapsed,
                                                key = group, value = rate,
-                                               c(Treated, Future, `No change`))
+                                               c(Treated, Future,
+                                                 `Future restricted`, `No change`))
     g(unemp.09m1.collapsed)
     unemp.09m1.collapsed <- as.data.table(unemp.09m1.collapsed)
     unemp.09m1.collapsed <- unemp.09m1.collapsed[!is.na(rate)]
@@ -188,9 +223,11 @@ for (ref.year in 2009:2013) {
   }
 }
 
-fwrite(master_res, "Data/unemprate_all_cohorts_ed_pooled_extended.csv")
+fwrite(master_res, output_filepath)
 
 setnames(cohort_sizes, "treatment_year", "ref_year")
 ## merge on cohort size
 master_res <- merge(master_res, cohort_sizes, by = c("ref_year", "ref_month"))
-fwrite(master_res, "Data/unemprate_all_cohorts_ed_pooled_extended.csv")
+master_res <- merge(master_res, pool_cohort_weights, by = c("ref_year", "ref_month"))
+
+fwrite(master_res, output_filepath)

@@ -25,8 +25,8 @@ border_custom <- function(...){
 
 }
 
-data_path <- "output/server/pi_data/homeprice_all_cohorts_pooled_extended2.csv"
-outfile_figpath <- "reports/figs/homeprice_all_cohorts_pooled_extended2.png"
+data_path <- "output/server/pi_data/ever_increase/homeprice_all_cohorts_pooled_extended.csv"
+outfile_figpath <- "reports/figs/homeprice_all_cohorts_pooled_extended.png"
 
 dt <- read.csv(data_path)
 
@@ -37,12 +37,12 @@ dt$tt_ev <- round((dt$t - dt$ref_t) * 12)
 dt <- as.data.table(dt)
 dt.agg <- dt[between(tt_ev, -36, 12)]
 dt.agg <- dt.agg[, homeprice := homeprice - homeprice[tt_ev == -6], by = .(group, ref_t)]
-dt.agg <- dt.agg[, list(homeprice.agg = weighted.mean(homeprice, cohort_size)),
+dt.agg <- dt.agg[, list(homeprice.agg = weighted.mean(homeprice, cohort_sales)),
                  by = .(group, tt_ev)]
 
 dt.test <- dt[between(tt_ev, -36, 12) & ref_t <= 2013.5]
 dt.test <- dt.test[, homeprice := homeprice - homeprice[tt_ev == -6], by = .(group, ref_t)]
-dt.test <- dt.test[, list(homeprice.agg = weighted.mean(homeprice, cohort_size)),
+dt.test <- dt.test[, list(homeprice.agg = weighted.mean(homeprice, cohort_sales)),
                    by = .(group, tt_ev)]
 dt.test[group == "Future restricted", group := "Future (over one year)"]
 

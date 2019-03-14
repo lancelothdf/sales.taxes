@@ -25,8 +25,8 @@ border_custom <- function(...){
 
 }
 
-data_path <- "output/server/pi_data/increase_only/pi_all_cohorts_io_pooled_extended.csv"
-outfile_figpath <- "reports/figs/pi_all_cohorts_io_pooled_extended.png"
+data_path <- "output/server/pi_data/ever_increase/pi_all_cohorts_ei_pooled_extended.csv"
+outfile_figpath <- "reports/figs/pi_all_cohorts_ei_pooled_extended.png"
 
 dt <- read.csv(data_path)
 
@@ -37,16 +37,16 @@ dt$tt_ev <- (dt$t - dt$ref_t) * 4
 dt.agg <- dt %>%
   filter(between(tt_ev, -12, 4)) %>%
   group_by(group, ref_t) %>%
-  mutate(cpricei = cpricei - cpricei[tt_ev == -4]) %>%
+  mutate(cpricei = cpricei - cpricei[tt_ev == -2]) %>%
   group_by(group, tt_ev) %>%
-  summarize(cpricei.agg = weighted.mean(cpricei, w = cohort_size))
+  summarize(cpricei.agg = weighted.mean(cpricei, w = cohort_sales))
 
 dt.test <- dt %>%
   filter(between(tt_ev, -12, 4) & ref_t <  2013.5) %>%
   group_by(group, ref_t) %>%
   mutate(cpricei = cpricei - cpricei[tt_ev == -2]) %>%
   group_by(group, tt_ev) %>%
-  summarize(cpricei.agg = weighted.mean(cpricei, w = cohort_size))
+  summarize(cpricei.agg = weighted.mean(cpricei, w = cohort_sales))
 
 ggplot(dt.test, mapping = aes(x = tt_ev, y = cpricei.agg, color = group)) +
   geom_line(size = .7) +
