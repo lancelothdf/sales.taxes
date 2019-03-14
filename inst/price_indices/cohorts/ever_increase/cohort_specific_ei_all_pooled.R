@@ -21,7 +21,7 @@ library(sales.taxes)
 library(zoo)
 
 setwd("/project2/igaarder")
-prep.new.data <- T
+prep.new.data <- F
 
 # check function
 g <- function(dt) {
