@@ -25,8 +25,8 @@ border_custom <- function(...){
 
 }
 
-data_path <- "output/server/pi_data/ever_increase/unemprate_all_cohorts_pooled_extended.csv"
-outfile_figpath <- "reports/figs/unemp_all_cohorts_ei_pooled_extended.png"
+data_path <- "output/server/pi_data/increase_only/unemprate_all_cohorts_io_pooled_extended.csv"
+outfile_figpath <- "reports/figs/unemp_all_cohorts_io_pooled_extended.png"
 
 dt <- read.csv(data_path)
 
@@ -35,12 +35,12 @@ dt$ref_t <- as.yearmon(paste0(dt$ref_year, "-", dt$ref_month))
 dt$tt_ev <- round((dt$t - dt$ref_t) * 12)
 
 dt <- as.data.table(dt)
-dt.agg <- dt[between(tt_ev, -36, 12)]
+dt.agg <- dt[between(tt_ev, -24, 12)]
 dt.agg <- dt.agg[, rate := rate - rate[tt_ev == -6], by = .(group, ref_t)]
 dt.agg <- dt.agg[, list(rate.agg = weighted.mean(rate, cohort_sales)),
                  by = .(group, tt_ev)]
 
-dt.test <- dt[between(tt_ev, -36, 12) & ref_t <= 2013.5]
+dt.test <- dt[between(tt_ev, -24, 12) & ref_t <= 2013.5]
 dt.test <- dt.test[, rate := rate - rate[tt_ev == -6], by = .(group, ref_t)]
 dt.test <- dt.test[, list(rate.agg = weighted.mean(rate, cohort_sales)),
                    by = .(group, tt_ev)]
@@ -51,7 +51,7 @@ ggplot(dt.test, mapping = aes(x = tt_ev, y = rate.agg, color = group)) +
   geom_vline(xintercept = 0, color = "red", linetype = "22", alpha = .5) +
   theme_bw() +
   scale_x_continuous(expand = c(.01, -.05)) +
-  labs(x = "Month", y = "Unemployment Rate", color = "Cohort") +
+  labs(x = "Month", y = "Unemployment Rate", color = NULL) +
   theme(
     panel.grid.major.x = element_blank(),
     panel.grid.major.y = element_line(size = 0.1, colour = 'grey'),

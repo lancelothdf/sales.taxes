@@ -25,8 +25,8 @@ border_custom <- function(...){
 
 }
 
-data_path <- "output/server/pi_data/ever_increase/homeprice_all_cohorts_pooled_extended.csv"
-outfile_figpath <- "reports/figs/homeprice_all_cohorts_pooled_extended.png"
+data_path <- "output/server/pi_data/increase_only/homeprice_all_cohorts_io_pooled_extended.csv"
+outfile_figpath <- "reports/figs/homeprice_all_cohorts_io_pooled_extended.png"
 
 dt <- read.csv(data_path)
 
@@ -35,16 +35,16 @@ dt$ref_t <- as.yearmon(paste0(dt$ref_year, "-", dt$ref_month))
 dt$tt_ev <- round((dt$t - dt$ref_t) * 12)
 
 dt <- as.data.table(dt)
-dt.agg <- dt[between(tt_ev, -36, 12)]
+dt.agg <- dt[between(tt_ev, -24, 12)]
 dt.agg <- dt.agg[, homeprice := homeprice - homeprice[tt_ev == -6], by = .(group, ref_t)]
 dt.agg <- dt.agg[, list(homeprice.agg = weighted.mean(homeprice, cohort_sales)),
                  by = .(group, tt_ev)]
 
-dt.test <- dt[between(tt_ev, -36, 12) & ref_t <= 2013.5]
+dt.test <- dt[between(tt_ev, -24, 12) & ref_t <= 2013.5]
 dt.test <- dt.test[, homeprice := homeprice - homeprice[tt_ev == -6], by = .(group, ref_t)]
 dt.test <- dt.test[, list(homeprice.agg = weighted.mean(homeprice, cohort_sales)),
                    by = .(group, tt_ev)]
-dt.test[group == "Future restricted", group := "Future (over one year)"]
+#dt.test[group == "Future restricted", group := "Future (over one year)"]
 
 ggplot(dt.test, mapping = aes(x = tt_ev, y = homeprice.agg, color = group)) +
   geom_line(size = .7) +
@@ -52,7 +52,7 @@ ggplot(dt.test, mapping = aes(x = tt_ev, y = homeprice.agg, color = group)) +
   geom_vline(xintercept = 0, color = "red", linetype = "22", alpha = .5) +
   theme_bw() +
   scale_x_continuous(expand = c(.01, -.05)) +
-  labs(x = "Month", y = "Normalized Home Price", color = "Cohort") +
+  labs(x = "Month", y = "Normalized Log Home Price", color = NULL) +
   theme(
     panel.grid.major.x = element_blank(),
     panel.grid.major.y = element_line(size = 0.1, colour = 'grey'),

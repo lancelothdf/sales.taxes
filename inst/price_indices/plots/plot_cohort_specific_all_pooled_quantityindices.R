@@ -24,8 +24,8 @@ border_custom <- function(...){
 
 }
 
-data_path <- "output/server/pi_data/ever_increase/quantityi_all_cohorts_pooled_extended.csv"
-outfile_figpath <- "reports/figs/quantityi_all_cohorts_ei_pooled_extended.png"
+data_path <- "output/server/pi_data/increase_only/quantityi_all_cohorts_io_pooled_extended.csv"
+outfile_figpath <- "reports/figs/quantityi_all_cohorts_io_pooled_extended.png"
 
 dt <- read.csv(data_path)
 
@@ -34,14 +34,14 @@ dt$ref_t <- as.yearqtr(paste0(dt$ref_year, " Q", dt$ref_quarter))
 dt$tt_ev <- (dt$t - dt$ref_t) * 4
 
 dt.agg <- dt %>%
-  filter(between(tt_ev, -12, 4)) %>%
+  filter(between(tt_ev, -8, 4)) %>%
   group_by(group, ref_t) %>%
   mutate(quantityi = quantityi - quantityi[tt_ev == -4]) %>%
   group_by(group, tt_ev) %>%
   summarize(quantityi.agg = weighted.mean(quantityi, w = cohort_sales))
 
 dt.test <- dt %>%
-  filter(between(tt_ev, -12, 4) & ref_t <  2013.5) %>%
+  filter(between(tt_ev, -8, 4) & ref_t <  2013.5) %>%
   group_by(group, ref_t) %>%
   mutate(quantityi = quantityi - quantityi[tt_ev == -2]) %>%
   group_by(group, tt_ev) %>%
@@ -53,7 +53,7 @@ ggplot(dt.test, mapping = aes(x = tt_ev, y = quantityi.agg, color = group)) +
   geom_vline(xintercept = 0, color = "red", linetype = "22", alpha = .5) +
   theme_bw() +
   scale_x_continuous(expand = c(.01, -.05)) +
-  labs(x = "Quarter", y = "Normalized Price Index", color = "Cohort") +
+  labs(x = "Quarter", y = "Normalized Log Quantity", color = NULL) +
   theme(
     panel.grid.major.x = element_blank(),
     panel.grid.major.y = element_line(size = 0.1, colour = 'grey'),
@@ -61,7 +61,7 @@ ggplot(dt.test, mapping = aes(x = tt_ev, y = quantityi.agg, color = group)) +
     strip.background = element_rect(colour="white", fill="white"),
     panel.spacing = unit(2, "lines"),
     panel.border = border_custom(),
-    legend.position = c(0.2, 0.8),
+    legend.position = c(0.4, 0.2),
     axis.ticks.length=unit(-0.15, "cm"),
     legend.margin = margin(t=-.2, r=0, b=-.2, l=0, unit="cm"),
     axis.text.x = element_text(margin=unit(rep(0.3, 4), "cm")),
