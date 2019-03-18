@@ -252,7 +252,7 @@ all_pi_es_collapsed <- add_tr_count(collapsed_data = all_pi_es_collapsed,
                                     tr_group_name = "tr_group",
                                     count_col_name = "n_counties")
 
-fwrite(all_pi_es_collapsed, "Data/pi_allgoods_es.csv")
+fwrite(all_pi_es_collapsed, "Data/pi_allgoods_es_v2.csv")
 
 rm(all_pi)
 gc()
@@ -343,7 +343,7 @@ taxable_pi_es_collapsed <- add_tr_count(collapsed_data = taxable_pi_es_collapsed
                                     tr_group_name = "tr_group",
                                     count_col_name = "n_counties")
 
-fwrite(taxable_pi_es_collapsed, "Data/pi_taxable_es.csv")
+fwrite(taxable_pi_es_collapsed, "Data/pi_taxable_es_v2.csv")
 
 rm(taxable_pi)
 gc()
@@ -446,7 +446,7 @@ taxexempt_pi_es_collapsed <- add_tr_count(collapsed_data = taxexempt_pi_es_colla
                                     tr_group_name = "tr_group",
                                     count_col_name = "n_counties")
 
-fwrite(taxexempt_pi_es_collapsed, "Data/pi_taxexempt_es.csv")
+fwrite(taxexempt_pi_es_collapsed, "Data/pi_taxexempt_es_v2.csv")
 
 rm(taxexempt_pi)
 gc()
