@@ -29,7 +29,8 @@ tr_groups_path <- "Data/tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
 
 all_pi <- fread(all_goods_pi_path)
 all_pi <- all_pi[year %in% 2006:2014 & !is.na(cpricei)]
-all_pi <- all_pi[sales_tax > 1] # limit it to taxable goods (can change if we want tax-exempt goods)
+# limit it to taxable goods
+all_pi <- all_pi[sales_tax > 1 | (year < 2008 & is.na(sales_tax))]
 
 # do `arbitrary` correction for the 2013 Q1 jump in the data
 ## calculate price index in 2013 Q1 / cpricei in 2012 Q4
