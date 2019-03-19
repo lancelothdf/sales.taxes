@@ -194,6 +194,9 @@ for (yr in 2009:2013) {
                new = c("estimate", "cluster_se", "pval"))
       cp.all.res <- rbind(cp.all.res, res.tax)
 
+      rm(ss_pi)
+      gc()
+
     }
     # re-write once a cohort in case it crashes
     fwrite(cp.all.res, output.results.filepath)

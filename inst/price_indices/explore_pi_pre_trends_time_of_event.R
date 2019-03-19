@@ -15,6 +15,11 @@ setwd("/project2/igaarder")
 prep_enviro <- T
 change_of_interest <- "Ever increase"
 
+# check function
+g <- function(dt) {
+  print(head(dt))
+}
+
 ## useful filepaths ------------------------------------------------------------
 original.eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_w2014.csv"
 original.tr_groups_path <- "Data/tr_groups_comprehensive_w2014.csv"
@@ -130,6 +135,7 @@ control_counties[, min.event := (treatment_month == min(treatment_month)),
 control_counties <- control_counties[min.event == T]
 control_counties[, min.event := NULL]
 control_counties[, ref_quarter := ceiling(ref_month / 3)]
+g(control_counties)
 
 ### loop over treatment times, create groups of counties that can be used as controls
 control.dt <- data.table(NULL)
@@ -145,10 +151,12 @@ for (yr in 2009:2013) {
     control.dt <- rbind(control.dt, control_counties_spec)
   }
 }
+g(control.dt)
 
 ## merge on price index info for all groups
-control_dt <- merge(all_pi_original, control_counties,
+control_dt <- merge(all_pi_original, control.dt,
                     by = c("fips_state", "fips_county"))
+g(control_dt)
 
 rm(all_pi_original)
 gc()
@@ -161,6 +169,7 @@ control_dt <- control_dt[,
                               control.sales_tax = weighted.mean(sales_tax, w = base.sales)),
                          by = .(quarter, year, product_module_code, ref_year, ref_quarter, tr_group)
                          ]
+g(control_dt)
 
 ## merge on to attach based on calendar time
 matched_control_data <- merge(all_pi, control_dt,
@@ -174,6 +183,7 @@ setnames(matched_control_data,
          old = c("control.cpricei", "control.sales_tax"),
          new = c("cpricei", "sales_tax"))
 matched_control_data[, tr_group := paste0("Future change (", tolower(tr_group), ")")]
+g(matched_control_data)
 
 all_pi <- rbind(all_pi, matched_control_data, fill = T)
 
