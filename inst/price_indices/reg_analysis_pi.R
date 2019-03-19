@@ -16,6 +16,7 @@ output.results.filepath <- "Data/pi_ei_regression_res.csv"
 
 ## useful filepaths ------------------------------------------------------------
 all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_notaxinfo.csv"
+taxable_pi_path <- "Data/Nielsen/price_quantity_indices_taxableitems_2006-2016.csv"
 eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
 tr_groups_path <- "Data/tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
 
@@ -28,6 +29,7 @@ tr_groups_path <- "Data/tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
 
 all_pi <- fread(all_goods_pi_path)
 all_pi <- all_pi[year %in% 2006:2014 & !is.na(cpricei)]
+all_pi <- all_pi[sales_tax > 1] # limit it to taxable goods (can change if we want tax-exempt goods)
 
 # do `arbitrary` correction for the 2013 Q1 jump in the data
 ## calculate price index in 2013 Q1 / cpricei in 2012 Q4
@@ -116,6 +118,10 @@ for (yr in 2009:2013) {
 
       ss_pi[, treated := as.integer(ref_year == yr & ref_quarter == qtr)]
 
+      # count how many treated counties in the cohort
+      N_counties <- length(unique(ss_pi[treated == 1]$county_ID))
+      sum_sales.weights <- sum(ss_pi[treated == 1 & tt_event == 0]$base.sales)
+
       flog.info("Created subset of data for the selected groups.")
       ## create dummies for event times (except -2)
       start_cols <- copy(colnames(ss_pi))
@@ -161,6 +167,8 @@ for (yr in 2009:2013) {
       setnames(res.cp,
                old = c("Estimate", "Cluster s.e.", "Pr(>|t|)"),
                new = c("estimate", "cluster_se", "pval"))
+      res.cp[, n_counties := N_counties]
+      res.cp[, total_sales := sum_sales.weights]
 
       flog.info("Attaching output to master data.table.")
       cp.all.res <- rbind(cp.all.res, res.cp)
@@ -202,6 +210,9 @@ for (yr in 2009:2013) {
       setnames(res.tax,
                old = c("Estimate", "Cluster s.e.", "Pr(>|t|)"),
                new = c("estimate", "cluster_se", "pval"))
+      res.tax[, n_counties := N_counties]
+      res.tax[, total_sales := sum_sales.weights]
+
       flog.info("Attaching output to master data.table.")
       cp.all.res <- rbind(cp.all.res, res.tax)
 
