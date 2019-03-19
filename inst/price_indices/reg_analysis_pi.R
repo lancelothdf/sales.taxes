@@ -118,12 +118,13 @@ for (yr in 2009:2013) {
 
       flog.info("Created subset of data for the selected groups.")
       ## create dummies for event times (except -2)
-      start_cols <- colnames(ss_pi)
+      start_cols <- copy(colnames(ss_pi))
       for (r in setdiff(-8:4, -2)) {
         var <- sprintf("catt%s", r)
         ss_pi[, (var) := as.integer(treated == 1 & tt_event == r)]
       }
       flog.info("Created mutually exclusive treatment columns.")
+      print(head(ss_pi))
 
       ## rename columns to prevent confusion for felm
       new_cols <- setdiff(colnames(ss_pi), start_cols)
