@@ -97,7 +97,7 @@ print(head(all_pi))
 cp.all.res <- data.table(NULL)
 for (yr in 2009:2013) {
   for (qtr in 1:4) {
-    if (nrow(all_pi[ref_year == yr & ref_quarter == qtr] == 0)) {
+    if (nrow(all_pi[ref_year == yr & ref_quarter == qtr]) == 0) {
       next
     }
     # given a cohort, loop through all products
