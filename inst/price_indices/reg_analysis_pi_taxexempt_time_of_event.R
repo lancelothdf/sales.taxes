@@ -12,7 +12,7 @@ library(futile.logger)
 setwd("/project2/igaarder")
 change_of_interest <- "Ever increase"
 
-output.results.filepath <- "Data/pi_ei_regression_res_time_of_event.csv"
+output.results.filepath <- "Data/pi_ei_regression_res_taxexempt_time_of_event.csv"
 
 ## useful filepaths ------------------------------------------------------------
 all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_notaxinfo.csv"
@@ -29,8 +29,7 @@ tr_groups_path <- "Data/tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
 
 all_pi <- fread(all_goods_pi_path)
 all_pi <- all_pi[year %in% 2006:2014 & !is.na(cpricei)]
-# limit it to taxable goods
-all_pi <- all_pi[sales_tax > 1 | (year < 2008 & is.na(sales_tax))]
+all_pi <- all_pi[sales_tax == 1 | (year < 2008 & is.na(sales_tax))] # limit it to tax-exempt goods
 
 # do `arbitrary` correction for the 2013 Q1 jump in the data
 ## calculate price index in 2013 Q1 / cpricei in 2012 Q4
@@ -174,49 +173,6 @@ for (yr in 2009:2013) {
 
       flog.info("Attaching output to master data.table.")
       cp.all.res <- rbind(cp.all.res, res.cp)
-
-      ## run for log(1 + tax) as well ==========================================
-
-      drop_cols <- paste0("cattlead", 8:5)
-      tax_cols <- setdiff(new_cols_used, drop_cols)
-
-      ss_pi[, c(drop_cols) := NULL]
-      ss_pi <- ss_pi[between(tt_event, -4, 4)] # to be consistent across cohorts
-
-      ## create formula
-      tax_formula_input <- paste(tax_cols, collapse = "+")
-      tax_formula <- as.formula(paste0("sales_tax ~ ", tax_formula_input,
-                                       " | county_ID + tt_event | 0 | county_ID"))
-
-      res.tax <- felm(data = ss_pi, formula = tax_formula,
-                     weights = ss_pi$base.sales)
-      flog.info("Estimated with tax rate as outcome.")
-      print(coef(summary(res.tax)))
-
-      ## *$* Here is where one would extract other information from res.cp *$* ##
-
-      res.tax <- as.data.table(summary(res.tax, robust = T)$coefficients, keep.rownames = T)
-      res.tax[, rn := gsub("lead", "-", rn)]
-
-      res.tax[, tt_event := as.integer(NA)]
-
-      for (c in setdiff(-4:4, -2)) {
-        res.tax[grepl(sprintf("catt%s", c), rn) & is.na(tt_event), tt_event := as.integer(c)]
-      }
-      res.tax <- res.tax[!is.na(tt_event)]
-
-      res.tax[, ref_year := yr]
-      res.tax[, ref_quarter := qtr]
-      res.tax[, product_module_code := prd]
-      res.tax[, outcome := "sales_tax"]
-      setnames(res.tax,
-               old = c("Estimate", "Cluster s.e.", "Pr(>|t|)"),
-               new = c("estimate", "cluster_se", "pval"))
-      res.tax[, n_counties := N_counties]
-      res.tax[, total_sales := sum_sales.weights]
-
-      flog.info("Attaching output to master data.table.")
-      cp.all.res <- rbind(cp.all.res, res.tax)
 
       rm(ss_pi)
       gc()
