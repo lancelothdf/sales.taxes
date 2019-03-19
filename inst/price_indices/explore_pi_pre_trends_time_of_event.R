@@ -155,7 +155,8 @@ g(control.dt)
 
 ## merge on price index info for all groups
 control_dt <- merge(all_pi_original, control.dt,
-                    by = c("fips_state", "fips_county"))
+                    by = c("fips_state", "fips_county"),
+                    allow.cartesian = T)
 g(control_dt)
 
 rm(all_pi_original)
@@ -284,8 +285,9 @@ for (yr in 2009:2013) {
 }
 
 ## merge on price index info for all groups
-control_dt <- merge(taxable_pi_original, control_counties,
-                    by = c("fips_state", "fips_county"))
+control_dt <- merge(taxable_pi_original, control.dt,
+                    by = c("fips_state", "fips_county"),
+                    allow.cartesian = T)
 
 rm(taxable_pi_original)
 gc()
@@ -426,8 +428,9 @@ for (yr in 2009:2013) {
 }
 
 ## merge on price index info for all groups
-control_dt <- merge(taxexempt_pi_original, control_counties,
-                    by = c("fips_state", "fips_county"))
+control_dt <- merge(taxexempt_pi_original, control.dt,
+                    by = c("fips_state", "fips_county"),
+                    allow.cartesian = T)
 
 rm(taxexempt_pi_original)
 gc()
