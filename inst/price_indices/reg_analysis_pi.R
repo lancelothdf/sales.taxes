@@ -8,109 +8,196 @@
 library(data.table)
 library(lfe)
 
-fdt <- data.table(expand.grid(store_code_uc = 1:100,
-                              product_module_code = 1:100,
-                              year = 2008:2014,
-                              quarter = 1:4))
-fdt[, sales := rnorm(nrow(fdt), 10000, 1000)]
-fdt[, cpricei := rnorm(nrow(fdt), 100, 10)]
-fdt[, tax.change := sample(0:1, nrow(fdt), replace = T, prob = c(.98, .02))]
+setwd("/project2/igaarder")
+change_of_interest <- "Ever increase"
 
-fdt <- fdt[product_module_code == 8]
-fdt[, year.qtr := year + (quarter - 1) / 4]
+output.results.filepath <- "Data/pi_ei_regression_res.csv"
 
-setkey(fdt, store_code_uc, year.qtr)
+## useful filepaths ------------------------------------------------------------
+all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_notaxinfo.csv"
+eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
+tr_groups_path <- "Data/tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
 
-fdt[, ever.change := max(tax.change), by = .(store_code_uc)]
-fdt[, changed := cummax(tax.change), by = .(store_code_uc)]
-fdt[ever.change == 1, change_onset_time := min(year.qtr[changed == 1]), by = .(store_code_uc)]
-fdt[ever.change == 0, change_onset_time := Inf]
-fdt[, event_time := (year.qtr - change_onset_time) * 4]
+## Want to run cohort-product specific regressions.
+## Data is on store-product-quarter level (right?)
+
+# Start with event-no-event case ===============================================
+
+## prep the data ---------------------------------------------------------------
+
+all_pi <- fread(all_goods_pi_path)
+all_pi <- all_pi[year %in% 2006:2014 & !is.na(cpricei)]
+
+# do `arbitrary` correction for the 2013 Q1 jump in the data
+## calculate price index in 2013 Q1 / cpricei in 2012 Q4
+all_pi[, correction := pricei[year == 2013 & quarter == 1] / pricei[year == 2012 & quarter == 4],
+       by = .(store_code_uc, product_module_code)]
+## divide price index after 2013 Q1 (inclusive) by above value
+all_pi[year >= 2013, cpricei := cpricei / correction]
+
+## take logs
+all_pi[, cpricei := log(cpricei)]
+all_pi[, sales_tax := log(sales_tax)]
+
+## get sales weights
+all_pi[, base.sales := sales[year == 2008 & quarter == 1],
+       by = .(store_code_uc, product_module_code)]
+
+all_pi[, sales := NULL]
+all_pi <- all_pi[!is.na(base.sales)]
+
+## balance on store-module level
+keep_store_modules <- all_pi[, list(n = .N),
+                             by = .(store_code_uc, product_module_code)]
+keep_store_modules <- keep_store_modules[n == (2014 - 2005) * 4]
+
+setkey(all_pi, store_code_uc, product_module_code)
+setkey(keep_store_modules, store_code_uc, product_module_code)
+
+all_pi <- all_pi[keep_store_modules]
+setkey(all_pi, fips_county, fips_state)
+
+### create unique dataset of never treated counties ----------------------------
+control_counties <- fread(tr_groups_path)
+control_counties <- control_counties[tr_group == "No change"]
+control_counties <- unique(control_counties[, .(fips_county, fips_state)])
+control_dt <- merge(all_pi, control_counties, by = c("fips_state", "fips_county"))
+control_dt[, ref_year := Inf]
+control_dt[, ref_quarter := Inf]
+
+## merge treatment, attach event times -----------------------------------------
+treated_counties <- fread(eventstudy_tr_path)
+treated_counties <- treated_counties[tr_group == change_of_interest]
+treated_counties[, ref_quarter := ceiling(ref_month / 3)]
+treated_counties[, ref_month := NULL]
+
+all_pi <- merge(all_pi, treated_counties, by = c("fips_state", "fips_county"))
+
+val1 <- uniqueN(treated_counties, by = c("fips_state", "fips_county"))
+val2 <- uniqueN(all_pi, by = c("fips_state", "fips_county"))
+if (val1 != val2) {
+  warning(sprintf("val1 (%s) != val2 (%s)", val1, val2))
+}
+
+## now we have the treated and untreated groups
+print("TREATED")
+print(head(all_pi))
+print("CONTROL")
+print(head(control_dt))
+
+## combine the two groups ------------------------------------------------------
+all_pi <- rbind(all_pi, control_dt, fill = T)
+all_pi[, county_ID := .GRP, by = .(fips_state, fips_county)]
+
+print("TREATED + CONTROL")
+print(head(all_pi))
+
+## loop through all possible treatment yr and qtr ("cohorts") ------------------
+cp.all.res <- data.table(NULL)
+for (yr in 2009:2013) {
+  for (qtr in 1:4) {
+    if (nrow(all_pi[ref_year == yr & ref_quarter == qtr] == 0)) {
+      next
+    }
+    # given a cohort, loop through all products
+    for (prd in unique(all_pi[ref_year == yr & ref_quarter == qtr]$product_module_code)) {
+      print(sprintf("Estimating for %s Q%s, product %s", yr, qtr, prd))
+
+      # prepare a subset of data -----------------------------------------------
+
+      # limit to the cohort or the untreated, and product prd
+      ss_pi <- all_pi[((ref_year == yr & ref_quarter == qtr) |
+                         ref_year == Inf) &
+                        product_module_code == prd]
+      # limit estimation to eight pre-periods and four post-periods
+      ss_pi[, tt_event := (year * 4 + quarter) - (yr * 4 + qtr)]
+      ss_pi <- ss_pi[between(tt_event, -8, 4)]
+
+      ss_pi[, treated := as.integer(ref_year == yr & ref_quarter == qtr)]
+
+      ## create dummies for event times (except -2)
+      start_cols <- colnames(ss_pi)
+      for (r in setdiff(-8:4, -2)) {
+        var <- sprintf("catt%s", r)
+        ss_pi[, (var) := as.integer(treated == 1 & tt_event == r)]
+      }
+
+      ## rename columns to prevent confusion for felm
+      new_cols <- setdiff(colnames(ss_pi), start_cols)
+      new_cols_used <- gsub("\\-", "lead", new_cols)
+      setnames(ss_pi, new_cols, new_cols_used)
+
+      ## estimate for cpricei =================================================
+      felm_formula_input <- paste(new_cols_used, collapse = "+")
+      cXp_formula <- as.formula(paste0("cpricei ~ ", felm_formula_input,
+                                       " | county_ID + tt_event | 0 | county_ID"))
+
+      res.cp <- felm(data = ss_pi, formula = cXp_formula,
+                     weights = ss_pi$base.sales)
+
+      ## *$* Here is where one would extract other information from res.cp *$* ##
+
+      ## clean and save output
+      res.cp <- as.data.table(summary(res.cp, robust = T)$coefficients, keep.rownames = T)
+      res.cp[, rn := gsub("lead", "-", rn)]
+
+      res.cp[, tt_event := as.integer(NA)]
+
+      for (c in setdiff(-8:4, -2)) {
+        res.cp[grepl(sprintf("catt%s", c), rn) & is.na(tt_event), tt_event := as.integer(c)]
+      }
+      res.cp <- res.cp[!is.na(tt_event)]
+
+      res.cp[, ref_year := yr]
+      res.cp[, ref_quarter := qtr]
+      res.cp[, product_module_code := prd]
+      res.cp[, outcome := "cpricei"]
+      setnames(res.cp, old = c("Estimate", "Cluster s.e.", "Pr(>|t|)"),
+               new = c("estimate", "cluster_se", "pval"))
 
 
+      cp.all.res <- rbind(cp.all.res, res.cp)
 
-## need to have interaction terms across all cohorts (except untreated),
-## across all relative times (except t=-2).
+      ## run for log(1 + tax) as well ==========================================
 
-new.var.names <- NULL
-for (cohort in seq(2009, 2013.75, .25)) {
-  for (tt_event in setdiff(((seq(2008, 2014.75, .25) - cohort) * 4), -2)) {
-    cohort.name <- paste0("cohort", cohort,
-                          ifelse(tt_event < 0, "m", "p"), abs(tt_event))
-    fdt[, (cohort.name) := as.integer(change_onset_time == cohort) *
-          as.integer(event_time == tt_event)]
-    new.var.names <- c(new.var.names, cohort.name)
+      drop_cols <- paste0("cattlead", 8:5)
+      tax_cols <- setdiff(new_cols_used, drop_cols)
+
+      ss_pi[, c(drop_cols) := NULL]
+      ss_pi <- ss_pi[between(tt_event, -4, 4)] # to be consistent across cohorts
+
+      ## create formula
+      tax_formula_input <- paste(tax_cols, collapse = "+")
+      tax_formula <- as.formula(paste0("sales_tax ~ ", tax_formula_input,
+                                       " | county_ID + tt_event | 0 | county_ID"))
+
+      res.tax <- felm(data = ss_pi, formula = tax_formula,
+                     weights = ss_pi$base.sales)
+
+      ## *$* Here is where one would extract other information from res.cp *$* ##
+
+      res.tax <- as.data.table(summary(res.tax, robust = T)$coefficients, keep.rownames = T)
+      res.tax[, rn := gsub("lead", "-", rn)]
+
+      res.tax[, tt_event := as.integer(NA)]
+
+      for (c in setdiff(-4:4, -2)) {
+        res.tax[grepl(sprintf("catt%s", c), rn) & is.na(tt_event), tt_event := as.integer(c)]
+      }
+      res.tax <- res.tax[!is.na(tt_event)]
+
+      res.tax[, ref_year := yr]
+      res.tax[, ref_quarter := qtr]
+      res.tax[, product_module_code := prd]
+      res.tax[, outcome := "sales_tax"]
+      setnames(res.tax, old = c("Estimate", "Cluster s.e.", "Pr(>|t|)"),
+               new = c("estimate", "cluster_se", "pval"))
+      cp.all.res <- rbind(cp.all.res, res.tax)
+
+    }
+    # re-write once a cohort in case it crashes
+    fwrite(cp.all.res, output.results.filepath)
   }
+
 }
-
-felm_formula_input <- paste(new.var.names, collapse = "+")
-felm_formula <- paste0("cpricei ~ ", felm_formula_input, " | store_code_uc + year.qtr | 0 | cluster_var")
-# TODO: what do we want to cluster on?
-
-est <- felm(felm_formula, data = fdt, weights = fdt[[sales]],
-            nostats = FALSE, keepX = FALSE, keepCX = FALSE, psdef = FALSE, kclass = FALSE)
-
-
-###############################################
-######### below is copied from ES packages
-
-ES_data[, ref_onset_ref_event_time := .GRP, by = list(ref_onset_time, ref_event_time)]
-ES_data[, unit_sample := .GRP, by = list(get(onset_time_var), catt_specific_sample, ref_onset_time)]
-ES_data[, cluster_on_this := .GRP, by = cluster_vars]
-
-discrete_covar_formula_input = NA
-cont_covar_formula_input = NA
-
-start_cols <- copy(colnames(ES_data))
-
-
-for (h in min(ES_data$ref_onset_time):max(ES_data$ref_onset_time)) {
-  for (r in setdiff(min(ES_data[ref_onset_time == h]$ref_event_time):max(ES_data[ref_onset_time == h]$ref_event_time), omitted_event_time)) {
-    var <- sprintf("ref_onset_time%s_catt%s", h, r)
-    ES_data[, (var) := as.integer(ref_onset_time == h & ref_event_time == r & get(onset_time_var) == h)]
-  }
-}
-
-new_cols <- setdiff(colnames(ES_data), start_cols)
-new_cols_used <- gsub("\\-", "lead", new_cols) # "-" wreaks havoc otherwise, syntactically
-setnames(ES_data, new_cols, new_cols_used)
-
-# Should now be able to combine all of the above in a natural way
-felm_formula_input <- paste(new_cols_used, collapse = "+")
-
-
-  felm_formula_input = paste(na.omit(c(felm_formula_input, cont_covar_formula_input)), collapse = " + ")
-  fe_formula = paste(na.omit(c("unit_sample + ref_onset_ref_event_time", discrete_covar_formula_input)), collapse = " + ")
-
-est <- felm(as.formula(paste0(eval(outcomevar), " ~ ", felm_formula_input, " | ", fe_formula," | 0 | cluster_on_this")),
-            data = ES_data, weights = ES_data[[reg_weights]],
-            nostats = FALSE, keepX = FALSE, keepCX = FALSE, psdef = FALSE, kclass = FALSE
-)
-
-
-
-ES_data <- NULL
-gc()
-
-results <- as.data.table(summary(est, robust = TRUE)$coefficients, keep.rownames = TRUE)
-est <- NULL
-gc()
-results[!grepl("ref\\_onset\\_time", rn), e := min_onset_time]
-results[, rn := gsub("lead", "-", rn)]
-for (c in min_onset_time:(max_onset_time - 1)) {
-  results[grepl(sprintf("ref\\_onset\\_time%s", c), rn), e := c]
-  results[grepl(sprintf("ref\\_onset\\_time%s", c), rn), rn := gsub(sprintf("ref\\_onset\\_time%s\\_et", c), "et", rn)]
-  results[grepl(sprintf("ref\\_onset\\_time%s", c), rn), rn := gsub(sprintf("ref\\_onset\\_time%s\\_catt", c), "catt", rn)]
-}
-results[grepl("et", rn), event_time := as.integer(gsub("et", "", rn))]
-results[grepl("catt", rn), event_time := as.integer(gsub("catt", "", rn))]
-results[grepl("et", rn), rn := "event_time"]
-results[grepl("catt", rn), rn := "catt"]
-results <- results[rn == "catt"]
-
-
-setnames(results, c("e"), onset_time_var)
-setnames(results, c("Estimate", "Cluster s.e."), c("estimate", "cluster_se"))
-setnames(results,"Pr(>|t|)","pval")
-results[, pval := round(pval,8)]
 

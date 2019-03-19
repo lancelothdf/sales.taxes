@@ -12,6 +12,7 @@ outfile_figpath <- "reports/figs/comparing_laspeyres_master.png"
 county.quarterly_path <- "output/server/national_pi_county_quarterly_balanced.csv"
 store.monthly_path <- "output/server/national_pi_monthly.csv"
 store.quarterly_path <- "output/server/national_pi_store_module_balanced.csv"
+store.quarterly.incl_nonfood_path <- "output/server/national_pi_quarterly_incl_nonfood.csv"
 
 
 ## CountyXQuarterly index: /project2/igaarder/Data/Nielsen/Quarterly_county_balanced_price_quantity_indices_food.dta
@@ -92,3 +93,61 @@ ggplot(cpi_data,
   )
 
 ggsave(outfile_figpath, height = 120, width = 180, units = "mm")
+
+
+############# including nonfood
+
+## StoreXQuarterly index with nonfood
+pi_store.incl_nonfood <- read.csv(store.quarterly.incl_nonfood_path) %>%
+  select(year, quarter, chained_food_cpi = national_index) %>%
+  mutate(index = "Store Quarterly (w nonfood)",
+         month = (quarter - 1) * 3 + 2) %>%
+  select(-quarter)
+pi_store.incl_nonfood$t <- with(pi_store.quarterly,
+                             as.yearmon(paste0(year, "-", month)))
+
+## Food and Beverage CPI
+
+cpi_data <- read.csv(cpi_path) %>% select(-X) %>% filter(between(year, 2006, 2016))
+cpi_data$t <- with(cpi_data, as.yearmon(paste0(year, "-", month)))
+
+base_cpi <- cpi_data %>% ungroup() %>%
+  filter(year == 2006, month == 12) %>%
+  select(chained_food_cpi) %>% pull()
+cpi_data <- cpi_data %>%
+  filter(year > 2006 | month == 12) %>%
+  mutate(chained_food_cpi = chained_food_cpi / base_cpi,
+         index = "cpi")
+
+cpi_data2 <- rbind(cpi_data, pi_store.incl_nonfood)
+
+### compare the indices --------------------------------------------------------
+ggplot(cpi_data2,
+       mapping = aes(x = t, y = chained_food_cpi, linetype = index, color = index)) +
+  geom_line(aes(group = index), size = 1) +
+  scale_x_yearmon(expand = c(0.01, 0.01), n = 6) +
+  scale_y_continuous(breaks = seq(0, 1.25, .05), expand = c(0.005, 0.005)) +
+  theme_bw() +
+  labs(y = expression(bold("Price Index (Normalized Dec 2006 = 1.00)")), x = expression(bold("Month"))) +
+  scale_linetype_manual(name = NULL, breaks = c("cpi", "Store Quarterly (w nonfood)"),
+                        labels = c("Food & Beverage Chained CPI",
+                                   "Retail Scanner Index (quarterly, including nonfood)"),
+                        values = c("solid", "33")) +
+  scale_color_manual(name = NULL, breaks = c("cpi", "Store Quarterly (w nonfood)"),
+                     labels = c("Food & Beverage Chained CPI",
+                                "Retail Scanner Index (quarterly, including nonfood)"),
+                     values = c("black", "#F8766D")) +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(size = 0.1, colour = 'grey'),
+    panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+    strip.background = element_rect(colour="white", fill="white"),
+    plot.title = element_text(hjust = 0.5, size = 11), panel.spacing = unit(2, "lines"),
+    legend.position = c(0.7, 0.32), axis.ticks.length=unit(-0.15, "cm"),
+    legend.margin = margin(t=-.2, r=0, b=-.2, l=0, unit="cm"),
+    axis.text.x = element_text(margin=unit(rep(0.3, 4), "cm")),
+    axis.text.y = element_text(margin=unit(rep(0.3, 4), "cm")),
+    axis.text.y.right = element_text(margin=unit(rep(0.3, 4), "cm"))
+  )
+
+ggsave("reports/figs/comparing_pi_nonfood.png", height = 120, width = 180, units = "mm")
