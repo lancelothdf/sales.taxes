@@ -7,6 +7,7 @@
 
 library(data.table)
 library(lfe)
+library(futile.logger)
 
 setwd("/project2/igaarder")
 change_of_interest <- "Ever increase"
@@ -101,7 +102,7 @@ for (yr in 2009:2013) {
     }
     # given a cohort, loop through all products
     for (prd in unique(all_pi[ref_year == yr & ref_quarter == qtr]$product_module_code)) {
-      print(sprintf("Estimating for %s Q%s, product %s", yr, qtr, prd))
+      flog.info("Estimating for %s Q%s, product %s", yr, qtr, prd)
 
       # prepare a subset of data -----------------------------------------------
 
@@ -115,12 +116,14 @@ for (yr in 2009:2013) {
 
       ss_pi[, treated := as.integer(ref_year == yr & ref_quarter == qtr)]
 
+      flog.info("Created subset of data for the selected groups.")
       ## create dummies for event times (except -2)
       start_cols <- colnames(ss_pi)
       for (r in setdiff(-8:4, -2)) {
         var <- sprintf("catt%s", r)
         ss_pi[, (var) := as.integer(treated == 1 & tt_event == r)]
       }
+      flog.info("Created mutually exclusive treatment columns.")
 
       ## rename columns to prevent confusion for felm
       new_cols <- setdiff(colnames(ss_pi), start_cols)
@@ -134,6 +137,8 @@ for (yr in 2009:2013) {
 
       res.cp <- felm(data = ss_pi, formula = cXp_formula,
                      weights = ss_pi$base.sales)
+      flog.info("Estimated with price index as outcome.")
+      print(coef(summary(res.cp)))
 
       ## *$* Here is where one would extract other information from res.cp *$* ##
 
@@ -152,10 +157,11 @@ for (yr in 2009:2013) {
       res.cp[, ref_quarter := qtr]
       res.cp[, product_module_code := prd]
       res.cp[, outcome := "cpricei"]
-      setnames(res.cp, old = c("Estimate", "Cluster s.e.", "Pr(>|t|)"),
+      setnames(res.cp,
+               old = c("Estimate", "Cluster s.e.", "Pr(>|t|)"),
                new = c("estimate", "cluster_se", "pval"))
 
-
+      flog.info("Attaching output to master data.table.")
       cp.all.res <- rbind(cp.all.res, res.cp)
 
       ## run for log(1 + tax) as well ==========================================
@@ -173,6 +179,8 @@ for (yr in 2009:2013) {
 
       res.tax <- felm(data = ss_pi, formula = tax_formula,
                      weights = ss_pi$base.sales)
+      flog.info("Estimated with tax rate as outcome.")
+      print(coef(summary(res.tax)))
 
       ## *$* Here is where one would extract other information from res.cp *$* ##
 
@@ -190,8 +198,10 @@ for (yr in 2009:2013) {
       res.tax[, ref_quarter := qtr]
       res.tax[, product_module_code := prd]
       res.tax[, outcome := "sales_tax"]
-      setnames(res.tax, old = c("Estimate", "Cluster s.e.", "Pr(>|t|)"),
+      setnames(res.tax,
+               old = c("Estimate", "Cluster s.e.", "Pr(>|t|)"),
                new = c("estimate", "cluster_se", "pval"))
+      flog.info("Attaching output to master data.table.")
       cp.all.res <- rbind(cp.all.res, res.tax)
 
       rm(ss_pi)
