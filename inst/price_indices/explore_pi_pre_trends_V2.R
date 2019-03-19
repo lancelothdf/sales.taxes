@@ -53,7 +53,8 @@ new.events[, min.event := NULL]
 
 ## remove troublesome years
 new.events <- new.events[!(ref_year == 2013 & ref_month %in% 1:6) &
-                                !(ref_year == 2012 & ref_month %in% 10:12)]
+                                !(ref_year == 2012 & ref_month %in% 10:12) &
+                           !(ref_year == 2014)]
 
 control.groups <- original.groups[tr_group == "No change"]
 treated.groups <- unique(new.events[, .(fips_state, fips_county, tr_group)])
@@ -170,9 +171,9 @@ all_pi_es_collapsed <- all_pi[,
                               by = c("tr_group", "tt_event")
                               ]
 
-all_pi_es_collapsed <- add_tr_count(collapsed_data = all_pi_es_collapsed,
-                                    tr_group_name = "tr_group",
-                                    count_col_name = "n_counties")
+# all_pi_es_collapsed <- add_tr_count(collapsed_data = all_pi_es_collapsed,
+#                                     tr_group_name = "tr_group",
+#                                     count_col_name = "n_counties")
 
 fwrite(all_pi_es_collapsed, output.all.event.path)
 
@@ -268,9 +269,9 @@ taxable_pi_es_collapsed <- taxable_pi[,
                                       by = c("tr_group", "tt_event")
                                       ]
 
-taxable_pi_es_collapsed <- add_tr_count(collapsed_data = taxable_pi_es_collapsed,
-                                        tr_group_name = "tr_group",
-                                        count_col_name = "n_counties")
+# taxable_pi_es_collapsed <- add_tr_count(collapsed_data = taxable_pi_es_collapsed,
+#                                         tr_group_name = "tr_group",
+#                                         count_col_name = "n_counties")
 
 fwrite(taxable_pi_es_collapsed, output.taxable.event.path)
 
@@ -378,9 +379,9 @@ taxexempt_pi_es_collapsed <- taxexempt_pi[,
                                           by = c("tr_group", "tt_event")
                                           ]
 
-taxexempt_pi_es_collapsed <- add_tr_count(collapsed_data = taxexempt_pi_es_collapsed,
-                                          tr_group_name = "tr_group",
-                                          count_col_name = "n_counties")
+# taxexempt_pi_es_collapsed <- add_tr_count(collapsed_data = taxexempt_pi_es_collapsed,
+#                                           tr_group_name = "tr_group",
+#                                           count_col_name = "n_counties")
 
 fwrite(taxexempt_pi_es_collapsed, output.taxexempt.event.path)
 
