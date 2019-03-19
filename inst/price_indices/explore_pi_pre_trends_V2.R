@@ -31,55 +31,6 @@ output.taxable.event.path <-"Data/pi_taxable_es_V2.csv"
 output.taxexempt.event.path <-"Data/pi_taxexempt_es_V2.csv"
 
 ################################################################################
-######################## Prepare data (taxable) ################################
-################################################################################
-if (prep_enviro){
-  ## create .csv's of taxable and all goods ------------------------------------
-  nonfood_pi <- read.dta13("Data/Nielsen/Price_quantity_indices_nonfood.dta")
-  nonfood_pi <- as.data.table(nonfood_pi)
-  fwrite(nonfood_pi, "Data/Nielsen/price_quantity_indices_nonfood.csv")
-
-  food_pi <- fread("Data/Nielsen/price_quantity_indices_food.csv")
-  food_pi[, c("fips_state", "fips_county") := NULL]
-
-  all_pi <- rbind(food_pi, nonfood_pi)
-  all_pi <- all_pi[year %in% 2008:2014]
-  rm(nonfood_pi, food_pi)
-  gc()
-
-  ### attach county and state FIPS codes, sales, and tax rates -----------------
-  sales_data <- fread(sales_data_path)
-  sales_data <- sales_data[, .(store_code_uc, product_module_code, fips_county,
-                               fips_state, quarter, year, sales)]
-  sales_data <- sales_data[year %in% 2008:2014]
-
-  all_pi <- merge(all_pi, sales_data, by = c("store_code_uc", "quarter", "year",
-                                             "product_module_code" ))
-  rm(sales_data)
-  gc()
-
-  if (!combine.tax.rates) {
-    all.tax <- fread(quarterly_tax_path)
-  }
-  all_pi <- merge(all_pi, all.tax, by = c("store_code_uc", "product_module_code",
-                                          "year", "quarter", "product_group_code"))
-
-  fwrite(all_pi, all_goods_pi_path)
-
-  rm(all.tax)
-  gc()
-
-  ### create taxable only dataset ----------------------------------------------
-  taxable_pi <- all_pi[sales_tax > 1]
-  fwrite(taxable_pi, taxable_pi_path)
-
-}  else if (make.ct) {
-  all_pi <- fread(all_goods_pi_path)
-  taxable_pi <- fread(taxable_pi_path)
-}
-
-
-################################################################################
 ################ Remove 2012 Q4, 2013 Q1, 2013 Q2 reforms ######################
 ################################################################################
 
