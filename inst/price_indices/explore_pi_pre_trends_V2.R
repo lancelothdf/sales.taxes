@@ -181,7 +181,7 @@ gc()
 
 # Taxable goods only ===========================================================
 taxable_pi <- fread(all_goods_pi_path)
-taxable_pi <- taxable_pi[sales_tax > 1]
+taxable_pi <- taxable_pi[sales_tax > 1 | is.na(sales_tax)]
 taxable_pi <- taxable_pi[year %in% 2006:2014 & !is.na(cpricei)]
 taxable_pi[, cpricei := log(cpricei)]
 taxable_pi[, sales_tax := log(sales_tax)]
@@ -296,7 +296,7 @@ taxexempt_pi <- all_pi[flag != 1]
 rm(all_pi, taxable_pi)
 gc()
 
-taxexempt_pi <- taxexempt_pi[year %in% 2008:2014 & !is.na(cpricei)]
+taxexempt_pi <- taxexempt_pi[year %in% 2006:2014 & !is.na(cpricei)]
 
 ## get sales weights -----------------------------------------------------------
 taxexempt_pi[, base.sales := sales[year == 2008 & quarter == 1],
