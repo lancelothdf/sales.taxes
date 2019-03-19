@@ -217,7 +217,7 @@ gc()
 
 # Taxable goods only ===========================================================
 taxable_pi <- fread(all_goods_pi_path)
-taxable_pi <- taxable_pi[sales_tax > 1 | is.na(sales_tax)]
+taxable_pi <- taxable_pi[sales_tax > 1 | (is.na(sales_tax) & year < 2008)]
 taxable_pi <- taxable_pi[year %in% 2006:2014 & !is.na(cpricei)]
 taxable_pi[, cpricei := log(cpricei)]
 taxable_pi[, sales_tax := log(sales_tax)]
@@ -353,7 +353,7 @@ taxable_pi[, flag := 1]
 
 all_pi <- merge(all_pi, taxable_pi, all.x = T)
 all_pi[is.na(flag), flag := 0]
-all_pi[is.na(sales_tax), flag := 0] # will get dropped if taxable during balancing
+all_pi[is.na(sales_tax) & year < 2008, flag := 0] # will get dropped if taxable during balancing
 
 taxexempt_pi <- all_pi[flag != 1]
 
