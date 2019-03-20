@@ -29,7 +29,7 @@ g <- function(dt) {
 }
 
 change_of_interest <- "Ever increase"
-output_filepath <- "Data/pi_all_cohorts_pooled_extended.csv"
+output_filepath <- "Data/pi_all_cohorts_pooled_extended_taxable.csv"
 
 ## useful filepaths ------------------------------------------------------------
 eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_w2014.csv"
@@ -75,7 +75,7 @@ rm(all.tax)
 
 fwrite(all_pi, all_goods_pi_path)
 } else {
-  all_pi <- fread(all_goods_pi_path)
+  all_pi <- fread(taxable_pi_path)
 }
 
 ## prep the data ---------------------------------------------------------------
