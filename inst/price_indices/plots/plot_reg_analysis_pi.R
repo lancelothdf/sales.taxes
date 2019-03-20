@@ -27,34 +27,44 @@ res.cpricei <- merge(res.cpricei, res.tax,
 res.cpricei[, pt.estimate := estimate / sales_tax_estimate]
 res.cpricei[sales_tax_estimate == 0, pt.estimate := NA]
 
-agg.estimates <- res.cpricei[, list(agg.pi = weighted.mean(estimate, total_sales),
+# TODO: would want this to be balanced
+res.cpricei <- res.cpricei[tt_event < 0 | sales_tax_estimate > .001]
+
+# agg.estimates <- res.cpricei[, list(agg.pi = weighted.mean(estimate, total_sales),
+#                                     agg.sales = sum(total_sales)),
+#                              by = .(tt_event)]
+# agg.estimates[, agg.pt := agg.pi / agg.st]
+
+agg.estimates <- res.cpricei[, list(agg.st = weighted.mean(sales_tax_estimate, total_sales),
+                                    agg.pi = weighted.mean(estimate, total_sales),
+                                    agg.pt = weighted.mean(pt.estimate, total_sales),
                                     agg.sales = sum(total_sales)),
-                             by = .(tt_event)]
+                             by = .(product_module_code, tt_event)]
 agg.estimates[, agg.pt := agg.pi / agg.st]
 
-# agg.estimates <- res.cpricei[, list(agg.st = weighted.mean(sales_tax_estimate, total_sales),
-#                                     agg.pi = weighted.mean(estimate, total_sales),
-#                                     agg.sales = sum(total_sales)),
-#                              by = .(product_module_code, tt_event)]
-# agg.estimates[, agg.pt := agg.pi / agg.st]
-# agg.estimates <- agg.estimates[, list(agg.st = weighted.mean(agg.st, agg.sales),
-#                                       agg.pi = weighted.mean(agg.pi, agg.sales),
-#                                       agg.pt = weighted.mean(agg.pt, agg.sales)),
-#                                by = tt_event]
+ggplot(agg.estimates[tt_event == 1],
+       aes(agg.pt, weight = agg.sales / sum(agg.sales))) +
+  geom_density() +
+  geom_vline(xintercept = 0, color = "red")
+
+agg.estimates <- agg.estimates[, list(agg.st = weighted.mean(agg.st, agg.sales),
+                                      agg.pi = weighted.mean(agg.pi, agg.sales),
+                                      agg.pt = weighted.mean(agg.pt, agg.sales)),
+                               by = tt_event]
 agg.estimates <- rbind(agg.estimates,
                        data.table(tt_event = -2, agg.pt = 0, agg.st = 0, agg.pi = 0), fill = T)
 
 ## nontaxable
-ggplot(data = agg.estimates, mapping = aes(x = tt_event, y = agg.pi)) +
-  geom_point(size = 3, alpha = .5) +
-  geom_line(linetype = "55") +
-  geom_point(aes(x = -2, y = 0), size = 3, color = "black") +
-  theme_bw(base_size = 16) +
-  labs(x = "Event time (quarters)", y = "Estimate", color = NULL) +
-  geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
-  scale_y_continuous(breaks = seq(-.0075, .0025, .0025))
-ggsave("pi_figs/reg_results/cpricei_estimates_taxexempt.png",
-       height = 120, width = 180, units = "mm")
+# ggplot(data = agg.estimates, mapping = aes(x = tt_event, y = agg.pi)) +
+#   geom_point(size = 3, alpha = .5) +
+#   geom_line(linetype = "55") +
+#   geom_point(aes(x = -2, y = 0), size = 3, color = "black") +
+#   theme_bw(base_size = 16) +
+#   labs(x = "Event time (quarters)", y = "Estimate", color = NULL) +
+#   geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
+#   scale_y_continuous(breaks = seq(-.0075, .0025, .0025))
+# ggsave("pi_figs/reg_results/cpricei_estimates_taxexempt.png",
+#        height = 120, width = 180, units = "mm")
 
 ggplot(data = agg.estimates, mapping = aes(x = tt_event, y = agg.pi)) +
   geom_point(size = 3, alpha = .5) +
@@ -118,8 +128,8 @@ ggplot(data = agg.estimates, mapping = aes(x = tt_event, y = agg.st)) +
 ggsave("pi_figs/reg_results/tax_estimates.png",
        height = 120, width = 180, units = "mm")
 
-ggplot(data = res.cpricei[tt_event == 0 & between(sales_tax_estimate, -.5, .5)], aes(x = sales_tax_estimate)) +
-  geom_histogram(binwidth = .001)
+ggplot(data = res.cpricei[tt_event == 0 & between(sales_tax_estimate, .0001, .01)], aes(x = sales_tax_estimate)) +
+  geom_histogram(binwidth = .00001)
 
 ggplot(data = agg.estimates[between(tt_event, 0, 4)], mapping = aes(x = tt_event, y = agg.pt)) +
   geom_point(size = 3, alpha = .5) +

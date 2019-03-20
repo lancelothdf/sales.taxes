@@ -75,10 +75,13 @@ rm(all.tax)
 
 fwrite(all_pi, all_goods_pi_path)
 } else {
-  all_pi <- fread(taxable_pi_path)
+  all_pi <- fread(all_goods_pi_path)
 }
 
 ## prep the data ---------------------------------------------------------------
+
+## only include taxable goods
+all_pi <- all_pi[sales_tax > 1]
 
 # do `arbitrary` correction for the 2013 Q1 jump in the data
 ## calculate price index in 2013 Q1 / cpricei in 2012 Q4
