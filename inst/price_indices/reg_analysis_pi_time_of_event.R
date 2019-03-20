@@ -120,6 +120,11 @@ for (yr in 2009:2013) {
 
       ss_pi[, treated := as.integer(ref_year == yr & ref_quarter == qtr)]
 
+      if (nrow(ss_pi[treated == 1]) == 0 |
+          nrow(ss_pi[treated == 0]) == 0) {
+        next
+      }
+
       # count how many treated counties in the cohort
       N_counties <- length(unique(ss_pi[treated == 1]$county_ID))
       sum_sales.weights <- sum(ss_pi[treated == 1 & tt_event == 0]$base.sales)
@@ -132,7 +137,7 @@ for (yr in 2009:2013) {
         ss_pi[, (var) := as.integer(treated == 1 & tt_event == r)]
       }
       flog.info("Created mutually exclusive treatment columns.")
-      print(head(ss_pi))
+      # print(head(ss_pi))
 
       ## rename columns to prevent confusion for felm
       new_cols <- setdiff(colnames(ss_pi), start_cols)
@@ -147,7 +152,7 @@ for (yr in 2009:2013) {
       res.cp <- felm(data = ss_pi, formula = cXp_formula,
                      weights = ss_pi$base.sales)
       flog.info("Estimated with price index as outcome.")
-      print(coef(summary(res.cp)))
+      # print(coef(summary(res.cp)))
 
       ## *$* Here is where one would extract other information from res.cp *$* ##
 
@@ -191,7 +196,7 @@ for (yr in 2009:2013) {
       res.tax <- felm(data = ss_pi, formula = tax_formula,
                      weights = ss_pi$base.sales)
       flog.info("Estimated with tax rate as outcome.")
-      print(coef(summary(res.tax)))
+      # print(coef(summary(res.tax)))
 
       ## *$* Here is where one would extract other information from res.cp *$* ##
 

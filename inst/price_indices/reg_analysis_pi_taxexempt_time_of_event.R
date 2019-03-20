@@ -119,6 +119,11 @@ for (yr in 2009:2013) {
 
       ss_pi[, treated := as.integer(ref_year == yr & ref_quarter == qtr)]
 
+      if (nrow(ss_pi[treated == 1]) == 0 |
+          nrow(ss_pi[treated == 0]) == 0) {
+        next
+      }
+
       # count how many treated counties in the cohort
       N_counties <- length(unique(ss_pi[treated == 1]$county_ID))
       sum_sales.weights <- sum(ss_pi[treated == 1 & tt_event == 0]$base.sales)
