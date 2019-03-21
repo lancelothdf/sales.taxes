@@ -28,7 +28,7 @@ all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_not
 taxable_pi_path <- "Data/Nielsen/price_quantity_indices_taxableitems_2006-2016.csv"
 
 output.all.event.path <- "Data/pi_allgoods_es_V2.csv"
-output.taxable.event.path <-"Data/pi_taxable_es_V2.csv"
+output.taxable.event.path <-"Data/pi_taxable_es_V2_normalized.csv"
 output.taxexempt.event.path <-"Data/pi_taxexempt_es_V2.csv"
 
 ################################################################################
