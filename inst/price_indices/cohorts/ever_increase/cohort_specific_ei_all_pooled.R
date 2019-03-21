@@ -29,7 +29,7 @@ g <- function(dt) {
 }
 
 change_of_interest <- "Ever increase"
-output_filepath <- "Data/pi_all_cohorts_pooled_extended_taxable.csv"
+output_filepath <- "Data/pi_all_cohorts_pooled_extended_taxable_prenormalized.csv"
 
 ## useful filepaths ------------------------------------------------------------
 eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_w2014.csv"
@@ -227,7 +227,19 @@ for (ref.year in 2009:2013) {
     ## aggregate over calendar time ------------------------------------------------
     g(taxable_pi.09Q1)
 
+    ## ADDED 3/21/2019: normalize all at event time t-2
+    taxable_pi.09Q1[, tt_event := (4 * year + quarter) - (4 * ref.year + ref.quarter)]
+    taxable_pi.09Q1[, normalized.cpricei := normalized.cpricei - normalized.cpricei[tt_event == -2],
+                    by = .(store_code_uc, product_module_code)]
+    taxable_pi.09Q1[, Future := Future - Future[tt_event == -2],
+                    by = .(store_code_uc, product_module_code)]
+    taxable_pi.09Q1[, `No change` := `No change` - `No change`[tt_event == -2],
+                    by = .(store_code_uc, product_module_code)]
+
     if (future_restr_grp) {
+      taxable_pi.09Q1[, `Future restricted` := `Future restricted` - `Future restricted`[tt_event == -2],
+                      by = .(store_code_uc, product_module_code)]
+
       taxable_pi.09Q1.collapsed <- taxable_pi.09Q1[, list(
         mean.cpricei = weighted.mean(normalized.cpricei, w = base.sales),
         Future = weighted.mean(Future, w = base.sales),
