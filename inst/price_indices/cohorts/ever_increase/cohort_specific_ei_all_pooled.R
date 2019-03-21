@@ -19,6 +19,7 @@ library(data.table)
 library(readstata13)
 library(sales.taxes)
 library(zoo)
+library(futile.logger)
 
 setwd("/project2/igaarder")
 prep.new.data <- F
@@ -82,6 +83,8 @@ fwrite(all_pi, all_goods_pi_path)
 
 ## only include taxable goods
 all_pi <- all_pi[sales_tax > 1 | (year < 2008 & is.na(sales_tax))]
+all_pi <- all_pi[year %in% 2006:2014 & !is.na(cpricei)]
+flog.info("Base data N: %s", nrow(all_pi))
 
 # do `arbitrary` correction for the 2013 Q1 jump in the data
 ## calculate price index in 2013 Q1 / cpricei in 2012 Q4
@@ -96,6 +99,7 @@ all_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2006 & quarter
 all_pi[, base.sales := sales[year == 2008 & quarter == 1],
        by = .(store_code_uc, product_module_code)]
 all_pi <- all_pi[!is.na(normalized.cpricei) & !is.na(base.sales)]
+flog.info("Normalized with weights N: %s", nrow(all_pi))
 
 ## balance on store-module level
 keep_store_modules <- all_pi[, list(n = .N),
@@ -107,6 +111,7 @@ setkey(keep_store_modules, store_code_uc, product_module_code)
 
 all_pi <- all_pi[keep_store_modules]
 setkey(all_pi, fips_county, fips_state)
+flog.info("Balanced N: %s", nrow(all_pi))
 
 ## prep treatment events -------------------------------------------------------
 tr.events <- fread(eventstudy_tr_path)
@@ -153,9 +158,12 @@ for (ref.year in 2009:2013) {
     }
     setkey(tr.events.09Q1, fips_county, fips_state)
 
-    taxable_pi.09Q1 <- all_pi[sales_tax > 1 | (year < 2008 & is.na(sales_tax))]
+    # taxable_pi.09Q1 <- all_pi[sales_tax > 1 | (year < 2008 & is.na(sales_tax))]
     taxable_pi.09Q1 <- taxable_pi.09Q1[tr.events.09Q1]
     g(taxable_pi.09Q1)
+    taxable_pi.09Q1[, tt_event := year * 4 + quarter - (ref.year * 4 + ref.quarter)]
+    flog.info("Cohort-level treated N for %sQ%s: %s", ref.year, ref.quarter,
+              nrow(taxable_pi.09Q1[between(tt_event, -8, 4)]))
 
     ## get sum of sales in treated counties
     pool_cohort_weights <- rbind(
@@ -170,7 +178,6 @@ for (ref.year in 2009:2013) {
     ## limit to goods that are taxable for the cohort (e.g., 2009 Q1)
     constant.goods.set <- unique(taxable_pi.09Q1[year == ref.year & quarter == ref.quarter]$product_module_code)
     ss_pi <- all_pi[product_module_code %in% constant.goods.set] # keep goods constant
-    taxable_pi.09Q1
     g(ss_pi)
 
     ## identify never treated counties
@@ -220,26 +227,17 @@ for (ref.year in 2009:2013) {
 
     ## merge onto the treated cohort by product
     taxable_pi.09Q1 <- taxable_pi.09Q1[product_module_code %in% constant.goods.set]
+    flog.info("Cohort-level treated N for %sQ%s: %s", ref.year, ref.quarter,
+              nrow(taxable_pi.09Q1[between(tt_event, -8, 4)]))
     taxable_pi.09Q1 <- merge(taxable_pi.09Q1, ss_pi.collapsed,
                              by = c("year", "quarter", "product_module_code"))
     rm(ss_pi.collapsed)
 
     ## aggregate over calendar time ------------------------------------------------
-    g(taxable_pi.09Q1)
-
-    ## ADDED 3/21/2019: normalize all at event time t-2
-    taxable_pi.09Q1[, tt_event := (4 * year + quarter) - (4 * ref.year + ref.quarter)]
-    taxable_pi.09Q1[, normalized.cpricei := normalized.cpricei - normalized.cpricei[tt_event == -2],
-                    by = .(store_code_uc, product_module_code)]
-    taxable_pi.09Q1[, Future := Future - Future[tt_event == -2],
-                    by = .(store_code_uc, product_module_code)]
-    taxable_pi.09Q1[, `No change` := `No change` - `No change`[tt_event == -2],
-                    by = .(store_code_uc, product_module_code)]
-
+    # g(taxable_pi.09Q1)
+    flog.info("Cohort-level treated N for %sQ%s: %s", ref.year, ref.quarter,
+              nrow(taxable_pi.09Q1[between(tt_event, -8, 4)]))
     if (future_restr_grp) {
-      taxable_pi.09Q1[, `Future restricted` := `Future restricted` - `Future restricted`[tt_event == -2],
-                      by = .(store_code_uc, product_module_code)]
-
       taxable_pi.09Q1.collapsed <- taxable_pi.09Q1[, list(
         mean.cpricei = weighted.mean(normalized.cpricei, w = base.sales),
         Future = weighted.mean(Future, w = base.sales),

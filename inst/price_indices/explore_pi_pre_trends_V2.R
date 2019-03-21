@@ -188,6 +188,7 @@ gc()
 taxable_pi <- fread(all_goods_pi_path)
 taxable_pi <- taxable_pi[sales_tax > 1 | (is.na(sales_tax) & year < 2008)]
 taxable_pi <- taxable_pi[year %in% 2006:2014 & !is.na(cpricei)]
+flog.info("Base data N: %s", nrow(taxable_pi))
 
 # do `arbitrary` correction for the 2013 Q1 jump in the data
 ## calculate price index in 2013 Q1 / cpricei in 2012 Q4
@@ -205,6 +206,8 @@ taxable_pi[, base.sales := sales[year == 2008 & quarter == 1],
 
 taxable_pi[, sales := NULL]
 taxable_pi <- taxable_pi[!is.na(base.sales) & !is.na(cpricei)]
+flog.info("Normalized with weights N: %s", nrow(taxable_pi))
+
 
 ## balance sample on store-module-level from 2006 to 2014 ----------------------
 keep_store_modules <- taxable_pi[, list(n = .N),
@@ -216,6 +219,8 @@ setkey(keep_store_modules, store_code_uc, product_module_code)
 
 taxable_pi <- taxable_pi[keep_store_modules]
 setkey(taxable_pi, fips_county, fips_state)
+flog.info("Balanced N: %s", nrow(taxable_pi))
+
 
 ## normalize (ADDED 3/21/2019) (doesn't do much)
 # taxable_pi[, cpricei := cpricei - cpricei[year == 2006 & quarter == 1],
@@ -237,6 +242,12 @@ taxable_pi[, tt_event := as.integer(4 * year + quarter -
 
 ## limit data to three year window around reform ---------------------------------
 taxable_pi <- taxable_pi[tt_event >= -8 & tt_event <= 4]
+
+# get counts for check
+taxable_pi_counts <- taxable_pi[, list(N = .N), by = .(ref_year, ref_quarter)]
+print(taxable_pi_counts)
+## just in case...
+print(head(taxable_pi_counts, 30))
 
 ## add pseudo-control group ----------------------------------------------------
 
@@ -276,6 +287,12 @@ taxable_pi[, normalized.cpricei := cpricei - cpricei[tt_event == - 2],
 # drops groups for which tt_event == -2 not available
 taxable_pi <- taxable_pi[!is.na(normalized.cpricei)]
 # note that this is still log cpricei
+
+# get counts for check
+taxable_pi_counts <- taxable_pi[, list(N = .N), by = .(ref_year, ref_quarter)]
+print(taxable_pi_counts)
+## just in case...
+print(head(taxable_pi_counts, 30))
 
 ## aggregate by treatment group ------------------------------------------------
 taxable_pi_es_collapsed <- taxable_pi[,
