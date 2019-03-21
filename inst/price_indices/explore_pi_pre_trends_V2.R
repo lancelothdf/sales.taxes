@@ -14,6 +14,7 @@ library(ggplot2)
 setwd("/project2/igaarder")
 prep_enviro <- T
 change_of_interest <- "Ever increase"
+taxable_only <- T
 
 ## useful filepaths ------------------------------------------------------------
 original.eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_w2014.csv"
@@ -67,6 +68,7 @@ fwrite(new.groups, tr_groups_path)
 ################ Plots by Event Time (taxable and all goods) ###################
 ################################################################################
 
+if (!taxable_only) {
 # All goods ====================================================================
 all_pi <- fread(all_goods_pi_path)
 all_pi <- all_pi[year %in% 2006:2014 & !is.na(cpricei)]
@@ -178,11 +180,20 @@ fwrite(all_pi_es_collapsed, output.all.event.path)
 
 rm(all_pi)
 gc()
+}
 
 # Taxable goods only ===========================================================
 taxable_pi <- fread(all_goods_pi_path)
 taxable_pi <- taxable_pi[sales_tax > 1 | (is.na(sales_tax) & year < 2008)]
 taxable_pi <- taxable_pi[year %in% 2006:2014 & !is.na(cpricei)]
+
+# do `arbitrary` correction for the 2013 Q1 jump in the data
+## calculate price index in 2013 Q1 / cpricei in 2012 Q4
+taxable_pi[, correction := pricei[year == 2013 & quarter == 1] / pricei[year == 2012 & quarter == 4],
+       by = .(store_code_uc, product_module_code)]
+## divide price index after 2013 Q1 (inclusive) by above value
+taxable_pi[year >= 2013, cpricei := cpricei / correction]
+
 taxable_pi[, cpricei := log(cpricei)]
 taxable_pi[, sales_tax := log(sales_tax)]
 
@@ -203,6 +214,10 @@ setkey(keep_store_modules, store_code_uc, product_module_code)
 
 taxable_pi <- taxable_pi[keep_store_modules]
 setkey(taxable_pi, fips_county, fips_state)
+
+## normalize (ADDED 3/21/2019)
+taxable_pi[, cpricei := log(cpricei) - log(cpricei[year == 2006 & quarter == 1]),
+           by = .(store_code_uc, product_module_code)]
 
 taxable_pi_original <- copy(taxable_pi)
 
@@ -278,10 +293,20 @@ fwrite(taxable_pi_es_collapsed, output.taxable.event.path)
 rm(taxable_pi)
 gc()
 
+if (taxable_only) stop()
+
 # Tax exempt goods =============================================================
 
 ## get data.table of tax exempt goods ------------------------------------------
 all_pi <- fread(all_goods_pi_path)
+
+# do `arbitrary` correction for the 2013 Q1 jump in the data
+## calculate price index in 2013 Q1 / cpricei in 2012 Q4
+all_pi[, correction := pricei[year == 2013 & quarter == 1] / pricei[year == 2012 & quarter == 4],
+       by = .(store_code_uc, product_module_code)]
+## divide price index after 2013 Q1 (inclusive) by above value
+all_pi[year >= 2013, cpricei := cpricei / correction]
+
 taxable_pi <- all_pi[sales_tax > 1]
 
 taxable_pi <- taxable_pi[, .(store_code_uc, product_module_code, quarter, year)]
@@ -302,6 +327,7 @@ taxexempt_pi <- taxexempt_pi[year %in% 2006:2014 & !is.na(cpricei)]
 taxexempt_pi[, base.sales := sales[year == 2008 & quarter == 1],
              by = .(store_code_uc, product_module_code)]
 taxexempt_pi[, sales := NULL]
+
 taxexempt_pi[, cpricei := log(cpricei)]
 taxexempt_pi[, sales_tax := log(sales_tax)]
 taxexempt_pi <- taxexempt_pi[!is.na(base.sales) & !is.na(cpricei)]
