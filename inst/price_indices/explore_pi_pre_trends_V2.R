@@ -16,6 +16,8 @@ prep_enviro <- T
 change_of_interest <- "Ever increase"
 taxable_only <- T
 
+g <- function(dt) print(head(dt))
+
 ## useful filepaths ------------------------------------------------------------
 original.eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_w2014.csv"
 original.tr_groups_path <- "Data/tr_groups_comprehensive_w2014.csv"
@@ -216,7 +218,7 @@ taxable_pi <- taxable_pi[keep_store_modules]
 setkey(taxable_pi, fips_county, fips_state)
 
 ## normalize (ADDED 3/21/2019)
-taxable_pi[, cpricei := log(cpricei) - log(cpricei[year == 2006 & quarter == 1]),
+taxable_pi[, cpricei := cpricei - cpricei[year == 2006 & quarter == 1],
            by = .(store_code_uc, product_module_code)]
 
 taxable_pi_original <- copy(taxable_pi)
