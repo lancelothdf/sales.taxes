@@ -30,7 +30,7 @@ all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_not
 taxable_pi_path <- "Data/Nielsen/price_quantity_indices_taxableitems_2006-2016.csv"
 
 output.all.event.path <- "Data/pi_allgoods_es_V2.csv"
-output.taxable.event.path <-"Data/pi_taxable_es_V2_normalized.csv"
+output.taxable.event.path <-"Data/pi_taxable_es_V2_w_correction.csv"
 output.taxexempt.event.path <-"Data/pi_taxexempt_es_V2.csv"
 
 ################################################################################
@@ -217,9 +217,9 @@ setkey(keep_store_modules, store_code_uc, product_module_code)
 taxable_pi <- taxable_pi[keep_store_modules]
 setkey(taxable_pi, fips_county, fips_state)
 
-## normalize (ADDED 3/21/2019)
-taxable_pi[, cpricei := cpricei - cpricei[year == 2006 & quarter == 1],
-           by = .(store_code_uc, product_module_code)]
+## normalize (ADDED 3/21/2019) (doesn't do much)
+# taxable_pi[, cpricei := cpricei - cpricei[year == 2006 & quarter == 1],
+#            by = .(store_code_uc, product_module_code)]
 
 taxable_pi_original <- copy(taxable_pi)
 
