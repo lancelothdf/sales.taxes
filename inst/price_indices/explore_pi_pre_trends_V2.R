@@ -253,7 +253,8 @@ taxable_pi <- taxable_pi[tt_event >= -8 & tt_event <= 4]
 setorder(taxable_pi, fips_state, fips_county, store_code_uc, product_module_code, year, quarter)
 print(head(taxable_pi[ref_year == 2009 & ref_quarter == 1 & tr_group == "Ever increase"], 20))
 
-test_collapsed <- taxable_pi[, list(mean.cpricei = weighted.mean(cpricei, w = base.sales)),
+test_collapsed <- taxable_pi[, list(mean.cpricei = weighted.mean(cpricei, w = base.sales),
+                                    total_sales = sum(base.sales * as.integer(year == ref_year & quarter == ref_quarter))),
                              by = .(quarter, year, ref_quarter, ref_year, tr_group)]
 fwrite(test_collapsed, "Data/test_collapsed_V2.csv")
 
@@ -297,7 +298,8 @@ taxable_pi[, normalized.cpricei := cpricei - cpricei[tt_event == -2],
 taxable_pi <- taxable_pi[!is.na(normalized.cpricei)]
 # note that this is still log cpricei
 
-test_collapsed <- taxable_pi[, list(mean.cpricei = weighted.mean(normalized.cpricei, w = base.sales)),
+test_collapsed <- taxable_pi[, list(mean.cpricei = weighted.mean(normalized.cpricei, w = base.sales),
+                                    total_sales = sum(base.sales * as.integer(year == ref_year & quarter == ref_quarter))),
                              by = .(quarter, year, ref_quarter, ref_year, tr_group)]
 fwrite(test_collapsed, "Data/test_collapsed_V3.csv")
 
