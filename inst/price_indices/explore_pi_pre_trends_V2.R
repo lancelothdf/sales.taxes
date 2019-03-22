@@ -250,6 +250,9 @@ taxable_pi <- taxable_pi[tt_event >= -8 & tt_event <= 4]
 # ## just in case...
 # print(head(taxable_pi_counts, 30))
 
+setorder(taxable_pi, fips_state, fips_county, store_code_uc, product_module_code, year, quarter)
+print(head(taxable_pi[ref_year == 2009 & ref_quarter == 1 & tr_group == "Ever increase"], 20))
+
 ## add pseudo-control group ----------------------------------------------------
 
 ### create unique dataset of never treated counties
@@ -281,9 +284,6 @@ matched_control_data[, tr_group := paste0("No change (", tolower(tr_group), ")")
 
 taxable_pi <- rbind(taxable_pi, matched_control_data, fill = T)
 
-setorder(taxable_pi, fips_state, fips_county, store_code_uc, product_module_code,
-         year, quarter)
-print(head(taxable_pi[ref_year == 2009 & ref_quarter == 1], 20))
 
 ## normalize price indices based on time to event ------------------------------
 taxable_pi[, normalized.cpricei := cpricei - cpricei[tt_event == -2],
