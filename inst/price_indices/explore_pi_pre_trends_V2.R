@@ -223,7 +223,7 @@ setkey(taxable_pi, fips_county, fips_state)
 flog.info("Balanced N: %s", nrow(taxable_pi))
 
 
-## normalize (ADDED 3/21/2019) (doesn't do much)
+## normalize (ADDED 3/21/2019) (update: doesn't do anything)
 taxable_pi[, cpricei := cpricei - cpricei[year == 2006 & quarter == 1],
            by = .(store_code_uc, product_module_code)]
 
@@ -252,6 +252,10 @@ taxable_pi <- taxable_pi[tt_event >= -8 & tt_event <= 4]
 
 setorder(taxable_pi, fips_state, fips_county, store_code_uc, product_module_code, year, quarter)
 print(head(taxable_pi[ref_year == 2009 & ref_quarter == 1 & tr_group == "Ever increase"], 20))
+
+test_collapsed <- taxable_pi[, list(mean.cpricei = weighted.mean(cpricei, w = base.sales)),
+                             by = .(quarter, year, ref_quarter, ref_year, tr_group)]
+fwrite(test_collapsed, "Data/test_collapsed_V2.csv")
 
 ## add pseudo-control group ----------------------------------------------------
 
