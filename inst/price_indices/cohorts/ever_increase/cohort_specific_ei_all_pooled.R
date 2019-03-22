@@ -98,6 +98,7 @@ all_pi[, normalized.cpricei := log(cpricei) - log(cpricei[year == 2006 & quarter
        by = .(store_code_uc, product_module_code)]
 all_pi[, base.sales := sales[year == 2008 & quarter == 1],
        by = .(store_code_uc, product_module_code)]
+all_pi[, sales := NULL]
 all_pi <- all_pi[!is.na(normalized.cpricei) & !is.na(base.sales)]
 flog.info("Normalized with weights N: %s", nrow(all_pi))
 

@@ -297,6 +297,10 @@ taxable_pi[, normalized.cpricei := cpricei - cpricei[tt_event == -2],
 taxable_pi <- taxable_pi[!is.na(normalized.cpricei)]
 # note that this is still log cpricei
 
+test_collapsed <- taxable_pi[, list(mean.cpricei = weighted.mean(cpricei, w = base.sales)),
+                             by = .(quarter, year, ref_quarter, ref_year, tr_group)]
+fwrite(test_collapsed, "Data/test_collapsed_V3.csv")
+
 # get counts for check
 taxable_pi_counts <- taxable_pi[tr_group == "Ever increase", list(N = .N), by = .(ref_year, ref_quarter)]
 print(taxable_pi_counts)
