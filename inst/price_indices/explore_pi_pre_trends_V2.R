@@ -294,7 +294,8 @@ taxable_pi_es_collapsed <- taxable_pi[,
                                       list(mean_pi = weighted.mean(x = normalized.cpricei, w = base.sales),
                                            mean_tax = weighted.mean(sales_tax, w = base.sales, na.rm = T),
                                            n_counties = uniqueN(1000 * fips_state + fips_county),
-                                           n_stores = uniqueN(store_code_uc)),
+                                           n_stores = uniqueN(store_code_uc),
+                                           total_sales = sum(base.sales)),
                                       by = c("tr_group", "tt_event")
                                       ]
 
