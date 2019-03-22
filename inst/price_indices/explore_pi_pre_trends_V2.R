@@ -296,7 +296,7 @@ test_collapsed <- taxable_pi[, list(mean.cpricei = sum(normalized.cpricei * fine
 fwrite(test_collapsed, "Data/test_collapsed_V3.csv")
 
 ## aggregate by treatment group ------------------------------------------------
-taxable_pi[, broad.sales.weight := base.sales / sum(base.sales), by = .(tt_event, ref_quarter, ref_year, tr_group)]
+taxable_pi[, broad.sales.weight := base.sales / sum(base.sales), by = .(tt_event, tr_group)]
 
 taxable_pi_es_collapsed <- taxable_pi[,
                                       list(mean_pi = sum(normalized.cpricei * broad.sales.weight),
