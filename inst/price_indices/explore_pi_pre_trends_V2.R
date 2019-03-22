@@ -287,7 +287,8 @@ taxable_pi <- taxable_pi[!is.na(normalized.cpricei)]
 # create weights
 taxable_pi[, fine.sales.weight := base.sales / sum(base.sales), by = .(tt_event, ref_quarter, ref_year, tr_group)]
 test_collapsed <- taxable_pi[, list(mean.cpricei = sum(normalized.cpricei * fine.sales.weight),
-                                    total_sales_weight = sum(fine.sales.weight)),
+                                    total_sales_weight = sum(fine.sales.weight),
+                                    total_sales = sum(base.sales)),
                              by = .(tt_event, ref_quarter, ref_year, tr_group)]
 
 # test_collapsed <- taxable_pi[, list(mean.cpricei = weighted.mean(normalized.cpricei, w = base.sales),
