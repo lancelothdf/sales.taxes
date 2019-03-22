@@ -159,7 +159,9 @@ for (ref.year in 2009:2013) {
     setkey(tr.events.09Q1, fips_county, fips_state)
 
     # taxable_pi.09Q1 <- all_pi[sales_tax > 1 | (year < 2008 & is.na(sales_tax))]
-    taxable_pi.09Q1 <- taxable_pi.09Q1[tr.events.09Q1]
+    # taxable_pi.09Q1 <- taxable_pi.09Q1[tr.events.09Q1]
+    taxable_pi.09Q1 <- all_pi[tr.events.09Q1]
+
     g(taxable_pi.09Q1)
     taxable_pi.09Q1[, tt_event := year * 4 + quarter - (ref.year * 4 + ref.quarter)]
     flog.info("Cohort-level treated N for %sQ%s: %s", ref.year, ref.quarter,
