@@ -224,8 +224,8 @@ flog.info("Balanced N: %s", nrow(taxable_pi))
 
 
 ## normalize (ADDED 3/21/2019) (doesn't do much)
-# taxable_pi[, cpricei := cpricei - cpricei[year == 2006 & quarter == 1],
-#            by = .(store_code_uc, product_module_code)]
+taxable_pi[, cpricei := cpricei - cpricei[year == 2006 & quarter == 1],
+           by = .(store_code_uc, product_module_code)]
 
 taxable_pi_original <- copy(taxable_pi)
 
@@ -281,8 +281,12 @@ matched_control_data[, tr_group := paste0("No change (", tolower(tr_group), ")")
 
 taxable_pi <- rbind(taxable_pi, matched_control_data, fill = T)
 
+setorder(taxable_pi, fips_state, fips_county, store_code_uc, product_module_code,
+         year, quarter)
+print(head(taxable_pi[ref_year == 2009 & ref_quarter == 1], 20))
+
 ## normalize price indices based on time to event ------------------------------
-taxable_pi[, normalized.cpricei := cpricei - cpricei[tt_event == - 2],
+taxable_pi[, normalized.cpricei := cpricei - cpricei[tt_event == -2],
            by = .(store_code_uc, product_module_code, ref_year, ref_quarter,
                   tr_group, event_ID)]
 # drops groups for which tt_event == -2 not available
