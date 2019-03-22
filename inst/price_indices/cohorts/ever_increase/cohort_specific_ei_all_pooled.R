@@ -162,7 +162,7 @@ for (ref.year in 2009:2013) {
     # taxable_pi.09Q1 <- taxable_pi.09Q1[tr.events.09Q1]
     taxable_pi.09Q1 <- all_pi[tr.events.09Q1]
 
-    g(taxable_pi.09Q1)
+    # g(taxable_pi.09Q1)
     taxable_pi.09Q1[, tt_event := year * 4 + quarter - (ref.year * 4 + ref.quarter)]
     flog.info("Cohort-level treated N for %sQ%s: %s", ref.year, ref.quarter,
               nrow(taxable_pi.09Q1[between(tt_event, -8, 4)]))
@@ -180,12 +180,12 @@ for (ref.year in 2009:2013) {
     ## limit to goods that are taxable for the cohort (e.g., 2009 Q1)
     constant.goods.set <- unique(taxable_pi.09Q1[year == ref.year & quarter == ref.quarter]$product_module_code)
     ss_pi <- all_pi[product_module_code %in% constant.goods.set] # keep goods constant
-    g(ss_pi)
+    # g(ss_pi)
 
     ## identify never treated counties
     never.treated <- ss_pi[never.treated.master]
     never.treated[, group := "No change"]
-    g(never.treated)
+    # g(never.treated)
 
     ## identify not-yet-treated (but future treated) counties
     ss_pi <- ss_pi[tr.events[treatment_year > ref.year |
@@ -206,12 +206,12 @@ for (ref.year in 2009:2013) {
     ss_pi <- ss_pi[min_treat_quarter > calendar_quarter]
     ss_pi[, group := "Future"]
 
-    g(ss_pi)
-    g(ss_pi_yearplus)
+    # g(ss_pi)
+    # g(ss_pi_yearplus)
 
     ## combine never treated + later cohorts
     ss_pi <- rbind(ss_pi, ss_pi_yearplus, never.treated, fill = T)
-    g(ss_pi)
+    # g(ss_pi)
     rm(never.treated, ss_pi_yearplus)
 
     # ss_pi[, event.weight := ifelse(is.na(n_events), 1, 1 / n_events)]
@@ -221,11 +221,11 @@ for (ref.year in 2009:2013) {
       control.cpricei = weighted.mean(normalized.cpricei, w = base.sales)
     ), by = .(year, quarter, group, product_module_code)]
     rm(ss_pi)
-    g(ss_pi.collapsed)
+    # g(ss_pi.collapsed)
 
     ## rearrange for simple merging of groups onto 2009 Q1 cohort
     ss_pi.collapsed <- tidyr::spread(ss_pi.collapsed, group, control.cpricei)
-    g(ss_pi.collapsed)
+    # g(ss_pi.collapsed)
 
     ## merge onto the treated cohort by product
     taxable_pi.09Q1 <- taxable_pi.09Q1[product_module_code %in% constant.goods.set]
@@ -239,6 +239,9 @@ for (ref.year in 2009:2013) {
     # g(taxable_pi.09Q1)
     flog.info("Cohort-level treated N for %sQ%s: %s", ref.year, ref.quarter,
               nrow(taxable_pi.09Q1[between(tt_event, -8, 4)]))
+    setorder(taxable_pi.09Q1, fips_state, fips_county, store_code_uc, product_module_code,
+             year, quarter)
+    print(head(taxable_pi.09Q1, 20))
     if (future_restr_grp) {
       taxable_pi.09Q1.collapsed <- taxable_pi.09Q1[, list(
         mean.cpricei = weighted.mean(normalized.cpricei, w = base.sales),
@@ -255,14 +258,14 @@ for (ref.year in 2009:2013) {
       taxable_pi.09Q1.collapsed[, `Future restricted` := NA]
     }
 
-    g(taxable_pi.09Q1.collapsed)
+    # g(taxable_pi.09Q1.collapsed)
 
     setnames(taxable_pi.09Q1.collapsed, "mean.cpricei", "Treated")
     taxable_pi.09Q1.collapsed <- tidyr::gather(taxable_pi.09Q1.collapsed,
                                                key = group, value = cpricei,
                                                c(Treated, Future,
                                                  `Future restricted`, `No change`))
-    g(taxable_pi.09Q1.collapsed)
+    # g(taxable_pi.09Q1.collapsed)
     taxable_pi.09Q1.collapsed <- as.data.table(taxable_pi.09Q1.collapsed)
     taxable_pi.09Q1.collapsed <- taxable_pi.09Q1.collapsed[!is.na(cpricei)]
     taxable_pi.09Q1.collapsed[, ref_year := ref.year]

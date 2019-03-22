@@ -244,11 +244,11 @@ taxable_pi[, tt_event := as.integer(4 * year + quarter -
 ## limit data to three year window around reform ---------------------------------
 taxable_pi <- taxable_pi[tt_event >= -8 & tt_event <= 4]
 
-# get counts for check
-taxable_pi_counts <- taxable_pi[tr_group == "Ever increase", list(N = .N), by = .(ref_year, ref_quarter)]
-print(taxable_pi_counts)
-## just in case...
-print(head(taxable_pi_counts, 30))
+# # get counts for check
+# taxable_pi_counts <- taxable_pi[tr_group == "Ever increase", list(N = .N), by = .(ref_year, ref_quarter)]
+# print(taxable_pi_counts)
+# ## just in case...
+# print(head(taxable_pi_counts, 30))
 
 ## add pseudo-control group ----------------------------------------------------
 
@@ -292,9 +292,10 @@ taxable_pi <- taxable_pi[!is.na(normalized.cpricei)]
 # get counts for check
 taxable_pi_counts <- taxable_pi[tr_group == "Ever increase", list(N = .N), by = .(ref_year, ref_quarter)]
 print(taxable_pi_counts)
-## just in case...
-print(head(taxable_pi_counts, 30))
 
+setorder(taxable_pi, fips_state, fips_county, store_code_uc, product_module_code,
+         year, quarter)
+print(head(taxable_pi[ref_year == 2009 & ref_quarter == 1], 20))
 ## aggregate by treatment group ------------------------------------------------
 taxable_pi_es_collapsed <- taxable_pi[,
                                       list(mean_pi = weighted.mean(x = normalized.cpricei, w = base.sales),
