@@ -284,20 +284,37 @@ taxable_pi[, normalized.cpricei := cpricei - cpricei[tt_event == -2],
 taxable_pi <- taxable_pi[!is.na(normalized.cpricei)]
 # note that this is still log cpricei
 
-test_collapsed <- taxable_pi[, list(mean.cpricei = weighted.mean(normalized.cpricei, w = base.sales),
-                                    total_sales = sum(base.sales)),
+# create weights
+taxable_pi[, fine.sales.weight := base.sales / sum(base.sales), by = .(tt_event, ref_quarter, ref_year, tr_group)]
+test_collapsed <- taxable_pi[, list(mean.cpricei = sum(normalized.cpricei * fine.sales.weight),
+                                    total_sales_weight = sum(fine.sales.weight)),
                              by = .(tt_event, ref_quarter, ref_year, tr_group)]
+
+# test_collapsed <- taxable_pi[, list(mean.cpricei = weighted.mean(normalized.cpricei, w = base.sales),
+#                                     total_sales = sum(base.sales)),
+#                              by = .(tt_event, ref_quarter, ref_year, tr_group)]
 fwrite(test_collapsed, "Data/test_collapsed_V3.csv")
 
 ## aggregate by treatment group ------------------------------------------------
+taxable_pi[, broad.sales.weight := base.sales / sum(base.sales), by = .(tt_event, ref_quarter, ref_year, tr_group)]
+
 taxable_pi_es_collapsed <- taxable_pi[,
-                                      list(mean_pi = weighted.mean(x = normalized.cpricei, w = base.sales),
-                                           mean_tax = weighted.mean(sales_tax, w = base.sales, na.rm = T),
-                                           n_counties = uniqueN(1000 * fips_state + fips_county),
-                                           n_stores = uniqueN(store_code_uc),
-                                           total_sales = sum(base.sales)),
-                                      by = c("tr_group", "tt_event")
+                                      list(mean_pi = sum(normalized.cpricei * broad.sales.weight),
+                                           # mean_tax = weighted.mean(sales_tax, w = base.sales, na.rm = T),
+                                           # n_counties = uniqueN(1000 * fips_state + fips_county),
+                                           # n_stores = uniqueN(store_code_uc),
+                                           total_sales_weight = sum(broad.sales.weight)),
+                                      by = .(tr_group, tt_event)
                                       ]
+
+# taxable_pi_es_collapsed <- taxable_pi[,
+#                                       list(mean_pi = weighted.mean(x = normalized.cpricei, w = base.sales),
+#                                            mean_tax = weighted.mean(sales_tax, w = base.sales, na.rm = T),
+#                                            n_counties = uniqueN(1000 * fips_state + fips_county),
+#                                            n_stores = uniqueN(store_code_uc),
+#                                            total_sales = sum(base.sales)),
+#                                       by = c("tr_group", "tt_event")
+#                                       ]
 
 # taxable_pi_es_collapsed <- add_tr_count(collapsed_data = taxable_pi_es_collapsed,
 #                                         tr_group_name = "tr_group",
