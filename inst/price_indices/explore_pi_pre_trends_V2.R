@@ -245,7 +245,7 @@ taxable_pi[, tt_event := as.integer(4 * year + quarter -
 taxable_pi <- taxable_pi[tt_event >= -8 & tt_event <= 4]
 
 # get counts for check
-taxable_pi_counts <- taxable_pi[, list(N = .N), by = .(ref_year, ref_quarter)]
+taxable_pi_counts <- taxable_pi[tr_group == "Ever increase", list(N = .N), by = .(ref_year, ref_quarter)]
 print(taxable_pi_counts)
 ## just in case...
 print(head(taxable_pi_counts, 30))
@@ -290,7 +290,7 @@ taxable_pi <- taxable_pi[!is.na(normalized.cpricei)]
 # note that this is still log cpricei
 
 # get counts for check
-taxable_pi_counts <- taxable_pi[, list(N = .N), by = .(ref_year, ref_quarter)]
+taxable_pi_counts <- taxable_pi[tr_group == "Ever increase", list(N = .N), by = .(ref_year, ref_quarter)]
 print(taxable_pi_counts)
 ## just in case...
 print(head(taxable_pi_counts, 30))
