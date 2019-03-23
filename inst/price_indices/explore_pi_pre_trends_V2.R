@@ -13,9 +13,8 @@ library(ggplot2)
 library(futile.logger)
 
 setwd("/project2/igaarder")
-prep_enviro <- T
-change_of_interest <- "Ever increase"
-taxable_only <- T
+prep_enviro <- F
+taxable_only <- F
 
 g <- function(dt) print(head(dt))
 
@@ -31,7 +30,7 @@ all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_not
 taxable_pi_path <- "Data/Nielsen/price_quantity_indices_taxableitems_2006-2016.csv"
 
 output.all.event.path <- "Data/pi_allgoods_es_V2.csv"
-output.taxable.event.path <-"Data/pi_taxable_es_V2_w_correction.csv"
+output.taxable.event.path <-"Data/pi_taxable_es_V2.csv"
 output.taxexempt.event.path <-"Data/pi_taxexempt_es_V2.csv"
 
 ################################################################################
@@ -44,28 +43,31 @@ output.taxexempt.event.path <-"Data/pi_taxexempt_es_V2.csv"
 #'   counties that experienced a decrease in 2013 Q1 and an increase at another
 #'   time period will still not be included in the "increase only" group).
 
-original.events <- fread(original.eventstudy_tr_path)
-original.groups <- fread(original.tr_groups_path)
+if (prep_enviro) {
+  original.events <- fread(original.eventstudy_tr_path)
+  original.groups <- fread(original.tr_groups_path)
 
-## limit to first event only
-original.events[, treatment_month := 12 * ref_year + ref_month]
-original.events[, min.event := (treatment_month == min(treatment_month)),
-           by = .(fips_state, fips_county, tr_group)]
-new.events <- original.events[min.event == T]
-new.events[, min.event := NULL]
+  ## limit to first event only
+  original.events[, treatment_month := 12 * ref_year + ref_month]
+  original.events[, min.event := (treatment_month == min(treatment_month)),
+                  by = .(fips_state, fips_county, tr_group)]
+  new.events <- original.events[min.event == T]
+  new.events[, min.event := NULL]
 
-## remove troublesome years
-new.events <- new.events[!(ref_year == 2013 & ref_month %in% 1:6) &
-                                !(ref_year == 2012 & ref_month %in% 10:12) &
-                           !(ref_year == 2014)]
+  ## remove troublesome years
+  new.events <- new.events[!(ref_year == 2013 & ref_month %in% 1:6) &
+                             !(ref_year == 2012 & ref_month %in% 10:12) &
+                             !(ref_year == 2014)]
 
-control.groups <- original.groups[tr_group == "No change"]
-treated.groups <- unique(new.events[, .(fips_state, fips_county, tr_group)])
-new.groups <- rbind(control.groups[, .(fips_county, fips_state, tr_group)],
-                    treated.groups)
+  control.groups <- original.groups[tr_group == "No change"]
+  treated.groups <- unique(new.events[, .(fips_state, fips_county, tr_group)])
+  new.groups <- rbind(control.groups[, .(fips_county, fips_state, tr_group)],
+                      treated.groups)
 
-fwrite(new.events, eventstudy_tr_path)
-fwrite(new.groups, tr_groups_path)
+  fwrite(new.events, eventstudy_tr_path)
+  fwrite(new.groups, tr_groups_path)
+}
+
 
 ################################################################################
 ################ Plots by Event Time (taxable and all goods) ###################
