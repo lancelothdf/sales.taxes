@@ -102,8 +102,9 @@ pi_store.incl_nonfood <- read.csv(store.quarterly.incl_nonfood_path) %>%
   select(year, quarter, chained_food_cpi = national_index) %>%
   mutate(index = "Store Quarterly (w nonfood)",
          month = (quarter - 1) * 3 + 2) %>%
-  select(-quarter)
-pi_store.incl_nonfood$t <- with(pi_store.quarterly,
+  select(-quarter) %>%
+  filter(year <= 2013)
+pi_store.incl_nonfood$t <- with(pi_store.incl_nonfood,
                              as.yearmon(paste0(year, "-", month)))
 
 ## Food and Beverage CPI
@@ -115,7 +116,7 @@ base_cpi <- cpi_data %>% ungroup() %>%
   filter(year == 2006, month == 12) %>%
   select(chained_food_cpi) %>% pull()
 cpi_data <- cpi_data %>%
-  filter(year > 2006 | month == 12) %>%
+  filter(year <= 2013, year > 2006 | month == 12) %>%
   mutate(chained_food_cpi = chained_food_cpi / base_cpi,
          index = "cpi")
 
