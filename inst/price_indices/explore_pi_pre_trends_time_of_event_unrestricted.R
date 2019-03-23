@@ -151,8 +151,8 @@ for (ref.yr in 2009:2013) {
           .(fips_state, fips_county, tr_group) # columns to keep
           ]
 
-        control_counties_spec[, ref_year := yr]
-        control_counties_spec[, ref_quarter := qtr]
+        control_counties_spec[, ref_year := ref.yr]
+        control_counties_spec[, ref_quarter := ref.qtr]
         control_counties_spec[, year := cal.yr]
         control_counties_spec[, quarter := cal.qtr]
 
@@ -299,8 +299,8 @@ for (ref.yr in 2009:2013) {
           .(fips_state, fips_county, tr_group) # columns to keep
           ]
 
-        control_counties_spec[, ref_year := yr]
-        control_counties_spec[, ref_quarter := qtr]
+        control_counties_spec[, ref_year := ref.yr]
+        control_counties_spec[, ref_quarter := ref.qtr]
         control_counties_spec[, year := cal.yr]
         control_counties_spec[, quarter := cal.qtr]
 
@@ -459,8 +459,8 @@ for (ref.yr in 2009:2013) {
           .(fips_state, fips_county, tr_group) # columns to keep
           ]
 
-        control_counties_spec[, ref_year := yr]
-        control_counties_spec[, ref_quarter := qtr]
+        control_counties_spec[, ref_year := ref.yr]
+        control_counties_spec[, ref_quarter := ref.qtr]
         control_counties_spec[, year := cal.yr]
         control_counties_spec[, quarter := cal.qtr]
 
