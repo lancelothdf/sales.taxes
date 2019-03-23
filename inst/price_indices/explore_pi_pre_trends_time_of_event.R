@@ -12,8 +12,7 @@ library(zoo)
 library(ggplot2)
 
 setwd("/project2/igaarder")
-prep_enviro <- T
-change_of_interest <- "Ever increase"
+prep_enviro <- F
 
 # check function
 g <- function(dt) {
@@ -45,28 +44,31 @@ output.taxexempt.event.path <-"Data/pi_taxexempt_es_time_of_event.csv"
 #'   counties that experienced a decrease in 2013 Q1 and an increase at another
 #'   time period will still not be included in the "increase only" group).
 
-original.events <- fread(original.eventstudy_tr_path)
-original.groups <- fread(original.tr_groups_path)
+if (prep_enviro) {
+  original.events <- fread(original.eventstudy_tr_path)
+  original.groups <- fread(original.tr_groups_path)
 
-## limit to first event only
-original.events[, treatment_month := 12 * ref_year + ref_month]
-original.events[, min.event := (treatment_month == min(treatment_month)),
-           by = .(fips_state, fips_county, tr_group)]
-new.events <- original.events[min.event == T]
-new.events[, min.event := NULL]
+  ## limit to first event only
+  original.events[, treatment_month := 12 * ref_year + ref_month]
+  original.events[, min.event := (treatment_month == min(treatment_month)),
+                  by = .(fips_state, fips_county, tr_group)]
+  new.events <- original.events[min.event == T]
+  new.events[, min.event := NULL]
 
-## remove troublesome years
-new.events <- new.events[!(ref_year == 2013 & ref_month %in% 1:6) &
-                                !(ref_year == 2012 & ref_month %in% 10:12) &
-                           !(ref_year == 2014)]
+  ## remove troublesome years
+  new.events <- new.events[!(ref_year == 2013 & ref_month %in% 1:6) &
+                             !(ref_year == 2012 & ref_month %in% 10:12) &
+                             !(ref_year == 2014)]
 
-control.groups <- original.groups[tr_group == "No change"]
-treated.groups <- unique(new.events[, .(fips_state, fips_county, tr_group)])
-new.groups <- rbind(control.groups[, .(fips_county, fips_state, tr_group)],
-                    treated.groups)
+  control.groups <- original.groups[tr_group == "No change"]
+  treated.groups <- unique(new.events[, .(fips_state, fips_county, tr_group)])
+  new.groups <- rbind(control.groups[, .(fips_county, fips_state, tr_group)],
+                      treated.groups)
 
-fwrite(new.events, eventstudy_tr_path)
-fwrite(new.groups, tr_groups_path)
+  fwrite(new.events, eventstudy_tr_path)
+  fwrite(new.groups, tr_groups_path)
+}
+
 
 ################################################################################
 ################ Plots by Event Time (taxable and all goods) ###################
@@ -219,6 +221,14 @@ gc()
 taxable_pi <- fread(all_goods_pi_path)
 taxable_pi <- taxable_pi[sales_tax > 1 | (is.na(sales_tax) & year < 2008)]
 taxable_pi <- taxable_pi[year %in% 2006:2014 & !is.na(cpricei)]
+
+# do `arbitrary` correction for the 2013 Q1 jump in the data
+## calculate price index in 2013 Q1 / cpricei in 2012 Q4
+taxable_pi[, correction := pricei[year == 2013 & quarter == 1] / pricei[year == 2012 & quarter == 4],
+           by = .(store_code_uc, product_module_code)]
+## divide price index after 2013 Q1 (inclusive) by above value
+taxable_pi[year >= 2013, cpricei := cpricei / correction]
+
 taxable_pi[, cpricei := log(cpricei)]
 taxable_pi[, sales_tax := log(sales_tax)]
 
@@ -346,6 +356,14 @@ gc()
 
 ## get data.table of tax exempt goods ------------------------------------------
 all_pi <- fread(all_goods_pi_path)
+
+# do `arbitrary` correction for the 2013 Q1 jump in the data
+## calculate price index in 2013 Q1 / cpricei in 2012 Q4
+all_pi[, correction := pricei[year == 2013 & quarter == 1] / pricei[year == 2012 & quarter == 4],
+       by = .(store_code_uc, product_module_code)]
+## divide price index after 2013 Q1 (inclusive) by above value
+all_pi[year >= 2013, cpricei := cpricei / correction]
+
 taxable_pi <- all_pi[sales_tax > 1]
 
 taxable_pi <- taxable_pi[, .(store_code_uc, product_module_code, quarter, year)]

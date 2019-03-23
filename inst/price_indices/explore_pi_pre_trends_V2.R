@@ -226,8 +226,8 @@ flog.info("Balanced N: %s", nrow(taxable_pi))
 
 
 ## normalize (ADDED 3/21/2019) (update: doesn't do anything)
-taxable_pi[, cpricei := cpricei - cpricei[year == 2006 & quarter == 1],
-           by = .(store_code_uc, product_module_code)]
+# taxable_pi[, cpricei := cpricei - cpricei[year == 2006 & quarter == 1],
+#            by = .(store_code_uc, product_module_code)]
 
 taxable_pi_original <- copy(taxable_pi)
 
