@@ -91,10 +91,6 @@ for (ref.yr in 2009:2013) {
   }
 }
 
-g(control_counties.nt)
-g(control_counties.ft)
-g(control_counties.ftu)
-stop()
 
 # Taxable goods only ===========================================================
 taxable_pi <- fread(all_goods_pi_path)
