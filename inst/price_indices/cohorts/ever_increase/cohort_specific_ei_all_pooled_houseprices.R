@@ -96,13 +96,25 @@ zillow_dt <- zillow_dt[between(year, 2006, 2014)]
 
 ### attach sales
 # TODO: this should be just sales for taxable items
-sales_data <- fread(sales_data_path)
-sales_data <- sales_data[year == 2008 & month == 1]
-sales_data <- sales_data[, list(base.sales = sum(sales)),
+taxable_pi <- fread(all_goods_pi_path)
+taxable_pi <- taxable_pi[sales_tax > 1 | (is.na(sales_tax) & year < 2008)]
+taxable_pi <- taxable_pi[year %in% 2006:2014 & !is.na(cpricei)]
+
+keep_store_modules <- taxable_pi[, list(n = .N),
+                                 by = .(store_code_uc, product_module_code)]
+keep_store_modules <- keep_store_modules[n == (2014 - 2005) * 4]
+
+setkey(taxable_pi, store_code_uc, product_module_code)
+setkey(keep_store_modules, store_code_uc, product_module_code)
+
+taxable_pi <- taxable_pi[keep_store_modules]
+taxable_pi <- taxable_pi[year == 2008 & month == 1]
+
+taxable_pi <- taxable_pi[, list(base.sales = sum(sales)),
                          by = .(fips_county, fips_state)]
 
-zillow_dt <- merge(zillow_dt, sales_data, by = c("fips_county", "fips_state"))
-rm(sales_data)
+zillow_dt <- merge(zillow_dt, taxable_pi, by = c("fips_county", "fips_state"))
+rm(taxable_pi)
 gc()
 
 ## normalize
