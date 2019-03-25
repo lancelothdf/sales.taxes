@@ -230,12 +230,12 @@ zillow_dt <- rbind(zillow_dt, matched_control_data, fill = T)
 
 
 ## normalize price indices based on time to event ------------------------------
-zillow_dt[, normalized.homeprice := normalized.homeprice - normalized.homeprice[tt_event == -6],
-           by = .(ref_year, ref_month, tr_group, event_ID)]
-
-# drops groups for which tt_event == -6 not available
-zillow_dt <- zillow_dt[!is.na(normalized.homeprice)]
-# note that this is still log-normalized
+# zillow_dt[, normalized.homeprice := normalized.homeprice - normalized.homeprice[tt_event == -6],
+#            by = .(ref_year, ref_month, tr_group, event_ID)]
+#
+# # drops groups for which tt_event == -6 not available
+# zillow_dt <- zillow_dt[!is.na(normalized.homeprice)]
+# # note that this is still log-normalized
 
 ## aggregate by treatment group ------------------------------------------------
 
