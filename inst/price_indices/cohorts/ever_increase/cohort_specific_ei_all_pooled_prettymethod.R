@@ -91,6 +91,11 @@ for (ref.yr in 2009:2013) {
   }
 }
 
+g(control_counties.nt)
+g(control_counties.ft)
+g(control_counties.ftu)
+stop()
+
 # Taxable goods only ===========================================================
 taxable_pi <- fread(all_goods_pi_path)
 taxable_pi <- taxable_pi[sales_tax > 1 | (is.na(sales_tax) & year < 2008)]
@@ -150,42 +155,78 @@ taxable_pi <- taxable_pi[tt_event >= -8 & tt_event <= 4]
 ### create dataset of never treated counties
 control_dt.nt <- merge(taxable_pi_original, control_counties.nt,
                        by = c("fips_state", "fips_county"))
+
+control_dt.nt <- control_dt.nt[, list(
+  control.cpricei = weighted.mean(x = cpricei, w = base.sales),
+  control.sales_tax = weighted.mean(sales_tax, w = base.sales)
+  ), by = .(quarter, year, product_module_code)]
+
 control_dt.nt[, control.type := "No change"]
+
+matched_control_data.nt <- merge(taxable_pi, control_dt.nt,
+                              by = c("quarter", "year", "product_module_code"),
+                              allow.cartesian = T)
+
+matched_control_data.nt <- matched_control_data.nt[, .(
+  control.cpricei, tt_event, event_ID, store_code_uc, product_module_code,
+  control.sales_tax, tr_group, base.sales, ref_year, ref_quarter, control.type
+  )]
+
+rm(control_dt.nt)
 
 ### create dataset of future treated counties (restricted)
 control_dt.ft <- merge(taxable_pi_original, control_counties.ft,
                        by = c("fips_state", "fips_county"),
                        allow.cartesian = T)
-control_dt.ft <- control_dt.ft[, control.type := "Future change"]
+
+control_dt.ft <- control_dt.ft[, list(
+  control.cpricei = weighted.mean(cpricei, w = base.sales),
+  control.sales_tax = weighted.mean(sales_tax, w = base.sales)
+  ), by = .(quarter, year, product_module_code, ref_year, ref_quarter, tr_group)]
+
+control_dt.ft[, control.type := "Future change"]
+
+matched_control_data.ft <- merge(taxable_pi, control_dt.ft,
+                              by = c("quarter", "year", "product_module_code",
+                                     "ref_year", "ref_quarter", "tr_group"))
+
+matched_control_data.ft <- matched_control_data.ft[, .(
+  control.cpricei, tt_event, event_ID, store_code_uc, product_module_code,
+  tr_group, base.sales, ref_year, ref_quarter, control.sales_tax, control.type
+  )]
+rm(control_dt.ft)
 
 ### created dataset of future treated counties (unrestricted)
 control_dt.ftu <- merge(taxable_pi_original, control_counties.ftu,
                         by = c("fips_state", "fips_county", "year", "quarter"),
                         allow.cartesian = T)
-control_dt.ftu <- control_dt.ftu[, control.type := "Future change, unrestricted"]
 
-control_dt <- rbind(control_dt.nt,
-                    control_dt.ft,
-                    control_dt.ftu)
+control_dt.ftu <- control_dt.ftu[, list(
+  control.cpricei = weighted.mean(cpricei, w = base.sales),
+  control.sales_tax = weighted.mean(sales_tax, w = base.sales)
+  ), by = .(quarter, year, product_module_code, ref_year, ref_quarter, tr_group)]
+control_dt.ftu[, control.type := "Future change, unrestricted"]
 
-rm(taxable_pi_original, control_dt.nt, control_dt.ft, control_dt.ftu)
+matched_control_data.ftu <- merge(taxable_pi, control_dt.ftu,
+                              by = c("quarter", "year", "product_module_code",
+                                     "ref_year", "ref_quarter", "tr_group"))
+
+matched_control_data.ftu <- matched_control_data.ftu[, .(
+  control.cpricei, tt_event, event_ID, store_code_uc, product_module_code,
+  tr_group, base.sales, ref_year, ref_quarter, control.sales_tax, control.type
+  )]
+
+rm(control_dt.ftu)
+
+
+## combine the three matched groups
+matched_control_data <- rbind(matched_control_data.nt,
+                              matched_control_data.ft,
+                              matched_control_data.ftu)
+
+rm(taxable_pi_original, matched_control_data.nt,
+   matched_control_data.ft, matched_control_data.ftu)
 gc()
-
-### take the mean for each time period for each product module code
-control_dt <- control_dt[,
-                         list(control.cpricei = weighted.mean(x = cpricei, w = base.sales),
-                              control.sales_tax = weighted.mean(sales_tax, w = base.sales)),
-                         by = .(quarter, year, product_module_code, control.type)
-                         ]
-
-matched_control_data <- merge(taxable_pi, control_dt,
-                              by = c("quarter", "year", "product_module_code"),
-                              allow.cartesian = T)
-rm(control_dt)
-
-matched_control_data <- matched_control_data[, .(control.cpricei, tt_event, event_ID,
-                                                 store_code_uc, product_module_code, control.sales_tax,
-                                                 tr_group, base.sales, ref_year, ref_quarter, control.type)]
 
 setnames(matched_control_data,
          old = c("control.cpricei", "control.sales_tax"),
