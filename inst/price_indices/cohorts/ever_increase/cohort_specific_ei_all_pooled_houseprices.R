@@ -184,8 +184,7 @@ control_dt.ft <- control_dt.ft[, list(
 control_dt.ft[, control.type := "Future change"]
 
 matched_control_data.ft <- merge(zillow_dt, control_dt.ft,
-                              by = c("month", "year", "ref_year",
-                                     "ref_month", "tr_group"))
+                              by = c("month", "year", "ref_year", "ref_month"))
 
 matched_control_data.ft <- matched_control_data.ft[, .(
   control.homeprice, tt_event, event_ID, tr_group,
@@ -204,8 +203,7 @@ control_dt.ftu <- control_dt.ftu[, list(
 control_dt.ftu[, control.type := "Future change, unrestricted"]
 
 matched_control_data.ftu <- merge(zillow_dt, control_dt.ftu,
-                              by = c("month", "year",
-                                     "ref_year", "ref_month", "tr_group"))
+                              by = c("month", "year", "ref_year", "ref_month"))
 
 matched_control_data.ftu <- matched_control_data.ftu[, .(
   control.homeprice, tt_event, event_ID, tr_group,

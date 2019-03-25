@@ -114,10 +114,10 @@ cpi_data <- read.csv(cpi_path) %>% select(-X) %>% filter(between(year, 2006, 201
 cpi_data$t <- with(cpi_data, as.yearmon(paste0(year, "-", month)))
 
 base_cpi <- cpi_data %>% ungroup() %>%
-  filter(year == 2006, month == 12) %>%
+  filter(year == 2006, month == 11) %>%
   select(chained_food_cpi) %>% pull()
 cpi_data <- cpi_data %>%
-  filter(year <= 2013, year > 2006 | month == 12) %>%
+  filter(year <= 2013, year > 2006 | month %in% 11:12) %>%
   mutate(chained_food_cpi = chained_food_cpi / base_cpi,
          index = "cpi")
 
