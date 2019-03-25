@@ -47,9 +47,6 @@ tr_events <- tr_events[, .(fips_county, fips_state, ref_year, ref_month)]
 # exclude 2012 Q4, 2013 Q1, 2013 Q2 reforms
 tr_events <- tr_events[!(ref_year == 2012 & ref_month >= 10) & !(ref_year == 2013 & ref_month %in% 1:6)]
 
-control_counties <- copy(tr_events)
-control_counties <- control_counties[tr_group == change_of_interest]
-
 ## no change control group
 control_counties.nt <- fread(tr_groups_path)
 control_counties.nt <- control_counties.nt[tr_group == "No change"]
@@ -59,7 +56,7 @@ control_counties.nt <- unique(control_counties.nt[, .(fips_county, fips_state)])
 control_counties.ft <- data.table(NULL)
 for (yr in 2009:2013) {
   for (mon in 1:12) {
-    control_counties_spec <- control_counties[
+    control_counties_spec <- tr_events[
       (ref_year * 12 + ref_month) - (yr * 12 + mon) > 12, # keep if treated over 1 year in future
       .(fips_state, fips_county, tr_group) # columns to keep
       ]
@@ -76,7 +73,7 @@ for (ref.yr in 2009:2013) {
   for (ref.mon in 1:12) {
     for (cal.yr in 2006:2014) {
       for (cal.mon in 1:12) {
-        control_counties_spec <- control_counties[
+        control_counties_spec <- tr_events[
           (ref_year * 12 + ref_month) > (ref.yr * 12 + ref.mon) &   # treated after focal cohort
             (ref_year * 12 + ref_month) > (cal.yr * 12 + cal.mon),  # not yet treated
           .(fips_state, fips_county, tr_group) # columns to keep
