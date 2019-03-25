@@ -14,6 +14,7 @@ library(ggplot2)
 
 setwd("/project2/igaarder")
 change_of_interest <- "Ever increase"
+output.filepath <- "pi_all_cohorts_pooled_taxable_pm.csv"
 
 # check function
 g <- function(dt) {
@@ -219,11 +220,7 @@ taxable_pi_es_collapsed <- taxable_pi[,
                                       by = c("tr_group", "tt_event")
                                       ]
 
-# taxable_pi_es_collapsed <- add_tr_count(collapsed_data = taxable_pi_es_collapsed,
-#                                         tr_group_name = "tr_group",
-#                                         count_col_name = "n_counties")
-
-fwrite(taxable_pi_es_collapsed, output.taxable.event.path)
+fwrite(taxable_pi_es_collapsed, output.filepath)
 
 rm(taxable_pi)
 gc()
