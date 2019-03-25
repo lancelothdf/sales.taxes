@@ -1,74 +1,118 @@
 #' Author: John Bonney
 #'
-#' Now we should "pool" across cohorts for both a diff-in-diff and a pure event
-#' study design and see which one looks better.  Those would be similar graphs
-#' to the ones you have been doing recently.  We revert back to defining cohorts
-#' by quarters.
+#' This file creates event-study means plots based on home prices.
+#' It is an adaptation of explore_pi_pre_trends.R that removes reforms in
+#' 2013 Q1 and creates means for four groups: treated, future treated, future
+#' treated in over one year, or never treated.
+#'
 
-#' 3b)  Plot mean price index (tax inclusive) for all counties that increased
-#' their taxes at some point (ever increase group).  Then build two alternative
-#' control groups: A) same as we have been doing - use an average of counties
-#' that never change their taxes "matching" calendar time and product.  B) for
-#' each "treated cohort" build the control group by taking all counties from the
-#' ever increase group that have not yet increased their taxes (but will in the
-#' future) "matching" on calendar time and product - average over the different
-#' control groups for each treated cohortXproduct.
-
-library(tidyverse)
 library(data.table)
 library(readstata13)
 library(sales.taxes)
 library(zoo)
+library(ggplot2)
+library(futile.logger)
 
 setwd("/project2/igaarder")
-prep.new.data <- F
+change_of_interest <- "Ever increase"
+output.filepath <- "Data/homeprice_all_cohorts_ei_pooled.csv"
 
 # check function
 g <- function(dt) {
   print(head(dt))
 }
 
-change_of_interest <- "Ever increase"
-output_filepath <- "Data/homeprice_all_cohorts_pooled_extended.csv"
-
 ## useful filepaths ------------------------------------------------------------
-eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_w2014.csv"
-tr_groups_path <- "Data/tr_groups_comprehensive_w2014.csv"
-sales_data_path <- "Data/sales_monthly_2006-2016.csv"
+original.eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_w2014.csv"
+original.tr_groups_path <- "Data/tr_groups_comprehensive_w2014.csv"
+eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
+tr_groups_path <- "Data/tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
+sales_data_path <- "Data/sales_quarterly_2006-2016.csv"
 tax_rates_path <- "Data/county_monthly_tax_rates.csv"
-quarterly_tax_path <- "Data/quarterly_tax_rates.csv"
 module_exemptions_path <- "Data/modules_exemptions_long.csv"
 all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_notaxinfo.csv"
-taxable_pi_path <- "Data/Nielsen/price_quantity_indices_taxableitems.csv"
-expanded.reforms.path <- "Data/tax_reforms_all_incl2014.csv"
+taxable_pi_path <- "Data/Nielsen/price_quantity_indices_taxableitems_2006-2016.csv"
 
 zillow_path <- "Data/covariates/zillow_long_by_county_clean.csv"
 
-county_weights <- fread("Data/county_population.csv")
+## prepare treatment events for treated and control groups ---------------------
+tr_events <- fread(original.eventstudy_tr_path)
+tr_events <- tr_events[tr_group == change_of_interest]
+tr_events[, treatment_month := 12 * ref_year + ref_month]
+## we are only interested in the first event
+tr_events[, min.event := (treatment_month == min(treatment_month)),
+          by = .(fips_state, fips_county)]
+tr_events <- tr_events[min.event == T]
+tr_events <- tr_events[, .(fips_county, fips_state, ref_year, ref_month)]
+# exclude 2012 Q4, 2013 Q1, 2013 Q2 reforms
+tr_events <- tr_events[!(ref_year == 2012 & ref_month >= 10) & !(ref_year == 2013 & ref_month %in% 1:6)]
+
+control_counties <- copy(tr_events)
+control_counties <- control_counties[tr_group == change_of_interest]
+
+## no change control group
+control_counties.nt <- fread(tr_groups_path)
+control_counties.nt <- control_counties.nt[tr_group == "No change"]
+control_counties.nt <- unique(control_counties.nt[, .(fips_county, fips_state)])
+
+## future restricted control group
+control_counties.ft <- data.table(NULL)
+for (yr in 2009:2013) {
+  for (mon in 1:12) {
+    control_counties_spec <- control_counties[
+      (ref_year * 12 + ref_month) - (yr * 12 + mon) > 12, # keep if treated over 1 year in future
+      .(fips_state, fips_county, tr_group) # columns to keep
+      ]
+    control_counties_spec[, ref_year := yr]
+    control_counties_spec[, ref_month := mon]
+
+    control_counties.ft <- rbind(control_counties.ft, control_counties_spec)
+  }
+}
+
+## future unrestricted control group
+control_counties.ftu <- data.table(NULL)
+for (ref.yr in 2009:2013) {
+  for (ref.mon in 1:12) {
+    for (cal.yr in 2006:2014) {
+      for (cal.mon in 1:12) {
+        control_counties_spec <- control_counties[
+          (ref_year * 12 + ref_month) > (ref.yr * 12 + ref.mon) &   # treated after focal cohort
+            (ref_year * 12 + ref_month) > (cal.yr * 12 + cal.mon),  # not yet treated
+          .(fips_state, fips_county, tr_group) # columns to keep
+          ]
+
+        control_counties_spec[, ref_year := ref.yr]
+        control_counties_spec[, ref_month := ref.mon]
+        control_counties_spec[, year := cal.yr]
+        control_counties_spec[, month := cal.mon]
+
+        control_counties.ftu <- rbind(control_counties.ftu, control_counties_spec)
+      }
+    }
+  }
+}
+
+## prep the Zillow data --------------------------------------------------------
 zillow_dt <- fread(zillow_path)
 zillow_dt <- zillow_dt[between(year, 2006, 2014)]
 
-###  attach sales --------------------------------------------------------------
+### attach sales
+# TODO: this should be just sales for taxable items
 sales_data <- fread(sales_data_path)
-sales_data <- sales_data[, .(store_code_uc, product_module_code, fips_county,
-                             fips_state, month, year, sales)]
-sales_data <- sales_data[year <= 2014]
-sales_data <- sales_data[, list(sales = sum(sales)),
-                         by = .(fips_county, fips_state, month, year)]
+sales_data <- sales_data[year == 2008 & month == 1]
+sales_data <- sales_data[, list(base.sales = sum(sales)),
+                         by = .(fips_county, fips_state)]
 
-zillow_dt <- merge(zillow_dt, sales_data,
-                   by = c("fips_county", "fips_state", "month", "year"))
+zillow_dt <- merge(zillow_dt, sales_data, by = c("fips_county", "fips_state"))
 rm(sales_data)
 gc()
 
-## prep the data ---------------------------------------------------------------
-
 ## normalize
-zillow_dt[, normalized.homeprice := log(median_home_price) - log(median_home_price[year == 2006 & month == 1]),
-       by = .(fips_county, fips_state)]
-zillow_dt[, base.sales := sales[year == 2008 & month == 1],
-       by = .(fips_county, fips_state)]
-zillow_dt <- zillow_dt[!is.na(normalized.homeprice) & !is.na(base.sales)]
+zillow_dt[, normalized.homeprice := log(median_home_price) -
+            log(median_home_price[year == 2006 & month == 1]),
+          by = .(fips_county, fips_state)]
+zillow_dt <- zillow_dt[!is.na(normalized.homeprice)]
 
 ## balance on county level
 keep_counties <- zillow_dt[, list(n = .N), by = .(fips_state, fips_county)]
@@ -79,155 +123,118 @@ setkey(keep_counties, fips_county, fips_state)
 
 zillow_dt <- zillow_dt[keep_counties]
 
-## prep treatment events -------------------------------------------------------
-tr.events <- fread(eventstudy_tr_path)
-tr.events <- tr.events[tr_group == change_of_interest]
-tr.events[, treatment_month := 12 * ref_year + ref_month]
-## we are only interested in the first event
-tr.events[, min.event := (treatment_month == min(treatment_month)),
-          by = .(fips_state, fips_county)]
-tr.events <- tr.events[min.event == T]
-tr.events[, n_events := .N, by = .(fips_state, fips_county)]
-tr.events <- tr.events[, .(fips_county, fips_state, ref_year, ref_month, n_events)]
-# exclude 2012 Q4, 2013 Q1, 2013 Q2 reforms
-tr.events <- tr.events[!(ref_year == 2012 & ref_month >= 10) & !(ref_year == 2013 & ref_month %in% 1:6)]
-g(tr.events)
+# Aggregate --------------------------------------------------------------------
 
-setnames(tr.events, "ref_year", "treatment_year")
-setkey(tr.events, fips_county, fips_state)
+zillow_original <- copy(zillow_dt)
 
-cohort_sizes <- tr.events[, list(cohort_size = .N), by = .(treatment_year, ref_month)]
+## merge treatment, attach event times -----------------------------------------
+zillow_dt <- merge(zillow_dt, tr_events,
+                   by = c("fips_county", "fips_state"),
+                   allow.cartesian = TRUE)
 
-# for later use
-tr.groups <- fread(tr_groups_path)
-never.treated.master <- tr.groups[tr_group == "No change"]
-never.treated.master <- never.treated.master[, .(fips_state, fips_county)]
-setkey(never.treated.master, fips_state, fips_county)
+setnames(zillow_dt, "V1", "event_ID")
 
-## iterate over all quarters and years -----------------------------------------
-master_res <- data.table(NULL)
-pool_cohort_weights <- data.table(NULL)
+## define time to event --------------------------------------------------------
+zillow_dt[, tt_event := as.integer(12 * year + month - (12 * ref_year + ref_month))]
 
-for (ref.year in 2009:2013) {
-  for (ref.month in 1:12) {
-    if ((ref.year == 2012 & ref.month %in% 10:12) | (ref.year == 2013 & ref.month %in% 1:6)) {
-      print(paste("Skipping", ref.year, "m", ref.month))
-      next
-    }
-    print(paste("Year:", ref.year, "; Month:", ref.month))
-    ## identify treated cohort -------------------------------------------------
-    tr.events.09m1 <- tr.events[treatment_year == ref.year & ref_month == ref.month]
-    if (nrow(tr.events.09m1) == 0) {
-      print("No events, skipping")
-      next
-    }
-    setkey(tr.events.09m1, fips_county, fips_state)
+## limit data to three year window around reform ---------------------------------
+zillow_dt <- zillow_dt[tt_event >= -24 & tt_event <= 12]
 
-    zillow.09m1 <- zillow_dt[tr.events.09m1]
-    g(zillow.09m1)
+## add pseudo-control group ----------------------------------------------------
 
-    ## get sum of sales in treated counties
-    pool_cohort_weights <- rbind(
-      pool_cohort_weights,
-      data.table(ref_year = ref.year, ref_month = ref.month,
-                 ## sum of all base sales weights in the cohort at time of treatment
-                 cohort_sales = sum(zillow.09m1[year == ref.year & month == ref.month]$base.sales))
-    )
+### create dataset of never treated counties
+control_dt.nt <- merge(zillow_original, control_counties.nt,
+                       by = c("fips_state", "fips_county"))
 
-    ## prepare control data --------------------------------------------------------
+control_dt.nt <- control_dt.nt[, list(
+  control.homeprice = weighted.mean(normalized.homeprice, w = base.sales)
+  ), by = .(month, year)]
 
-    ## identify never treated counties
-    never.treated <- zillow_dt[never.treated.master]
-    never.treated[, group := "No change"]
-    g(never.treated)
+control_dt.nt[, control.type := "No change"]
 
-    ## identify not-yet-treated (but future treated) counties
-    zillow_ss <- zillow_dt[tr.events[treatment_year > ref.year |
-                                 (treatment_year == ref.year &
-                                    ref_month > ref.month)]]
-    zillow_ss[, treatment_month := 12 * treatment_year + ref_month]
-    zillow_ss[, calendar_month := 12 * year + month]
-    zillow_ss[, min_treat_month := min(treatment_month), by = .(fips_state, fips_county)]
+matched_control_data.nt <- merge(zillow_dt, control_dt.nt,
+                              by = c("month", "year"),
+                              allow.cartesian = T)
 
-    zillow_ss_yearplus <- zillow_ss[min_treat_month > (12 * ref.year + ref.month + 12) &
-                                      min_treat_month > calendar_month]
-    future_restr_grp <- T
-    if (nrow(zillow_ss_yearplus) == 0) {
-      future_restr_grp <- F
-    } else {
-      zillow_ss_yearplus[, group := "Future restricted"]
-    }
+matched_control_data.nt <- matched_control_data.nt[, .(
+  control.homeprice, tt_event, event_ID, tr_group,
+  base.sales, ref_year, ref_month, control.type
+  )]
 
-    zillow_ss <- zillow_ss[min_treat_month > calendar_month]
-    zillow_ss[, group := "Future"]
+rm(control_dt.nt)
 
-    g(zillow_ss)
-    g(zillow_ss_yearplus)
+### create dataset of future treated counties (restricted)
+control_dt.ft <- merge(zillow_original, control_counties.ft,
+                       by = c("fips_state", "fips_county"),
+                       allow.cartesian = T)
 
-    ## combine never treated + later cohorts
-    zillow_ss <- rbind(zillow_ss, zillow_ss_yearplus, never.treated, fill = T)
-    g(zillow_ss)
-    rm(never.treated, zillow_ss_yearplus)
+control_dt.ft <- control_dt.ft[, list(
+  control.homeprice = weighted.mean(normalized.homeprice, w = base.sales)
+  ), by = .(month, year, ref_year, ref_month, tr_group)]
 
-    # ss_pi[, event.weight := ifelse(is.na(n_events), 1, 1 / n_events)]
+control_dt.ft[, control.type := "Future change"]
 
-    ## collapse to group x time level ------------------------------------------
-    zillow_ss.collapsed <- zillow_ss[, list(
-      control.homeprice = weighted.mean(normalized.homeprice, w = base.sales)
-    ), by = .(year, month, group)]
-    rm(zillow_ss)
-    g(zillow_ss.collapsed)
+matched_control_data.ft <- merge(zillow_dt, control_dt.ft,
+                              by = c("month", "year", "ref_year",
+                                     "ref_month", "tr_group"))
 
-    ## rearrange for simple merging of groups onto 2009 m1 cohort
-    zillow_ss.collapsed <- tidyr::spread(zillow_ss.collapsed, group, control.homeprice)
-    g(zillow_ss.collapsed)
+matched_control_data.ft <- matched_control_data.ft[, .(
+  control.homeprice, tt_event, event_ID, tr_group,
+  base.sales, ref_year, ref_month, control.type
+  )]
+rm(control_dt.ft)
 
-    ## merge onto the treated cohort by product
-    zillow.09m1 <- merge(zillow.09m1, zillow_ss.collapsed,
-                             by = c("year", "month"))
-    rm(zillow_ss.collapsed)
+### created dataset of future treated counties (unrestricted)
+control_dt.ftu <- merge(zillow_original, control_counties.ftu,
+                        by = c("fips_state", "fips_county", "year", "month"),
+                        allow.cartesian = T)
 
-    ## aggregate over calendar time ------------------------------------------------
-    g(zillow.09m1)
+control_dt.ftu <- control_dt.ftu[, list(
+  control.homeprice = weighted.mean(normalized.homeprice, w = base.sales)
+  ), by = .(month, year, ref_year, ref_month, tr_group)]
+control_dt.ftu[, control.type := "Future change, unrestricted"]
 
-    if (future_restr_grp) {
-      zillow.09m1.collapsed <- zillow.09m1[, list(
-        mean.homeprice = weighted.mean(normalized.homeprice, w = base.sales),
-        Future = weighted.mean(Future, w = base.sales),
-        `Future restricted` = weighted.mean(`Future restricted`, w = base.sales),
-        `No change` = weighted.mean(`No change`, w = base.sales)
-      ), by = .(year, month)]
-    } else {
-      zillow.09m1.collapsed <- zillow.09m1[, list(
-        mean.homeprice = weighted.mean(normalized.homeprice, w = base.sales),
-        Future = weighted.mean(Future, w = base.sales),
-        `No change` = weighted.mean(`No change`, w = base.sales)
-      ), by = .(year, month)]
-      zillow.09m1.collapsed[, `Future restricted` := NA]
-    }
+matched_control_data.ftu <- merge(zillow_dt, control_dt.ftu,
+                              by = c("month", "year",
+                                     "ref_year", "ref_month", "tr_group"))
 
-    g(zillow.09m1.collapsed)
+matched_control_data.ftu <- matched_control_data.ftu[, .(
+  control.homeprice, tt_event, event_ID, tr_group,
+  base.sales, ref_year, ref_month, control.type
+  )]
 
-    setnames(zillow.09m1.collapsed, "mean.homeprice", "Treated")
-    zillow.09m1.collapsed <- tidyr::gather(zillow.09m1.collapsed,
-                                               key = group, value = homeprice,
-                                               c(Treated, Future,
-                                                 `Future restricted`, `No change`))
-    g(zillow.09m1.collapsed)
-    zillow.09m1.collapsed <- as.data.table(zillow.09m1.collapsed)
-    zillow.09m1.collapsed <- zillow.09m1.collapsed[!is.na(homeprice)]
-    zillow.09m1.collapsed[, ref_year := ref.year]
-    zillow.09m1.collapsed[, ref_month := ref.month]
-    master_res <- rbind(master_res, zillow.09m1.collapsed)
+rm(control_dt.ftu)
 
-    rm(zillow.09m1.collapsed, zillow.09m1)
-  }
-}
+## combine the three matched groups
+matched_control_data <- rbind(matched_control_data.nt,
+                              matched_control_data.ft,
+                              matched_control_data.ftu)
 
-fwrite(master_res, output_filepath)
+rm(zillow_original, matched_control_data.nt,
+   matched_control_data.ft, matched_control_data.ftu)
+gc()
 
-setnames(cohort_sizes, "treatment_year", "ref_year")
-## merge on cohort size
-master_res <- merge(master_res, cohort_sizes, by = c("ref_year", "ref_month"))
-master_res <- merge(master_res, pool_cohort_weights, by = c("ref_year", "ref_month"))
-fwrite(master_res, output_filepath)
+setnames(matched_control_data,
+         old = c("control.homeprice"),
+         new = c("normalized.homeprice"))
+matched_control_data[, tr_group := paste0(control.type, " (", tolower(tr_group), ")")]
+
+zillow_dt <- rbind(zillow_dt, matched_control_data, fill = T)
+
+
+## normalize price indices based on time to event ------------------------------
+zillow_dt[, normalized.homeprice := normalized.homeprice - normalized.homeprice[tt_event == -6],
+           by = .(ref_year, ref_month, tr_group, event_ID)]
+
+# drops groups for which tt_event == -6 not available
+zillow_dt <- zillow_dt[!is.na(normalized.homeprice)]
+# note that this is still log-normalized
+
+## aggregate by treatment group ------------------------------------------------
+
+zillow_es_collapsed <- zillow_dt[, list(
+  mean_homeprice = weighted.mean(normalized.homeprice, w = base.sales),
+  n_counties = uniqueN(1000 * fips_state + fips_county)
+  ), by = c("tr_group", "tt_event")]
+
+fwrite(zillow_es_collapsed, output.filepath)
