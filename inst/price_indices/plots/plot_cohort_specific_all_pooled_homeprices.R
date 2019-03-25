@@ -46,7 +46,7 @@ dt.test <- dt.test[, list(homeprice.agg = weighted.mean(homeprice, cohort_sales)
                    by = .(group, tt_ev)]
 #dt.test[group == "Future restricted", group := "Future (over one year)"]
 
-ggplot(dt.test, mapping = aes(x = tt_ev, y = homeprice.agg, color = group)) +
+ggplot(dt.test, mapping = aes(x = tt_event, y = mean_homeprice, color = tr_group)) +
   geom_line(size = .7) +
   geom_point(size = .8) +
   geom_vline(xintercept = 0, color = "red", linetype = "22", alpha = .5) +
