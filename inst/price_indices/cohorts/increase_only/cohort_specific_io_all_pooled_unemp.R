@@ -43,7 +43,7 @@ tr_events[, treatment_month := 12 * ref_year + ref_month]
 tr_events[, min.event := (treatment_month == min(treatment_month)),
           by = .(fips_state, fips_county)]
 tr_events <- tr_events[min.event == T]
-tr_events <- tr_events[, .(fips_county, fips_state, ref_year, ref_month, tr_group)]
+tr_events <- tr_events[, .(fips_county, fips_state, ref_year, ref_month, tr_group, V1)]
 # exclude 2012 Q4, 2013 Q1, 2013 Q2 reforms
 tr_events <- tr_events[!(ref_year == 2012 & ref_month >= 10) & !(ref_year == 2013 & ref_month %in% 1:6)]
 
