@@ -108,7 +108,7 @@ setkey(taxable_pi, store_code_uc, product_module_code)
 setkey(keep_store_modules, store_code_uc, product_module_code)
 
 taxable_pi <- taxable_pi[keep_store_modules]
-taxable_pi <- taxable_pi[year == 2008 & month == 1]
+taxable_pi <- taxable_pi[year == 2008 & quarter == 1]
 
 taxable_pi <- taxable_pi[, list(base.sales = sum(sales)),
                          by = .(fips_county, fips_state)]
