@@ -135,17 +135,8 @@ ggplot(data = agg.estimates[between(tt_event, 0, 4)], mapping = aes(x = tt_event
   geom_point(size = 3, alpha = .5) +
   geom_line(linetype = "55") +
   theme_bw(base_size = 16) +
+  scale_y_continuous(breaks = seq(0, 1, .25)) +
   labs(x = "Event time (quarters)", y = "Estimate", color = NULL) +
   geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8)
-ggsave("pi_figs/reg_results/passthrough_estimates2.png",
+ggsave("pi_figs/reg_results/passthrough_estimates.png",
        height = 120, width = 180, units = "mm")
-
-ggplot(res.compare, aes(x = ref_event_time, y = estimate, color = req)) +
-  geom_point(size = 3, alpha = .5) +
-  geom_line(linetype = "55") +
-  geom_point(aes(x = omitted_event_time, y = 0), size = 3, color = "black") +
-  scale_color_discrete(breaks = c(description1, description2, description3, description4),
-                       labels = c(label1, label2, label3, label4)) +
-  theme_bw(base_size = 16) +
-  labs(x = "Event Time", y = "Estimate", color = NULL) +
-  geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8)

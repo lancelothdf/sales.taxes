@@ -72,6 +72,7 @@ ggplot(data = agg.estimates[between(tt_event, 0, 4)], mapping = aes(x = tt_event
   geom_point(size = 3, alpha = .5) +
   geom_line(linetype = "55") +
   theme_bw(base_size = 16) +
+  scale_y_continuous(breaks = seq(0, 1, .25), limits = c(0, 1)) +
   labs(x = "Event time (quarters)", y = "Estimate", color = NULL) +
   geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8)
 ggsave("pi_figs/reg_results/passthrough_estimates_time_of_event.png",
