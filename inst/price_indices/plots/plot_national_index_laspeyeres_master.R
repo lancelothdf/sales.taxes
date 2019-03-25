@@ -130,7 +130,7 @@ ggplot(cpi_data2,
   scale_x_yearmon(expand = c(0.01, 0.01), n = 6) +
   scale_y_continuous(breaks = seq(0, 1.25, .05), expand = c(0.005, 0.005)) +
   theme_bw() +
-  labs(y = expression(bold("Price Index (Normalized Dec 2006 = 1.00)")), x = expression(bold("Month"))) +
+  labs(y = expression(bold("Price Index (Normalized 2006 Q4 = 1.00)")), x = expression(bold("Month"))) +
   scale_linetype_manual(name = NULL, breaks = c("cpi", "Store Quarterly (w nonfood)"),
                         labels = c("Food & Beverage Chained CPI",
                                    "Retail Scanner Index (quarterly, including nonfood)"),
