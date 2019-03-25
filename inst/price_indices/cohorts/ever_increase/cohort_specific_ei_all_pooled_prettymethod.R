@@ -11,6 +11,7 @@ library(readstata13)
 library(sales.taxes)
 library(zoo)
 library(ggplot2)
+library(futile.logger)
 
 setwd("/project2/igaarder")
 change_of_interest <- "Ever increase"
