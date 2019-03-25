@@ -13,6 +13,7 @@ county.quarterly_path <- "output/server/national_pi_county_quarterly_balanced.cs
 store.monthly_path <- "output/server/national_pi_monthly.csv"
 store.quarterly_path <- "output/server/national_pi_store_module_balanced.csv"
 store.quarterly.incl_nonfood_path <- "output/server/national_pi_quarterly_incl_nonfood.csv"
+## "output/server/national_pi_quarterly_bho_comparison.csv"
 
 
 ## CountyXQuarterly index: /project2/igaarder/Data/Nielsen/Quarterly_county_balanced_price_quantity_indices_food.dta
