@@ -16,6 +16,7 @@ library(MatchIt)
 
 setwd("/project2/igaarder")
 change_of_interest <- "Ever increase"
+get_p_score <- F
 output.filepath <- "Data/pi_all_cohorts_ei_pooled_taxable.csv"
 
 # check function
@@ -35,10 +36,14 @@ all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_not
 taxable_pi_path <- "Data/Nielsen/price_quantity_indices_taxableitems_2006-2016.csv"
 
 ## covariate filepaths (for matching)
-zillow_path <- "Data/covariates/zillow_long_by_county_clean.csv"
+zillow_path <- "Data/covariates/zillow_long_by_state_clean.csv"
 unemp_path <- "Data/covariates/county_monthly_unemp_clean.csv"
 nhgis_path <- "Data/covariates/nhgis_county_clean.csv"
 qcew_path <- "Data/covariates/qcew_clean.csv"
+fips_path <- "Data/covariates/state_fips_master.csv"
+
+## propensity score output path
+prop_output_path <- "Data/matched_cohort_samples.csv"
 
 ## read in covariates and merge together
 zillow_dt <- fread(zillow_path)
@@ -49,6 +54,7 @@ setkey(zillow_dt, fips_state, year, month)
 zillow_dt[, median_home_price.change := shift(median_home_price, n = 6) - shift(median_home_price, n = 24),
           by = fips_state]
 zillow_dt <- zillow_dt[between(year, 2009, 2013)]
+zillow_dt[, month := as.integer(round(month))]
 
 unemp_dt <- fread(unemp_path)
 unemp_dt <- unemp_dt[, .(fips_state, fips_county, rate, year, month)]
@@ -58,11 +64,15 @@ unemp_dt[, rate.change := shift(rate, n = 6) - shift(rate, n = 24),
          by = .(fips_state, fips_county)]
 unemp_dt <- unemp_dt[between(year, 2009, 2013)]
 
-covariates <- merge(unemp_dt, zillow_dt, by = c("fips_state", "year", "month"),
-                    all = T)
+covariates <- merge(unemp_dt, zillow_dt, by = c("fips_state", "year", "month"))
 
-# TODO: we want Census region or division as well
-# TODO: we have a lot of missing houseprice data
+fips_dt <- fread(fips_path)
+fips_dt <- fips_dt[, .(fips_state, region_name, division_name)]
+covariates <- merge(covariates, fips_dt, by = "fips_state")
+covariates[, region := factor(region_name)]
+covariates[, division := factor(division_name)]
+covariates[, c("region_name", "division_name") := NULL]
+
 fixed_covariates <- fread(nhgis_path)
 setnames(fixed_covariates, skip_absent = T,
          old = c("statefp", "countyfp"),
@@ -72,8 +82,7 @@ fixed_covariates <- fixed_covariates[, .(
   fips_state, fips_county, pct_pop_bachelors, pct_pop_urban
   )]
 covariates <- merge(covariates, fixed_covariates,
-                    by = c("fips_state", "fips_county"),
-                    all = T)
+                    by = c("fips_state", "fips_county"))
 # since cohorts are defined by quarters:
 covariates <- covariates[month %in% c(2, 5, 8, 11)]
 covariates[, quarter := ceiling(month / 3)]
@@ -102,53 +111,60 @@ control_counties.nt <- unique(control_counties.nt[, .(fips_county, fips_state)])
 control_counties.nt[, treated := 0]
 
 ## construct matched control group
-control.matched <- data.table(NULL)
-tr_events.matching <- copy(tr_events)
-tr_events.matching[, ref_quarter := ceiling(ref_month / 3)]
-for (ref.yr in 2009:2013) {
-  for (ref.qtr in 1:4) {
-    cohort_treated <- tr_events.matching[ref_year == ref.yr & ref_quarter == ref.qtr]
-    cohort_treated <- cohort_treated[, .(fips_state, fips_county)]
-    cohort_treated[, treated := 1]
-    cohort_counties <- rbind(cohort_treated,
-                             control_counties.nt)
-    cohort_covariates <- merge(cohort_counties,
-                               covariates[year == ref.yr & quarter == ref.qtr],
-                               by = c("fips_state", "fips_county"),
-                               all.x = T)
-    # TODO: need to add census region dummies in here
-    prop_formula <- as.formula(paste(
-      "treated ~ rate + rate.change + median_home_price + median_home_price.change +",
-      "pct_pop_bachelors + pct_pop_urban"
-    ))
-    # prop_res <- glm(formula = prop_formula,
-    #                  data = cohort_covariates,
-    #                  family = binomial(link = "logit"))
-    # cohort_covariates$prop <- predict(prop_res, newdata = cohort_covariates)
-    # ALMOST half prop values are missing when house price data is included
-    cohort_covariates <- cohort_covariates[!is.na(rate) & !is.na(rate.change) &
-                                                !is.na(pct_pop_bachelors) & !is.na(pct_pop_urban)]
-    cohort_matchit <- matchit(formula = prop_formula,
-                              data = cohort_covariates[, .(
-                                treated, rate, rate.change, pct_pop_bachelors,
-                                pct_pop_urban, fips_state, fips_county)],
-                              method = "nearest",
-                              ratio = 10)
-    cohort_matched <- match.data(cohort_matchit,
-                                 group = "all", distance = "distance",
-                                 weights = "match.weights", subclass = "subclass")
-    cohort_matched <- data.table(cohort_matched)
-    cohort_matched <- cohort_matched[, .(
-      fips_state, fips_county, treated, weights
-    )]
-    cohort_matched[, ref_year := ref.yr]
-    cohort_matched[, ref_quarter := ref.qtr]
+if (get_p_score) {
+  control.matched <- data.table(NULL)
+  tr_events.matching <- copy(tr_events)
+  tr_events.matching[, ref_quarter := ceiling(ref_month / 3)]
+  for (ref.yr in 2009:2013) {
+    for (ref.qtr in 1:4) {
+      flog.info("Matching for %sQ%s", ref.yr, ref.qtr)
+      cohort_treated <- tr_events.matching[ref_year == ref.yr & ref_quarter == ref.qtr]
+      cohort_treated <- cohort_treated[, .(fips_state, fips_county)]
+      cohort_treated[, treated := 1]
+      if (nrow(cohort_treated) == 0) next
+      cohort_counties <- rbind(cohort_treated,
+                               control_counties.nt)
+      pre.N <- nrow(unique(cohort_counties[treated == 1], by = c("fips_state", "fips_county")))
+      cohort_covariates <- merge(cohort_counties,
+                                 covariates[year == ref.yr & quarter == ref.qtr],
+                                 by = c("fips_state", "fips_county"))
+      post.N <- nrow(unique(cohort_covariates[treated == 1], by = c("fips_state", "fips_county")))
+      if (pre.N != post.N) {
+        warning(sprintf("%s treated counties dropped when merging covariates", pre.N - post.N))
+      }
 
-    control.matched <- rbind(control.matched,
-                             cohort_matched)
+      prop_formula <- as.formula(paste(
+        "treated ~ rate + rate.change + median_home_price + median_home_price.change +",
+        "pct_pop_bachelors + pct_pop_urban + division"
+      ))
+      # prop_res <- glm(formula = prop_formula,
+      #                  data = cohort_covariates,
+      #                  family = binomial(link = "logit"))
+      # cohort_covariates$prop <- predict(prop_res, type = "response")
 
+      cohort_matchit <- matchit(formula = prop_formula,
+                                data = cohort_covariates,
+                                method = "nearest",
+                                ratio = 10, replace = T)
+      cohort_matched <- match.data(cohort_matchit,
+                                   group = "all", distance = "distance",
+                                   weights = "match.weights", subclass = "subclass")
+      cohort_matched <- data.table(cohort_matched)
+      cohort_matched <- cohort_matched[, .(
+        fips_state, fips_county, treated, match.weights
+      )]
+      cohort_matched[, ref_year := ref.yr]
+      cohort_matched[, ref_quarter := ref.qtr]
+
+      control.matched <- rbind(control.matched,
+                               cohort_matched)
+    }
   }
+  fwrite(control.matched, prop_output_path)
+} else {
+  control.matched <- fread(prop_output_path)
 }
+
 
 ## future restricted control group
 control_counties.ft <- data.table(NULL)
