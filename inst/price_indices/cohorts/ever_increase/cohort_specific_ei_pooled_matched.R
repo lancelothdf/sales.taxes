@@ -270,8 +270,7 @@ control_dt.nt <- control_dt.nt[, list(
 
 matched_control_data <- merge(taxable_pi, control_dt.nt,
                               by = c("quarter", "year", "product_module_code",
-                                     "ref_year", "ref_quarter"),
-                              allow.cartesian = T)
+                                     "ref_year", "ref_quarter"))
 
 matched_control_data <- matched_control_data[, .(
   control.cpricei, tt_event, event_ID, store_code_uc, product_module_code,
