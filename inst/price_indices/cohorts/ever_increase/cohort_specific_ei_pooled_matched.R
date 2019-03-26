@@ -196,6 +196,7 @@ if (get_p_score) {
 tr_events <- control.matched[treated == 1]
 tr_events <- unique(tr_events[, .(fips_state, fips_county, ref_year, ref_quarter)])
 tr_events[, V1 := .I]
+tr_events[, tr_group := change_of_interest]
 
 # Taxable goods only ===========================================================
 taxable_pi <- fread(all_goods_pi_path)
