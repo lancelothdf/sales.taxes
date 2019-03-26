@@ -286,7 +286,7 @@ increase.event.plot <- ggplot(et.increase %>% filter(taxable %in% c("Taxable", "
        caption = expression(paste(
          italic("Note: "),"Weighted by sales in 2008 Q1. ",
          "Sales tax changes are any changes occurring between 2009 and 2013."))) +
-  ggtitle("Price index by taxability") +
+  # ggtitle("Price index by taxability") +
   scale_y_continuous(breaks = seq(-.02, 0.02, .01), expand = c(0, 0), limits = c(-.022, .022)) +
   scale_x_continuous(breaks = seq(-4, 4, 1), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks[c(1, 2, 5)], labels = plot_labs[c(1, 2, 5)],
@@ -313,7 +313,7 @@ increase.event.plot <- ggplot(et.increase %>%
        caption = expression(paste(
          italic("Note: "),"Weighted by sales in 2008 Q1. ",
          "Sales tax changes are any changes occurring between 2009 and 2013."))) +
-  ggtitle("Price index by taxability") +
+  # ggtitle("Price index by taxability") +
   scale_y_continuous(breaks = seq(-.02, 0.02, .01), expand = c(0, 0), limits = c(-.022, .022)) +
   scale_x_continuous(breaks = seq(-4, 4, 1), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks[3:4], labels = plot_labs[3:4],

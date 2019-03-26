@@ -30,6 +30,10 @@ outfile_figpath <- "reports/figs/pi_all_cohorts_ei_pooled_taxable_matched.png"
 
 dt <- read.csv(data_path)
 
+dt <- dt %>%
+  group_by(tr_group) %>%
+  mutate(mean_pi = mean_pi - mean_pi[tt_event == -3])
+
 ggplot(dt, mapping = aes(x = tt_event, y = mean_pi, color = tr_group)) +
   geom_line(size = .7) +
   geom_point(size = .8) +
