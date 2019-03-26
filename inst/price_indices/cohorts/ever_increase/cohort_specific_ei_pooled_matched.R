@@ -165,46 +165,6 @@ if (get_p_score) {
   control.matched <- fread(prop_output_path)
 }
 
-
-## future restricted control group
-control_counties.ft <- data.table(NULL)
-for (yr in 2009:2013) {
-  for (qtr in 1:4) {
-    control_counties_spec <- control_counties[
-      (ref_year * 4 + ref_quarter) - (yr * 4 + qtr) > 4, # keep if treated over 1 year in future
-      .(fips_state, fips_county, tr_group) # columns to keep
-      ]
-    control_counties_spec[, ref_year := yr]
-    control_counties_spec[, ref_quarter := qtr]
-
-    control_counties.ft <- rbind(control_counties.ft, control_counties_spec)
-  }
-}
-
-## future unrestricted control group
-control_counties.ftu <- data.table(NULL)
-for (ref.yr in 2009:2013) {
-  for (ref.qtr in 1:4) {
-    for (cal.yr in 2006:2014) {
-      for (cal.qtr in 1:4) {
-        control_counties_spec <- control_counties[
-          (ref_year * 4 + ref_quarter) > (ref.yr * 4 + ref.qtr) &   # treated after focal cohort
-            (ref_year * 4 + ref_quarter) > (cal.yr * 4 + cal.qtr),  # not yet treated
-          .(fips_state, fips_county, tr_group) # columns to keep
-          ]
-
-        control_counties_spec[, ref_year := ref.yr]
-        control_counties_spec[, ref_quarter := ref.qtr]
-        control_counties_spec[, year := cal.yr]
-        control_counties_spec[, quarter := cal.qtr]
-
-        control_counties.ftu <- rbind(control_counties.ftu, control_counties_spec)
-      }
-    }
-  }
-}
-
-
 # Taxable goods only ===========================================================
 taxable_pi <- fread(all_goods_pi_path)
 taxable_pi <- taxable_pi[sales_tax > 1 | (is.na(sales_tax) & year < 2008)]
