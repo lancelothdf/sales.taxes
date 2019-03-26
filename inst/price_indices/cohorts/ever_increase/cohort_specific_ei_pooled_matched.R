@@ -16,7 +16,7 @@ library(MatchIt)
 
 setwd("/project2/igaarder")
 change_of_interest <- "Ever increase"
-get_p_score <- T
+get_p_score <- F
 output.filepath <- "Data/pi_all_cohorts_ei_pooled_taxable_matched.csv"
 ## propensity score output path
 prop_output_path <- "Data/matched_cohort_samples.csv"
@@ -193,6 +193,10 @@ if (get_p_score) {
   control.matched <- fread(prop_output_path)
 }
 
+tr_events <- control.matched[treated == 1]
+tr_events <- unique(tr_events[, .(fips_state, fips_county, ref_year, ref_quarter)])
+tr_events[, V1 := .I]
+
 # Taxable goods only ===========================================================
 taxable_pi <- fread(all_goods_pi_path)
 taxable_pi <- taxable_pi[sales_tax > 1 | (is.na(sales_tax) & year < 2008)]
@@ -240,7 +244,7 @@ taxable_pi <- merge(taxable_pi, tr_events,
 setnames(taxable_pi, "V1", "event_ID")
 
 ## define time to event --------------------------------------------------------
-taxable_pi[, ref_quarter := ceiling(ref_month / 3)]
+# taxable_pi[, ref_quarter := ceiling(ref_month / 3)]
 taxable_pi[, tt_event := as.integer(4 * year + quarter -
                                       (4 * ref_year + ref_quarter))]
 
@@ -255,10 +259,11 @@ control_dt.nt <- merge(taxable_pi_original, control.matched,
                        allow.cartesian = T)
 control_dt.nt[, treated_sales := sum(treated * base.sales),
               by = .(ref_year, ref_quarter, product_module_code)]
+control_dt.nt <- control_dt.nt[treated == 0] # keep only control counties
 control_dt.nt[, match.weights := match.weights * treated_sales]
 
 control_dt.nt <- control_dt.nt[, list(
-  control.cpricei = weighted.mean(x = cpricei, w = match.weights),
+  control.cpricei = weighted.mean(cpricei, w = match.weights),
   control.sales_tax = weighted.mean(sales_tax, w = match.weights)
   ), by = .(quarter, year, product_module_code)]
 
@@ -300,8 +305,7 @@ taxable_pi_es_collapsed <- taxable_pi[,
                                       list(mean_pi = weighted.mean(x = normalized.cpricei, w = base.sales),
                                            mean_tax = weighted.mean(sales_tax, w = base.sales, na.rm = T),
                                            n_counties = uniqueN(1000 * fips_state + fips_county),
-                                           n_stores = uniqueN(store_code_uc),
-                                           total_sales = sum(base.sales)),
+                                           n_stores = uniqueN(store_code_uc)),
                                       by = c("tr_group", "tt_event")
                                       ]
 
