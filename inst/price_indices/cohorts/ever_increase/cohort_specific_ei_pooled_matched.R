@@ -266,10 +266,11 @@ control_dt.nt[, match.weights := match.weights * treated_sales]
 control_dt.nt <- control_dt.nt[, list(
   control.cpricei = weighted.mean(cpricei, w = match.weights),
   control.sales_tax = weighted.mean(sales_tax, w = match.weights)
-  ), by = .(quarter, year, product_module_code)]
+  ), by = .(quarter, year, product_module_code, ref_year, ref_quarter)]
 
 matched_control_data <- merge(taxable_pi, control_dt.nt,
-                              by = c("quarter", "year", "product_module_code"),
+                              by = c("quarter", "year", "product_module_code",
+                                     "ref_year", "ref_quarter"),
                               allow.cartesian = T)
 
 matched_control_data <- matched_control_data[, .(
