@@ -177,6 +177,7 @@ ggsave("pi_figs/pretty/pi_taxexempt_event_v2.png",
 
 ## taxable vs. non-taxable, ever decrease --------------------------------------
 et.taxable[, taxable := "Taxable"]
+et.taxable[, total_sales := NULL]
 et.taxexempt[, taxable := "Tax-exempt"]
 et.tax <- rbind(et.taxable, et.taxexempt)
 et.tax[, taxable := ifelse(grepl("\\(", tr_group),
@@ -231,6 +232,32 @@ decrease.event.plot
 
 ggsave("pi_figs/pretty/pi_everdecrease_event_v2.png",
        height = 120 * 1.2, width = 180 * 1.2, units = "mm")
+
+decrease.event.plot <- ggplot(et.decrease %>% filter(between(tt_event, -4, 4),
+                                                     taxable %in% c("Taxable", "Taxable (no change)", "no change mean + log tax")),
+                              aes(x = tt_event, y = mean_pi,
+                                  color = taxable, linetype = taxable)) +
+  geom_line(size = 1) +
+  labs(x = "Quarters from event time",
+       y = expression(paste("Normalized ln(", italic("price index"), ")")),
+       color = NULL,
+       caption = expression(paste(
+         italic("Note: "),"Weighted by sales in 2008 Q1. ",
+         "Sales tax changes are any changes occurring between 2009 and 2013."))) +
+  # ggtitle("Price index by taxability") +
+  scale_y_continuous(breaks = seq(-.02, 0.02, .01), expand = c(0.005, 0.005), limits = c(-.025, .025)) +
+  scale_x_continuous(breaks = seq(-4, 4, 1), expand = c(0.005, 0.005)) +
+  scale_color_manual(name = NULL, breaks = plot_breaks[c(1, 2, 5)], labels = plot_labs[c(1, 2, 5)],
+                     values = c("grey", "#F8766D", "#F8766D", "#00BFC4", "#00BFC4")[c(1, 4, 5)]) +
+  scale_linetype_manual(name = NULL, breaks = plot_breaks[c(1, 2, 5)], labels = plot_labs[c(1, 2, 5)],
+                     values = c("dotdash", "solid", "11", "solid", "11")[c(1, 4, 5)]) +
+  geom_vline(xintercept = 0, color = "maroon", size = 0.8, alpha = 0.5, linetype = "dashed") +
+  myTheme +
+  theme(legend.position = c(0.23, 0.84), axis.ticks.length = unit(-0.15, "cm"))
+decrease.event.plot
+
+ggsave("pi_figs/pretty/pi_everdecrease_taxable_v2.png",
+       height = 120, width = 180, units = "mm")
 
 ## taxable vs. non-taxable, ever increase --------------------------------------
 et.increase <- et.tax[tr_group %in% c("Ever increase",
@@ -291,7 +318,7 @@ increase.event.plot <- ggplot(et.increase %>%
        caption = expression(paste(
          italic("Note: "),"Weighted by sales in 2008 Q1. ",
          "Sales tax changes are any changes occurring between 2009 and 2013."))) +
-  ggtitle("Price index by taxability") +
+  # ggtitle("Price index by taxability") +
   scale_y_continuous(breaks = seq(-.02, 0.02, .01), expand = c(0.005, 0.005), limits = c(-.017, .017)) +
   scale_x_continuous(breaks = seq(-4, 4, 1), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks[c(1, 2, 5)], labels = plot_labs[c(1, 2, 5)],
@@ -318,7 +345,7 @@ increase.event.plot <- ggplot(et.increase %>% filter(between(tt_event, -4, 4),
        caption = expression(paste(
          italic("Note: "),"Weighted by sales in 2008 Q1. ",
          "Sales tax changes are any changes occurring between 2009 and 2013."))) +
-  ggtitle("Price index by taxability") +
+  # ggtitle("Price index by taxability") +
   scale_y_continuous(breaks = seq(-.02, 0.02, .01), expand = c(0, 0), limits = c(-.022, .022)) +
   scale_x_continuous(breaks = seq(-4, 4, 1), expand = c(0.005, 0.005)) +
   scale_color_manual(name = NULL, breaks = plot_breaks[3:4], labels = plot_labs[3:4],

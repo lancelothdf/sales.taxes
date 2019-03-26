@@ -120,9 +120,7 @@ rm(taxable_pi)
 gc()
 
 ## normalize
-zillow_dt[, normalized.homeprice := log(median_home_price) -
-            log(median_home_price[year == 2006 & month == 1]),
-          by = .(fips_county, fips_state)]
+zillow_dt[, normalized.homeprice := log(median_home_price)]
 zillow_dt <- zillow_dt[!is.na(normalized.homeprice)]
 
 ## balance on county level
