@@ -16,8 +16,10 @@ library(MatchIt)
 
 setwd("/project2/igaarder")
 change_of_interest <- "Ever increase"
-get_p_score <- F
-output.filepath <- "Data/pi_all_cohorts_ei_pooled_taxable.csv"
+get_p_score <- T
+output.filepath <- "Data/pi_all_cohorts_ei_pooled_taxable_matched.csv"
+## propensity score output path
+prop_output_path <- "Data/matched_cohort_samples.csv"
 
 # check function
 g <- function(dt) {
@@ -42,53 +44,6 @@ nhgis_path <- "Data/covariates/nhgis_county_clean.csv"
 qcew_path <- "Data/covariates/qcew_clean.csv"
 fips_path <- "Data/covariates/state_fips_master.csv"
 
-## propensity score output path
-prop_output_path <- "Data/matched_cohort_samples.csv"
-
-## read in covariates and merge together
-zillow_dt <- fread(zillow_path)
-zillow_dt <- zillow_dt[, .(fips_state, median_home_price, year, month)]
-zillow_dt <- zillow_dt[year >= 2007]
-zillow_dt[, median_home_price := log(median_home_price)]
-setkey(zillow_dt, fips_state, year, month)
-zillow_dt[, median_home_price.change := shift(median_home_price, n = 6) - shift(median_home_price, n = 24),
-          by = fips_state]
-zillow_dt <- zillow_dt[between(year, 2009, 2013)]
-zillow_dt[, month := as.integer(round(month))]
-
-unemp_dt <- fread(unemp_path)
-unemp_dt <- unemp_dt[, .(fips_state, fips_county, rate, year, month)]
-unemp_dt <- unemp_dt[year >= 2007]
-setkey(unemp_dt, fips_state, fips_county, year, month)
-unemp_dt[, rate.change := shift(rate, n = 6) - shift(rate, n = 24),
-         by = .(fips_state, fips_county)]
-unemp_dt <- unemp_dt[between(year, 2009, 2013)]
-
-covariates <- merge(unemp_dt, zillow_dt, by = c("fips_state", "year", "month"))
-
-fips_dt <- fread(fips_path)
-fips_dt <- fips_dt[, .(fips_state, region_name, division_name)]
-covariates <- merge(covariates, fips_dt, by = "fips_state")
-covariates[, region := factor(region_name)]
-covariates[, division := factor(division_name)]
-covariates[, c("region_name", "division_name") := NULL]
-
-fixed_covariates <- fread(nhgis_path)
-setnames(fixed_covariates, skip_absent = T,
-         old = c("statefp", "countyfp"),
-         new = c("fips_state", "fips_county"))
-fixed_covariates <- fixed_covariates[year == 2000]
-fixed_covariates <- fixed_covariates[, .(
-  fips_state, fips_county, pct_pop_bachelors, pct_pop_urban
-  )]
-covariates <- merge(covariates, fixed_covariates,
-                    by = c("fips_state", "fips_county"))
-# since cohorts are defined by quarters:
-covariates <- covariates[month %in% c(2, 5, 8, 11)]
-covariates[, quarter := ceiling(month / 3)]
-covariates[, month := NULL]
-# now I have a yearXquarter dataset that can be subset for cohorts
-
 ## prepare treatment events for treated and control groups ---------------------
 tr_events <- fread(eventstudy_tr_path)
 tr_events <- tr_events[tr_group == change_of_interest]
@@ -112,6 +67,50 @@ control_counties.nt[, treated := 0]
 
 ## construct matched control group
 if (get_p_score) {
+  ## read in covariates and merge together
+  zillow_dt <- fread(zillow_path)
+  zillow_dt <- zillow_dt[, .(fips_state, median_home_price, year, month)]
+  zillow_dt <- zillow_dt[year >= 2007]
+  zillow_dt[, median_home_price := log(median_home_price)]
+  setkey(zillow_dt, fips_state, year, month)
+  zillow_dt[, median_home_price.change := shift(median_home_price, n = 6) - shift(median_home_price, n = 24),
+            by = fips_state]
+  zillow_dt <- zillow_dt[between(year, 2009, 2013)]
+  zillow_dt[, month := as.integer(round(month))]
+
+  unemp_dt <- fread(unemp_path)
+  unemp_dt <- unemp_dt[, .(fips_state, fips_county, rate, year, month)]
+  unemp_dt <- unemp_dt[year >= 2007]
+  setkey(unemp_dt, fips_state, fips_county, year, month)
+  unemp_dt[, rate.change := shift(rate, n = 6) - shift(rate, n = 24),
+           by = .(fips_state, fips_county)]
+  unemp_dt <- unemp_dt[between(year, 2009, 2013)]
+
+  covariates <- merge(unemp_dt, zillow_dt, by = c("fips_state", "year", "month"))
+
+  fips_dt <- fread(fips_path)
+  fips_dt <- fips_dt[, .(fips_state, region_name, division_name)]
+  covariates <- merge(covariates, fips_dt, by = "fips_state")
+  covariates[, region := factor(region_name)]
+  covariates[, division := factor(division_name)]
+  covariates[, c("region_name", "division_name") := NULL]
+
+  fixed_covariates <- fread(nhgis_path)
+  setnames(fixed_covariates, skip_absent = T,
+           old = c("statefp", "countyfp"),
+           new = c("fips_state", "fips_county"))
+  fixed_covariates <- fixed_covariates[year == 2000]
+  fixed_covariates <- fixed_covariates[, .(
+    fips_state, fips_county, pct_pop_bachelors, pct_pop_urban
+  )]
+  covariates <- merge(covariates, fixed_covariates,
+                      by = c("fips_state", "fips_county"))
+  # since cohorts are defined by quarters:
+  covariates <- covariates[month %in% c(2, 5, 8, 11)]
+  covariates[, quarter := ceiling(month / 3)]
+  covariates[, month := NULL]
+  # now I have a yearXquarter dataset that can be subset for cohorts
+
   control.matched <- data.table(NULL)
   tr_events.matching <- copy(tr_events)
   tr_events.matching[, ref_quarter := ceiling(ref_month / 3)]
@@ -251,85 +250,31 @@ taxable_pi <- taxable_pi[tt_event >= -8 & tt_event <= 4]
 ## add pseudo-control group ----------------------------------------------------
 
 ### create dataset of never treated counties
-control_dt.nt <- merge(taxable_pi_original, control_counties.nt,
-                       by = c("fips_state", "fips_county"))
+control_dt.nt <- merge(taxable_pi_original, control.matched,
+                       by = c("fips_state", "fips_county"),
+                       allow.cartesian = T)
+control_dt.nt[, treated_sales := sum(treated * base.sales),
+              by = .(ref_year, ref_quarter, product_module_code)]
+control_dt.nt[, match.weights := match.weights * treated_sales]
 
 control_dt.nt <- control_dt.nt[, list(
-  control.cpricei = weighted.mean(x = cpricei, w = base.sales),
-  control.sales_tax = weighted.mean(sales_tax, w = base.sales)
+  control.cpricei = weighted.mean(x = cpricei, w = match.weights),
+  control.sales_tax = weighted.mean(sales_tax, w = match.weights)
   ), by = .(quarter, year, product_module_code)]
 
-control_dt.nt[, control.type := "No change"]
-
-matched_control_data.nt <- merge(taxable_pi, control_dt.nt,
+matched_control_data <- merge(taxable_pi, control_dt.nt,
                               by = c("quarter", "year", "product_module_code"),
                               allow.cartesian = T)
 
-matched_control_data.nt <- matched_control_data.nt[, .(
+matched_control_data <- matched_control_data[, .(
   control.cpricei, tt_event, event_ID, store_code_uc, product_module_code,
-  control.sales_tax, tr_group, base.sales, ref_year, ref_quarter, control.type
+  control.sales_tax, tr_group, base.sales, ref_year, ref_quarter
   )]
-
-rm(control_dt.nt)
-
-### create dataset of future treated counties (restricted)
-control_dt.ft <- merge(taxable_pi_original, control_counties.ft,
-                       by = c("fips_state", "fips_county"),
-                       allow.cartesian = T)
-
-control_dt.ft <- control_dt.ft[, list(
-  control.cpricei = weighted.mean(cpricei, w = base.sales),
-  control.sales_tax = weighted.mean(sales_tax, w = base.sales)
-  ), by = .(quarter, year, product_module_code, ref_year, ref_quarter, tr_group)]
-
-control_dt.ft[, control.type := "Future change"]
-
-matched_control_data.ft <- merge(taxable_pi, control_dt.ft,
-                              by = c("quarter", "year", "product_module_code",
-                                     "ref_year", "ref_quarter", "tr_group"))
-
-matched_control_data.ft <- matched_control_data.ft[, .(
-  control.cpricei, tt_event, event_ID, store_code_uc, product_module_code,
-  tr_group, base.sales, ref_year, ref_quarter, control.sales_tax, control.type
-  )]
-rm(control_dt.ft)
-
-### created dataset of future treated counties (unrestricted)
-control_dt.ftu <- merge(taxable_pi_original, control_counties.ftu,
-                        by = c("fips_state", "fips_county", "year", "quarter"),
-                        allow.cartesian = T)
-
-control_dt.ftu <- control_dt.ftu[, list(
-  control.cpricei = weighted.mean(cpricei, w = base.sales),
-  control.sales_tax = weighted.mean(sales_tax, w = base.sales)
-  ), by = .(quarter, year, product_module_code, ref_year, ref_quarter, tr_group)]
-control_dt.ftu[, control.type := "Future change, unrestricted"]
-
-matched_control_data.ftu <- merge(taxable_pi, control_dt.ftu,
-                              by = c("quarter", "year", "product_module_code",
-                                     "ref_year", "ref_quarter", "tr_group"))
-
-matched_control_data.ftu <- matched_control_data.ftu[, .(
-  control.cpricei, tt_event, event_ID, store_code_uc, product_module_code,
-  tr_group, base.sales, ref_year, ref_quarter, control.sales_tax, control.type
-  )]
-
-rm(control_dt.ftu)
-
-
-## combine the three matched groups
-matched_control_data <- rbind(matched_control_data.nt,
-                              matched_control_data.ft,
-                              matched_control_data.ftu)
-
-rm(taxable_pi_original, matched_control_data.nt,
-   matched_control_data.ft, matched_control_data.ftu)
-gc()
 
 setnames(matched_control_data,
          old = c("control.cpricei", "control.sales_tax"),
          new = c("cpricei",         "sales_tax"))
-matched_control_data[, tr_group := paste0(control.type, " (", tolower(tr_group), ")")]
+matched_control_data[, tr_group := paste0("No change - matched (", tolower(tr_group), ")")]
 
 taxable_pi <- rbind(taxable_pi, matched_control_data, fill = T)
 
