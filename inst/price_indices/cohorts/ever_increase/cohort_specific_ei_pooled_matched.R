@@ -142,6 +142,8 @@ if (get_p_score) {
       #                  family = binomial(link = "logit"))
       # cohort_covariates$prop <- predict(prop_res, type = "response")
 
+      setkey(cohort_covariates, fips_state, fips_county)
+      cohort_covariates[, ID := .I]
       cohort_matchit <- matchit(formula = prop_formula,
                                 data = cohort_covariates,
                                 method = "nearest",
@@ -149,10 +151,29 @@ if (get_p_score) {
       cohort_matched <- match.data(cohort_matchit,
                                    group = "all", distance = "distance",
                                    weights = "match.weights", subclass = "subclass")
+      # have to traceback the matching of treatment to control
+      match.mat <- cohort_matchit$match.matrix
+      match.mat <- data.table(match.mat, keep.rownames = T)
+      match.mat <- tidyr::gather(match.mat,
+                                 key = "control_count",
+                                 value = "control_row", -rn)
+      match.mat <- data.table(match.mat)
+      match.mat[, ID := as.integer(control_row)]
+      match.mat[, treatment_ID := as.integer(rn)]
+      match.mat[, c("control_count", "rn", "control_row") := NULL]
+      match.mat[, rel_weight := 1 / .N, by = ID]
+
       cohort_matched <- data.table(cohort_matched)
       cohort_matched <- cohort_matched[, .(
-        fips_state, fips_county, treated, match.weights
+        fips_state, fips_county, treated, match.weights, ID, pct_pop_urban
       )]
+      # will end up dividing cohort_matched into unit-specific controls,
+      # with their own proportional weights
+      cohort_matched <- merge(cohort_matched, match.mat, by = "ID", all = T)
+      cohort_matched[treated == 0, match.weights := match.weights * rel_weight]
+      cohort_matched[treated == 1, treatment_ID := ID]
+      cohort_matched[, rel_weight := NULL]
+
       cohort_matched[, ref_year := ref.yr]
       cohort_matched[, ref_quarter := ref.qtr]
 
@@ -160,6 +181,9 @@ if (get_p_score) {
                                cohort_matched)
     }
   }
+  control.matched[, treatment_grp := .GRP, by = .(treatment_ID, ref_year, ref_quarter)]
+  control.matched[, c("treatment_ID", "ID") := NULL]
+  setkey(control.matched, treatment_grp, treated, fips_state, fips_county)
   fwrite(control.matched, prop_output_path)
 } else {
   control.matched <- fread(prop_output_path)
