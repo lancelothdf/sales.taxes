@@ -42,26 +42,23 @@ qcew_path <- "Data/covariates/qcew_clean.csv"
 
 ## read in covariates and merge together
 zillow_dt <- fread(zillow_path)
-zillow_dt <- zillow_dt[, .(fips_state, fips_county, median_home_price, year, month)]
+zillow_dt <- zillow_dt[, .(fips_state, median_home_price, year, month)]
 zillow_dt <- zillow_dt[year >= 2007]
-# TODO: do we want log home price?? I think yes
 zillow_dt[, median_home_price := log(median_home_price)]
-setkey(zillow_dt, fips_state, fips_county, year, month)
-zillow_dt[, median_home_price.change := shift(median_home_price, n = 1) - shift(median_home_price, n = 24),
-          by = .(fips_state, fips_county)]
+setkey(zillow_dt, fips_state, year, month)
+zillow_dt[, median_home_price.change := shift(median_home_price, n = 6) - shift(median_home_price, n = 24),
+          by = fips_state]
 zillow_dt <- zillow_dt[between(year, 2009, 2013)]
 
 unemp_dt <- fread(unemp_path)
 unemp_dt <- unemp_dt[, .(fips_state, fips_county, rate, year, month)]
 unemp_dt <- unemp_dt[year >= 2007]
 setkey(unemp_dt, fips_state, fips_county, year, month)
-# TODO: do we want this in percentage point change? or percent change?
-unemp_dt[, rate.change := shift(rate, n = 1) - shift(rate, n = 24),
+unemp_dt[, rate.change := shift(rate, n = 6) - shift(rate, n = 24),
          by = .(fips_state, fips_county)]
 unemp_dt <- unemp_dt[between(year, 2009, 2013)]
 
-covariates <- merge(unemp_dt, zillow_dt,
-                    by = c("fips_state", "fips_county", "year", "month"),
+covariates <- merge(unemp_dt, zillow_dt, by = c("fips_state", "year", "month"),
                     all = T)
 
 # TODO: we want Census region or division as well
@@ -137,8 +134,9 @@ for (ref.yr in 2009:2013) {
                                 pct_pop_urban, fips_state, fips_county)],
                               method = "nearest",
                               ratio = 10)
-    # TODO: we want to return subclass as well?
-    cohort_matched <- match.data(cohort_matchit)
+    cohort_matched <- match.data(cohort_matchit,
+                                 group = "all", distance = "distance",
+                                 weights = "match.weights", subclass = "subclass")
     cohort_matched <- data.table(cohort_matched)
     cohort_matched <- cohort_matched[, .(
       fips_state, fips_county, treated, weights
