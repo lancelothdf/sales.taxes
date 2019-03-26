@@ -16,7 +16,7 @@ library(MatchIt)
 
 setwd("/project2/igaarder")
 change_of_interest <- "Ever increase"
-get_p_score <- F
+get_p_score <- T
 output.filepath <- "Data/pi_all_cohorts_ei_pooled_taxable_matched.csv"
 ## propensity score output path
 prop_output_path <- "Data/matched_cohort_samples.csv"
