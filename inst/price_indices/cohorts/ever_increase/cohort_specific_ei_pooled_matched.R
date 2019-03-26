@@ -174,6 +174,10 @@ if (get_p_score) {
       # cohort_matched[treated == 1, treatment_ID := ID]
       # cohort_matched[, rel_weight := NULL]
 
+      cohort_matched[, treat_count := sum(treated)]
+      cohort_matched[treated == 0, match.weights := match.weights / sum(match.weights)]
+      cohort_matched[, treat_count := NULL]
+
       cohort_matched[, ID := NULL]
       cohort_matched[, ref_year := ref.yr]
       cohort_matched[, ref_quarter := ref.qtr]
