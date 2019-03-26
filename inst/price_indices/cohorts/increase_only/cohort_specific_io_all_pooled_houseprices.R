@@ -46,6 +46,7 @@ tr_events <- tr_events[min.event == T]
 tr_events <- tr_events[, .(fips_county, fips_state, ref_year, ref_month, tr_group, V1)]
 # exclude 2012 Q4, 2013 Q1, 2013 Q2 reforms
 tr_events <- tr_events[!(ref_year == 2012 & ref_month >= 10) & !(ref_year == 2013 & ref_month %in% 1:6)]
+tr_events[, V1 := .I] # to prevent issues later on
 
 ## no change control group
 control_counties.nt <- fread(tr_groups_path)
@@ -93,9 +94,9 @@ for (ref.yr in 2009:2013) {
 ## prep the Zillow data --------------------------------------------------------
 zillow_dt <- fread(zillow_path)
 zillow_dt <- zillow_dt[between(year, 2006, 2014)]
+zillow_dt[, V1 := NULL]
 
 ### attach sales
-# TODO: this should be just sales for taxable items
 taxable_pi <- fread(all_goods_pi_path)
 taxable_pi <- taxable_pi[sales_tax > 1 | (is.na(sales_tax) & year < 2008)]
 taxable_pi <- taxable_pi[year %in% 2006:2014 & !is.na(cpricei)]
