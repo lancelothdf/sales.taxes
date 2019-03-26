@@ -42,13 +42,46 @@ qcew_path <- "Data/covariates/qcew_clean.csv"
 
 ## read in covariates and merge together
 zillow_dt <- fread(zillow_path)
+zillow_dt <- zillow_dt[, .(fips_state, fips_county, median_home_price, year, month)]
+zillow_dt <- zillow_dt[year >= 2007]
+# TODO: do we want log home price?? I think yes
+zillow_dt[, median_home_price := log(median_home_price)]
+setkey(zillow_dt, fips_state, fips_county, year, month)
+zillow_dt[, median_home_price.change := shift(median_home_price, n = 1) - shift(median_home_price, n = 24),
+          by = .(fips_state, fips_county)]
+zillow_dt <- zillow_dt[between(year, 2009, 2013)]
+
 unemp_dt <- fread(unemp_path)
-nhgis_dt <- fread(nhgis_path)
-setnames(nhgis_dt,
+unemp_dt <- unemp_dt[, .(fips_state, fips_county, rate, year, month)]
+unemp_dt <- unemp_dt[year >= 2007]
+setkey(unemp_dt, fips_state, fips_county, year, month)
+# TODO: do we want this in percentage point change? or percent change?
+unemp_dt[, rate.change := shift(rate, n = 1) - shift(rate, n = 24),
+         by = .(fips_state, fips_county)]
+unemp_dt <- unemp_dt[between(year, 2009, 2013)]
+
+covariates <- merge(unemp_dt, zillow_dt,
+                    by = c("fips_state", "fips_county", "year", "month"),
+                    all = T)
+
+# TODO: we want Census region or division as well
+# TODO: we have a lot of missing houseprice data
+fixed_covariates <- fread(nhgis_path)
+setnames(fixed_covariates, skip_absent = T,
          old = c("statefp", "countyfp"),
          new = c("fips_state", "fips_county"))
-qcew_dt <- fread(qcew_path)
-# TODO: convert area_fips
+fixed_covariates <- fixed_covariates[year == 2000]
+fixed_covariates <- fixed_covariates[, .(
+  fips_state, fips_county, pct_pop_bachelors, pct_pop_urban
+  )]
+covariates <- merge(covariates, fixed_covariates,
+                    by = c("fips_state", "fips_county"),
+                    all = T)
+# since cohorts are defined by quarters:
+covariates <- covariates[month %in% c(2, 5, 8, 11)]
+covariates[, quarter := ceiling(month / 3)]
+covariates[, month := NULL]
+# now I have a yearXquarter dataset that can be subset for cohorts
 
 ## prepare treatment events for treated and control groups ---------------------
 tr_events <- fread(eventstudy_tr_path)
@@ -69,6 +102,55 @@ control_counties[, ref_quarter := ceiling(ref_month / 3)]
 control_counties.nt <- fread(tr_groups_path)
 control_counties.nt <- control_counties.nt[tr_group == "No change"]
 control_counties.nt <- unique(control_counties.nt[, .(fips_county, fips_state)])
+control_counties.nt[, treated := 0]
+
+## construct matched control group
+control.matched <- data.table(NULL)
+tr_events.matching <- copy(tr_events)
+tr_events.matching[, ref_quarter := ceiling(ref_month / 3)]
+for (ref.yr in 2009:2013) {
+  for (ref.qtr in 1:4) {
+    cohort_treated <- tr_events.matching[ref_year == ref.yr & ref_quarter == ref.qtr]
+    cohort_treated <- cohort_treated[, .(fips_state, fips_county)]
+    cohort_treated[, treated := 1]
+    cohort_counties <- rbind(cohort_treated,
+                             control_counties.nt)
+    cohort_covariates <- merge(cohort_counties,
+                               covariates[year == ref.yr & quarter == ref.qtr],
+                               by = c("fips_state", "fips_county"),
+                               all.x = T)
+    # TODO: need to add census region dummies in here
+    prop_formula <- as.formula(paste(
+      "treated ~ rate + rate.change + median_home_price + median_home_price.change +",
+      "pct_pop_bachelors + pct_pop_urban"
+    ))
+    # prop_res <- glm(formula = prop_formula,
+    #                  data = cohort_covariates,
+    #                  family = binomial(link = "logit"))
+    # cohort_covariates$prop <- predict(prop_res, newdata = cohort_covariates)
+    # ALMOST half prop values are missing when house price data is included
+    cohort_covariates <- cohort_covariates[!is.na(rate) & !is.na(rate.change) &
+                                                !is.na(pct_pop_bachelors) & !is.na(pct_pop_urban)]
+    cohort_matchit <- matchit(formula = prop_formula,
+                              data = cohort_covariates[, .(
+                                treated, rate, rate.change, pct_pop_bachelors,
+                                pct_pop_urban, fips_state, fips_county)],
+                              method = "nearest",
+                              ratio = 10)
+    # TODO: we want to return subclass as well?
+    cohort_matched <- match.data(cohort_matchit)
+    cohort_matched <- data.table(cohort_matched)
+    cohort_matched <- cohort_matched[, .(
+      fips_state, fips_county, treated, weights
+    )]
+    cohort_matched[, ref_year := ref.yr]
+    cohort_matched[, ref_quarter := ref.qtr]
+
+    control.matched <- rbind(control.matched,
+                             cohort_matched)
+
+  }
+}
 
 ## future restricted control group
 control_counties.ft <- data.table(NULL)
