@@ -249,7 +249,7 @@ plot_breaks <- c("Taxable", "Taxable (future change)",
 
 plot_labs <- c("Taxable (ever increase)", "Taxable (future change)",
                "Tax-exempt (ever increase)", "Tax-exempt (future change)",
-               "Taxable (ever increase) + ln(1 + tax rate)")
+               "Taxable (future change) + ln(1 + tax rate)")
 
 increase.event.plot <- ggplot(et.increase, aes(x = tt_event, y = mean_pi,
                                                color = taxable, linetype = taxable)) +

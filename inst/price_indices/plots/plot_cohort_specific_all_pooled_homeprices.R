@@ -25,9 +25,9 @@ border_custom <- function(...){
 
 }
 
-data_path <- "output/server/pi_data/ever_decrease/homeprice_all_cohorts_ed_pooled.csv"
-outfile_figpath <- "reports/figs/homeprice_all_cohorts_ed_pooled.png"
-outfile_figpath2 <- "reports/figs/homeprice_all_cohorts_ed_pooled_normalized.png"
+data_path <- "output/server/pi_data/ever_increase/homeprice_all_cohorts_ei_pooled.csv"
+outfile_figpath <- "reports/figs/homeprice_all_cohorts_ei_pooled.png"
+outfile_figpath2 <- "reports/figs/homeprice_all_cohorts_ei_pooled_normalized.png"
 
 dt <- read.csv(data_path)
 
@@ -35,9 +35,9 @@ ggplot(dt, mapping = aes(x = tt_event, y = mean_homeprice, color = tr_group)) +
   geom_line(size = .7) +
   geom_point(size = .8) +
   geom_vline(xintercept = 0, color = "red", linetype = "22", alpha = .5) +
-  theme_bw() +
-  scale_x_continuous(expand = c(.01, -.05)) +
-  scale_y_continuous(limits = c(11.5, 12.42)) +
+  theme_bw(base_size = 14) +
+  scale_x_continuous(expand = c(.01, -.05), breaks = seq(-24, 12, 6)) +
+  scale_y_continuous(limits = c(11.8, 12.42)) +
   labs(x = "Month", y = "Normalized Log Home Price", color = NULL) +
   theme(
     panel.grid.major.x = element_blank(),
@@ -46,9 +46,9 @@ ggplot(dt, mapping = aes(x = tt_event, y = mean_homeprice, color = tr_group)) +
     strip.background = element_rect(colour="white", fill="white"),
     panel.spacing = unit(2, "lines"),
     panel.border = border_custom(),
-    legend.position = c(0.23, 0.16),
+    legend.position = c(0.3, 0.16),
     axis.ticks.length=unit(-0.15, "cm"),
-    legend.margin = margin(t=-.4, r=0, b=-.2, l=0, unit="cm"),
+    legend.margin = margin(t=-.4, r=0, b=0, l=0, unit="cm"),
     axis.text.x = element_text(margin=unit(rep(0.3, 4), "cm")),
     axis.text.y = element_text(margin=unit(rep(0.3, 4), "cm"))
   )
@@ -62,8 +62,8 @@ ggplot(dt.norm, mapping = aes(x = tt_event, y = mean_homeprice, color = tr_group
   geom_line(size = .7) +
   geom_point(size = .8) +
   geom_vline(xintercept = 0, color = "red", linetype = "22", alpha = .5) +
-  theme_bw() +
-  scale_x_continuous(expand = c(.01, -.05)) +
+  theme_bw(base_size = 14) +
+  scale_x_continuous(expand = c(.01, -.05), breaks = seq(-24, 12, 6)) +
   labs(x = "Month", y = "Normalized Log Home Price", color = NULL) +
   theme(
     panel.grid.major.x = element_blank(),
@@ -72,9 +72,9 @@ ggplot(dt.norm, mapping = aes(x = tt_event, y = mean_homeprice, color = tr_group
     strip.background = element_rect(colour="white", fill="white"),
     panel.spacing = unit(2, "lines"),
     panel.border = border_custom(),
-    legend.position = c(0.23, 0.2),
+    legend.position = c(0.29, 0.16),
     axis.ticks.length=unit(-0.15, "cm"),
-    legend.margin = margin(t=-.2, r=0, b=-.2, l=0, unit="cm"),
+    legend.margin = margin(t=-1, r=0, b=-.2, l=0, unit="cm"),
     axis.text.x = element_text(margin=unit(rep(0.3, 4), "cm")),
     axis.text.y = element_text(margin=unit(rep(0.3, 4), "cm"))
   )

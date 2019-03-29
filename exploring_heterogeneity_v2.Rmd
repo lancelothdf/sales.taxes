@@ -50,6 +50,23 @@ decreases <- ggplot(data = reforms[change == "Decrease"], mapping = aes(x = year
                labs(x = "Quarter", y = "# of sales tax decreases") +
                theme_bw()
 plot_grid(increases, decreases)
+
+# increases <- ggplot(data = reforms[change == "Increase"], mapping = aes(x = year_qtr)) +
+#                geom_histogram(binwidth = .25) +
+#                scale_x_yearqtr(format = "%Y", n = 4) +
+#                scale_y_continuous(limits = c(0, 305)) +
+#   ggtitle("Sales tax increases") +
+#                labs(x = NULL, y = NULL) +
+#                theme_bw()
+# decreases <- ggplot(data = reforms[change == "Decrease"], mapping = aes(x = year_qtr)) +
+#                geom_histogram(binwidth = .25) +
+#                scale_x_yearqtr(format = "%Y", n = 4) +
+#                scale_y_continuous(limits = c(0, 305)) +
+#                labs(x = NULL, y = NULL) +
+#   ggtitle("Sales tax decreases") +
+#                theme_bw()
+# plot_grid(increases, decreases)
+# ggsave("reports/figs/distribution_of_reforms.png", height = 150 * .8, width = 180 * .8, units = "mm")
 ```
 
 As we can see in Figure \ref{fig:plot_dist}, we have five "spikes" of more than 50 sales tax increases occuring in one quarter and two "spikes" of similar decreases. Are these spikes individual state-level reforms, or are they different reforms that happen to coincide?

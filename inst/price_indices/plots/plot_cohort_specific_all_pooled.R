@@ -34,8 +34,8 @@ ggplot(dt, mapping = aes(x = tt_event, y = mean_pi, color = tr_group)) +
   geom_line(size = .7) +
   geom_point(size = .8) +
   geom_vline(xintercept = 0, color = "red", linetype = "22", alpha = .5) +
-  theme_bw() +
-  scale_x_continuous(expand = c(.01, -.05)) +
+  theme_bw(base_size = 14) +
+  scale_x_continuous(expand = c(.02, -.05), breaks = seq(-8, 4, 2)) +
   labs(x = "Quarter", y = "Normalized Log Price Index", color = NULL) +
   theme(
     panel.grid.major.x = element_blank(),
@@ -45,8 +45,8 @@ ggplot(dt, mapping = aes(x = tt_event, y = mean_pi, color = tr_group)) +
     panel.spacing = unit(2, "lines"),
     panel.border = border_custom(),
     axis.ticks.length=unit(-0.15, "cm"),
-    legend.position = c(0.22, 0.85),
-    legend.margin = margin(t=-.2, r=-1, b=-.2, l=0, unit="cm"),
+    legend.position = c(0.33, 0.85),
+    legend.margin = margin(t=-.2, r=0, b=-.2, l=0, unit="cm"),
     axis.text.x = element_text(margin=unit(rep(0.3, 4), "cm")),
     axis.text.y = element_text(margin=unit(rep(0.3, 4), "cm"))
   )

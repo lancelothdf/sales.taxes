@@ -10,7 +10,7 @@ setwd("C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/server")
 
 ## define theme I like ---------------------------------------------------------
 
-myTheme <- theme_bw() +  theme(
+myTheme <- theme_bw(base_size = 14) +  theme(
   panel.grid.major.x = element_blank(),
   panel.grid.major.y = element_line(size = 0.1, colour = 'grey'),
   panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
@@ -278,7 +278,7 @@ plot_breaks <- c("Taxable", "Taxable (no change)",
 
 plot_labs <- c("Taxable (ever increase)", "Taxable (no change)",
                "Tax-exempt (ever increase)", "Tax-exempt (no change)",
-               "Taxable (ever increase) + ln(1 + tax rate)")
+               "Taxable (no change) + ln(1 + tax rate)")
 
 increase.event.plot <- ggplot(et.increase %>% filter(between(tt_event, -4, 4)),
                               aes(x = tt_event, y = mean_pi,

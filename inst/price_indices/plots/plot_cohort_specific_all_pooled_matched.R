@@ -34,7 +34,7 @@ dt <- dt %>%
   group_by(tr_group) %>%
   mutate(mean_pi = mean_pi - mean_pi[tt_event == -3])
 
-ggplot(dt, mapping = aes(x = tt_event, y = mean_pi, color = tr_group)) +
+ggplot(dt2, mapping = aes(x = tt_event, y = mean_pi, color = tr_group)) +
   geom_line(size = .7) +
   geom_point(size = .8) +
   geom_vline(xintercept = 0, color = "red", linetype = "22", alpha = .5) +

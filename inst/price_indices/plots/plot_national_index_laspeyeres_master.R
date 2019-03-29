@@ -66,7 +66,7 @@ ggplot(cpi_data,
   geom_line(aes(group = index), size = 1) +
   scale_x_yearmon(expand = c(0.01, 0.01), n = 6) +
   scale_y_continuous(breaks = seq(0, 1.25, .05), expand = c(0.005, 0.005)) +
-  theme_bw() +
+  theme_bw(base_size = 14) +
   labs(y = expression(bold("Price Index (Normalized Dec 2006 = 1.00)")), x = expression(bold("Month"))) +
   scale_linetype_manual(name = NULL, breaks = c("cpi", "Store Quarterly", "Store Monthly", "County Quarterly"),
                         labels = c("Food & Beverage Chained CPI",
@@ -86,7 +86,7 @@ ggplot(cpi_data,
     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
     strip.background = element_rect(colour="white", fill="white"),
     plot.title = element_text(hjust = 0.5, size = 11), panel.spacing = unit(2, "lines"),
-    legend.position = c(0.7, 0.32), axis.ticks.length=unit(-0.15, "cm"),
+    legend.position = c(0.7, 0.2), axis.ticks.length=unit(-0.15, "cm"),
     legend.margin = margin(t=-.2, r=0, b=-.2, l=0, unit="cm"),
     axis.text.x = element_text(margin=unit(rep(0.3, 4), "cm")),
     axis.text.y = element_text(margin=unit(rep(0.3, 4), "cm")),

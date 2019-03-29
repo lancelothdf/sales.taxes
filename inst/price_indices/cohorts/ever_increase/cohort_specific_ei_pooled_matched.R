@@ -16,7 +16,7 @@ library(MatchIt)
 
 setwd("/project2/igaarder")
 change_of_interest <- "Ever increase"
-get_p_score <- T
+get_p_score <- F
 output.filepath <- "Data/pi_all_cohorts_ei_pooled_taxable_matched.csv"
 ## propensity score output path
 prop_output_path <- "Data/matched_cohort_samples.csv"
@@ -73,7 +73,7 @@ if (get_p_score) {
   zillow_dt <- zillow_dt[year >= 2007]
   zillow_dt[, median_home_price := log(median_home_price)]
   setkey(zillow_dt, fips_state, year, month)
-  zillow_dt[, median_home_price.change := shift(median_home_price, n = 1) - shift(median_home_price, n = 24),
+  zillow_dt[, median_home_price.change := shift(median_home_price, n = 6) - shift(median_home_price, n = 24),
             by = fips_state]
   zillow_dt <- zillow_dt[between(year, 2009, 2013)]
   zillow_dt[, month := as.integer(round(month))]
@@ -82,7 +82,7 @@ if (get_p_score) {
   unemp_dt <- unemp_dt[, .(fips_state, fips_county, rate, year, month)]
   unemp_dt <- unemp_dt[year >= 2007]
   setkey(unemp_dt, fips_state, fips_county, year, month)
-  unemp_dt[, rate.change := shift(rate, n = 1) - shift(rate, n = 24),
+  unemp_dt[, rate.change := shift(rate, n = 6) - shift(rate, n = 24),
            by = .(fips_state, fips_county)]
   unemp_dt <- unemp_dt[between(year, 2009, 2013)]
 

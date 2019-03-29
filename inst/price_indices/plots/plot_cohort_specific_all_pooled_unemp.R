@@ -35,8 +35,8 @@ ggplot(dt, mapping = aes(x = tt_event, y = mean_rate, color = tr_group)) +
   geom_line(size = .7) +
   geom_point(size = .8) +
   geom_vline(xintercept = 0, color = "red", linetype = "22", alpha = .5) +
-  theme_bw() +
-  scale_x_continuous(expand = c(.01, -.05)) +
+  theme_bw(base_size = 14) +
+  scale_x_continuous(expand = c(.01, -.05), breaks = seq(-24, 12, 6)) +
   labs(x = "Month", y = "Unemployment Rate", color = NULL) +
   theme(
     panel.grid.major.x = element_blank(),
@@ -45,7 +45,7 @@ ggplot(dt, mapping = aes(x = tt_event, y = mean_rate, color = tr_group)) +
     strip.background = element_rect(colour="white", fill="white"),
     panel.spacing = unit(2, "lines"),
     panel.border = border_custom(),
-    legend.position = c(0.23, 0.8),
+    legend.position = c(0.28, 0.85),
     axis.ticks.length=unit(-0.15, "cm"),
     legend.margin = margin(t=-.2, r=0, b=-.2, l=0, unit="cm"),
     axis.text.x = element_text(margin=unit(rep(0.3, 4), "cm")),
@@ -62,8 +62,8 @@ ggplot(dt.norm, mapping = aes(x = tt_event, y = mean_rate, color = tr_group)) +
   geom_line(size = .7) +
   geom_point(size = .8) +
   geom_vline(xintercept = 0, color = "red", linetype = "22", alpha = .5) +
-  theme_bw() +
-  scale_x_continuous(expand = c(.01, -.05)) +
+  theme_bw(base_size = 14) +
+  scale_x_continuous(expand = c(.01, -.05), breaks = seq(-24, 12, 6)) +
   labs(x = "Month", y = "Unemployment Rate", color = NULL) +
   theme(
     panel.grid.major.x = element_blank(),
@@ -72,7 +72,7 @@ ggplot(dt.norm, mapping = aes(x = tt_event, y = mean_rate, color = tr_group)) +
     strip.background = element_rect(colour="white", fill="white"),
     panel.spacing = unit(2, "lines"),
     panel.border = border_custom(),
-    legend.position = c(0.23, 0.8),
+    legend.position = c(0.28, 0.85),
     axis.ticks.length=unit(-0.15, "cm"),
     legend.margin = margin(t=-.2, r=0, b=-.2, l=0, unit="cm"),
     axis.text.x = element_text(margin=unit(rep(0.3, 4), "cm")),
