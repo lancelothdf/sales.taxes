@@ -7,25 +7,30 @@
 #'    - We bootstrap (draw at the county-level to preserve within cluster/county
 #'      correlation) so that we can compute std errors and confidence intervals
 #'
-#' Idea is to think about a regression specification that relates to the
-#'     figures we have been making. We will want to run two regressions,
-#'     one corresponding to the event-no-event case and one corresponding
-#'     to the time-of-event case.
+#' This adapts the quarterly version to estimate on a **monthly** level.
 
 library(data.table)
 library(lfe)
 library(futile.logger)
 library(AER)
 
+#' Switching to monthly: we need to
+#'   -make sure the monthly price and quantity data is correctly loaded
+#'   -switch reforms to be on monthly level (done)
+#'   -adjust cohorts to loop over monthly level (done)
+#'   -change saved filepaths (done)
+#'   TODO: double check sales-weighted monthly tax rate (sales_tax_rate_monthly_product_level.dta?)
+#'   TODO: search through all the catt_lead4..catt_4 (needs to be updated)
+
 
 setwd("/project2/igaarder")
 change_of_interest <- "Ever increase"
 
 
-output.results.filepath <- "Data/pi_ei_regression_res_prodmatch_combined.csv"
-output.residuals.cpricei.filepath <- "Data/pi_ei_regression_prodmatch_residuals_cpricei_combined.csv"
-output.residuals.tax.filepath <-"Data/pi_ei_regression_prodmatch_residuals_tax_combined.csv"
-output.xx.filepath <- "Data/pi_ei_regression_prodmatch_xx_combined.csv"
+output.results.filepath <- "Data/pi_ei_monthly_regression_res_prodmatch_combined.csv"
+output.residuals.cpricei.filepath <- "Data/pi_ei_monthly_regression_prodmatch_residuals_cpricei_combined.csv"
+output.residuals.tax.filepath <-"Data/pi_ei_monthly_regression_prodmatch_residuals_tax_combined.csv"
+output.xx.filepath <- "Data/pi_ei_monthly_regression_prodmatch_xx_combined.csv"
 
 
 ## useful filepaths ------------------------------------------------------------
@@ -33,6 +38,7 @@ all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_not
 taxable_pi_path <- "Data/Nielsen/price_quantity_indices_taxableitems_2006-2016.csv"
 eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
 tr_groups_path <- "Data/tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
+sales_data_path <- "Data/sales_monthly_2006-2016.csv"
 
 
 ## Want to run cohort-product specific regressions.
@@ -48,19 +54,76 @@ get.res <- function(var, group, w, mtx) {
 
 }
 
+## Prepare the monthly data ----------------------------------------------------
+
+# TODO: is this necessary on monthly level?
+if (combine.tax.rates) {
+  all.tax <- data.table(NULL)
+  for (year in 2008:2014) {
+    tax.filepath <- paste0(
+      "Data/Nielsen/Sales_weighted_tax_rate_year_", year, ".dta"
+    )
+    tax.dt <- as.data.table(read.dta13(tax.filepath))
+    all.tax <- rbind(all.tax, tax.dt)
+  }
+  fwrite(all.tax, monthly_tax_path) # TODO: define monthly_tax_path
+}
+
+if (prep_enviro){
+  ## create .csv's of taxable and all goods ------------------------------------
+  nonfood_pi <- read.dta13("Data/Nielsen/Monthly_price_quantity_indices_nonfood.dta")
+  nonfood_pi <- as.data.table(nonfood_pi)
+  nonfood_pi[, c("cspricei", "squantityi", "spricei", "geocpricei",
+                 "geoquantityi", "geopricei") := NULL] # to save space
+  # fwrite(nonfood_pi, "Data/Nielsen/Monthly_price_quantity_indices_nonfood.dta")
+
+  food_pi <- fread("Data/Nielsen/monthly_price_quantity_indices_food.csv")
+  food_pi[, c("cspricei", "squantityi", "spricei", "geocpricei",
+              "geoquantityi", "geopricei") := NULL]
+
+  all_pi <- rbind(food_pi, nonfood_pi)
+  all_pi <- all_pi[year %in% 2006:2014]
+  rm(nonfood_pi, food_pi)
+  gc()
+
+  ### attach county and state FIPS codes, sales, and tax rates -----------------
+  sales_data <- fread(sales_data_path)
+  sales_data <- sales_data[, .(store_code_uc, product_module_code, fips_county,
+                               fips_state, month, year, sales)]
+  sales_data <- sales_data[year %in% 2006:2014]
+
+  all_pi <- merge(all_pi, sales_data, by = c("store_code_uc", "month", "year",
+                                             "product_module_code" ))
+  rm(sales_data)
+  gc()
+
+  if (!combine.tax.rates) { # TODO: still need to figure this out
+    all.tax <- fread(quarterly_tax_path)
+  }
+  all_pi <- merge(all_pi, all.tax, by = c("store_code_uc", "product_module_code",
+                                          "year", "month", "product_group_code"),
+                  all.x = T)
+
+  # fwrite(all_pi, all_goods_pi_path)
+
+  rm(all.tax)
+  gc()
+
+} else {
+  all_pi <- fread(all_goods_pi_path)
+}
 
 # Start with event-no-event case ===============================================
 
 ## prep the data ---------------------------------------------------------------
 
-all_pi <- fread(all_goods_pi_path)
 all_pi <- all_pi[year %in% 2006:2014 & !is.na(cpricei)]
 # limit it to taxable goods
 all_pi <- all_pi[sales_tax > 1 | (year < 2008 & is.na(sales_tax))]
 
 # do `arbitrary` correction for the 2013 Q1 jump in the data
 ## calculate price index in 2013 Q1 / cpricei in 2012 Q4
-all_pi[, correction := pricei[year == 2013 & quarter == 1] / pricei[year == 2012 & quarter == 4],
+all_pi[, correction := pricei[year == 2013 & month == 1] / pricei[year == 2012 & month == 12],
        by = .(store_code_uc, product_module_code)]
 ## divide price index after 2013 Q1 (inclusive) by above value
 all_pi[year >= 2013, cpricei := cpricei / correction]
@@ -70,7 +133,7 @@ all_pi[, cpricei := log(cpricei)]
 all_pi[, sales_tax := log(sales_tax)]
 
 ## get sales weights
-all_pi[, base.sales := sales[year == 2008 & quarter == 1],
+all_pi[, base.sales := sales[year == 2008 & month == 1],
        by = .(store_code_uc, product_module_code)]
 
 all_pi[, sales := NULL]
@@ -79,7 +142,7 @@ all_pi <- all_pi[!is.na(base.sales)]
 ## balance on store-module level
 keep_store_modules <- all_pi[, list(n = .N),
                              by = .(store_code_uc, product_module_code)]
-keep_store_modules <- keep_store_modules[n == (2014 - 2005) * 4]
+keep_store_modules <- keep_store_modules[n == (2014 - 2005) * 12]
 
 setkey(all_pi, store_code_uc, product_module_code)
 setkey(keep_store_modules, store_code_uc, product_module_code)
@@ -93,19 +156,17 @@ control_counties <- control_counties[tr_group == "No change"]
 control_counties <- unique(control_counties[, .(fips_county, fips_state)])
 control_dt <- merge(all_pi, control_counties, by = c("fips_state", "fips_county"))
 control_dt[, ref_year := Inf]
-control_dt[, ref_quarter := Inf]
+control_dt[, ref_month := Inf]
 control_dt[, init_treat := Inf]
 
 ## merge treatment, attach event times -----------------------------------------
 treated_counties <- fread(eventstudy_tr_path)
 # identify first treatment quarter (whether decrease or increase)
-treated_counties[, ref_ct := ref_year * 4 + ceiling(ref_month / 3)]
+treated_counties[, ref_ct := ref_year * 12 + ref_month]
 treated_counties[, init_treat := min(ref_ct), by = .(fips_state, fips_county)]
 treated_counties[, ref_ct := NULL]
 
 treated_counties <- treated_counties[tr_group == change_of_interest]
-treated_counties[, ref_quarter := ceiling(ref_month / 3)]
-treated_counties[, ref_month := NULL]
 
 all_pi <- merge(all_pi, treated_counties, by = c("fips_state", "fips_county"))
 
@@ -136,43 +197,43 @@ clustered.res.tax <- data.table(NULL)
 #Matrix to store the "sandwiches" for OLS on cpricei
 xx.cpricei <- data.table(NULL)
 
-## loop through all possible treatment yr and qtr ("cohorts") ------------------
+## loop through all possible treatment yr and mon ("cohorts") ------------------
 cp.all.res <- data.table(NULL)
 
 for (yr in 2009:2013) {
-  for (qtr in 1:4) {
-    if (nrow(all_pi[ref_year == yr & ref_quarter == qtr]) == 0) {
+  for (mon in 1:12) {
+    if (nrow(all_pi[ref_year == yr & ref_month == mon]) == 0) {
       next
     }
-    flog.info("Estimating for %s Q%s", yr, qtr)
+    flog.info("Estimating for %s m%s", yr, mon)
 
 
     #Make a list of unique product codes in the treatment group
-    list.prod <- unique(all_pi[ref_year == yr & ref_quarter == qtr]$product_module_code)
+    list.prod <- unique(all_pi[ref_year == yr & ref_month == mon]$product_module_code)
     # prepare a subset of data -----------------------------------------------
 
     # limit to the cohort or the untreated/future treated (over 1 year)
-    ss_pi <- all_pi[((ref_year == yr & ref_quarter == qtr) |
-                     init_treat > (yr * 4 + qtr + 4))]
+    ss_pi <- all_pi[((ref_year == yr & ref_month == mon) |
+                     init_treat > (yr * 12 + mon + 12))]
 
     # limit estimation to 4 pre-periods and four post-periods
-    ss_pi[, tt_event := (year * 4 + quarter) - (yr * 4 + qtr)]
-    ss_pi <- ss_pi[between(tt_event, -4, 4)]
+    ss_pi[, tt_event := (year * 12 + month) - (yr * 12 + mon)]
+    ss_pi <- ss_pi[between(tt_event, -12, 12)]
 
     #Keep only products that are in the treatment group
     ss_pi <- ss_pi[product_module_code %in% list.prod]
 
-    ss_pi[, treated := as.integer(ref_year == yr & ref_quarter == qtr)]
+    ss_pi[, treated := as.integer(ref_year == yr & ref_month == mon)]
 
     # count how many treated counties in the cohort
     N_counties <- length(unique(ss_pi[treated == 1]$county_ID))
     sum_sales.weights <- sum(ss_pi[treated == 1 & tt_event == 0]$base.sales)
 
     ##Create weights for control group to matche exactly distribution of products (weighted by sales) in treatment group
-    ss_pi[, base.sales.tr := sum(base.sales[year == yr & quarter == qtr & treated == 1]),
+    ss_pi[, base.sales.tr := sum(base.sales[year == yr & month == mon & treated == 1]),
           by = .(product_module_code)]
 
-    ss_pi[, base.sales.ctl := sum(base.sales[year == yr & quarter == qtr & treated == 0]),
+    ss_pi[, base.sales.ctl := sum(base.sales[year == yr & month == mon & treated == 0]),
           by = .(product_module_code)]
 
     ss_pi$weights <- ss_pi$base.sales
@@ -180,14 +241,14 @@ for (yr in 2009:2013) {
 
 
     flog.info("Created subset of data for the selected groups.")
-    ## create dummies for event times (except -2)
+    ## create dummies for event times (except -6)
     start_cols <- copy(colnames(ss_pi))
-    for (r in setdiff(-4:4, -2)) {
+    for (r in setdiff(-12:12, -6)) { # TODO: omitted event time -6?
       var <- sprintf("catt%s", r)
       ss_pi[, (var) := as.integer(treated == 1 & tt_event == r)]
     }
     flog.info("Created mutually exclusive treatment columns.")
-    print(head(ss_pi))
+    # print(head(ss_pi))
 
     ## rename columns to prevent confusion for felm
     new_cols <- setdiff(colnames(ss_pi), start_cols)
@@ -202,7 +263,7 @@ for (yr in 2009:2013) {
     res.cp <- felm(data = ss_pi, formula = cXp_formula,
                      weights = ss_pi$weights)
     flog.info("Estimated with price index as outcome.")
-    print(coef(summary(res.cp)))
+    # print(coef(summary(res.cp)))
 
     ## Get residuals for standard errors ##
     get.res2 <- function(var) { return(get.res(var, "county_ID + tt_event", "weights", ss_pi)) } #Make get.res a function of 1 variable only to iterate over
@@ -215,10 +276,34 @@ for (yr in 2009:2013) {
     resid$residuals <- res.cp$residuals
     resid$weights <- ss_pi$weights
 
-    setDT(resid)
-    resid.cpricei <- resid[, list(cattlead4 = sum(weights*cattlead4*residuals), cattlead3 = sum(weights*cattlead3*residuals), cattlead1 = sum(weights*cattlead1*residuals), catt0 = sum(weights*catt0*residuals), catt1 = sum(weights*catt1*residuals), catt2 = sum(weights*catt2*residuals), catt3 = sum(weights*catt3*residuals), catt4 = sum(weights*catt4*residuals), weights = sum(weights)), by = "county_ID"]
-    resid.cpricei$ref_year = yr
-    resid.cpricei$ref_qtr = qtr
+    setDT(resid) # TODO: this is going to be more than -4 to 4 now
+    resid.cpricei <- resid[, list(cattlead12 = sum(weights*cattlead12*residuals),
+                                  cattlead11 = sum(weights*cattlead11*residuals),
+                                  cattlead10 = sum(weights*cattlead10*residuals),
+                                  cattlead9 = sum(weights*cattlead9*residuals),
+                                  cattlead8 = sum(weights*cattlead8*residuals),
+                                  cattlead7 = sum(weights*cattlead7*residuals),
+                                  cattlead5 = sum(weights*cattlead5*residuals),
+                                  cattlead4 = sum(weights*cattlead4*residuals),
+                                  cattlead3 = sum(weights*cattlead3*residuals),
+                                  cattlead2 = sum(weights*cattlead2*residuals),
+                                  cattlead1 = sum(weights*cattlead1*residuals),
+                                  catt0 = sum(weights*catt0*residuals),
+                                  catt1 = sum(weights*catt1*residuals),
+                                  catt2 = sum(weights*catt2*residuals),
+                                  catt3 = sum(weights*catt3*residuals),
+                                  catt4 = sum(weights*catt4*residuals),
+                                  catt5 = sum(weights*catt5*residuals),
+                                  catt6 = sum(weights*catt6*residuals),
+                                  catt7 = sum(weights*catt7*residuals),
+                                  catt8 = sum(weights*catt8*residuals),
+                                  catt9 = sum(weights*catt9*residuals),
+                                  catt10 = sum(weights*catt10*residuals),
+                                  catt11 = sum(weights*catt11*residuals),
+                                  catt12 = sum(weights*catt12*residuals),
+                                  weights = sum(weights)), by = "county_ID"]
+    resid.cpricei$ref_year <- yr
+    resid.cpricei$ref_mon <- mon
     resid.cpricei$n <- dim(ss_pi)[1]
 
     #Save these sums of "interacted" residuals for each county
@@ -229,9 +314,14 @@ for (yr in 2009:2013) {
     xx.mat <- t(xx.mat*as.vector(ss_pi$weights))%*%xx.mat
     xx.mat <- solve(xx.mat) ##The final matrix (including all products and cohorts) is a block-diagonal matrix - so inverse is the block diagnoal matrix with inverse of each block on the diagonal
     xx.mat <- as.data.frame(xx.mat)
-    names(xx.mat) <- c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")
+    names(xx.mat) <- c("cattlead12", "cattlead11", "cattlead10",
+                       "cattlead9", "cattlead8","cattlead7", "cattlead5",
+                       "cattlead4","cattlead3", "cattlead2", "cattlead1",
+                       "catt0", "catt1", "catt2", "catt3", "catt4",
+                       "catt5", "catt6", "catt7", "catt8", "catt9",
+                       "catt10", "catt11", "catt12")
     xx.mat$ref_year <- yr
-    xx.mat$ref_qtr <- qtr
+    xx.mat$ref_mon <- mon
 
     #Save thes "sandwhich" matrices
     xx.cpricei <- rbind(xx.cpricei, xx.mat)
@@ -246,13 +336,13 @@ for (yr in 2009:2013) {
 
     res.cp[, tt_event := as.integer(NA)]
 
-    for (c in setdiff(-4:4, -2)) {
+    for (c in setdiff(-12:12, -6)) { # TODO: -6 omitted?
       res.cp[grepl(sprintf("catt%s", c), rn) & is.na(tt_event), tt_event := as.integer(c)]
     }
     res.cp <- res.cp[!is.na(tt_event)]
 
     res.cp[, ref_year := yr]
-    res.cp[, ref_quarter := qtr]
+    res.cp[, ref_month := mon]
     res.cp[, outcome := "cpricei"]
     setnames(res.cp,
              old = c("Estimate", "Cluster s.e.", "Pr(>|t|)"),
@@ -279,15 +369,39 @@ for (yr in 2009:2013) {
     res.tax <- felm(data = ss_pi, formula = tax_formula,
                       weights = ss_pi$weights)
     flog.info("Estimated with tax rate as outcome.")
-    print(coef(summary(res.tax)))
+    # print(coef(summary(res.tax)))
 
     #resid is same as for previous regression - so we re-use it (NEED TO REPLACE RESIDUALS THOUGH)
     resid$residuals <- res.tax$residuals
 
     setDT(resid)
-    resid.tax <- resid[, list(cattlead4 = sum(weights*cattlead4*residuals), cattlead3 = sum(weights*cattlead3*residuals), cattlead1 = sum(weights*cattlead1*residuals), catt0 = sum(weights*catt0*residuals), catt1 = sum(weights*catt1*residuals), catt2 = sum(weights*catt2*residuals), catt3 = sum(weights*catt3*residuals), catt4 = sum(weights*catt4*residuals), weights = sum(weights)), by = "county_ID"]
-    resid.tax$ref_year = yr
-    resid.tax$ref_qtr = qtr
+    resid.tax <- resid[, list(cattlead12 = sum(weights*cattlead12*residuals),
+                              cattlead11 = sum(weights*cattlead11*residuals),
+                              cattlead10 = sum(weights*cattlead10*residuals),
+                              cattlead9 = sum(weights*cattlead9*residuals),
+                              cattlead8 = sum(weights*cattlead8*residuals),
+                              cattlead7 = sum(weights*cattlead7*residuals),
+                              cattlead5 = sum(weights*cattlead5*residuals),
+                              cattlead4 = sum(weights*cattlead4*residuals),
+                              cattlead3 = sum(weights*cattlead3*residuals),
+                              cattlead2 = sum(weights*cattlead2*residuals),
+                              cattlead1 = sum(weights*cattlead1*residuals),
+                              catt0 = sum(weights*catt0*residuals),
+                              catt1 = sum(weights*catt1*residuals),
+                              catt2 = sum(weights*catt2*residuals),
+                              catt3 = sum(weights*catt3*residuals),
+                              catt4 = sum(weights*catt4*residuals),
+                              catt5 = sum(weights*catt5*residuals),
+                              catt6 = sum(weights*catt6*residuals),
+                              catt7 = sum(weights*catt7*residuals),
+                              catt8 = sum(weights*catt8*residuals),
+                              catt9 = sum(weights*catt9*residuals),
+                              catt10 = sum(weights*catt10*residuals),
+                              catt11 = sum(weights*catt11*residuals),
+                              catt12 = sum(weights*catt12*residuals),
+                              weights = sum(weights)), by = "county_ID"]
+    resid.tax$ref_year <- yr
+    resid.tax$ref_mon <- mon
     resid.tax$n <- dim(ss_pi)[1]
 
     #Save these sums of "interacted" residuals for each county
@@ -299,13 +413,13 @@ for (yr in 2009:2013) {
 
     res.tax[, tt_event := as.integer(NA)]
 
-    for (c in setdiff(-4:4, -2)) {
+    for (c in setdiff(-12:12, -6)) { # TODO: -6?
       res.tax[grepl(sprintf("catt%s", c), rn) & is.na(tt_event), tt_event := as.integer(c)]
     }
     res.tax <- res.tax[!is.na(tt_event)]
 
     res.tax[, ref_year := yr]
-    res.tax[, ref_quarter := qtr]
+    res.tax[, ref_month := mon]
     res.tax[, outcome := "sales_tax"]
     setnames(res.tax,
              old = c("Estimate", "Cluster s.e.", "Pr(>|t|)"),
@@ -349,14 +463,14 @@ library(MASS)
 setwd("/project2/igaarder")
 
 ###OUTPUT
-output.cov.cpricei <- "Data/pi_ei_regression_prodmatch_cpricei_varcov_matrix_combined.csv"
-output.skeleton <- "Data/pi_ei_regression_prodmatch_varcov_matrix_skeleton_combined.csv"
+output.cov.cpricei <- "Data/pi_ei_monthly_regression_prodmatch_cpricei_varcov_matrix_combined.csv"
+output.skeleton <- "Data/pi_ei_monthly_regression_prodmatch_varcov_matrix_skeleton_combined.csv"
 
 ### INPUTS
-output.results.filepath <- "Data/pi_ei_regression_res_prodmatch_combined.csv"
-output.residuals.cpricei.filepath <- "Data/pi_ei_regression_prodmatch_residuals_cpricei_combined.csv"
-output.residuals.tax.filepath <-"Data/pi_ei_regression_prodmatch_residuals_tax_combined.csv"
-output.xx.filepath <- "Data/pi_ei_regression_prodmatch_xx_combined.csv"
+output.results.filepath <- "Data/pi_ei_monthly_regression_res_prodmatch_combined.csv"
+output.residuals.cpricei.filepath <- "Data/pi_ei_monthly_regression_prodmatch_residuals_cpricei_combined.csv"
+output.residuals.tax.filepath <-"Data/pi_ei_monthly_regression_prodmatch_residuals_tax_combined.csv"
+output.xx.filepath <- "Data/pi_ei_monthly_regression_prodmatch_xx_combined.csv"
 
 
 cpricei.res <- fread(output.residuals.cpricei.filepath)
@@ -366,14 +480,19 @@ xx <- fread(output.xx.filepath)
 #Create lists of unique values for counties, products, ref-years, ref-quarters and "parameters names"
 list.counties <- unique(cpricei.res$county_ID)
 list.years <- unique(cpricei.res$ref_year)
-list.qtr <- unique(cpricei.res$ref_qtr)
-list.leads <- c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")
+list.mon <- unique(cpricei.res$ref_mon)
+list.leads <- c("cattlead12", "cattlead11", "cattlead10",
+                "cattlead9", "cattlead8","cattlead7", "cattlead5",
+                "cattlead4","cattlead3", "cattlead2", "cattlead1",
+                "catt0", "catt1", "catt2", "catt3", "catt4",
+                "catt5", "catt6", "catt7", "catt8", "catt9",
+                "catt10", "catt11", "catt12")
 
 #Create a "skeleton" containing all combination of these unique lists (except for counties)
 #Create a list of all ref_yearXref_quarter for which there are some estimates
-non.empty.blocks <- cpricei.res[, .(.N), .(ref_year, ref_qtr)] ##Note tax.res[, .(.N), .(product_module_code, ref_year, ref_qtr)] gives exactly the same data.frame
+non.empty.blocks <- cpricei.res[, .(.N), .(ref_year, ref_mon)] ##Note tax.res[, .(.N), .(product_module_code, ref_year, ref_qtr)] gives exactly the same data.frame
 skeleton <- expand.grid.df(as.data.frame(list.leads), non.empty.blocks)
-colnames(skeleton) <- c("lead", "ref_year", "ref_qtr", "N")
+colnames(skeleton) <- c("lead", "ref_year", "ref_mon", "N")
 K.param <- dim(skeleton)[1]
 
 
@@ -387,16 +506,28 @@ k <- 1
 
   ##Price Indices
   c.cpricei <- cpricei.res[county_ID == cty]
-  c.cpricei <- c.cpricei %>% gather(key = "lead", value = "parameter", "cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")
+  c.cpricei <- c.cpricei %>% gather(key = "lead", value = "parameter",
+                                    "cattlead12", "cattlead11", "cattlead10",
+                                    "cattlead9", "cattlead8","cattlead7", "cattlead5",
+                                    "cattlead4","cattlead3", "cattlead2", "cattlead1",
+                                    "catt0", "catt1", "catt2", "catt3", "catt4",
+                                    "catt5", "catt6", "catt7", "catt8", "catt9",
+                                    "catt10", "catt11", "catt12")
 
-  c.cpricei <- merge(skeleton, c.cpricei[,c("ref_year", "ref_qtr", "lead", "parameter")], by = c("ref_year", "ref_qtr", "lead"), all.x = TRUE)
+  c.cpricei <- merge(skeleton, c.cpricei[,c("ref_year", "ref_mon", "lead", "parameter")], by = c("ref_year", "ref_mon", "lead"), all.x = TRUE)
   c.cpricei[is.na(c.cpricei)] <- 0
 
 ## Taxes
 c.tax <- tax.res[county_ID == cty] #More interesting example because this county shows up multiple times (being in the control group)
-c.tax <- c.tax %>% gather(key = "lead", value = "parameter", "cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")
+c.tax <- c.tax %>% gather(key = "lead", value = "parameter",
+                          "cattlead12", "cattlead11", "cattlead10",
+                          "cattlead9", "cattlead8","cattlead7", "cattlead5",
+                          "cattlead4","cattlead3", "cattlead2", "cattlead1",
+                          "catt0", "catt1", "catt2", "catt3", "catt4",
+                          "catt5", "catt6", "catt7", "catt8", "catt9",
+                          "catt10", "catt11", "catt12")
 
-c.tax <- merge(skeleton, c.tax[,c("ref_year", "ref_qtr", "lead", "parameter")], by = c("ref_year", "ref_qtr", "lead"), all.x = TRUE)
+c.tax <- merge(skeleton, c.tax[,c("ref_year", "ref_mon", "lead", "parameter")], by = c("ref_year", "ref_mon", "lead"), all.x = TRUE)
 c.tax[is.na(c.tax)] <- 0
 
 c.all <- rbind(c.cpricei, c.tax)
@@ -422,7 +553,7 @@ print(end_time - start_time)
 k <- k + 1
 }
 
-write.table(residual.mat, "Data/large_vcov_matrices/Mat_residuals_prodmatch_ei_pi_combined.csv")
+write.table(residual.mat, "Data/large_vcov_matrices/Mat_residuals_prodmatch_ei_monthly_pi_combined.csv")
 
 ##
 
@@ -430,6 +561,8 @@ write.table(residual.mat, "Data/large_vcov_matrices/Mat_residuals_prodmatch_ei_p
 #But it seems easier and potentially more efficient to loop over the block by block multiplication of each section of the matrix
 cov.matrix <- matrix(0, nrow = 2*K.param, ncol = 2*K.param)
 
+# TODO: do I need to change the following? obv I need to change some of it... but the 8? is that for 8 coefficients?
+# TODO: from here on, I have many things I think I need to change
 for(i in 1:(K.param/8)) {
 
   print(paste0("Currently looking at row ", i, sep = ""))
@@ -437,14 +570,14 @@ for(i in 1:(K.param/8)) {
   for(j in 1:(K.param/8)) {
 
     yr.i <- skeleton$ref_year[(i-1)*8 + 1]
-    qtr.i <- skeleton$ref_qtr[(i-1)*8 + 1]
+    mon.i <- skeleton$ref_mon[(i-1)*8 + 1]
     yr.j <- skeleton$ref_year[(j-1)*8 + 1]
-    qtr.j <- skeleton$ref_qtr[(j-1)*8 + 1]
+    mon.j <- skeleton$ref_mon[(j-1)*8 + 1]
 
-    cov.matrix[((i-1)*8 + 1):((i-1)*8 + 8), ((j-1)*8 + 1):((j-1)*8 + 8)] <- as.matrix(xx[ref_year == yr.i & ref_qtr == qtr.i, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])%*%residual.mat[((i-1)*8 + 1):((i-1)*8 + 8), ((j-1)*8 + 1):((j-1)*8 + 8)]%*%as.matrix(xx[ref_year == yr.j & ref_qtr == qtr.j, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])
-    cov.matrix[(K.param + (i-1)*8 + 1):(K.param + (i-1)*8 + 8), ((j-1)*8 + 1):((j-1)*8 + 8)] <- as.matrix(xx[ref_year == yr.i & ref_qtr == qtr.i, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])%*%residual.mat[(K.param + (i-1)*8 + 1):(K.param + (i-1)*8 + 8), ((j-1)*8 + 1):((j-1)*8 + 8)]%*%as.matrix(xx[ref_year == yr.j & ref_qtr == qtr.j, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])
-    cov.matrix[((i-1)*8 + 1):((i-1)*8 + 8), (K.param + (j-1)*8 + 1):(K.param + (j-1)*8 + 8)] <- as.matrix(xx[ref_year == yr.i & ref_qtr == qtr.i, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])%*%residual.mat[((i-1)*8 + 1):((i-1)*8 + 8), (K.param + (j-1)*8 + 1):(K.param + (j-1)*8 + 8)]%*%as.matrix(xx[ref_year == yr.j & ref_qtr == qtr.j, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])
-    cov.matrix[(K.param + (i-1)*8 + 1):(K.param + (i-1)*8 + 8), (K.param + (j-1)*8 + 1):(K.param + (j-1)*8 + 8)] <- as.matrix(xx[ref_year == yr.i & ref_qtr == qtr.i, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])%*%residual.mat[(K.param + (i-1)*8 + 1):(K.param + (i-1)*8 + 8), (K.param + (j-1)*8 + 1):(K.param + (j-1)*8 + 8)]%*%as.matrix(xx[ref_year == yr.j & ref_qtr == qtr.j, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])
+    cov.matrix[((i-1)*8 + 1):((i-1)*8 + 8), ((j-1)*8 + 1):((j-1)*8 + 8)] <- as.matrix(xx[ref_year == yr.i & ref_mon == mon.i, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])%*%residual.mat[((i-1)*8 + 1):((i-1)*8 + 8), ((j-1)*8 + 1):((j-1)*8 + 8)]%*%as.matrix(xx[ref_year == yr.j & ref_mon == mon.j, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])
+    cov.matrix[(K.param + (i-1)*8 + 1):(K.param + (i-1)*8 + 8), ((j-1)*8 + 1):((j-1)*8 + 8)] <- as.matrix(xx[ref_year == yr.i & ref_mon == mon.i, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])%*%residual.mat[(K.param + (i-1)*8 + 1):(K.param + (i-1)*8 + 8), ((j-1)*8 + 1):((j-1)*8 + 8)]%*%as.matrix(xx[ref_year == yr.j & ref_mon == mon.j, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])
+    cov.matrix[((i-1)*8 + 1):((i-1)*8 + 8), (K.param + (j-1)*8 + 1):(K.param + (j-1)*8 + 8)] <- as.matrix(xx[ref_year == yr.i & ref_mon == mon.i, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])%*%residual.mat[((i-1)*8 + 1):((i-1)*8 + 8), (K.param + (j-1)*8 + 1):(K.param + (j-1)*8 + 8)]%*%as.matrix(xx[ref_year == yr.j & ref_mon == mon.j, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])
+    cov.matrix[(K.param + (i-1)*8 + 1):(K.param + (i-1)*8 + 8), (K.param + (j-1)*8 + 1):(K.param + (j-1)*8 + 8)] <- as.matrix(xx[ref_year == yr.i & ref_mon == mon.i, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])%*%residual.mat[(K.param + (i-1)*8 + 1):(K.param + (i-1)*8 + 8), (K.param + (j-1)*8 + 1):(K.param + (j-1)*8 + 8)]%*%as.matrix(xx[ref_year == yr.j & ref_mon == mon.j, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])
   }
 }
 
@@ -455,7 +588,7 @@ fwrite(skeleton, output.skeleton)
 
 
 ##### Step 3: Produce standard errors of specific parameters/averages of parameters using the Delta method
-output.estimates.stderr.filepath <- "Data/Passthrough_estimates_stderr_ei_combined.csv"
+output.estimates.stderr.filepath <- "Data/Passthrough_estimates_stderr_ei_monthly_combined.csv"
 
 
 #cov.matrix <- fread(output.cov.cpricei)
@@ -467,6 +600,7 @@ output.estimates.stderr.filepath <- "Data/Passthrough_estimates_stderr_ei_combin
 #cohort.weights <- cp.all.res[,.(weights = mean(total_sales)), by = .(ref_year, ref_quarter)]  ##The mean operator does not matter here - total_sales is constant within cohort but we just want to collapse to get a vector
 cohort.weights <- cp.all.res[outcome == 'cpricei', "total_sales"]
 colnames(cohort.weights) <- "weights"
+# TODO: do I need to change these numbers?
 pooled.var <- matrix(0, nrow = 16, ncol = 1)
 for(i in 1:8) {
 
@@ -490,13 +624,14 @@ estimates$std.errors <- sqrt(pooled.var)
 ##Standard errors for pooled post-reform estimates (pooled across cohorts and across catt0-catt4)
 ##Cpricei
 weights <- setDT(cp.all.res[outcome == 'cpricei',])
+# TODO: do I need to change these?
 delta <- c(rep(c(0,0,0,1,1,1,1,1), K.param/8), rep(0, K.param)) #Selects all post-period estimates
 
 gradient <- delta*weights$total_sales
 norm.gradient <- gradient/sum(gradient)
 
 var <- t(as.vector(norm.gradient))%*%as.matrix(cov.matrix)%*%as.vector(norm.gradient)
-est <- mean(estimates[outcome == 'cpricei' & (rn == 'catt0' | rn == 'catt1' | rn == 'catt2' | rn == 'catt3' | rn == 'catt4'), estimates])
+est <- mean(estimates[outcome == 'cpricei' & (rn == 'catt0' | rn == 'catt1' | rn == 'catt2' | rn == 'catt3' | rn == 'catt4'), estimates]) # TODO: need to update
 
 ## R was weird and would convert the estimates value to factors - so I get around this by creating the estimates and std.error columns separately
 #This is really stupid, we should change this
@@ -516,6 +651,7 @@ estimates$outcome <- temp$outcome
 
 ##Tax
 weights <- setDT(cp.all.res[outcome == 'cpricei',]) #Could replace with sales_tax but does not matter weights are the same
+# TODO: do I need to change these?
 delta <- c(rep(0, K.param), rep(c(0,0,0,1,1,1,1,1), K.param/8)) #Selects all post-period estimates
 
 gradient <- delta*weights$total_sales

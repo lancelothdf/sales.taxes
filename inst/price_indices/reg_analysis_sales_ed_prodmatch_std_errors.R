@@ -333,7 +333,6 @@ for (yr in 2009:2013) {
 
 
 ####### Step2:  Combine information to produce asymptotic standard errors
-rm(list = ls()) #Clear Memory
 
 library(tidyverse)
 library(data.table)
