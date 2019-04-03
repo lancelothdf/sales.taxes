@@ -94,9 +94,15 @@ control_counties <- unique(control_counties[, .(fips_county, fips_state)])
 control_dt <- merge(all_pi, control_counties, by = c("fips_state", "fips_county"))
 control_dt[, ref_year := Inf]
 control_dt[, ref_quarter := Inf]
+control_dt[, init_treat := Inf]
 
 ## merge treatment, attach event times -----------------------------------------
 treated_counties <- fread(eventstudy_tr_path)
+# identify first treatment quarter (whether decrease or increase)
+treated_counties[, ref_ct := ref_year * 4 + ceiling(ref_month / 3)]
+treated_counties[, init_treat := min(ref_ct), by = .(fips_state, fips_county)]
+treated_counties[, ref_ct := NULL]
+
 treated_counties <- treated_counties[tr_group == change_of_interest]
 treated_counties[, ref_quarter := ceiling(ref_month / 3)]
 treated_counties[, ref_month := NULL]
@@ -147,7 +153,7 @@ for (yr in 2009:2013) {
 
     # limit to the cohort or the untreated/future treated (over 1 year)
     ss_pi <- all_pi[((ref_year == yr & ref_quarter == qtr) |
-                     (ref_year * 4 + ref_quarter) > (yr * 4 + qtr + 4))]
+                     init_treat > (yr * 4 + qtr + 4))]
 
     # limit estimation to 4 pre-periods and four post-periods
     ss_pi[, tt_event := (year * 4 + quarter) - (yr * 4 + qtr)]
