@@ -1,8 +1,11 @@
 #' Author: John Bonney & Lancelot Henry de Frahan
-#' NOTE:  In this code, we reweigh the control group so that distribution of products matches exactly distribution of products in the treatment group
-#' # Only one regression per cohort (not product-specific)
-#' # We bootstrap (draw at the county-level to preserve within cluster/county correlation) so that we can compute std errors and confidence intervals
+#' NOTE:  In this code, we reweigh the control group so that distribution of
+#' products matches exactly distribution of products in the treatment group
 #'
+#'    - Only one regression per cohort (not product-specific)
+#'
+#'    - We bootstrap (draw at the county-level to preserve within cluster/county
+#'      correlation) so that we can compute std errors and confidence intervals
 #'
 #' Idea is to think about a regression specification that relates to the
 #'     figures we have been making. We will want to run two regressions,
@@ -19,10 +22,10 @@ setwd("/project2/igaarder")
 change_of_interest <- "Ever increase"
 
 
-output.results.filepath <- "Data/pi_ei_regression_res_prodmatch.csv"
-output.residuals.cpricei.filepath <- "Data/pi_ei_regression_prodmatch_residuals_cpricei.csv"
-output.residuals.tax.filepath <-"Data/pi_ei_regression_prodmatch_residuals_tax.csv"
-output.xx.filepath <- "Data/pi_ei_regression_prodmatch_xx.csv"
+output.results.filepath <- "Data/pi_ei_regression_res_prodmatch_combined.csv"
+output.residuals.cpricei.filepath <- "Data/pi_ei_regression_prodmatch_residuals_cpricei_combined.csv"
+output.residuals.tax.filepath <-"Data/pi_ei_regression_prodmatch_residuals_tax_combined.csv"
+output.xx.filepath <- "Data/pi_ei_regression_prodmatch_xx_combined.csv"
 
 
 ## useful filepaths ------------------------------------------------------------
@@ -39,10 +42,10 @@ tr_groups_path <- "Data/tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
 ##Create a function to residualize/demean data
 #var is a list of variables to residualize, group are the factors over which to residualize, w are the weights, mtx is the name of the data.frame
 get.res <- function(var, group, w, mtx) {
-  
+
   form <- as.formula(paste0(var, "~ 1 | ", group, " | 0 | 0", sep = ""))
   return(felm(data = mtx, formula = form , weights = mtx[,get(w)])$fitted.values)
-  
+
 }
 
 
@@ -136,40 +139,40 @@ for (yr in 2009:2013) {
       next
     }
     flog.info("Estimating for %s Q%s", yr, qtr)
-      
-      
+
+
     #Make a list of unique product codes in the treatment group
     list.prod <- unique(all_pi[ref_year == yr & ref_quarter == qtr]$product_module_code)
     # prepare a subset of data -----------------------------------------------
-      
-    # limit to the cohort or the untreated, and product prd
+
+    # limit to the cohort or the untreated/future treated (over 1 year)
     ss_pi <- all_pi[((ref_year == yr & ref_quarter == qtr) |
-                          ref_year == Inf)]
-      
+                     (ref_year * 4 + ref_quarter) > (yr * 4 + qtr + 4))]
+
     # limit estimation to 4 pre-periods and four post-periods
     ss_pi[, tt_event := (year * 4 + quarter) - (yr * 4 + qtr)]
     ss_pi <- ss_pi[between(tt_event, -4, 4)]
-      
-    #Keep only products that are in the treatment group 
+
+    #Keep only products that are in the treatment group
     ss_pi <- ss_pi[product_module_code %in% list.prod]
-      
+
     ss_pi[, treated := as.integer(ref_year == yr & ref_quarter == qtr)]
-      
+
     # count how many treated counties in the cohort
     N_counties <- length(unique(ss_pi[treated == 1]$county_ID))
     sum_sales.weights <- sum(ss_pi[treated == 1 & tt_event == 0]$base.sales)
-      
+
     ##Create weights for control group to matche exactly distribution of products (weighted by sales) in treatment group
     ss_pi[, base.sales.tr := sum(base.sales[year == yr & quarter == qtr & treated == 1]),
           by = .(product_module_code)]
-      
+
     ss_pi[, base.sales.ctl := sum(base.sales[year == yr & quarter == qtr & treated == 0]),
           by = .(product_module_code)]
-      
+
     ss_pi$weights <- ss_pi$base.sales
     ss_pi[treated == 0]$weights <- ss_pi[treated == 0]$base.sales*ss_pi[treated == 0]$base.sales.tr/ss_pi[treated == 0]$base.sales.ctl
-      
-      
+
+
     flog.info("Created subset of data for the selected groups.")
     ## create dummies for event times (except -2)
     start_cols <- copy(colnames(ss_pi))
@@ -179,43 +182,43 @@ for (yr in 2009:2013) {
     }
     flog.info("Created mutually exclusive treatment columns.")
     print(head(ss_pi))
-      
+
     ## rename columns to prevent confusion for felm
     new_cols <- setdiff(colnames(ss_pi), start_cols)
     new_cols_used <- gsub("\\-", "lead", new_cols)
     setnames(ss_pi, new_cols, new_cols_used)
-      
+
     ## estimate for cpricei =================================================
     felm_formula_input <- paste(new_cols_used, collapse = "+")
     cXp_formula <- as.formula(paste0("cpricei ~ ", felm_formula_input,
                                        " | county_ID + tt_event | 0 | county_ID"))
-      
+
     res.cp <- felm(data = ss_pi, formula = cXp_formula,
                      weights = ss_pi$weights)
     flog.info("Estimated with price index as outcome.")
     print(coef(summary(res.cp)))
-      
+
     ## Get residuals for standard errors ##
     get.res2 <- function(var) { return(get.res(var, "county_ID + tt_event", "weights", ss_pi)) } #Make get.res a function of 1 variable only to iterate over
-    
+
     resid <- as.data.frame(do.call(cbind, lapply(c(new_cols_used), FUN = get.res2))) #apply get.res2 to list of variables included in regression to residualize
     xx.mat <- as.matrix(resid) ## Create the X'X matrix that will be used in in the standard errors
-    
+
     #Create a dataframe that is going to contain the sums of residuals*X (*weights = base.sales) for each cluster (county)
     resid$county_ID <- ss_pi$county_ID
     resid$residuals <- res.cp$residuals
     resid$weights <- ss_pi$weights
-    
+
     setDT(resid)
     resid.cpricei <- resid[, list(cattlead4 = sum(weights*cattlead4*residuals), cattlead3 = sum(weights*cattlead3*residuals), cattlead1 = sum(weights*cattlead1*residuals), catt0 = sum(weights*catt0*residuals), catt1 = sum(weights*catt1*residuals), catt2 = sum(weights*catt2*residuals), catt3 = sum(weights*catt3*residuals), catt4 = sum(weights*catt4*residuals), weights = sum(weights)), by = "county_ID"]
     resid.cpricei$ref_year = yr
     resid.cpricei$ref_qtr = qtr
     resid.cpricei$n <- dim(ss_pi)[1]
-    
+
     #Save these sums of "interacted" residuals for each county
     clustered.res.cpricei <- rbind(clustered.res.cpricei, resid.cpricei)
     rm(resid.cpricei)
-    
+
     #Create "Sandwich" (X'WX) - where W is the diagonal matrix with the weights
     xx.mat <- t(xx.mat*as.vector(ss_pi$weights))%*%xx.mat
     xx.mat <- solve(xx.mat) ##The final matrix (including all products and cohorts) is a block-diagonal matrix - so inverse is the block diagnoal matrix with inverse of each block on the diagonal
@@ -223,25 +226,25 @@ for (yr in 2009:2013) {
     names(xx.mat) <- c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")
     xx.mat$ref_year <- yr
     xx.mat$ref_qtr <- qtr
-    
+
     #Save thes "sandwhich" matrices
     xx.cpricei <- rbind(xx.cpricei, xx.mat)
-      
+
     ## clean and save output
     #WARNING: very inefficient but somehow the command after running regression have changed the nature of res.cp - so re-run
     res.cp <- felm(data = ss_pi, formula = cXp_formula,
                    weights = ss_pi$weights)
-    
+
     res.cp <- as.data.table(summary(res.cp, robust = T)$coefficients, keep.rownames = T)
     res.cp[, rn := gsub("lead", "-", rn)]
-      
+
     res.cp[, tt_event := as.integer(NA)]
-      
+
     for (c in setdiff(-4:4, -2)) {
       res.cp[grepl(sprintf("catt%s", c), rn) & is.na(tt_event), tt_event := as.integer(c)]
     }
     res.cp <- res.cp[!is.na(tt_event)]
-      
+
     res.cp[, ref_year := yr]
     res.cp[, ref_quarter := qtr]
     res.cp[, outcome := "cpricei"]
@@ -250,51 +253,51 @@ for (yr in 2009:2013) {
              new = c("estimate", "cluster_se", "pval"))
     res.cp[, n_counties := N_counties]
     res.cp[, total_sales := sum_sales.weights]
-      
+
     flog.info("Attaching output to master data.table.")
     cp.all.res <- rbind(cp.all.res, res.cp)
-      
+
     ## run for log(1 + tax) as well ==========================================
     #drop_cols <- paste0("cattlead", 8:5)
     #tax_cols <- setdiff(new_cols_used, drop_cols)
-    tax_cols <- new_cols_used 
-     
+    tax_cols <- new_cols_used
+
     #ss_pi[, c(drop_cols) := NULL]
     #ss_pi <- ss_pi[between(tt_event, -4, 4)] # to be consistent across cohorts
-      
+
     ## create formula
     tax_formula_input <- paste(tax_cols, collapse = "+")
     tax_formula <- as.formula(paste0("sales_tax ~ ", tax_formula_input,
                                        " | county_ID + tt_event | 0 | county_ID"))
-      
+
     res.tax <- felm(data = ss_pi, formula = tax_formula,
                       weights = ss_pi$weights)
     flog.info("Estimated with tax rate as outcome.")
     print(coef(summary(res.tax)))
-    
+
     #resid is same as for previous regression - so we re-use it (NEED TO REPLACE RESIDUALS THOUGH)
     resid$residuals <- res.tax$residuals
-    
+
     setDT(resid)
     resid.tax <- resid[, list(cattlead4 = sum(weights*cattlead4*residuals), cattlead3 = sum(weights*cattlead3*residuals), cattlead1 = sum(weights*cattlead1*residuals), catt0 = sum(weights*catt0*residuals), catt1 = sum(weights*catt1*residuals), catt2 = sum(weights*catt2*residuals), catt3 = sum(weights*catt3*residuals), catt4 = sum(weights*catt4*residuals), weights = sum(weights)), by = "county_ID"]
     resid.tax$ref_year = yr
     resid.tax$ref_qtr = qtr
     resid.tax$n <- dim(ss_pi)[1]
-    
+
     #Save these sums of "interacted" residuals for each county
     clustered.res.tax <- rbind(clustered.res.tax, resid.tax)
     rm(resid.tax, resid)
-      
+
     res.tax <- as.data.table(summary(res.tax, robust = T)$coefficients, keep.rownames = T)
     res.tax[, rn := gsub("lead", "-", rn)]
-      
+
     res.tax[, tt_event := as.integer(NA)]
-      
+
     for (c in setdiff(-4:4, -2)) {
       res.tax[grepl(sprintf("catt%s", c), rn) & is.na(tt_event), tt_event := as.integer(c)]
     }
     res.tax <- res.tax[!is.na(tt_event)]
-      
+
     res.tax[, ref_year := yr]
     res.tax[, ref_quarter := qtr]
     res.tax[, outcome := "sales_tax"]
@@ -303,27 +306,27 @@ for (yr in 2009:2013) {
              new = c("estimate", "cluster_se", "pval"))
     res.tax[, n_counties := N_counties]
     res.tax[, total_sales := sum_sales.weights]
-      
+
     flog.info("Attaching output to master data.table.")
     cp.all.res <- rbind(cp.all.res, res.tax)
-      
+
     rm(ss_pi)
     gc()
-      
+
     #}
     # re-write once a cohort in case it crashes
     fwrite(cp.all.res, output.results.filepath)
     fwrite(clustered.res.cpricei, output.residuals.cpricei.filepath)
     fwrite(clustered.res.tax, output.residuals.tax.filepath)
     fwrite(xx.cpricei, output.xx.filepath)
-    
+
   }
 }
 
 
 
 ####### Step2:  Combine information to produce asymptotic standard errors
-rm(list = ls()) #Clear Memory 
+rm(list = ls()) #Clear Memory
 
 library(tidyverse)
 library(data.table)
@@ -341,14 +344,14 @@ library(MASS)
 setwd("/project2/igaarder")
 
 ###OUTPUT
-output.cov.cpricei <- "Data/pi_ei_regression_prodmatch_cpricei_varcov_matrix.csv"
-output.skeleton <- "Data/pi_ei_regression_prodmatch_varcov_matrix_skeleton.csv"
+output.cov.cpricei <- "Data/pi_ei_regression_prodmatch_cpricei_varcov_matrix_combined.csv"
+output.skeleton <- "Data/pi_ei_regression_prodmatch_varcov_matrix_skeleton_combined.csv"
 
 ### INPUTS
-output.results.filepath <- "Data/pi_ei_regression_res_prodmatch.csv"
-output.residuals.cpricei.filepath <- "Data/pi_ei_regression_prodmatch_residuals_cpricei.csv"
-output.residuals.tax.filepath <-"Data/pi_ei_regression_prodmatch_residuals_tax.csv"
-output.xx.filepath <- "Data/pi_ei_regression_prodmatch_xx.csv"
+output.results.filepath <- "Data/pi_ei_regression_res_prodmatch_combined.csv"
+output.residuals.cpricei.filepath <- "Data/pi_ei_regression_prodmatch_residuals_cpricei_combined.csv"
+output.residuals.tax.filepath <-"Data/pi_ei_regression_prodmatch_residuals_tax_combined.csv"
+output.xx.filepath <- "Data/pi_ei_regression_prodmatch_xx_combined.csv"
 
 
 cpricei.res <- fread(output.residuals.cpricei.filepath)
@@ -376,9 +379,9 @@ start_time <- Sys.time()
 k <- 1
 #for(cty in list.counties[1:3])
   for(cty in list.counties) {
-  
+
   ##Price Indices
-  c.cpricei <- cpricei.res[county_ID == cty] 
+  c.cpricei <- cpricei.res[county_ID == cty]
   c.cpricei <- c.cpricei %>% gather(key = "lead", value = "parameter", "cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")
 
   c.cpricei <- merge(skeleton, c.cpricei[,c("ref_year", "ref_qtr", "lead", "parameter")], by = c("ref_year", "ref_qtr", "lead"), all.x = TRUE)
@@ -411,28 +414,28 @@ print(end_time - start_time)
 
 #}
 
-k <- k + 1  
+k <- k + 1
 }
 
-write.table(residual.mat, "Data/large_vcov_matrices/Mat_residuals_prodmatch_ei_pi.csv")
+write.table(residual.mat, "Data/large_vcov_matrices/Mat_residuals_prodmatch_ei_pi_combined.csv")
 
 ##
 
 ## Here we could construct a block diagonal matrix of (X'X)^-1 and do matrix multiplication
-#But it seems easier and potentially more efficient to loop over the block by block multiplication of each section of the matrix 
+#But it seems easier and potentially more efficient to loop over the block by block multiplication of each section of the matrix
 cov.matrix <- matrix(0, nrow = 2*K.param, ncol = 2*K.param)
 
 for(i in 1:(K.param/8)) {
-  
+
   print(paste0("Currently looking at row ", i, sep = ""))
-  
+
   for(j in 1:(K.param/8)) {
-    
+
     yr.i <- skeleton$ref_year[(i-1)*8 + 1]
     qtr.i <- skeleton$ref_qtr[(i-1)*8 + 1]
     yr.j <- skeleton$ref_year[(j-1)*8 + 1]
     qtr.j <- skeleton$ref_qtr[(j-1)*8 + 1]
-    
+
     cov.matrix[((i-1)*8 + 1):((i-1)*8 + 8), ((j-1)*8 + 1):((j-1)*8 + 8)] <- as.matrix(xx[ref_year == yr.i & ref_qtr == qtr.i, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])%*%residual.mat[((i-1)*8 + 1):((i-1)*8 + 8), ((j-1)*8 + 1):((j-1)*8 + 8)]%*%as.matrix(xx[ref_year == yr.j & ref_qtr == qtr.j, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])
     cov.matrix[(K.param + (i-1)*8 + 1):(K.param + (i-1)*8 + 8), ((j-1)*8 + 1):((j-1)*8 + 8)] <- as.matrix(xx[ref_year == yr.i & ref_qtr == qtr.i, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])%*%residual.mat[(K.param + (i-1)*8 + 1):(K.param + (i-1)*8 + 8), ((j-1)*8 + 1):((j-1)*8 + 8)]%*%as.matrix(xx[ref_year == yr.j & ref_qtr == qtr.j, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])
     cov.matrix[((i-1)*8 + 1):((i-1)*8 + 8), (K.param + (j-1)*8 + 1):(K.param + (j-1)*8 + 8)] <- as.matrix(xx[ref_year == yr.i & ref_qtr == qtr.i, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])%*%residual.mat[((i-1)*8 + 1):((i-1)*8 + 8), (K.param + (j-1)*8 + 1):(K.param + (j-1)*8 + 8)]%*%as.matrix(xx[ref_year == yr.j & ref_qtr == qtr.j, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])
@@ -447,7 +450,7 @@ fwrite(skeleton, output.skeleton)
 
 
 ##### Step 3: Produce standard errors of specific parameters/averages of parameters using the Delta method
-output.estimates.stderr.filepath <- "Data/Passthrough_estimates_stderr_ei_nevertreated.csv"
+output.estimates.stderr.filepath <- "Data/Passthrough_estimates_stderr_ei_combined.csv"
 
 
 #cov.matrix <- fread(output.cov.cpricei)
@@ -461,16 +464,16 @@ cohort.weights <- cp.all.res[outcome == 'cpricei', "total_sales"]
 colnames(cohort.weights) <- "weights"
 pooled.var <- matrix(0, nrow = 16, ncol = 1)
 for(i in 1:8) {
-  
+
   delta <- c(rep(c(rep(0, (i-1)), 1, rep(0, (8-i))), K.param/8), rep(0, K.param))
   delta.tax <- c(rep(0, K.param), rep(c(rep(0, (i-1)), 1, rep(0, (8-i))), K.param/8))
-  
+
   gradient <- delta*cohort.weights$weights
   norm.gradient <- gradient/sum(gradient)
-  
+
   gradient.tax <- delta.tax*cohort.weights$weights
   norm.grad.tax <- gradient.tax/sum(gradient.tax)
-  
+
   pooled.var[i] <- t(as.vector(norm.gradient))%*%as.matrix(cov.matrix)%*%as.vector(norm.gradient)
   pooled.var[8+i] <- t(as.vector(norm.grad.tax))%*%as.matrix(cov.matrix)%*%as.vector(norm.grad.tax)
 }
@@ -484,14 +487,14 @@ estimates$std.errors <- sqrt(pooled.var)
 weights <- setDT(cp.all.res[outcome == 'cpricei',])
 delta <- c(rep(c(0,0,0,1,1,1,1,1), K.param/8), rep(0, K.param)) #Selects all post-period estimates
 
-gradient <- delta*weights$total_sales  
+gradient <- delta*weights$total_sales
 norm.gradient <- gradient/sum(gradient)
 
 var <- t(as.vector(norm.gradient))%*%as.matrix(cov.matrix)%*%as.vector(norm.gradient)
 est <- mean(estimates[outcome == 'cpricei' & (rn == 'catt0' | rn == 'catt1' | rn == 'catt2' | rn == 'catt3' | rn == 'catt4'), estimates])
 
 ## R was weird and would convert the estimates value to factors - so I get around this by creating the estimates and std.error columns separately
-#This is really stupid, we should change this 
+#This is really stupid, we should change this
 temp <- estimates[,c("rn", "outcome")]
 temp2 <- as.data.frame(t(as.vector(c("post-treatment", "cpricei"))))
 colnames(temp2) <- c("rn", "outcome")
@@ -510,7 +513,7 @@ estimates$outcome <- temp$outcome
 weights <- setDT(cp.all.res[outcome == 'cpricei',]) #Could replace with sales_tax but does not matter weights are the same
 delta <- c(rep(0, K.param), rep(c(0,0,0,1,1,1,1,1), K.param/8)) #Selects all post-period estimates
 
-gradient <- delta*weights$total_sales  
+gradient <- delta*weights$total_sales
 norm.gradient <- gradient/sum(gradient)
 
 var <- t(as.vector(norm.gradient))%*%as.matrix(cov.matrix)%*%as.vector(norm.gradient)
@@ -550,15 +553,15 @@ pass$passthrough <- pass$cpricei/pass$sales_tax
 deriv <- as.vector(c(1/pass$sales_tax, -pass$cpricei/(pass$sales_tax^2)))
 pooled.pass.var <- matrix(0, nrow = 5, ncol = 1)
 for(i in 1:5) {
-  
+
   delta <- c(rep(c(rep(0, (3 + i-1)), 1, rep(0, (5-i))), (K.param/8)))
-  
+
   gradient <- delta*cohort.weights$weights
   norm.gradient <- gradient/sum(gradient)
   norm.gradient <- as.vector(rep(norm.gradient, 2))
   norm.gradient <- norm.gradient*deriv
-  
-  
+
+
   pooled.pass.var[i] <- t(as.vector(norm.gradient))%*%as.matrix(cov.matrix)%*%as.vector(norm.gradient)
 }
 
@@ -606,15 +609,15 @@ deriv <- as.vector(c(deriv1, deriv2))
 pooled.pass.var2 <- matrix(0, nrow = 5, ncol = 1)
 
 for(i in 1:5) {
-  
+
   delta <- c(rep(c(rep(0, (3 + i-1)), 1, rep(0, (5-i))), (K.param/8)))
-  
+
   gradient <- delta*cohort.weights$weights
   norm.gradient <- gradient/sum(gradient)
   norm.gradient <- as.vector(rep(norm.gradient, 2))
   norm.gradient <- norm.gradient*deriv
-  
-  
+
+
   pooled.pass.var2[i] <- t(as.vector(norm.gradient))%*%as.matrix(cov.matrix)%*%as.vector(norm.gradient)
 }
 
