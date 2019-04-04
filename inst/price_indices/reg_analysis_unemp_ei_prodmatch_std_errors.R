@@ -8,12 +8,12 @@
 #'      correlation) so that we can compute std errors and confidence intervals
 #'
 #' This adapts the quarterly version to estimate on a **monthly** level.
+#' This version is to examine **unemployment**
 
 library(data.table)
 library(lfe)
 library(futile.logger)
 library(AER)
-library(readstata13)
 
 #' Switching to monthly: we need to
 #'   -make sure the monthly price and quantity data is correctly loaded
@@ -26,7 +26,6 @@ library(readstata13)
 
 setwd("/project2/igaarder")
 change_of_interest <- "Ever increase"
-prep_enviro <- T
 
 output.results.filepath <- "Data/pi_ei_monthly_regression_res_prodmatch_combined.csv"
 output.residuals.cpricei.filepath <- "Data/pi_ei_monthly_regression_prodmatch_residuals_cpricei_combined.csv"
@@ -41,6 +40,7 @@ eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_firstonly_no2012
 tr_groups_path <- "Data/tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
 sales_data_path <- "Data/sales_monthly_2006-2016.csv"
 monthly_tax_path <- "Data/Nielsen/sales_tax_rate_monthly_product_level.dta"
+unemp_path <- "Data/covariates/county_monthly_unemp_clean.csv"
 
 
 ## Want to run cohort-product specific regressions.
@@ -60,41 +60,34 @@ get.res <- function(var, group, w, mtx) {
 
 if (prep_enviro){
   ## create .csv's of taxable and all goods ------------------------------------
-  flog.info("Reading in nonfood price indices...")
   nonfood_pi <- read.dta13("Data/Nielsen/Monthly_price_quantity_indices_nonfood.dta")
   nonfood_pi <- as.data.table(nonfood_pi)
   nonfood_pi[, c("cspricei", "squantityi", "spricei", "geocpricei",
                  "geoquantityi", "geopricei") := NULL] # to save space
   # fwrite(nonfood_pi, "Data/Nielsen/Monthly_price_quantity_indices_nonfood.dta")
 
-  flog.info("Reading in food price indices...")
   food_pi <- fread("Data/Nielsen/monthly_price_quantity_indices_food.csv")
   food_pi[, c("cspricei", "squantityi", "spricei", "geocpricei",
               "geoquantityi", "geopricei") := NULL]
 
-  flog.info("Binding food and nonfood data...")
   all_pi <- rbind(food_pi, nonfood_pi)
   all_pi <- all_pi[year %in% 2006:2014]
   rm(nonfood_pi, food_pi)
   gc()
 
   ### attach county and state FIPS codes, sales, and tax rates -----------------
-  flog.info("Reading in sales data...")
   sales_data <- fread(sales_data_path)
   sales_data <- sales_data[, .(store_code_uc, product_module_code, fips_county,
                                fips_state, month, year, sales)]
   sales_data <- sales_data[year %in% 2006:2014]
 
-  flog.info("Merging price and sales data...")
   all_pi <- merge(all_pi, sales_data, by = c("store_code_uc", "month", "year",
                                              "product_module_code" ))
   rm(sales_data)
   gc()
 
-  flog.info("Reading in tax rates...")
   all.tax <- fread(monthly_tax_path)
 
-  flog.info("Merging on tax rates...")
   all_pi <- merge(all_pi, all.tax,
                   by = c("fips_county", "fips_state", "product_module_code",
                          "year", "month", "product_group_code"),
@@ -146,6 +139,34 @@ setkey(keep_store_modules, store_code_uc, product_module_code)
 all_pi <- all_pi[keep_store_modules]
 setkey(all_pi, fips_county, fips_state)
 
+## attach info to covariate of choice ------------------------------------------
+
+all_pi <- all_pi[, list(base.sales = sum(base.sales)),
+                 by = .(fips_state, fips_county)]
+
+## at this point, we have the original dataset, we can attach it to the covariate of interest
+
+unemp_dt <- fread(unemp_path)
+unemp_dt <- unemp_dt[between(year, 2006, 2014)]
+
+all_pi <- merge(unemp_dt, all_pi, by = c("fips_county", "fips_state"))
+rm(unemp_dt)
+gc()
+
+## normalize
+all_pi[, normalized.rate := rate] # just for consistency in notation -- we don't actually normalized unemp
+all_pi <- all_pi[!is.na(normalized.rate) & !is.na(base.sales)]
+
+## balance on county level
+keep_counties <- all_pi[, list(n = .N), by = .(fips_state, fips_county)]
+keep_counties <- keep_counties[n == (2014 - 2005) * 12]
+
+setkey(all_pi, fips_county, fips_state)
+setkey(keep_counties, fips_county, fips_state)
+
+all_pi <- all_pi[keep_counties]
+setnames(all_pi, "normalized.rate", "cpricei") # just to keep the code simple
+
 ### create unique dataset of never treated counties ----------------------------
 control_counties <- fread(tr_groups_path)
 control_counties <- control_counties[tr_group == "No change"]
@@ -188,7 +209,7 @@ print(head(all_pi))
 #Matrix that will store the sume of regressors X residuals (X weight = base.sales) within each cluster (county)
 #Each new regression at the cohort-level produces new regressors/parameters
 clustered.res.cpricei <- data.table(NULL)
-clustered.res.tax <- data.table(NULL)
+# clustered.res.tax <- data.table(NULL)
 
 #Matrix to store the "sandwiches" for OLS on cpricei
 xx.cpricei <- data.table(NULL)
@@ -203,9 +224,6 @@ for (yr in 2009:2013) {
     }
     flog.info("Estimating for %s m%s", yr, mon)
 
-
-    #Make a list of unique product codes in the treatment group
-    list.prod <- unique(all_pi[ref_year == yr & ref_month == mon]$product_module_code)
     # prepare a subset of data -----------------------------------------------
 
     # limit to the cohort or the untreated/future treated (over 1 year)
@@ -216,25 +234,13 @@ for (yr in 2009:2013) {
     ss_pi[, tt_event := (year * 12 + month) - (yr * 12 + mon)]
     ss_pi <- ss_pi[between(tt_event, -12, 12)]
 
-    #Keep only products that are in the treatment group
-    ss_pi <- ss_pi[product_module_code %in% list.prod]
-
     ss_pi[, treated := as.integer(ref_year == yr & ref_month == mon)]
 
     # count how many treated counties in the cohort
     N_counties <- length(unique(ss_pi[treated == 1]$county_ID))
     sum_sales.weights <- sum(ss_pi[treated == 1 & tt_event == 0]$base.sales)
 
-    ##Create weights for control group to matche exactly distribution of products (weighted by sales) in treatment group
-    ss_pi[, base.sales.tr := sum(base.sales[year == yr & month == mon & treated == 1]),
-          by = .(product_module_code)]
-
-    ss_pi[, base.sales.ctl := sum(base.sales[year == yr & month == mon & treated == 0]),
-          by = .(product_module_code)]
-
     ss_pi$weights <- ss_pi$base.sales
-    ss_pi[treated == 0]$weights <- ss_pi[treated == 0]$base.sales*ss_pi[treated == 0]$base.sales.tr/ss_pi[treated == 0]$base.sales.ctl
-
 
     flog.info("Created subset of data for the selected groups.")
     ## create dummies for event times (except -6)
@@ -349,82 +355,6 @@ for (yr in 2009:2013) {
     flog.info("Attaching output to master data.table.")
     cp.all.res <- rbind(cp.all.res, res.cp)
 
-    ## run for log(1 + tax) as well ==========================================
-    #drop_cols <- paste0("cattlead", 8:5)
-    #tax_cols <- setdiff(new_cols_used, drop_cols)
-    tax_cols <- new_cols_used
-
-    #ss_pi[, c(drop_cols) := NULL]
-    #ss_pi <- ss_pi[between(tt_event, -4, 4)] # to be consistent across cohorts
-
-    ## create formula
-    tax_formula_input <- paste(tax_cols, collapse = "+")
-    tax_formula <- as.formula(paste0("sales_tax ~ ", tax_formula_input,
-                                       " | county_ID + tt_event | 0 | county_ID"))
-
-    res.tax <- felm(data = ss_pi, formula = tax_formula,
-                      weights = ss_pi$weights)
-    flog.info("Estimated with tax rate as outcome.")
-    # print(coef(summary(res.tax)))
-
-    #resid is same as for previous regression - so we re-use it (NEED TO REPLACE RESIDUALS THOUGH)
-    resid$residuals <- res.tax$residuals
-
-    setDT(resid)
-    resid.tax <- resid[, list(cattlead12 = sum(weights*cattlead12*residuals),
-                              cattlead11 = sum(weights*cattlead11*residuals),
-                              cattlead10 = sum(weights*cattlead10*residuals),
-                              cattlead9 = sum(weights*cattlead9*residuals),
-                              cattlead8 = sum(weights*cattlead8*residuals),
-                              cattlead7 = sum(weights*cattlead7*residuals),
-                              cattlead5 = sum(weights*cattlead5*residuals),
-                              cattlead4 = sum(weights*cattlead4*residuals),
-                              cattlead3 = sum(weights*cattlead3*residuals),
-                              cattlead2 = sum(weights*cattlead2*residuals),
-                              cattlead1 = sum(weights*cattlead1*residuals),
-                              catt0 = sum(weights*catt0*residuals),
-                              catt1 = sum(weights*catt1*residuals),
-                              catt2 = sum(weights*catt2*residuals),
-                              catt3 = sum(weights*catt3*residuals),
-                              catt4 = sum(weights*catt4*residuals),
-                              catt5 = sum(weights*catt5*residuals),
-                              catt6 = sum(weights*catt6*residuals),
-                              catt7 = sum(weights*catt7*residuals),
-                              catt8 = sum(weights*catt8*residuals),
-                              catt9 = sum(weights*catt9*residuals),
-                              catt10 = sum(weights*catt10*residuals),
-                              catt11 = sum(weights*catt11*residuals),
-                              catt12 = sum(weights*catt12*residuals),
-                              weights = sum(weights)), by = "county_ID"]
-    resid.tax$ref_year <- yr
-    resid.tax$ref_mon <- mon
-    resid.tax$n <- dim(ss_pi)[1]
-
-    #Save these sums of "interacted" residuals for each county
-    clustered.res.tax <- rbind(clustered.res.tax, resid.tax)
-    rm(resid.tax, resid)
-
-    res.tax <- as.data.table(summary(res.tax, robust = T)$coefficients, keep.rownames = T)
-    res.tax[, rn := gsub("lead", "-", rn)]
-
-    res.tax[, tt_event := as.integer(NA)]
-
-    for (c in setdiff(-12:12, -6)) {
-      res.tax[grepl(sprintf("catt%s", c), rn) & is.na(tt_event), tt_event := as.integer(c)]
-    }
-    res.tax <- res.tax[!is.na(tt_event)]
-
-    res.tax[, ref_year := yr]
-    res.tax[, ref_month := mon]
-    res.tax[, outcome := "sales_tax"]
-    setnames(res.tax,
-             old = c("Estimate", "Cluster s.e.", "Pr(>|t|)"),
-             new = c("estimate", "cluster_se", "pval"))
-    res.tax[, n_counties := N_counties]
-    res.tax[, total_sales := sum_sales.weights]
-
-    flog.info("Attaching output to master data.table.")
-    cp.all.res <- rbind(cp.all.res, res.tax)
 
     rm(ss_pi)
     gc()
@@ -433,7 +363,7 @@ for (yr in 2009:2013) {
     # re-write once a cohort in case it crashes
     fwrite(cp.all.res, output.results.filepath)
     fwrite(clustered.res.cpricei, output.residuals.cpricei.filepath)
-    fwrite(clustered.res.tax, output.residuals.tax.filepath)
+    # fwrite(clustered.res.tax, output.residuals.tax.filepath)
     fwrite(xx.cpricei, output.xx.filepath)
 
   }

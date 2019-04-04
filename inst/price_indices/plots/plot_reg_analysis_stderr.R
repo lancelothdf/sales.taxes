@@ -8,7 +8,7 @@ setwd("C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/server")
 
 ## first, event-no-event
 
-res.ei <- fread("pi_data/regression_output/with_stderr/Passthrough_estimates_stderr_ei_nevertreated.csv")
+res.ei <- fread("pi_data/regression_output/with_stderr/Passthrough_estimates_stderr_ei_combined.csv")
 
 res.ei[, aggregated := rn == "post-treatment"]
 res.ei[, rn := as.integer(gsub("catt", "", rn))]
@@ -64,14 +64,14 @@ ggplot(data = res.ei.combined[outcome == "sales_tax"],
 ggsave("pi_figs/reg_results/tax_estimates.png",
        height = 120, width = 180, units = "mm")
 
-ggplot(data = res.ei.combined[outcome == "passthrough_2"],
+ggplot(data = res.ei.combined[outcome == "passthrough_1"],
        mapping = aes(x = tt_event, y = estimates, color = aggregated)) +
   geom_point(size = 2, alpha = .5) +
-  geom_errorbar(data = res.ei[outcome == "passthrough_2"],
+  geom_errorbar(data = res.ei[outcome == "passthrough_1"],
                 aes(ymax = estimates + 1.96 * std.errors,
                     ymin = estimates - 1.96 * std.errors),
                 width = .8) +
-  geom_line(data = res.ei.combined[outcome == "passthrough_2" & aggregated == F],
+  geom_line(data = res.ei.combined[outcome == "passthrough_1" & aggregated == F],
             linetype = "55") +
   scale_color_manual(breaks = c(TRUE, FALSE), values = c("black", "firebrick")) +
   theme_bw(base_size = 16) +
@@ -80,10 +80,46 @@ ggplot(data = res.ei.combined[outcome == "passthrough_2"],
   labs(x = "Time since reform (quarters)", y = "Estimate", color = NULL) +
   geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
   theme(legend.position = "none")
-ggsave("pi_figs/reg_results/passthrough_estimates.png",
+ggsave("pi_figs/reg_results/passthrough1_estimates.png",
        height = 120, width = 180, units = "mm")
 
-## comparing to time-of-event
+## looking at sales
+sales.ei <- fread("pi_data/regression_output/with_stderr/Sales_estimates_stderr_ei_combined.csv")
+sales.ei <- sales.ei[outcome == "sales"]
+sales.ei[, aggregated := rn == "post-treatment"]
+sales.ei[, rn := as.integer(gsub("catt", "", rn))]
+setnames(sales.ei, "rn", "tt_event")
+sales.ei[, tt_event := as.double(tt_event)]
+sales.ei[aggregated == T, tt_event := 5.5] # assign aggregate estimates tt_event = 5.5
+
+sales.ei.combined <- rbind(sales.ei[, .(estimates, tt_event, outcome, aggregated)],
+                         data.table(tt_event = -2,
+                                    estimates = 0,
+                                    outcome = "sales",
+                                    aggregated = F))
+
+ggplot(data = sales.ei.combined,
+       mapping = aes(x = tt_event, y = estimates, color = aggregated)) +
+  geom_point(size = 2, alpha = .5) +
+  geom_errorbar(data = sales.ei,
+                aes(ymax = estimates + 1.96 * std.errors,
+                    ymin = estimates - 1.96 * std.errors),
+                width = .8) +
+  geom_line(data = sales.ei.combined[aggregated == F],
+            linetype = "55") +
+  scale_color_manual(breaks = c(TRUE, FALSE), values = c("black", "firebrick")) +
+  geom_point(aes(x = -2, y = 0), size = 2, color = "black") +
+  theme_bw(base_size = 16) +
+  scale_x_continuous(breaks = c(seq(-4, 4, 2), 5.5),
+                     labels = c(as.character(seq(-4, 4, 2)), "Aggregate")) +
+  labs(x = "Event time (quarters)", y = "Estimate", color = NULL) +
+  geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
+  # scale_y_continuous(limits = c(-.004, .01), breaks = seq(-.005, .01, .0025)) +
+  theme(legend.position = "none")
+ggsave("pi_figs/reg_results/sales_estimates.png",
+       height = 120, width = 180, units = "mm")
+
+## comparing to time-of-event ----------------------------
 res.ei.toe <- fread("pi_data/regression_output/with_stderr/Passthrough_estimates_stderr_ei_timeofevent.csv")
 res.ei.toe[, aggregated := rn == "post-treatment"]
 res.ei.toe[, rn := as.integer(gsub("catt", "", rn))]
@@ -183,29 +219,32 @@ ggsave("pi_figs/reg_results/passthrough_estimates_compared.png",
 
 
 ### Looking at decreases ------------
-res.ed <- fread("pi_data/regression_output/with_stderr/Passthrough_estimates_stderr_ed_nevertreated.csv")
+res.ed <- fread("pi_data/regression_output/with_stderr/Passthrough_estimates_stderr_ed_combined.csv")
 
 res.ed[, aggregated := rn == "post-treatment"]
-res.ed <- res.ed[aggregated == F]
-res.ed[, rn := as.integer(gsub("catt", "", rn))]
+# res.ed <- res.ed[aggregated == F]
+res.ed[, rn := as.double(gsub("catt", "", rn))]
 setnames(res.ed, "rn", "tt_event")
+res.ed[aggregated == T, tt_event := 5.5]
 
 # TODO: we want to remove aggregated from these "ever decrease" plots
 
-res.ed.combined <- rbind(res.ed[, .(estimates, tt_event, outcome)],
+res.ed.combined <- rbind(res.ed[, .(estimates, tt_event, outcome, aggregated)],
                          data.table(tt_event = rep(-2, 2),
                                     estimates = rep(0, 2),
-                                    outcome = c("cpricei", "sales_tax")))
+                                    outcome = c("cpricei", "sales_tax"),
+                                    aggregated = rep(F, 2)))
 
 ggplot(data = res.ed.combined[outcome == "cpricei"],
-       mapping = aes(x = tt_event, y = estimates)) +
+       mapping = aes(x = tt_event, y = estimates, color = aggregated)) +
   geom_point(size = 2, alpha = .5) +
   geom_errorbar(data = res.ed[outcome == "cpricei"],
                 aes(ymax = estimates + 1.96 * std.errors,
                     ymin = estimates - 1.96 * std.errors),
                 width = .8) +
-  geom_line(data = res.ed.combined[outcome == "cpricei"],
+  geom_line(data = res.ed.combined[outcome == "cpricei" & aggregated == F],
             linetype = "55") +
+  scale_color_manual(breaks = c(TRUE, FALSE), values = c("black", "firebrick")) +
   geom_point(aes(x = -2, y = 0), size = 2, color = "black") +
   theme_bw(base_size = 16) +
   scale_x_continuous(breaks = c(seq(-4, 4, 2), 5.5),
@@ -218,14 +257,15 @@ ggsave("pi_figs/reg_results/cpricei_estimates_ed.png",
        height = 120, width = 180, units = "mm")
 
 ggplot(data = res.ed.combined[outcome == "sales_tax"],
-       mapping = aes(x = tt_event, y = estimates)) +
+       mapping = aes(x = tt_event, y = estimates, color = aggregated)) +
   geom_point(size = 2, alpha = .5) +
   geom_errorbar(data = res.ed[outcome == "sales_tax"],
                 aes(ymax = estimates + 1.96 * std.errors,
                     ymin = estimates - 1.96 * std.errors),
                 width = .8) +
-  geom_line(data = res.ed.combined[outcome == "sales_tax"],
+  geom_line(data = res.ed.combined[outcome == "sales_tax" & aggregated == F],
             linetype = "55") +
+  scale_color_manual(breaks = c(TRUE, FALSE), values = c("black", "firebrick")) +
   geom_point(aes(x = -2, y = 0), size = 2, color = "black") +
   theme_bw(base_size = 16) +
   scale_x_continuous(breaks = c(seq(-4, 4, 2), 5.5),
@@ -237,22 +277,59 @@ ggplot(data = res.ed.combined[outcome == "sales_tax"],
 ggsave("pi_figs/reg_results/tax_estimates_ed.png",
        height = 120, width = 180, units = "mm")
 
-ggplot(data = res.ed.combined[outcome == "passthrough_2"],
-       mapping = aes(x = tt_event, y = estimates)) +
+ggplot(data = res.ed.combined[outcome == "passthrough_1"],
+       mapping = aes(x = tt_event, y = estimates, color = aggregated)) +
   geom_point(size = 2, alpha = .5) +
-  geom_errorbar(data = res.ed[outcome == "passthrough_2"],
+  geom_errorbar(data = res.ed[outcome == "passthrough_1"],
                 aes(ymax = estimates + 1.96 * std.errors,
                     ymin = estimates - 1.96 * std.errors),
                 width = .8) +
-  geom_line(data = res.ed.combined[outcome == "passthrough_2"],
+  geom_line(data = res.ed.combined[outcome == "passthrough_1" & aggregated == F],
             linetype = "55") +
+  scale_color_manual(breaks = c(TRUE, FALSE), values = c("black", "firebrick")) +
   theme_bw(base_size = 16) +
   scale_x_continuous(breaks = c(seq(0, 4, 2), 5.5),
                      labels = c(as.character(seq(0, 4, 2)), "Aggregate")) +
   labs(x = "Time since reform (quarters)", y = "Estimate", color = NULL) +
   geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
   theme(legend.position = "none")
-ggsave("pi_figs/reg_results/passthrough_estimates_ed.png",
+ggsave("pi_figs/reg_results/passthrough1_estimates_ed.png",
+       height = 120, width = 180, units = "mm")
+
+## looking at sales
+sales.ed <- fread("pi_data/regression_output/with_stderr/Sales_estimates_stderr_ed_combined.csv")
+sales.ed <- sales.ed[outcome == "sales"]
+sales.ed[, aggregated := rn == "post-treatment"]
+sales.ed[, rn := as.integer(gsub("catt", "", rn))]
+setnames(sales.ed, "rn", "tt_event")
+sales.ed[, tt_event := as.double(tt_event)]
+sales.ed[aggregated == T, tt_event := 5.5] # assign aggregate estimates tt_event = 5.5
+
+sales.ed.combined <- rbind(sales.ed[, .(estimates, tt_event, outcome, aggregated)],
+                           data.table(tt_event = -2,
+                                      estimates = 0,
+                                      outcome = "sales",
+                                      aggregated = F))
+
+ggplot(data = sales.ed.combined,
+       mapping = aes(x = tt_event, y = estimates, color = aggregated)) +
+  geom_point(size = 2, alpha = .5) +
+  geom_errorbar(data = sales.ed,
+                aes(ymax = estimates + 1.96 * std.errors,
+                    ymin = estimates - 1.96 * std.errors),
+                width = .8) +
+  geom_line(data = sales.ed.combined[aggregated == F],
+            linetype = "55") +
+  scale_color_manual(breaks = c(TRUE, FALSE), values = c("black", "firebrick")) +
+  geom_point(aes(x = -2, y = 0), size = 2, color = "black") +
+  theme_bw(base_size = 16) +
+  scale_x_continuous(breaks = c(seq(-4, 4, 2), 5.5),
+                     labels = c(as.character(seq(-4, 4, 2)), "Aggregate")) +
+  labs(x = "Event time (quarters)", y = "Estimate", color = NULL) +
+  geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
+  # scale_y_continuous(limits = c(-.004, .01), breaks = seq(-.005, .01, .0025)) +
+  theme(legend.position = "none")
+ggsave("pi_figs/reg_results/sales_estimates_ed.png",
        height = 120, width = 180, units = "mm")
 
 # TODO: compare passthrough for ever increase, ever decrease
