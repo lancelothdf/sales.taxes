@@ -19,13 +19,13 @@ library(AER)
 #'   -switch reforms to be on monthly level (done)
 #'   -adjust cohorts to loop over monthly level (done)
 #'   -change saved filepaths (done)
-#'   TODO: double check sales-weighted monthly tax rate (sales_tax_rate_monthly_product_level.dta?)
-#'   TODO: search through all the catt_lead4..catt_4 (needs to be updated)
+#'   -double check sales-weighted monthly tax rate (done)
+#'   -search through all the catt_lead4..catt_4 (done)
 
 
 setwd("/project2/igaarder")
 change_of_interest <- "Ever increase"
-
+prep_enviro <- T
 
 output.results.filepath <- "Data/pi_ei_monthly_regression_res_prodmatch_combined.csv"
 output.residuals.cpricei.filepath <- "Data/pi_ei_monthly_regression_prodmatch_residuals_cpricei_combined.csv"
@@ -34,11 +34,12 @@ output.xx.filepath <- "Data/pi_ei_monthly_regression_prodmatch_xx_combined.csv"
 
 
 ## useful filepaths ------------------------------------------------------------
-all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_notaxinfo.csv"
+# all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_notaxinfo.csv"
 taxable_pi_path <- "Data/Nielsen/price_quantity_indices_taxableitems_2006-2016.csv"
 eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
 tr_groups_path <- "Data/tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
 sales_data_path <- "Data/sales_monthly_2006-2016.csv"
+monthly_tax_path <- "Data/Nielsen/sales_tax_rate_monthly_product_level.dta"
 
 
 ## Want to run cohort-product specific regressions.
@@ -55,19 +56,6 @@ get.res <- function(var, group, w, mtx) {
 }
 
 ## Prepare the monthly data ----------------------------------------------------
-
-# TODO: is this necessary on monthly level?
-if (combine.tax.rates) {
-  all.tax <- data.table(NULL)
-  for (year in 2008:2014) {
-    tax.filepath <- paste0(
-      "Data/Nielsen/Sales_weighted_tax_rate_year_", year, ".dta"
-    )
-    tax.dt <- as.data.table(read.dta13(tax.filepath))
-    all.tax <- rbind(all.tax, tax.dt)
-  }
-  fwrite(all.tax, monthly_tax_path) # TODO: define monthly_tax_path
-}
 
 if (prep_enviro){
   ## create .csv's of taxable and all goods ------------------------------------
@@ -97,11 +85,11 @@ if (prep_enviro){
   rm(sales_data)
   gc()
 
-  if (!combine.tax.rates) { # TODO: still need to figure this out
-    all.tax <- fread(quarterly_tax_path)
-  }
-  all_pi <- merge(all_pi, all.tax, by = c("store_code_uc", "product_module_code",
-                                          "year", "month", "product_group_code"),
+  all.tax <- fread(monthly_tax_path)
+
+  all_pi <- merge(all_pi, all.tax,
+                  by = c("fips_county", "fips_state", "product_module_code",
+                         "year", "month", "product_group_code"),
                   all.x = T)
 
   # fwrite(all_pi, all_goods_pi_path)
@@ -243,7 +231,7 @@ for (yr in 2009:2013) {
     flog.info("Created subset of data for the selected groups.")
     ## create dummies for event times (except -6)
     start_cols <- copy(colnames(ss_pi))
-    for (r in setdiff(-12:12, -6)) { # TODO: omitted event time -6?
+    for (r in setdiff(-12:12, -6)) {
       var <- sprintf("catt%s", r)
       ss_pi[, (var) := as.integer(treated == 1 & tt_event == r)]
     }
@@ -276,7 +264,7 @@ for (yr in 2009:2013) {
     resid$residuals <- res.cp$residuals
     resid$weights <- ss_pi$weights
 
-    setDT(resid) # TODO: this is going to be more than -4 to 4 now
+    setDT(resid)
     resid.cpricei <- resid[, list(cattlead12 = sum(weights*cattlead12*residuals),
                                   cattlead11 = sum(weights*cattlead11*residuals),
                                   cattlead10 = sum(weights*cattlead10*residuals),
@@ -336,7 +324,7 @@ for (yr in 2009:2013) {
 
     res.cp[, tt_event := as.integer(NA)]
 
-    for (c in setdiff(-12:12, -6)) { # TODO: -6 omitted?
+    for (c in setdiff(-12:12, -6)) {
       res.cp[grepl(sprintf("catt%s", c), rn) & is.na(tt_event), tt_event := as.integer(c)]
     }
     res.cp <- res.cp[!is.na(tt_event)]
@@ -413,7 +401,7 @@ for (yr in 2009:2013) {
 
     res.tax[, tt_event := as.integer(NA)]
 
-    for (c in setdiff(-12:12, -6)) { # TODO: -6?
+    for (c in setdiff(-12:12, -6)) {
       res.tax[grepl(sprintf("catt%s", c), rn) & is.na(tt_event), tt_event := as.integer(c)]
     }
     res.tax <- res.tax[!is.na(tt_event)]
@@ -561,23 +549,61 @@ write.table(residual.mat, "Data/large_vcov_matrices/Mat_residuals_prodmatch_ei_m
 #But it seems easier and potentially more efficient to loop over the block by block multiplication of each section of the matrix
 cov.matrix <- matrix(0, nrow = 2*K.param, ncol = 2*K.param)
 
-# TODO: do I need to change the following? obv I need to change some of it... but the 8? is that for 8 coefficients?
-# TODO: from here on, I have many things I think I need to change
-for(i in 1:(K.param/8)) {
+for(i in 1:(K.param/24)) {
 
   print(paste0("Currently looking at row ", i, sep = ""))
 
-  for(j in 1:(K.param/8)) {
+  for(j in 1:(K.param/24)) {
 
-    yr.i <- skeleton$ref_year[(i-1)*8 + 1]
-    mon.i <- skeleton$ref_mon[(i-1)*8 + 1]
-    yr.j <- skeleton$ref_year[(j-1)*8 + 1]
-    mon.j <- skeleton$ref_mon[(j-1)*8 + 1]
+    yr.i <- skeleton$ref_year[(i-1)*24 + 1]
+    mon.i <- skeleton$ref_mon[(i-1)*24 + 1]
+    yr.j <- skeleton$ref_year[(j-1)*24 + 1]
+    mon.j <- skeleton$ref_mon[(j-1)*24 + 1]
 
-    cov.matrix[((i-1)*8 + 1):((i-1)*8 + 8), ((j-1)*8 + 1):((j-1)*8 + 8)] <- as.matrix(xx[ref_year == yr.i & ref_mon == mon.i, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])%*%residual.mat[((i-1)*8 + 1):((i-1)*8 + 8), ((j-1)*8 + 1):((j-1)*8 + 8)]%*%as.matrix(xx[ref_year == yr.j & ref_mon == mon.j, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])
-    cov.matrix[(K.param + (i-1)*8 + 1):(K.param + (i-1)*8 + 8), ((j-1)*8 + 1):((j-1)*8 + 8)] <- as.matrix(xx[ref_year == yr.i & ref_mon == mon.i, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])%*%residual.mat[(K.param + (i-1)*8 + 1):(K.param + (i-1)*8 + 8), ((j-1)*8 + 1):((j-1)*8 + 8)]%*%as.matrix(xx[ref_year == yr.j & ref_mon == mon.j, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])
-    cov.matrix[((i-1)*8 + 1):((i-1)*8 + 8), (K.param + (j-1)*8 + 1):(K.param + (j-1)*8 + 8)] <- as.matrix(xx[ref_year == yr.i & ref_mon == mon.i, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])%*%residual.mat[((i-1)*8 + 1):((i-1)*8 + 8), (K.param + (j-1)*8 + 1):(K.param + (j-1)*8 + 8)]%*%as.matrix(xx[ref_year == yr.j & ref_mon == mon.j, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])
-    cov.matrix[(K.param + (i-1)*8 + 1):(K.param + (i-1)*8 + 8), (K.param + (j-1)*8 + 1):(K.param + (j-1)*8 + 8)] <- as.matrix(xx[ref_year == yr.i & ref_mon == mon.i, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])%*%residual.mat[(K.param + (i-1)*8 + 1):(K.param + (i-1)*8 + 8), (K.param + (j-1)*8 + 1):(K.param + (j-1)*8 + 8)]%*%as.matrix(xx[ref_year == yr.j & ref_mon == mon.j, c("cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")])
+    cov.matrix[((i-1)*24 + 1):((i-1)*24 + 24), ((j-1)*24 + 1):((j-1)*24 + 24)] <- as.matrix(xx[ref_year == yr.i & ref_mon == mon.i, c("cattlead12", "cattlead11", "cattlead10",
+                                                                                                                                      "cattlead9", "cattlead8","cattlead7", "cattlead5",
+                                                                                                                                      "cattlead4","cattlead3", "cattlead2", "cattlead1",
+                                                                                                                                      "catt0", "catt1", "catt2", "catt3", "catt4",
+                                                                                                                                      "catt5", "catt6", "catt7", "catt8", "catt9",
+                                                                                                                                      "catt10", "catt11", "catt12")])%*%residual.mat[((i-1)*24 + 1):((i-1)*24 + 24), ((j-1)*24 + 1):((j-1)*24 + 24)]%*%as.matrix(xx[ref_year == yr.j & ref_mon == mon.j, c("cattlead12", "cattlead11", "cattlead10",
+                                                                                                                                                                                                                                                                                                           "cattlead9", "cattlead8","cattlead7", "cattlead5",
+                                                                                                                                                                                                                                                                                                           "cattlead4","cattlead3", "cattlead2", "cattlead1",
+                                                                                                                                                                                                                                                                                                           "catt0", "catt1", "catt2", "catt3", "catt4",
+                                                                                                                                                                                                                                                                                                           "catt5", "catt6", "catt7", "catt8", "catt9",
+                                                                                                                                                                                                                                                                                                           "catt10", "catt11", "catt12")])
+    cov.matrix[(K.param + (i-1)*24 + 1):(K.param + (i-1)*24 + 24), ((j-1)*24 + 1):((j-1)*24 + 24)] <- as.matrix(xx[ref_year == yr.i & ref_mon == mon.i, c("cattlead12", "cattlead11", "cattlead10",
+                                                                                                                                                          "cattlead9", "cattlead8","cattlead7", "cattlead5",
+                                                                                                                                                          "cattlead4","cattlead3", "cattlead2", "cattlead1",
+                                                                                                                                                          "catt0", "catt1", "catt2", "catt3", "catt4",
+                                                                                                                                                          "catt5", "catt6", "catt7", "catt8", "catt9",
+                                                                                                                                                          "catt10", "catt11", "catt12")])%*%residual.mat[(K.param + (i-1)*24 + 1):(K.param + (i-1)*24 + 24), ((j-1)*24 + 1):((j-1)*24 + 24)]%*%as.matrix(xx[ref_year == yr.j & ref_mon == mon.j, c("cattlead12", "cattlead11", "cattlead10",
+                                                                                                                                                                                                                                                                                                                                                   "cattlead9", "cattlead8","cattlead7", "cattlead5",
+                                                                                                                                                                                                                                                                                                                                                   "cattlead4","cattlead3", "cattlead2", "cattlead1",
+                                                                                                                                                                                                                                                                                                                                                   "catt0", "catt1", "catt2", "catt3", "catt4",
+                                                                                                                                                                                                                                                                                                                                                   "catt5", "catt6", "catt7", "catt8", "catt9",
+                                                                                                                                                                                                                                                                                                                                                   "catt10", "catt11", "catt12")])
+    cov.matrix[((i-1)*24 + 1):((i-1)*24 + 24), (K.param + (j-1)*24 + 1):(K.param + (j-1)*24 + 24)] <- as.matrix(xx[ref_year == yr.i & ref_mon == mon.i, c("cattlead12", "cattlead11", "cattlead10",
+                                                                                                                                                          "cattlead9", "cattlead8","cattlead7", "cattlead5",
+                                                                                                                                                          "cattlead4","cattlead3", "cattlead2", "cattlead1",
+                                                                                                                                                          "catt0", "catt1", "catt2", "catt3", "catt4",
+                                                                                                                                                          "catt5", "catt6", "catt7", "catt8", "catt9",
+                                                                                                                                                          "catt10", "catt11", "catt12")])%*%residual.mat[((i-1)*24 + 1):((i-1)*24 + 24), (K.param + (j-1)*24 + 1):(K.param + (j-1)*24 + 24)]%*%as.matrix(xx[ref_year == yr.j & ref_mon == mon.j, c("cattlead12", "cattlead11", "cattlead10",
+                                                                                                                                                                                                                                                                                                                                                   "cattlead9", "cattlead8","cattlead7", "cattlead5",
+                                                                                                                                                                                                                                                                                                                                                   "cattlead4","cattlead3", "cattlead2", "cattlead1",
+                                                                                                                                                                                                                                                                                                                                                   "catt0", "catt1", "catt2", "catt3", "catt4",
+                                                                                                                                                                                                                                                                                                                                                   "catt5", "catt6", "catt7", "catt8", "catt9",
+                                                                                                                                                                                                                                                                                                                                                   "catt10", "catt11", "catt12")])
+    cov.matrix[(K.param + (i-1)*24 + 1):(K.param + (i-1)*24 + 24), (K.param + (j-1)*24 + 1):(K.param + (j-1)*24 + 24)] <- as.matrix(xx[ref_year == yr.i & ref_mon == mon.i, c("cattlead12", "cattlead11", "cattlead10",
+                                                                                                                                                                              "cattlead9", "cattlead8","cattlead7", "cattlead5",
+                                                                                                                                                                              "cattlead4","cattlead3", "cattlead2", "cattlead1",
+                                                                                                                                                                              "catt0", "catt1", "catt2", "catt3", "catt4",
+                                                                                                                                                                              "catt5", "catt6", "catt7", "catt8", "catt9",
+                                                                                                                                                                              "catt10", "catt11", "catt12")])%*%residual.mat[(K.param + (i-1)*24 + 1):(K.param + (i-1)*24 + 24), (K.param + (j-1)*24 + 1):(K.param + (j-1)*24 + 24)]%*%as.matrix(xx[ref_year == yr.j & ref_mon == mon.j, c("cattlead12", "cattlead11", "cattlead10",
+                                                                                                                                                                                                                                                                                                                                                                                           "cattlead9", "cattlead8","cattlead7", "cattlead5",
+                                                                                                                                                                                                                                                                                                                                                                                           "cattlead4","cattlead3", "cattlead2", "cattlead1",
+                                                                                                                                                                                                                                                                                                                                                                                           "catt0", "catt1", "catt2", "catt3", "catt4",
+                                                                                                                                                                                                                                                                                                                                                                                           "catt5", "catt6", "catt7", "catt8", "catt9",
+                                                                                                                                                                                                                                                                                                                                                                                           "catt10", "catt11", "catt12")])
   }
 }
 
@@ -600,12 +626,11 @@ output.estimates.stderr.filepath <- "Data/Passthrough_estimates_stderr_ei_monthl
 #cohort.weights <- cp.all.res[,.(weights = mean(total_sales)), by = .(ref_year, ref_quarter)]  ##The mean operator does not matter here - total_sales is constant within cohort but we just want to collapse to get a vector
 cohort.weights <- cp.all.res[outcome == 'cpricei', "total_sales"]
 colnames(cohort.weights) <- "weights"
-# TODO: do I need to change these numbers?
-pooled.var <- matrix(0, nrow = 16, ncol = 1)
-for(i in 1:8) {
+pooled.var <- matrix(0, nrow = 48, ncol = 1)
+for(i in 1:24) {
 
-  delta <- c(rep(c(rep(0, (i-1)), 1, rep(0, (8-i))), K.param/8), rep(0, K.param))
-  delta.tax <- c(rep(0, K.param), rep(c(rep(0, (i-1)), 1, rep(0, (8-i))), K.param/8))
+  delta <- c(rep(c(rep(0, (i-1)), 1, rep(0, (24-i))), K.param/24), rep(0, K.param))
+  delta.tax <- c(rep(0, K.param), rep(c(rep(0, (i-1)), 1, rep(0, (24-i))), K.param/24))
 
   gradient <- delta*cohort.weights$weights
   norm.gradient <- gradient/sum(gradient)
@@ -614,7 +639,7 @@ for(i in 1:8) {
   norm.grad.tax <- gradient.tax/sum(gradient.tax)
 
   pooled.var[i] <- t(as.vector(norm.gradient))%*%as.matrix(cov.matrix)%*%as.vector(norm.gradient)
-  pooled.var[8+i] <- t(as.vector(norm.grad.tax))%*%as.matrix(cov.matrix)%*%as.vector(norm.grad.tax)
+  pooled.var[24+i] <- t(as.vector(norm.grad.tax))%*%as.matrix(cov.matrix)%*%as.vector(norm.grad.tax)
 }
 
 estimates <- cp.all.res[,.(estimates = weighted.mean(estimate, w = total_sales)), by = .(rn, outcome)]
@@ -624,14 +649,15 @@ estimates$std.errors <- sqrt(pooled.var)
 ##Standard errors for pooled post-reform estimates (pooled across cohorts and across catt0-catt4)
 ##Cpricei
 weights <- setDT(cp.all.res[outcome == 'cpricei',])
-# TODO: do I need to change these?
-delta <- c(rep(c(0,0,0,1,1,1,1,1), K.param/8), rep(0, K.param)) #Selects all post-period estimates
+delta <- c(rep(c(rep(0, 11), rep(1, 13)), K.param/24), rep(0, K.param)) #Selects all post-period estimates
 
 gradient <- delta*weights$total_sales
 norm.gradient <- gradient/sum(gradient)
 
 var <- t(as.vector(norm.gradient))%*%as.matrix(cov.matrix)%*%as.vector(norm.gradient)
-est <- mean(estimates[outcome == 'cpricei' & (rn == 'catt0' | rn == 'catt1' | rn == 'catt2' | rn == 'catt3' | rn == 'catt4'), estimates]) # TODO: need to update
+est <- mean(estimates[outcome == 'cpricei' & (rn %in% c('catt0', 'catt1', 'catt2', 'catt3', 'catt4',
+                                                        'catt5', 'catt6', 'catt7', 'catt8', 'catt9',
+                                                        'catt10', 'catt11', 'catt12')), estimates])
 
 ## R was weird and would convert the estimates value to factors - so I get around this by creating the estimates and std.error columns separately
 #This is really stupid, we should change this
@@ -651,15 +677,16 @@ estimates$outcome <- temp$outcome
 
 ##Tax
 weights <- setDT(cp.all.res[outcome == 'cpricei',]) #Could replace with sales_tax but does not matter weights are the same
-# TODO: do I need to change these?
-delta <- c(rep(0, K.param), rep(c(0,0,0,1,1,1,1,1), K.param/8)) #Selects all post-period estimates
+delta <- c(rep(0, K.param), rep(c(rep(0, 11), rep(1, 13)), K.param/24)) #Selects all post-period estimates
 
 gradient <- delta*weights$total_sales
 norm.gradient <- gradient/sum(gradient)
 
 var <- t(as.vector(norm.gradient))%*%as.matrix(cov.matrix)%*%as.vector(norm.gradient)
 setDT(estimates)
-est <- mean(estimates[outcome == 'sales_tax' & (rn == 'catt0' | rn == 'catt1' | rn == 'catt2' | rn == 'catt3' | rn == 'catt4'),]$estimates)
+est <- mean(estimates[outcome == 'sales_tax' & (rn %in% c('catt0', 'catt1', 'catt2', 'catt3', 'catt4',
+                                                          'catt5', 'catt6', 'catt7', 'catt8', 'catt9',
+                                                          'catt10', 'catt11', 'catt12')),]$estimates)
 
 ## R was weird and would convert the estimates value to factors - so I get around this by creating the estimates and std.error columns separately
 ##THis is really stupid, we should change this
@@ -692,10 +719,10 @@ pass$passthrough <- pass$cpricei/pass$sales_tax
 
 #Now need to create a vector with 1/gamma then -beta/gamma^2 (because Delta Method)
 deriv <- as.vector(c(1/pass$sales_tax, -pass$cpricei/(pass$sales_tax^2)))
-pooled.pass.var <- matrix(0, nrow = 5, ncol = 1)
-for(i in 1:5) {
+pooled.pass.var <- matrix(0, nrow = 13, ncol = 1)
+for(i in 1:13) {
 
-  delta <- c(rep(c(rep(0, (3 + i-1)), 1, rep(0, (5-i))), (K.param/8)))
+  delta <- c(rep(c(rep(0, (11 + i-1)), 1, rep(0, (13-i))), (K.param/24)))
 
   gradient <- delta*cohort.weights$weights
   norm.gradient <- gradient/sum(gradient)
@@ -709,13 +736,13 @@ for(i in 1:5) {
 ## Pooled estimate of passthrough
 est <- pass[tt_event >= 0, .(estimates = weighted.mean(passthrough, w = total_sales)), by = .(rn)]
 est$std.errors <- sqrt(pooled.pass.var)
-est$outcome <- rep("passthrough_1", 5)
+est$outcome <- rep("passthrough_1", 13)
 
 estimates <- rbind(estimates, est)
 
 
 ###Pooling across leads
-delta <- c(rep(c(rep(0, 3), rep(1, (5))), (K.param/8)))
+delta <- c(rep(c(rep(0, 11), rep(1, (13))), (K.param/24)))
 
 gradient <- delta*cohort.weights$weights
 norm.gradient <- gradient/sum(gradient)
@@ -738,20 +765,30 @@ estimates <- rbind(estimates, est)
 ##2) Average price and tax estimate across cohorts then divide
 #First get the estimates estimates
 #test <- estimates[outcome == 'cpricei' & rn %in% c("catt0", "catt1", "catt2", "catt3", "catt4"), "estimates"]
-estprice.pass <- estimates[outcome == 'cpricei' & rn %in% c("catt-4", "catt-3", "catt-1", "catt0", "catt1", "catt2", "catt3", "catt4"), "estimates"]
-esttax.pass <- estimates[outcome == 'sales_tax' & rn %in% c("catt-4", "catt-3", "catt-1", "catt0", "catt1", "catt2", "catt3", "catt4"), "estimates"]
+estprice.pass <- estimates[outcome == 'cpricei' & rn %in% c("catt-12", "catt-11", "catt-10", "catt-9",
+                                                            "catt-8", "catt-7", "catt-5", "catt-4",
+                                                            "catt-3", "catt-1", 'catt0', 'catt1',
+                                                            'catt2', 'catt3', 'catt4', 'catt5',
+                                                            'catt6', 'catt7', 'catt8', 'catt9',
+                                                            'catt10', 'catt11', 'catt12'), "estimates"]
+esttax.pass <- estimates[outcome == 'sales_tax' & rn %in% c("catt-12", "catt-11", "catt-10", "catt-9",
+                                                            "catt-8", "catt-7", "catt-5", "catt-4",
+                                                            "catt-3", "catt-1", 'catt0', 'catt1',
+                                                            'catt2', 'catt3', 'catt4', 'catt5',
+                                                            'catt6', 'catt7', 'catt8', 'catt9',
+                                                            'catt10', 'catt11', 'catt12'), "estimates"]
 est.passthrough <- estprice.pass/esttax.pass
 
-deriv1 <- rep(1/as.vector(esttax.pass$estimates), K.param/8)
+deriv1 <- rep(1/as.vector(esttax.pass$estimates), K.param/24)
 deriv2 <-  - as.vector(cp.all.res[outcome == 'cpricei', "estimate"]$estimate)
 deriv2 <- deriv2*deriv1^2
 
 deriv <- as.vector(c(deriv1, deriv2))
-pooled.pass.var2 <- matrix(0, nrow = 5, ncol = 1)
+pooled.pass.var2 <- matrix(0, nrow = 13, ncol = 1)
 
-for(i in 1:5) {
+for(i in 1:13) {
 
-  delta <- c(rep(c(rep(0, (3 + i-1)), 1, rep(0, (5-i))), (K.param/8)))
+  delta <- c(rep(c(rep(0, (11 + i-1)), 1, rep(0, (13-i))), (K.param/24)))
 
   gradient <- delta*cohort.weights$weights
   norm.gradient <- gradient/sum(gradient)
@@ -768,14 +805,14 @@ est <- pass[tt_event >= 0, .(cpricei = weighted.mean(cpricei, w = total_sales), 
 est$estimates <- est$cpricei/est$sales_tax
 est <- est[,-c("cpricei", "sales_tax")]
 est$std.errors <- sqrt(pooled.pass.var2)
-est$outcome <- rep("passthrough_2", 5)
+est$outcome <- rep("passthrough_2", 13)
 
 
 estimates <- rbind(estimates, est)
 
 
 ###Pooling across leads (for passthrough 2)
-delta <- c(rep(c(rep(0, 3), rep(1, (5))), (K.param/8)))
+delta <- c(rep(c(rep(0, 11), rep(1, (13))), (K.param/24)))
 
 gradient <- delta*cohort.weights$weights
 norm.gradient <- gradient/sum(gradient)

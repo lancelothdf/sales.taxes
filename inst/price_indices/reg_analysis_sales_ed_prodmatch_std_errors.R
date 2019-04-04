@@ -456,7 +456,7 @@ fwrite(skeleton, output.skeleton)
 
 
 ##### Step 3: Produce standard errors of specific parameters/averages of parameters using the Delta method
-output.estimates.stderr.filepath <- "Data/Passthrough_estimates_stderr_ed_combined.csv"
+output.estimates.stderr.filepath <- "Data/Sales_estimates_stderr_ed_combined.csv"
 
 
 #cov.matrix <- fread(output.cov.cpricei)
