@@ -92,7 +92,8 @@ if (prep_enviro){
   gc()
 
   flog.info("Reading in tax rates...")
-  all.tax <- fread(monthly_tax_path)
+  all.tax <- read.dta13(monthly_tax_path)
+  setDT(all.tax)
 
   flog.info("Merging on tax rates...")
   all_pi <- merge(all_pi, all.tax,
