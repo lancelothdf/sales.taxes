@@ -13,6 +13,7 @@ library(data.table)
 library(lfe)
 library(futile.logger)
 library(AER)
+library(readstata13)
 
 #' Switching to monthly: we need to
 #'   -make sure the monthly price and quantity data is correctly loaded
