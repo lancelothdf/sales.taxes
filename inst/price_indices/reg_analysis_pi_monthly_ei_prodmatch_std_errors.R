@@ -258,9 +258,22 @@ for (yr in 2009:2013) {
                                        " | county_ID + tt_event | 0 | county_ID"))
 
     res.cp <- felm(data = ss_pi, formula = cXp_formula,
-                     weights = ss_pi$weights)
+                     weights = ss_pi$weights, na.action = na.exclude)
     flog.info("Estimated with price index as outcome.")
     # print(coef(summary(res.cp)))
+
+    if (length(res.cp$residuals) != length(ss_pi$county_ID)) {
+      flog.info("Issue: missing data. Re-running with to get correct residuals.")
+      ss_pi <- na.omit(ss_pi)
+      res.cp <- felm(data = ss_pi, formula = cXp_formula,
+                     weights = ss_pi$weights, na.action = na.exclude)
+      if (length(res.cp$residuals) != length(ss_pi$county_ID)) {
+        flog.info("Successfully re-stimated with price index as outcome.")
+      } else {
+        flog.info("Unable to re-estimate to get residuals. Skipping cohort.")
+        next
+      }
+    }
 
     ## Get residuals for standard errors ##
     get.res2 <- function(var) { return(get.res(var, "county_ID + tt_event", "weights", ss_pi)) } #Make get.res a function of 1 variable only to iterate over
