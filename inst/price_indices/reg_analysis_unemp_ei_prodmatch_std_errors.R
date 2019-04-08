@@ -26,6 +26,7 @@ library(AER)
 
 setwd("/project2/igaarder")
 change_of_interest <- "Ever increase"
+prep_enviro <- T
 
 output.results.filepath <- "Data/unemp_ei_monthly_regression_res_prodmatch_combined.csv"
 output.residuals.cpricei.filepath <- "Data/unemp_ei_monthly_regression_prodmatch_residuals_cpricei_combined.csv"
