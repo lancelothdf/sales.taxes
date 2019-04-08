@@ -789,13 +789,13 @@ estimates <- rbind(estimates, est)
 #test <- estimates[outcome == 'cpricei' & rn %in% c("catt0", "catt1", "catt2", "catt3", "catt4"), "estimates"]
 estprice.pass <- estimates[outcome == 'cpricei' & rn %in% c("catt-12", "catt-11", "catt-10", "catt-9",
                                                             "catt-8", "catt-7", "catt-5", "catt-4",
-                                                            "catt-3", "catt-1", 'catt0', 'catt1',
+                                                            "catt-3", "catt-2", "catt-1", 'catt0', 'catt1',
                                                             'catt2', 'catt3', 'catt4', 'catt5',
                                                             'catt6', 'catt7', 'catt8', 'catt9',
                                                             'catt10', 'catt11', 'catt12'), "estimates"]
 esttax.pass <- estimates[outcome == 'sales_tax' & rn %in% c("catt-12", "catt-11", "catt-10", "catt-9",
                                                             "catt-8", "catt-7", "catt-5", "catt-4",
-                                                            "catt-3", "catt-1", 'catt0', 'catt1',
+                                                            "catt-3", "catt-2", "catt-1", 'catt0', 'catt1',
                                                             'catt2', 'catt3', 'catt4', 'catt5',
                                                             'catt6', 'catt7', 'catt8', 'catt9',
                                                             'catt10', 'catt11', 'catt12'), "estimates"]
