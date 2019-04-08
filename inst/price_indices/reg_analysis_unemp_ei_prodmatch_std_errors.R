@@ -88,7 +88,8 @@ if (prep_enviro){
   rm(sales_data)
   gc()
 
-  all.tax <- fread(monthly_tax_path)
+  all.tax <- read.dta13(monthly_tax_path)
+  setDT(all.tax)
 
   all_pi <- merge(all_pi, all.tax,
                   by = c("fips_county", "fips_state", "product_module_code",
