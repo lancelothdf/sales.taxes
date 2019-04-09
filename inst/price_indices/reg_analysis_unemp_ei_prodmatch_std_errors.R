@@ -54,7 +54,7 @@ unemp_path <- "Data/covariates/county_monthly_unemp_clean.csv"
 get.res <- function(var, group, w, mtx) {
 
   form <- as.formula(paste0(var, "~ 1 | ", group, " | 0 | 0", sep = ""))
-  return(felm(data = mtx, formula = form , weights = mtx[,get(w)])$fitted.values)
+  return(felm(data = mtx, formula = form , weights = mtx[,get(w)])$residuals)
 
 }
 
@@ -423,6 +423,7 @@ non.empty.blocks <- cpricei.res[, .(.N), .(ref_year, ref_mon)] ##Note tax.res[, 
 skeleton <- expand.grid.df(as.data.frame(list.leads), non.empty.blocks)
 colnames(skeleton) <- c("lead", "ref_year", "ref_mon", "N")
 K.param <- dim(skeleton)[1]
+skeleton$ID <- c(1:K.param) ##Create an ID to re-order observations in the same way after every merge
 
 
 ### Loop over counties to create the "residuals matrix" for clustered std errors
@@ -444,8 +445,10 @@ k <- 1
                                     "catt10", "catt11", "catt12")
 
   c.cpricei <- merge(skeleton, c.cpricei[,c("ref_year", "ref_mon", "lead", "parameter")], by = c("ref_year", "ref_mon", "lead"), all.x = TRUE)
-  c.cpricei[is.na(c.cpricei)] <- 0
 
+  setDT(c.cpricei)
+  c.cpricei <- c.cpricei[order(ID),] ##Make sure that the sequence follows cattlead4 to cattlead1, catt0 to catt4
+  c.cpricei[is.na(c.cpricei)] <- 0
 
 
 ## Tried different ways because this step takes a long time mat.mult is slower here
