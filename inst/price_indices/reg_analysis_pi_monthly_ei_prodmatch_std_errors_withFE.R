@@ -52,7 +52,7 @@ monthly_tax_path <- "Data/Nielsen/sales_tax_rate_monthly_product_level.dta"
 get.res <- function(var, group, w, mtx) {
 
   form <- as.formula(paste0(var, "~ 1 | ", group, " | 0 | 0", sep = ""))
-  return(felm(data = mtx, formula = form , weights = mtx[,get(w)])$fitted.values)
+  return(felm(data = mtx, formula = form , weights = mtx[,get(w)])$residuals)
 
 }
 
@@ -524,6 +524,7 @@ non.empty.blocks <- cpricei.res[, .(.N), .(ref_year, ref_mon)] ##Note tax.res[, 
 skeleton <- expand.grid.df(as.data.frame(list.leads), non.empty.blocks)
 colnames(skeleton) <- c("lead", "ref_year", "ref_mon", "N")
 K.param <- dim(skeleton)[1]
+skeleton$ID <- c(1:K.param) ##Create an ID to re-order observations in the same way after every merge
 
 
 ### Loop over counties to create the "residuals matrix" for clustered std errors
@@ -545,6 +546,9 @@ k <- 1
                                     "catt10", "catt11", "catt12")
 
   c.cpricei <- merge(skeleton, c.cpricei[,c("ref_year", "ref_mon", "lead", "parameter")], by = c("ref_year", "ref_mon", "lead"), all.x = TRUE)
+
+  setDT(c.cpricei)
+  c.cpricei <- c.cpricei[order(ID),] ##Make sure that the sequence follows cattlead4 to cattlead1, catt0 to catt4
   c.cpricei[is.na(c.cpricei)] <- 0
 
 ## Taxes
@@ -558,6 +562,9 @@ c.tax <- c.tax %>% gather(key = "lead", value = "parameter",
                           "catt10", "catt11", "catt12")
 
 c.tax <- merge(skeleton, c.tax[,c("ref_year", "ref_mon", "lead", "parameter")], by = c("ref_year", "ref_mon", "lead"), all.x = TRUE)
+
+setDT(c.tax)
+c.tax <- c.tax[order(ID),] ##Make sure that the sequence follows cattlead4 to cattlead1, catt0 to catt4
 c.tax[is.na(c.tax)] <- 0
 
 c.all <- rbind(c.cpricei, c.tax)
@@ -868,7 +875,7 @@ pooled.all.pass2 <- t(as.vector(norm.gradient))%*%as.matrix(cov.matrix)%*%as.vec
 est <- pass[tt_event >= 0, .(cpricei = weighted.mean(cpricei, w = total_sales), sales_tax = weighted.mean(sales_tax, w = total_sales))]
 est$estimates <- est$cpricei/est$sales_tax
 est <- est[,-c("cpricei", "sales_tax")]
-est$std.errors <- sqrt(pooled.all.pass)
+est$std.errors <- sqrt(pooled.all.pass2)
 est$rn <- "post-treatment"
 est$outcome <- "passthrough_2"
 

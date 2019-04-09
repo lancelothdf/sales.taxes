@@ -44,7 +44,7 @@ tr_groups_path <- "Data/tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
 get.res <- function(var, group, w, mtx) {
 
   form <- as.formula(paste0(var, "~ 1 | ", group, " | 0 | 0", sep = ""))
-  return(felm(data = mtx, formula = form , weights = mtx[,get(w)])$fitted.values)
+  return(felm(data = mtx, formula = form , weights = mtx[,get(w)])$residuals)
 
 }
 
@@ -376,6 +376,7 @@ non.empty.blocks <- sales.res[, .(.N), .(ref_year, ref_qtr)] ##Note tax.res[, .(
 skeleton <- expand.grid.df(as.data.frame(list.leads), non.empty.blocks)
 colnames(skeleton) <- c("lead", "ref_year", "ref_qtr", "N")
 K.param <- dim(skeleton)[1]
+skeleton$ID <- c(1:K.param) ##Create an ID to re-order observations in the same way after every merge
 
 
 ### Loop over counties to create the "residuals matrix" for clustered std errors
@@ -391,6 +392,9 @@ k <- 1
   c.sales <- c.sales %>% gather(key = "lead", value = "parameter", "cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")
 
   c.sales <- merge(skeleton, c.sales[,c("ref_year", "ref_qtr", "lead", "parameter")], by = c("ref_year", "ref_qtr", "lead"), all.x = TRUE)
+
+  setDT(c.sales)
+  c.sales <- c.sales[order(ID),] ##Make sure that the sequence follows cattlead4 to cattlead1, catt0 to catt4
   c.sales[is.na(c.sales)] <- 0
 
 ## Taxes
@@ -398,6 +402,9 @@ c.tax <- tax.res[county_ID == cty] #More interesting example because this county
 c.tax <- c.tax %>% gather(key = "lead", value = "parameter", "cattlead4", "cattlead3", "cattlead1", "catt0", "catt1", "catt2", "catt3", "catt4")
 
 c.tax <- merge(skeleton, c.tax[,c("ref_year", "ref_qtr", "lead", "parameter")], by = c("ref_year", "ref_qtr", "lead"), all.x = TRUE)
+
+setDT(c.tax)
+c.tax <- c.tax[order(ID),] ##Make sure that the sequence follows cattlead4 to cattlead1, catt0 to catt4
 c.tax[is.na(c.tax)] <- 0
 
 c.all <- rbind(c.sales, c.tax)
@@ -654,7 +661,7 @@ pooled.all.pass2 <- t(as.vector(norm.gradient))%*%as.matrix(cov.matrix)%*%as.vec
 est <- pass[tt_event >= 0, .(sales = weighted.mean(sales, w = total_sales), sales_tax = weighted.mean(sales_tax, w = total_sales))]
 est$estimates <- est$sales/est$sales_tax
 est <- est[,-c("sales", "sales_tax")]
-est$std.errors <- sqrt(pooled.all.pass)
+est$std.errors <- sqrt(pooled.all.pass2)
 est$rn <- "post-treatment"
 est$outcome <- "passthrough_2"
 

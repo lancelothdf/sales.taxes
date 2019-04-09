@@ -660,7 +660,7 @@ pooled.all.pass2 <- t(as.vector(norm.gradient))%*%as.matrix(cov.matrix)%*%as.vec
 est <- pass[tt_event >= 0, .(cpricei = weighted.mean(cpricei, w = total_sales), sales_tax = weighted.mean(sales_tax, w = total_sales))]
 est$estimates <- est$cpricei/est$sales_tax
 est <- est[,-c("cpricei", "sales_tax")]
-est$std.errors <- sqrt(pooled.all.pass)
+est$std.errors <- sqrt(pooled.all.pass2)
 est$rn <- "post-treatment"
 est$outcome <- "passthrough_2"
 
