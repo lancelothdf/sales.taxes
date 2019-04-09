@@ -508,10 +508,10 @@ fwrite(skeleton, output.skeleton)
 output.estimates.stderr.filepath <- "Data/Passthrough_estimates_stderr_ei_monthly_combined.csv"
 
 
-#cov.matrix <- fread(output.cov.cpricei)
-#skeleton <- fread(output.skeleton)
-#cp.all.res <- fread(output.results.filepath)
-#K.param <- dim(skeleton)[1]
+cov.matrix <- fread(output.cov.cpricei)
+skeleton <- fread(output.skeleton)
+cp.all.res <- fread(output.results.filepath)
+K.param <- dim(skeleton)[1]
 
 ##Produce standard errors for cpricei pooled across cohorts
 #cohort.weights <- cp.all.res[,.(weights = mean(total_sales)), by = .(ref_year, ref_quarter)]  ##The mean operator does not matter here - total_sales is constant within cohort but we just want to collapse to get a vector
@@ -520,7 +520,7 @@ colnames(cohort.weights) <- "weights"
 pooled.var <- matrix(0, nrow = 24, ncol = 1)
 for(i in 1:24) {
 
-  delta <- c(rep(c(rep(0, (i-1)), 1, rep(0, (24-i))), K.param/24), rep(0, K.param))
+  delta <- rep(c(rep(0, (i-1)), 1, rep(0, (24-i))), K.param/24)
 
   gradient <- delta*cohort.weights$weights
   norm.gradient <- gradient/sum(gradient)
@@ -536,7 +536,7 @@ estimates$std.errors <- sqrt(pooled.var)
 ##Standard errors for pooled post-reform estimates (pooled across cohorts and across catt0-catt4)
 ##Cpricei
 weights <- setDT(cp.all.res[outcome == 'cpricei',])
-delta <- c(rep(c(rep(0, 11), rep(1, 13)), K.param/24), rep(0, K.param)) #Selects all post-period estimates
+delta <- rep(c(rep(0, 11), rep(1, 13)), K.param/24) #Selects all post-period estimates
 
 gradient <- delta*weights$total_sales
 norm.gradient <- gradient/sum(gradient)
