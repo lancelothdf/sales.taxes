@@ -256,7 +256,9 @@ for (yr in 2009:2013) {
     res.cp <- felm(data = ss_pi, formula = cXp_formula,
                    weights = ss_pi$weights)
 
+
     res.cp <- as.data.table(summary(res.cp, robust = T)$coefficients, keep.rownames = T)
+    res.cp <- res.cp[rn != "`unemp_rate(fit)`"] # remove to prevent confusion later on
     res.cp[, rn := gsub("lead", "-", rn)]
 
     res.cp[, tt_event := as.integer(NA)]
@@ -293,6 +295,7 @@ for (yr in 2009:2013) {
 
     res.tax <- felm(data = ss_pi, formula = tax_formula,
                       weights = ss_pi$weights)
+
     flog.info("Estimated with tax rate as outcome.")
     print(coef(summary(res.tax)))
 
@@ -310,6 +313,8 @@ for (yr in 2009:2013) {
     rm(resid.tax, resid)
 
     res.tax <- as.data.table(summary(res.tax, robust = T)$coefficients, keep.rownames = T)
+    res.tax <- res.tax[rn != "`unemp_rate(fit)`"] # remove to prevent confusion later on
+
     res.tax[, rn := gsub("lead", "-", rn)]
 
     res.tax[, tt_event := as.integer(NA)]
