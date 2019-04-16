@@ -56,9 +56,6 @@ unemp_dt[, quarter := ceiling(month / 3)]
 unemp_dt <- unemp_dt[, list(unemp_rate = mean(rate)),
                      by = .(year, quarter, fips_state, fips_county)]
 
-rm(unemp_dt)
-gc()
-
 ## prep the data ---------------------------------------------------------------
 
 all_pi <- fread(all_goods_pi_path)
