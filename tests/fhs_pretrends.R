@@ -9,9 +9,10 @@ library(ggplot2)
 
 rm(list=ls())
 set.seed(1001)
-N_i <- 1000
 
-## define primitives, following Section 3.1 DGP
+## generate data, following Section 3.1 DGP ------------------------------------
+N_i <- 1000 # number obs
+## define primitives
 lambda <- 1
 rho <- 1
 beta <- 1
@@ -20,10 +21,7 @@ u_sd <- 4
 eta_star <- 4
 
 ## skeleton
-dt <- data.table(expand.grid(
-  year = 1:20,
-  unit = 1:N_i
-), key = "unit")
+dt <- data.table(expand.grid(year = 1:20, unit = 1:N_i), key = "unit")
 
 ## add fixed effects for state
 alphas <- data.table(unit = 1:N_i, alpha = rnorm(N_i), key = "unit")
@@ -39,12 +37,10 @@ dt[, z := as.integer(eta > eta_star)]
 dt[, z := cummax(z), by = unit]
 dt[, u := rnorm(nrow(dt), mean = 0, sd = u_sd)]
 dt[, x := lambda * eta + u]
-
 dt[, epsilon := rnorm(nrow(dt), mean = 0, sd = 1)]
-
 dt[, y := beta * z + 0.25 * eta + 0.2 * year + alpha + epsilon]
 
-## Preparing for estimation
+## Preparing for estimation (declaring lags and leads for easy implementation)
 dt[, `:=` (
   l6.z = shift(z, n=6, type="lag"),
   l5.z = shift(z, n=5, type="lag"),
@@ -74,7 +70,7 @@ dt[, `:=` (
   D.f6.z = 1 - f5.z
 ), by = unit]
 
-## Estimation, following equation (13) and including eta (infeasible)
+## Estimation, following equation (13) and including eta (infeasible) ----------
 
 fhs_formula13 <- y ~ l6.z + D.l5.z + D.l4.z + D.l3.z + D.l2.z + D.l1.z + D.event.z +
   D.f2.z + D.f3.z + D.f4.z + D.f5.z + D.f6.z + eta | year + unit | 0 | unit
@@ -88,6 +84,7 @@ coefs.13 <- merge(coefs.13, data.table(
   ),
   tt_event = c(6, 5, 4, 3, 2, 0, 1, -2, -3, -4, -5, -6)))
 
+## plot result
 ggplot(data = coefs.13, mapping = aes(x = tt_event, y = Estimate)) +
   geom_point(size = 2, alpha = .5) +
   geom_errorbar(aes(ymax = Estimate + 1.96 * `Cluster s.e.`,
@@ -101,7 +98,7 @@ ggplot(data = coefs.13, mapping = aes(x = tt_event, y = Estimate)) +
   labs(x = NULL, y = NULL) +
   theme(panel.grid.minor = element_blank())
 
-## Estimation, excluding eta
+## Estimation, excluding eta -----------------------------
 
 fhs_formula13.2 <- y ~ l6.z + D.l5.z + D.l4.z + D.l3.z + D.l2.z + D.l1.z + D.event.z +
   D.f2.z + D.f3.z + D.f4.z + D.f5.z + D.f6.z | year + unit | 0 | unit
@@ -115,6 +112,7 @@ coefs.13.2 <- merge(coefs.13.2, data.table(
   ),
   tt_event = c(6, 5, 4, 3, 2, 0, 1, -2, -3, -4, -5, -6)))
 
+## plot result
 ggplot(data = coefs.13.2, mapping = aes(x = tt_event, y = Estimate)) +
   geom_point(size = 2, alpha = .5) +
   geom_errorbar(aes(ymax = Estimate + 1.96 * `Cluster s.e.`,
@@ -128,7 +126,7 @@ ggplot(data = coefs.13.2, mapping = aes(x = tt_event, y = Estimate)) +
   labs(x = NULL, y = NULL) +
   theme(panel.grid.minor = element_blank())
 
-## Estimation, adding x as a proxy for eta
+## Estimation, adding x as a proxy for eta -----------------------------
 
 fhs_formula13.3 <- y ~ l6.z + D.l5.z + D.l4.z + D.l3.z + D.l2.z + D.l1.z + D.event.z +
   D.f2.z + D.f3.z + D.f4.z + D.f5.z + D.f6.z + x | year + unit | 0 | unit
@@ -142,6 +140,7 @@ coefs.13.3 <- merge(coefs.13.3, data.table(
   ),
   tt_event = c(6, 5, 4, 3, 2, 0, 1, -2, -3, -4, -5, -6)))
 
+## plot result
 ggplot(data = coefs.13.3, mapping = aes(x = tt_event, y = Estimate)) +
   geom_point(size = 2, alpha = .5) +
   geom_errorbar(aes(ymax = Estimate + 1.96 * `Cluster s.e.`,
@@ -155,7 +154,7 @@ ggplot(data = coefs.13.3, mapping = aes(x = tt_event, y = Estimate)) +
   labs(x = NULL, y = NULL) +
   theme(panel.grid.minor = element_blank())
 
-## Estimation via proposed 2SLS estimator (with closest lead of z as excluded instrument)
+## Estimation via proposed 2SLS estimator (with closest lead of z as excluded instrument) ------
 
 fhs_formula13.4 <- y ~ l6.z + D.l5.z + D.l4.z + D.l3.z + D.l2.z + D.l1.z + D.event.z +
   D.f3.z + D.f4.z + D.f5.z + D.f6.z | year + unit | (x ~ f1.z) | unit
@@ -169,6 +168,7 @@ coefs.13.4 <- merge(coefs.13.4, data.table(
   ),
   tt_event = c(6, 5, 4, 3, 2, 0, 1, -2, -3, -4, -5, -6)))
 
+## plot result
 ggplot(data = coefs.13.4, mapping = aes(x = tt_event, y = Estimate)) +
   geom_point(size = 2, alpha = .5) +
   geom_errorbar(aes(ymax = Estimate + 1.96 * `Cluster s.e.`,
