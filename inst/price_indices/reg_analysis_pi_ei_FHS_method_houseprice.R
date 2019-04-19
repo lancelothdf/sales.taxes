@@ -74,6 +74,7 @@ zillow_state_dt <- fread(zillow_state_path)
 zillow_state_dt <- zillow_state_dt[between(year, 2006, 2014)]
 zillow_state_dt <- zillow_state_dt[, .(fips_state, median_home_price, year, month)]
 setnames(zillow_state_dt, "median_home_price", "state_median_home_price")
+zillow_state_dt$month <- as.integer(round(zillow_state_dt$month))
 
 zillow_dt <- merge(zillow_dt, zillow_state_dt, all.x = T,
                    by = c("fips_state", "year", "month"))
