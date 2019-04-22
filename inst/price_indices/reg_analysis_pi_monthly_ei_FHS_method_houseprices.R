@@ -44,6 +44,8 @@ eventstudy_tr_path <- "Data/event_study_tr_groups_comprehensive_firstonly_no2012
 tr_groups_path <- "Data/tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
 sales_data_path <- "Data/sales_monthly_2006-2016.csv"
 monthly_tax_path <- "Data/Nielsen/sales_tax_rate_monthly_product_level.dta"
+zillow_path <- "Data/covariates/zillow_long_by_county_clean.csv"
+zillow_state_path <- "Data/covariates/zillow_long_by_state_clean.csv"
 
 
 ## Want to run cohort-product specific regressions.
