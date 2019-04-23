@@ -310,6 +310,9 @@ for (yr in 2009:2013) {
       ss_pi <- na.omit(ss_pi)
       res.cp <- felm(data = ss_pi, formula = cXp_formula,
                      weights = ss_pi$weights, na.action = na.exclude)
+      temp_coef1 <- try(coef(summary(res.cp)))
+      if (class(temp_coef1) == "try-error") next else print(temp_coef1)
+
       if (length(res.cp$residuals) != length(ss_pi$county_ID)) {
         flog.info("Successfully re-stimated with price index as outcome.")
       } else {
