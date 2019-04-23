@@ -424,7 +424,8 @@ for (yr in 2009:2013) {
     res.tax <- felm(data = ss_pi, formula = tax_formula,
                       weights = ss_pi$weights)
     flog.info("Estimated with tax rate as outcome.")
-    print(coef(summary(res.tax)))
+    temp_coef <- try(coef(summary(res.tax)))
+    if (class(temp_coef) == "try-error") next else print(temp_coef)
 
     #resid is same as for previous regression - so we re-use it (NEED TO REPLACE RESIDUALS THOUGH)
     resid$residuals <- res.tax$residuals
