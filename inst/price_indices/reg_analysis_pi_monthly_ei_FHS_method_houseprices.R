@@ -303,7 +303,7 @@ for (yr in 2009:2013) {
     res.cp <- felm(data = ss_pi, formula = cXp_formula,
                      weights = ss_pi$weights, na.action = na.exclude)
     flog.info("Estimated with price index as outcome.")
-    # print(coef(summary(res.cp)))
+    print(coef(summary(res.cp)))
 
     if (length(res.cp$residuals) != length(ss_pi$county_ID)) {
       flog.info("Issue: missing data. Re-running with to get correct residuals.")
@@ -383,7 +383,9 @@ for (yr in 2009:2013) {
     res.cp <- felm(data = ss_pi, formula = cXp_formula,
                    weights = ss_pi$weights)
 
-    res.cp <- as.data.table(summary(res.cp, robust = T)$coefficients, keep.rownames = T)
+    res.cp <- try(as.data.table(summary(res.cp, robust = T)$coefficients, keep.rownames = T))
+    if (class(res.cp) == "try-error") next
+
     res.cp <- res.cp[rn != "`ln_home_price(fit)`"] # remove to prevent confusion later on
     res.cp[, rn := gsub("lead", "-", rn)]
 
@@ -422,7 +424,7 @@ for (yr in 2009:2013) {
     res.tax <- felm(data = ss_pi, formula = tax_formula,
                       weights = ss_pi$weights)
     flog.info("Estimated with tax rate as outcome.")
-    # print(coef(summary(res.tax)))
+    print(coef(summary(res.tax)))
 
     #resid is same as for previous regression - so we re-use it (NEED TO REPLACE RESIDUALS THOUGH)
     resid$residuals <- res.tax$residuals
@@ -460,7 +462,10 @@ for (yr in 2009:2013) {
     clustered.res.tax <- rbind(clustered.res.tax, resid.tax)
     rm(resid.tax, resid)
 
-    res.tax <- as.data.table(summary(res.tax, robust = T)$coefficients, keep.rownames = T)
+    res.tax <- try(as.data.table(summary(res.tax, robust = T)$coefficients, keep.rownames = T))
+    if (class(res.tax) == "try-error") next
+
+    res.tax <- res.tax[rn != "`ln_home_price(fit)`"] # remove to prevent confusion later on
     res.tax[, rn := gsub("lead", "-", rn)]
 
     res.tax[, tt_event := as.integer(NA)]
