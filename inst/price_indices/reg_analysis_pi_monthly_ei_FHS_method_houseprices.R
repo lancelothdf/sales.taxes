@@ -383,11 +383,18 @@ for (yr in 2009:2013) {
 
     ## clean and save output
     #WARNING: very inefficient but somehow the command after running regression have changed the nature of res.cp - so re-run
-    res.cp <- felm(data = ss_pi, formula = cXp_formula,
-                   weights = ss_pi$weights)
+    res.cp <- try(felm(data = ss_pi, formula = cXp_formula,
+                   weights = ss_pi$weights))
+    if (class(res.cp) == "try-error"){
+      flog.info("Error using `felm` with price index as outcome. Skipping cohort.")
+      next
+    }
 
     res.cp <- try(as.data.table(summary(res.cp, robust = T)$coefficients, keep.rownames = T))
-    if (class(res.cp) == "try-error") next
+    if (class(res.cp) == "try-error"){
+      flog.info("Error extracting coefficients from `felm` with price index as outcome. Skipping cohort.")
+      next
+    }
 
     res.cp <- res.cp[rn != "`ln_home_price(fit)`"] # remove to prevent confusion later on
     res.cp[, rn := gsub("lead", "-", rn)]
@@ -424,11 +431,19 @@ for (yr in 2009:2013) {
     tax_formula <- as.formula(paste0("sales_tax ~ ", tax_formula_input,
                                        " | county_ID + tt_event | (ln_home_price ~ cattlead3) | county_ID"))
 
-    res.tax <- felm(data = ss_pi, formula = tax_formula,
-                      weights = ss_pi$weights)
+    res.tax <- try(felm(data = ss_pi, formula = tax_formula,
+                      weights = ss_pi$weights))
+    if (class(res.tax) == "try-error") {
+      flog.info("Error running `felm` with tax rate as outcome. Skipping cohort.")
+      next
+    }
     flog.info("Estimated with tax rate as outcome.")
     temp_coef <- try(coef(summary(res.tax)))
-    if (class(temp_coef) == "try-error") next else print(temp_coef)
+    if (class(temp_coef) == "try-error") {
+      flog.info("Error extracting coefficients from `felm` with tax rate as outcome. Skipping cohort.")
+      next
+    }
+    print(temp_coef)
 
     #resid is same as for previous regression - so we re-use it (NEED TO REPLACE RESIDUALS THOUGH)
     resid$residuals <- res.tax$residuals
