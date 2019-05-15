@@ -33,7 +33,7 @@ setwd("/project2/igaarder")
 #   }
 # }
 change_of_interest <- "Ever increase"
-output.filestub <- "quantity_ei"
+output.filestub <- "quantityi_ei"
 
 # change_of_interest <- args[1]
 if (!change_of_interest %in% c("Ever increase", "Ever decrease", "Increase only")) {
@@ -87,7 +87,8 @@ all_pi[, base.sales := sales[year == 2008 & quarter == 1],
        by = .(store_code_uc, product_module_code)]
 
 all_pi <- all_pi[!is.na(base.sales)]
-all_pi[, ln_quantity := log(sales) - ln_pricei]
+# all_pi[, ln_quantity := log(sales) - ln_pricei]
+all_pi[, ln_quantity := log(quantityi)]
 
 ## balance on store-module level
 keep_store_modules <- all_pi[, list(n = .N),
