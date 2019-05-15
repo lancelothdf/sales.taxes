@@ -24,14 +24,16 @@ library(AER)
 
 
 setwd("/project2/igaarder")
-args <- commandArgs(TRUE)
-if (length(args) != 2) {
-  stop("Two arguments are needed")
-} else {
-  for (i in l:length(args)) {
-    eval(parse(text=args[[i]]))
-  }
-}
+# args <- commandArgs(TRUE)
+# if (length(args) != 2) {
+#   stop("Two arguments are needed")
+# } else {
+#   for (i in l:length(args)) {
+#     eval(parse(text=args[[i]]))
+#   }
+# }
+change_of_interest <- "Ever increase"
+output.filestub <- "quantity_ei"
 
 # change_of_interest <- args[1]
 if (!change_of_interest %in% c("Ever increase", "Ever decrease", "Increase only")) {
