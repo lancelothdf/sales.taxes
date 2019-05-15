@@ -27,14 +27,18 @@ setwd("/project2/igaarder")
 args <- commandArgs(TRUE)
 if (length(args) != 2) {
   stop("Two arguments are needed")
+} else {
+  for (i in l:length(args)) {
+    eval(parse(text=args[[i]]))
+  }
 }
 
-change_of_interest <- args[1]
+# change_of_interest <- args[1]
 if (!change_of_interest %in% c("Ever increase", "Ever decrease", "Increase only")) {
   stop(sprintf("`change_of_interest` = %s is invalid", change_of_interest))
 }
 
-output.filestub <- args[2]
+# output.filestub <- args[2]
 
 output.results.filepath <- paste0("Data/", output.filestub, "_regression_res_prodmatch.csv")
 output.residuals.ln_quantity.filepath <- paste0("Data/", output.filestub, "_regression_prodmatch_residuals.csv")
