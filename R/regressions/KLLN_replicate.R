@@ -58,8 +58,8 @@ all_pi[, module_by_time := .GRP, by = .(year, quarter, product_module_code)]
 ## create the module specific time trends
 varnames_old <- names(all_pi)
 for (P in unique(all_pi$product_module_code)) {
-  flog.info("Creating trend for product %s", product_module_code)
-  P_vname <- paste0("ttrend_", product_module_code)
+  flog.info("Creating trend for product %s", P)
+  P_vname <- paste0("ttrend_", P)
 
   all_pi[, (P_vname) := as.integer(product_module_code == P) * linear_time]
 }
