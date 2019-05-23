@@ -56,11 +56,10 @@ all_pi[, linear_time := year * 4 + quarter]
 all_pi[, module_by_time := .GRP, by = .(year, quarter, product_module_code)]
 
 ## run the analysis on price ---------------------------------------------------
-print(memory.limit())
 print(head(all_pi))
 
 price_formula <- as.formula(paste0(
-  "ln_cpricei ~ ln_sales_tax + factor(product_module_code) * linear_time ",
+  "ln_cpricei ~ ln_sales_tax  ", # + factor(product_module_code) * linear_time
   "| yr_quarter + store_module | 0 | state_by_module "
 ))
 
