@@ -6,7 +6,6 @@
 library(data.table)
 library(lfe)
 library(futile.logger)
-library(AER)
 
 setwd("/project2/igaarder")
 
@@ -28,6 +27,10 @@ all_pi[, base.sales := sales[year == 2008 & quarter == 1],
 
 all_pi <- all_pi[!is.na(base.sales) & !is.na(sales) & !is.na(ln_cpricei) &
                    !is.na(ln_sales_tax) & !is.na(ln_quantity)]
+all_pi <- all_pi[, .(
+  store_code_uc, product_module_code, fips_state, fips_county, year, quarter,
+  sales, ln_cpricei, ln_sales_tax, ln_quantity, base.sales
+)]
 
 ## balance on store-module level
 keep_store_modules <- all_pi[, list(n = .N),
@@ -53,6 +56,13 @@ all_pi[, linear_time := year * 4 + quarter]
 all_pi[, module_by_time := .GRP, by = .(year, quarter, product_module_code)]
 
 ## run the analysis on price ---------------------------------------------------
+print(head(all_pi))
+test_reg <- felm(data = all_pi, formula = ln_cpricei ~ ln_sales_tax)
+print(summary(test_reg))
+test_reg_w <- felm(data = all_pi, formula = ln_cpricei ~ ln_sales_tax,
+                   weights = all_pi$base.sales)
+print(summary(test_reg_w))
+
 price_formula <- as.formula(paste0(
   "ln_cpricei ~ ln_sales_tax + factor(product_module_code) * linear_time ",
   "| yr_quarter + store_module | 0 | state_by_module "
