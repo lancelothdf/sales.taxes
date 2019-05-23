@@ -66,7 +66,7 @@ price_formula <- as.formula(paste0(
 price_res <- felm(data = all_pi,
                   formula = price_formula,
                   weights = all_pi$base.sales,
-                  keepX = F, keepCX = F, keepModel = F, nostats = T)
+                  keepX = F, keepCX = F, keepModel = F)
 
 KLLN_res <- data.table(
   outcome = "ln_cpricei",
