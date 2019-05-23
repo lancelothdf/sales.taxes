@@ -56,6 +56,8 @@ all_pi[, linear_time := year * 4 + quarter]
 all_pi[, module_by_time := .GRP, by = .(year, quarter, product_module_code)]
 
 ## run the analysis on price ---------------------------------------------------
+print(memory.limit())
+
 print(head(all_pi))
 test_reg <- felm(data = all_pi, formula = ln_cpricei ~ ln_sales_tax)
 print(summary(test_reg))
@@ -70,7 +72,8 @@ price_formula <- as.formula(paste0(
 
 price_res <- felm(data = all_pi,
                   formula = price_formula,
-                  weights = all_pi$base.sales)
+                  weights = all_pi$base.sales,
+                  keepX = F, keepCX = F, keepModel = F, nostats = T)
 
 KLLN_res <- data.table(
   outcome = "ln_cpricei",
