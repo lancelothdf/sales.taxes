@@ -4,12 +4,13 @@ Notowidigdo (2017). Specifically, replicate the analysis in Panel A,
 but instead of estimating with a "variety" outcome, estimate on
 quantity (log(sales) - log(price)).
 */
-
-ssc install reghdfe
-
 cd /project2/igaarder
+
 cap log close
 log using Code/stata_test.log, replace
+
+ssc install ftools
+ssc install reghdfe
 
 * prep the data
 import delimited using Data/Nielsen/price_quantity_indices_allitems_2006-2016_notaxinfo.csv, clear
@@ -43,8 +44,26 @@ egen state_by_module = group(fips_state product_module_code)
 gen linear_time = year * 4 + quarter
 egen module_by_time = group(year quarter product_module_code)
 
+* display some counts
+count
+bys product_module_code: gen nprods = _n == 1
+count if nprods
+bys store_code_uc: gen nstores = _n == 1
+count if nstores
+bys fips_county fips_state: gen ncounties = _n == 1
+count if ncounties
+bys year quarter: gen nquarters = _n == 1
+count if nquarters
+bys fips_county fips_state product_module_code: gen ncountymods = _n == 1
+count if ncountymods
+
+
+
 * run analysis on price
 reghdfe ln_cpricei ln_sales_tax product_module_code#c.linear_time [aweight=base_sales], ///
     absorb(yr_quarter store_module) cluster(state_by_module)
+	
+reghdfe ln_cpricei ln_sales_tax [aweight=base_sales], ///
+    absorb(module_by_time store_module) cluster(state_by_module)
 	
 log close
