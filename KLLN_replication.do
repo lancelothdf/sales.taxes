@@ -5,11 +5,14 @@ but instead of estimating with a "variety" outcome, estimate on
 quantity (log(sales) - log(price)).
 */
 
+ssc install reghdfe
+
 cd /project2/igaarder
+cap log close
 log using Code/stata_test.log, replace
 
 * prep the data
-import delimited using Data/Nielsen/price_quantity_indices_allitems_2006-2016_notaxinfo.csv
+import delimited using Data/Nielsen/price_quantity_indices_allitems_2006-2016_notaxinfo.csv, clear
 keep if year >= 2008 & year <= 2014 & cpricei !=. & sales_tax !=.
 
 * take logs
