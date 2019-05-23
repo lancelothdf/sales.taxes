@@ -25,7 +25,7 @@ keep store_code_uc product_module_code fips_state fips_county year quarter sales
        ln_cpricei ln_sales_tax ln_quantity base_sales
 
 * balance on store-module level
-bys store_code_uc product_module_code: egen N = count(cpricei)
+bys store_code_uc product_module_code: egen N = count(ln_cpricei)
 keep if N == (2014 - 2007) * 4
 
 * calculate expenditure shares

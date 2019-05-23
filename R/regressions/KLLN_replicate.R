@@ -55,11 +55,21 @@ all_pi[, state_by_module := .GRP, by = .(fips_state, product_module_code)]
 all_pi[, linear_time := year * 4 + quarter]
 all_pi[, module_by_time := .GRP, by = .(year, quarter, product_module_code)]
 
+## create the module specific time trends
+varnames_old <- names(all_pi)
+for (P in unique(all_pi$product_module_code)) {
+  flog.info("Creating trend for product %s", product_module_code)
+  P_vname <- paste0("ttrend_", product_module_code)
+
+  all_pi[, (P_vname) := as.integer(product_module_code == P) * linear_time]
+}
+ttrend_vars <- setdiff(names(all_pi), varnames_old)
+ttrend_formula <- paste0(ttrend_vars, collapse = "+")
+
 ## run the analysis on price ---------------------------------------------------
-print(head(all_pi))
 
 price_formula <- as.formula(paste0(
-  "ln_cpricei ~ ln_sales_tax  ", # + factor(product_module_code) * linear_time
+  "ln_cpricei ~ ln_sales_tax +", ttrend_formula,
   "| yr_quarter + store_module | 0 | state_by_module "
 ))
 
@@ -102,7 +112,7 @@ KLLN_res <- rbind(
 
 ## run the analysis on quantity ------------------------------------------------
 quantity_formula <- as.formula(paste0(
-  "ln_quantity ~ ln_sales_tax + factor(product_module_code) * linear_time ",
+  "ln_quantity ~ ln_sales_tax +", ttrend_formula,
   "| yr_quarter + store_module | 0 | state_by_module "
 ))
 
@@ -144,7 +154,7 @@ KLLN_res <- rbind(
 
 ## run the analysis on expenditure share ---------------------------------------
 expenditure_formula <- as.formula(paste0(
-  "ln_expend_share ~ ln_sales_tax + factor(product_module_code) * linear_time ",
+  "ln_expend_share ~ ln_sales_tax +", ttrend_formula,
   "| yr_quarter + store_module | 0 | state_by_module "
 ))
 
