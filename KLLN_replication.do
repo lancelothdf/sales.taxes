@@ -12,7 +12,8 @@ log using Code/stata_test.log, replace
 ssc install ftools
 ssc install reghdfe
 
-* prep the data
+/************************ Prep *************************/
+
 import delimited using Data/Nielsen/price_quantity_indices_allitems_2006-2016_notaxinfo.csv, clear
 keep if year >= 2008 & year <= 2014 & cpricei !=. & sales_tax !=.
 
@@ -37,6 +38,10 @@ bys store_code_uc product_module_code: egen total_sales = sum(sales)
 gen expend_share = sales / total_sales
 gen ln_expend_share = ln(expend_share)
 
+/***** TEMPORARY: SUBSET DATA TO BE 2 YRS (FOR DEBUGGING) ********/
+keep if year == 2008 | year == 2009
+/*****************************************************************/
+
 * prep some other vars for the regression
 egen yr_quarter = group(year quarter)
 egen store_module = group(store_code_uc product_module_code)
@@ -44,7 +49,7 @@ egen state_by_module = group(fips_state product_module_code)
 gen linear_time = year * 4 + quarter
 egen module_by_time = group(year quarter product_module_code)
 
-* display some counts
+* display some counts for the table
 count
 bys product_module_code: gen nprods = _n == 1
 count if nprods
@@ -57,13 +62,27 @@ count if nquarters
 bys fips_county fips_state product_module_code: gen ncountymods = _n == 1
 count if ncountymods
 
-
+/************************ Analysis *************************/
 
 * run analysis on price
 reghdfe ln_cpricei ln_sales_tax product_module_code#c.linear_time [aweight=base_sales], ///
     absorb(yr_quarter store_module) cluster(state_by_module)
 	
 reghdfe ln_cpricei ln_sales_tax [aweight=base_sales], ///
+    absorb(module_by_time store_module) cluster(state_by_module)
+	
+* run analysis on quantity
+reghdfe ln_quantity ln_sales_tax product_module_code#c.linear_time [aweight=base_sales], ///
+    absorb(yr_quarter store_module) cluster(state_by_module)
+	
+reghdfe ln_quantity ln_sales_tax [aweight=base_sales], ///
+    absorb(module_by_time store_module) cluster(state_by_module)
+	
+* run analysis on expenditure share
+reghdfe ln_expend_share ln_sales_tax product_module_code#c.linear_time [aweight=base_sales], ///
+    absorb(yr_quarter store_module) cluster(state_by_module)
+	
+reghdfe ln_expend_share ln_sales_tax [aweight=base_sales], ///
     absorb(module_by_time store_module) cluster(state_by_module)
 	
 log close

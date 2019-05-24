@@ -43,6 +43,10 @@ setkey(keep_store_modules, store_code_uc, product_module_code)
 all_pi <- all_pi[keep_store_modules]
 setkey(all_pi, fips_county, fips_state)
 
+############ TEMPORARY: SUBSET DATA TO BE 2 YRS (FOR DEBUGGING) ##############
+all_pi <- all_pi[year %in% 2008:2009]
+##############################################################################
+
 ## calculate expenditure shares
 all_pi[, total_sales := sum(sales), by = .(store_code_uc, quarter, year)]
 all_pi[, expend_share := sales / total_sales]
