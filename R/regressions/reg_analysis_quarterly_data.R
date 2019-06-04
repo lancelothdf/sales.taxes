@@ -133,6 +133,12 @@ if (lagged ){
 
 ## prep the 2006-2016 data ----------------------
 all_pi_full <- fread(data.full.path)
+old_pi <- fread(old_pi_path)
+
+all_pi_full <- merge(all_pi_full, old_pi,
+                     by = c("fips_state", "fips_county", "store_code_uc",
+                            "product_module_code", "year", "quarter"), all = T)
+rm(old_pi)
 
 # impute tax rates prior to 2008 and after 2014
 all_pi_full[, sales_tax := ifelse(year < 2008, sales_tax[year == 2008 & quarter == 1], sales_tax),
