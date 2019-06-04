@@ -223,6 +223,7 @@ for (Y in outcomes) {
         lag.res.table,
         data.table(
           outcome = Y,
+          period = ifelse(l.type == "lag", -1*lag.val, lag.val),
           estimate = coef(summary(res4))["ln_sales_tax", "Estimate"],
           se = coef(summary(res4))["ln_sales_tax", "Cluster s.e."],
           pval = coef(summary(res4))["ln_sales_tax", "Pr(>|t|)"],
