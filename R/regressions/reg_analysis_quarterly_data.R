@@ -8,6 +8,9 @@ library(lfe)
 
 setwd("/project2/igaarder")
 
+contemporaneous <- F
+lagged <- T
+
 ## input filepaths ----------------------------------------------------
 #' This data set contains quarterly Laspeyres indices and sales from 2006 to
 #' 2014. It also contains sales tax rates from 2008-2014.
@@ -20,6 +23,9 @@ data.full.path <- "Data/all_nielsen_data_2006_2016_quarterly.csv"
 reg.outfile <- "Data/quarterly_pi_output.csv"
 reg.lag.outfile <- "Data/quarterly_pi_lagged_output.csv"
 
+outcomes <- c("ln_cpricei", "ln_cpricei2", "ln_quantity", "ln_quantity2")
+
+if (contemporaneous) {
 ## Load in data, restrict to 2008-2014, combine ------------------------
 all_pi <- fread(all_goods_pi_path)
 old_pi <- fread(old_pi_path)
@@ -70,7 +76,6 @@ rm(old_pi)
   all_pi[, module_by_state := .GRP, by = .(product_module_code, fips_state)]
 
 ## Run for each of the four outcomes, two specifications: -------------
-outcomes <- c("ln_cpricei", "ln_cpricei2", "ln_quantity", "ln_quantity2")
 
 res.table <- data.table(NULL)
 for (Y in outcomes) {
@@ -120,6 +125,8 @@ for (Y in outcomes) {
 }
 
 rm(all_pi)
+}
+if (lagged ){
 # Do 2) again but with lagged- and lead- outcome (like you guys do for the
 # Belgium project) and plot the coefficents (to test for pre-trends). You can
 # do 6 quarters of lags and leads.
@@ -128,10 +135,10 @@ rm(all_pi)
 all_pi_full <- fread(data.full.path)
 
 # impute tax rates prior to 2008 and after 2014
-all_pi[, sales_tax := ifelse(year < 2008, sales_tax[year == 2008 & quarter == 1], sales_tax),
-       by = .(store_code_uc, product_module_code)]
-all_pi[, sales_tax := ifelse(year > 2014, sales_tax[year == 2014 & quarter == 4], sales_tax),
-       by = .(store_code_uc, product_module_code)]
+all_pi_full[, sales_tax := ifelse(year < 2008, sales_tax[year == 2008 & quarter == 1], sales_tax),
+            by = .(store_code_uc, product_module_code)]
+all_pi_full[, sales_tax := ifelse(year > 2014, sales_tax[year == 2014 & quarter == 4], sales_tax),
+            by = .(store_code_uc, product_module_code)]
 
 # recreate variables from all_pi
 all_pi_full[, ln_cpricei := log(cpricei)]
@@ -144,23 +151,23 @@ all_pi_full[, module_by_year := .GRP, by = .(product_module_code, year)]
 all_pi_full[, module_by_state := .GRP, by = .(product_module_code, fips_state)]
 
 ## get sales weights
-all_pi[, base.sales := sales[year == 2008 & quarter == 1],
-       by = .(store_code_uc, product_module_code)]
+all_pi_full[, base.sales := sales[year == 2008 & quarter == 1],
+            by = .(store_code_uc, product_module_code)]
 
-all_pi <- all_pi[!is.na(base.sales) & !is.na(sales) & !is.na(ln_cpricei) &
-                   !is.na(ln_sales_tax) & !is.na(ln_quantity) &
-                   !is.na(ln_quantity2) & !is.na(ln_cpricei2)]
+all_pi_full <- all_pi_full[!is.na(base.sales) & !is.na(sales) & !is.na(ln_cpricei) &
+                             !is.na(ln_sales_tax) & !is.na(ln_quantity) &
+                             !is.na(ln_quantity2) & !is.na(ln_cpricei2)]
 
 ## balance on store-module level
 keep_store_modules <- all_pi_full[, list(n = .N),
                                   by = .(store_code_uc, product_module_code)]
 keep_store_modules <- keep_store_modules[n == (2016 - 2005) * 4]
 
-setkey(all_pi, store_code_uc, product_module_code)
+setkey(all_pi_full, store_code_uc, product_module_code)
 setkey(keep_store_modules, store_code_uc, product_module_code)
 
-all_pi <- all_pi[keep_store_modules]
-setkey(all_pi, store_code_uc, product_module_code, year, quarter)
+all_pi_full <- all_pi_full[keep_store_modules]
+setkey(all_pi_full, store_code_uc, product_module_code, year, quarter)
 
 ## produce results using lags and leads of Y
 lag.res.table <- data.table(NULL)
@@ -227,3 +234,4 @@ for (Y in outcomes) {
   }
 }
 
+}
