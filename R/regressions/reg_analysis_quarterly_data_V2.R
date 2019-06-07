@@ -18,7 +18,7 @@ old_pi_path <- "Data/Nielsen/Quarterly_old_pi.csv"
 #' This data is the same as all_goods_pi_path, except it has 2015-2016 data as well.
 data.full.path <- "Data/all_nielsen_data_2006_2016_quarterly.csv"
 ## output filepaths ----------------------------------------------
-reg.outfile <- "Data/quarterly_pi_output.csv"
+reg.outfile <- "Data/quarterly_pi_output_quarterFEs.csv"
 
 ## prep Census region/division data ------------------------------
 geo_dt <- structure(list(
@@ -61,10 +61,11 @@ all_pi[, ln_cpricei2 := ln_pricei2 + ln_sales_tax]
 all_pi[, ln_quantity := log(sales) - log(pricei)]
 all_pi[, ln_quantity2 := log(sales) - ln_pricei2]
 all_pi[, store_by_module := .GRP, by = .(store_code_uc, product_module_code)]
-all_pi[, module_by_year := .GRP, by = .(product_module_code, year)]
+all_pi[, cal_time := 4 * year + quarter]
+all_pi[, module_by_time := .GRP, by = .(product_module_code, cal_time)]
 all_pi[, module_by_state := .GRP, by = .(product_module_code, fips_state)]
-all_pi[, region_by_module_by_year := .GRP, by = .(region, product_module_code, year)]
-all_pi[, division_by_module_by_year := .GRP, by = .(division, product_module_code, year)]
+all_pi[, region_by_module_by_time := .GRP, by = .(region, product_module_code, cal_time)]
+all_pi[, division_by_module_by_time := .GRP, by = .(division, product_module_code, cal_time)]
 
 ## get sales weights
 all_pi[, base.sales := sales[year == 2008 & quarter == 1],
@@ -121,7 +122,7 @@ formula_leads <- paste0("F", 1:6, ".D.ln_sales_tax", collapse = "+")
 formula_RHS <- paste0("D.ln_sales_tax + ", formula_lags, "+", formula_leads)
 
 outcomes <- c("D.ln_cpricei", "D.ln_cpricei2", "D.ln_quantity", "D.ln_quantity2")
-FE_opts <- c("year", "module_by_year", "region_by_module_by_year", "division_by_module_by_year")
+FE_opts <- c("cal_time", "module_by_time", "region_by_module_by_time", "division_by_module_by_time")
 
 res.table <- data.table(NULL)
 for (Y in outcomes) {
