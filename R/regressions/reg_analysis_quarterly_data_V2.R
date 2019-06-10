@@ -5,7 +5,7 @@
 library(data.table)
 library(futile.logger)
 library(lfe)
-library(car)
+library(multcomp)
 
 setwd("/project2/igaarder")
 

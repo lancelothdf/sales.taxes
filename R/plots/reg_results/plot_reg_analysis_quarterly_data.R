@@ -14,16 +14,16 @@ res.all[is.na(tt_event), tt_event := 0]
 res.all[, tt_event := ifelse(grepl("F", rn), -1 * tt_event, tt_event)]
 
 
-res.all[lead_lag == "avg. pre"]$tt_event <- -3.5
-res.all[lead_lag == "avg. post"]$tt_event <- 3.5
-res.all[lead_lag == "avg. total effect"]$tt_event <- 5
-res.all$tt_event <- as.numeric(res.all$tt_event)
-res.all[, aggregated := lead_lag %in% c("avg. pre", "avg. post", "avg. total effect") ]
+# res.all[lead_lag == "avg. pre"]$tt_event <- -7
+# res.all[lead_lag == "avg. post"]$tt_event <- 7
+# res.all[lead_lag == "avg. total effect"]$tt_event <- 8.5
+# res.all$tt_event <- as.numeric(res.all$tt_event)
+# res.all[, aggregated := lead_lag %in% c("avg. pre", "avg. post", "avg. total effect") ]
 
 
 
 #### Start with cpricei
-res.cpricei <- res.all[controls == "module_by_time" & outcome == "D.ln_quantity2"]
+res.cpricei <- res.all[controls == "module_by_time" & outcome == "D.ln_cpricei"]
 
 ggplot(data = res.cpricei,
        mapping = aes(x = tt_event, y = Estimate)) +
@@ -32,20 +32,21 @@ ggplot(data = res.cpricei,
                 aes(ymax = Estimate + 1.96 * `Cluster s.e.`,
                     ymin = Estimate - 1.96 * `Cluster s.e.`),
                 width = .8) +
-  geom_line(data = res.cpricei[aggregated == F],
+  geom_line(data = res.cpricei, #[aggregated == F]
             linetype = "55") +
   scale_color_manual(breaks = c(TRUE, FALSE), values = c("black", "firebrick")) +
   #geom_point(aes(x = -2, y = 0), size = 2, color = "black") +
   theme_bw(base_size = 16) +
-  scale_x_continuous(breaks = c(-3.5, seq(-2, 2, 1), 3.5, 5),
-                     labels = c("Tot. pre", seq(-2, 2, 1), "Tot. post", "Total effect")) +
+  scale_x_continuous(breaks = c(-7, seq(-6, 6, 1), 7, 8.5),
+                     labels = c("Tot. pre", seq(-6, 6, 1), "Tot. post", "Total effect")) +
   labs(x = "Event time (years)", y = "Estimate", color = NULL) +
   geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
   scale_y_continuous(limits = c(-0.5, 1.25), breaks = seq(-0.5, 1.25, .25)) +
   theme(legend.position = "none")
-ggsave("Regressions/diff_diff_cpricei_regXmodXyear.png", height = 120, width = 180, units = "mm")
+ggsave("pi_figs/reg_results/lags/cpricei_module_by_time.png",
+       height = 120, width = 180, units = "mm")
 
-
+############### NOT MODIFIED ######################
 
 #### Start with cpricei2
 res.cpricei2 <- res.all[outcome %in% c("d_lcpricei2")]
