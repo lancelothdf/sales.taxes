@@ -5,6 +5,7 @@
 library(data.table)
 library(futile.logger)
 library(lfe)
+library(car)
 
 setwd("/project2/igaarder")
 
@@ -124,6 +125,18 @@ formula_RHS <- paste0("D.ln_sales_tax + ", formula_lags, "+", formula_leads)
 outcomes <- c("D.ln_cpricei", "D.ln_cpricei2", "D.ln_quantity", "D.ln_quantity2")
 FE_opts <- c("cal_time", "module_by_time", "region_by_module_by_time", "division_by_module_by_time")
 
+## for linear hypothesis tests
+lead.vars <- paste(paste0("F", 6:1, ".D.ln_sales_tax"), collapse = " + ")
+lag.vars <- paste(paste0("L", 6:1, ".D.ln_sales_tax"), collapse = " + ")
+lead.lp.restr <- paste(lead.vars, "= 0")
+lag.lp.restr <- paste(lag.vars, "+ D.ln_sales_tax = 0")
+total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
+
+lc.pre.test <- glht(res0, linfct = c(lc.pre.form))
+lc.pre.est <- coef(summary(lc.pre.test))[[1]]
+lc.pre.se <- sqrt(vcov(summary(lc.pre.test)))[[1]]
+lc.pre.pval <- 2*(1 - pnorm(abs(lc.pre.est/lc.pre.se)))
+
 res.table <- data.table(NULL)
 for (Y in outcomes) {
   for (FE in FE_opts) {
@@ -135,10 +148,44 @@ for (Y in outcomes) {
                  weights = all_pi$base.sales)
     flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
 
+    ## sum leads
+    flog.info("Summing leads...")
+    lead.test <- glht(res1, linfct = lead.lp.restr)
+    lead.test.est <- coef(summary(lead.test))[[1]]
+    lead.test.se <- sqrt(vcov(summary(lead.test)))[[1]]
+    lead.test.pval <- 2*(1 - pnorm(abs(lead.test.est/lead.test.se)))
+
+    ## sum lags
+    flog.info("Summing lags...")
+    lag.test <- glht(res1, linfct = lag.lp.restr)
+    lag.test.est <- coef(summary(lag.test))[[1]]
+    lag.test.se <- sqrt(vcov(summary(lag.test)))[[1]]
+    lag.test.pval <- 2*(1 - pnorm(abs(lag.test.est/lag.test.se)))
+
+    ## sum all
+    flog.info("Summing all...")
+    total.test <- glht(res1, linfct = total.lp.restr)
+    total.test.est <- coef(summary(total.test))[[1]]
+    total.test.se <- sqrt(vcov(summary(total.test)))[[1]]
+    total.test.pval <- 2*(1 - pnorm(abs(total.test.est/total.test.se)))
+
+    ## linear hypothesis results
+    lp.dt <- data.table(
+       rn = c("Pre.D.ln_sales_tax", "Post.D.ln_sales_tax", "All.D.ln_sales_tax"),
+       Estimate = c(lead.test.est, lag.test.est, total.test.est),
+       `Cluster s.e.` = c(lead.test.se, lag.test.se, total.test.se),
+       `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
+       outcome = Y,
+       controls = FE
+    )
+
+    ## attach results
+    flog.info("Writing results...")
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := Y]
     res1.dt[, controls := FE]
     res.table <- rbind(res.table, res1.dt)
+    res.table <- rbind(res.table, lp.dt)
     fwrite(res.table, reg.outfile)
   }
 }
