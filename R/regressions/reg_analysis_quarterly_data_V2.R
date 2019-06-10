@@ -179,8 +179,8 @@ for (Y in outcomes) {
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := Y]
     res1.dt[, controls := FE]
-    res.table <- rbind(res.table, res1.dt)
-    res.table <- rbind(res.table, lp.dt)
+    res.table <- rbind(res.table, res1.dt, fill = T)
+    res.table <- rbind(res.table, lp.dt, fill = T)
     fwrite(res.table, reg.outfile)
   }
 }
