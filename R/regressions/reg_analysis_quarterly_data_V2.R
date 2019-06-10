@@ -132,11 +132,6 @@ lead.lp.restr <- paste(lead.vars, "= 0")
 lag.lp.restr <- paste(lag.vars, "+ D.ln_sales_tax = 0")
 total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 
-lc.pre.test <- glht(res0, linfct = c(lc.pre.form))
-lc.pre.est <- coef(summary(lc.pre.test))[[1]]
-lc.pre.se <- sqrt(vcov(summary(lc.pre.test)))[[1]]
-lc.pre.pval <- 2*(1 - pnorm(abs(lc.pre.est/lc.pre.se)))
-
 res.table <- data.table(NULL)
 for (Y in outcomes) {
   for (FE in FE_opts) {
