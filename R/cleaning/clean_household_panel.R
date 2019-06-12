@@ -15,7 +15,6 @@ products <- fread(products_file)
 products <- products[, .(upc, upc_ver_uc, product_module_code, product_group_code)]
 
 for (yr in 2006:2016) {
-  next
   ## necessary filepaths
   folderpath <- paste0("HMS/", yr, "/Annual_Files/")
   panelists_file <- paste0(folderpath, "panelists_", yr, ".tsv")
