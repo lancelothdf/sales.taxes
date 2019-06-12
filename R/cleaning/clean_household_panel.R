@@ -15,6 +15,7 @@ products <- fread(products_file)
 products <- products[, .(upc, upc_ver_uc, product_module_code, product_group_code)]
 
 for (yr in 2006:2016) {
+  next
   ## necessary filepaths
   folderpath <- paste0("HMS/", yr, "/Annual_Files/")
   panelists_file <- paste0(folderpath, "panelists_", yr, ".tsv")
@@ -99,9 +100,8 @@ for (yr in 2006:2016) {
               by = .(household_code, year, quarter, store_code_uc)]
 
   ## Subset to just the best-selling modules
-  purchases.all <- purchases.all[product_module_code %in% keep_modules]
-
-
+  annual.file <- annual.file[product_module_code %in% keep_modules]
+  ## attach
   purchases.all <- rbind(purchases.all, annual.file)
 }
 fwrite(purchases.all, "cleaning/consumer_panel_2006-2016.csv")
