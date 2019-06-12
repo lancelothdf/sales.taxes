@@ -15,6 +15,7 @@ products <- fread(products_file)
 products <- products[, .(upc, upc_ver_uc, product_module_code, product_group_code)]
 
 for (yr in 2006:2016) {
+  next
   ## necessary filepaths
   folderpath <- paste0("HMS/", yr, "/Annual_Files/")
   panelists_file <- paste0(folderpath, "panelists_", yr, ".tsv")
@@ -86,7 +87,7 @@ for (yr in 2006:2016) {
 }
 
 ## link all these annual files
-best_selling_modules <- fread("Data/best_selling_modules.csv")
+best_selling_modules <- fread("/project2/igaarder/Data/best_selling_modules.csv")
 keep_modules <- unique(best_selling_modules[, .(Module)][[1]])
 
 purchases.all <- data.table(NULL)
