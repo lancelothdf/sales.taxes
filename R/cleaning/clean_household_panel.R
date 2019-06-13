@@ -15,7 +15,7 @@ products <- fread(products_file)
 products <- products[, .(upc, upc_ver_uc, product_module_code, product_group_code)]
 
 for (yr in 2006:2016) {
-  next
+ # next
   ## necessary filepaths
   folderpath <- paste0("HMS/", yr, "/Annual_Files/")
   panelists_file <- paste0(folderpath, "panelists_", yr, ".tsv")
@@ -92,6 +92,7 @@ keep_modules <- unique(best_selling_modules[, .(Module)][[1]])
 
 purchases.all <- data.table(NULL)
 for (yr in 2006:2016) {
+  flog.info("Appending %s data to master file", yr)
   annual.path <- paste0("cleaning/purchases_", yr, ".csv")
   annual.file <- fread(annual.path)
 
@@ -104,4 +105,18 @@ for (yr in 2006:2016) {
   ## attach
   purchases.all <- rbind(purchases.all, annual.file)
 }
+fwrite(purchases.all, "cleaning/consumer_panel_2006-2016.csv")
+
+## merge on price indices and tax rates
+all_goods_pi_path <- "../../all_nielsen_data_2006_2016_quarterly.csv"
+all_pi <- fread(all_goods_pi_path)
+all_pi <- all_pi[, .(store_code_uc, product_module_code,
+                     year, quarter, pricei, cpricei, sales_tax)]
+
+
+purchases.all <- merge(
+  purchases.all, all_pi,
+  by = c("store_code_uc", "product_module_code", "year", "quarter"),
+  all.x = T
+  )
 fwrite(purchases.all, "cleaning/consumer_panel_2006-2016.csv")
