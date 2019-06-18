@@ -166,14 +166,14 @@ for (yr in 2009:2014) {
   for (smstr in 1:2) {
     yr_smstr <- paste0(yr, "S", smstr)
     for (LX in all_lags_leads) {
-      if      (yr == 2009 & smstr == 1 & LX == "F3.ln_sales_tax") next
-      else if (yr == 2009 & LX == "F4.ln_sales_tax") next
-      else if (yr >= 2013 & LX == "L4.ln_sales_tax") next
-      else if (yr == 2013 & smstr == 2 & LX == "L3.ln_sales_tax") next
-      else if (yr == 2014 & LX  %in% c("L3.ln_sales_tax", "L2.ln_sales_tax")) next
-      else if (yr == 2014 & smstr == 2 & LX == "L1.ln_sales_tax") next
+      if      (yr == 2009 & smstr == 1 & LX == "L3.ln_sales_tax") next
+      else if (yr == 2009 & LX == "L4.ln_sales_tax") next
+      else if (yr >= 2013 & LX == "F4.ln_sales_tax") next
+      else if (yr == 2013 & smstr == 2 & LX == "F3.ln_sales_tax") next
+      else if (yr == 2014 & LX  %in% c("F3.ln_sales_tax", "F2.ln_sales_tax")) next
+      else if (yr == 2014 & smstr == 2 & LX == "F1.ln_sales_tax") next
       new_var <- paste0(LX, ".", yr_smstr)
-      all_pi[, (new_var) := get(LX) * as.integer(year == yr & semester == smstr)]
+      all_pi[, (new_var) := ifelse(year != yr | semester != smstr, 0, get(LX))]
       # NA should only happen if the year-semester is outside 2008-2014
       print(nrow(all_pi[is.na(get(new_var))]))
       X_vec <- c(X_vec, new_var)
