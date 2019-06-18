@@ -118,8 +118,7 @@ for (yr in 2009:2014) {
       else if (yr == 2014 & LX  %in% c("F3.ln_sales_tax", "F2.ln_sales_tax")) next
       else if (yr == 2014 & smstr == 2 & LX == "F1.ln_sales_tax") next
       new_var <- paste0(LX, ".", yr_smstr)
-      all_pi[, (new_var) := ifelse(is.na(get(LX)) & (year != yr | semester != smstr),
-                                   0, get(LX))]
+      all_pi[, (new_var) := ifelse(year != yr | semester != smstr, 0, get(LX))]
       # NA should only happen if the year-semester is outside 2008-2014
       print(nrow(all_pi[is.na(get(new_var))]))
       X_vec <- c(X_vec, new_var)
