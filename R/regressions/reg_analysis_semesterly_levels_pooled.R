@@ -139,13 +139,21 @@ FE_opts <- c("cal_time", "module_by_time",
 ## need to take the average for each lag/lead and then take the average of the
 ## averages...
 F4.vars <- X_vec[grepl("F4", X_vec)]
+F4.LC <- paste0("(", paste(F4.vars, collapse = "+"), ") / ", length(F4.vars), "=0")
 F3.vars <- X_vec[grepl("F3", X_vec)]
+F3.LC <- paste0("(", paste(F3.vars, collapse = "+"), ") / ", length(F3.vars), "=0")
 F1.vars <- X_vec[grepl("F1", X_vec)]
+F1.LC <- paste0("(", paste(F1.vars, collapse = "+"), ") / ", length(F1.vars), "=0")
 L0.vars <- X_vec[grepl("^ln", X_vec)]
+L0.LC <- paste0("(", paste(L0.vars, collapse = "+"), ") / ", length(L0.vars), "=0")
 L1.vars <- X_vec[grepl("L1", X_vec)]
+L1.LC <- paste0("(", paste(L1.vars, collapse = "+"), ") / ", length(L1.vars), "=0")
 L2.vars <- X_vec[grepl("L2", X_vec)]
+L2.LC <- paste0("(", paste(L2.vars, collapse = "+"), ") / ", length(L2.vars), "=0")
 L3.vars <- X_vec[grepl("L3", X_vec)]
+L3.LC <- paste0("(", paste(L3.vars, collapse = "+"), ") / ", length(L3.vars), "=0")
 L4.vars <- X_vec[grepl("L4", X_vec)]
+L4.LC <- paste0("(", paste(L4.vars, collapse = "+"), ") / ", length(L4.vars), "=0")
 
 lead.vars <- paste(
   "(", paste(F4.vars, collapse = " + "), ") / ", length(F4.vars) * 3,
@@ -189,6 +197,32 @@ for (Y in outcomes) {
                  weights = all_pi$base.sales)
     flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
 
+    ## sum for each lead/lag
+    leadlag.dt <- data.table(NULL)
+    for (LC in c("F4", "F3", "F1", "L0", "L1", "L2", "L3", "L4")) {
+      flog.info("Summing %s...", LC)
+      eval(parse(text = paste0(
+        "temp.test <- glht(res1, ", LC, ".LC)"
+      )))
+      temp.test.est <- coef(summary(temp.test))[[1]]
+      temp.test.se <- sqrt(vcov(summary(temp.test)))[[1]]
+      temp.test.pval <- 2*(1 - pnorm(abs(temp.test.est/temp.test.se)))
+
+      leadlag.dt <- rbind(leadlag.dt, data.table(
+        rn = paste0(LC, ".ln_sales_tax"),
+        Estimate = temp.test.est,
+        `Cluster s.e.` = temp.test.se,
+        `Pr(>|t|)` = temp.test.pval,
+        outcome = Y,
+        controls = FE,
+        n_params = res1$p
+      ))
+    }
+
+    flog.info("Summing lead 4...")
+    F4.test <- glht(res1, linfct = F4.LC)
+    F4.test.est <- coef(summary(F4.test))[[1]]
+
     ## sum leads
     flog.info("Summing leads...")
     lead.test <- glht(res1, linfct = lead.lp.restr)
@@ -227,6 +261,7 @@ for (Y in outcomes) {
     res1.dt[, outcome := Y]
     res1.dt[, controls := FE]
     res.table <- rbind(res.table, res1.dt, fill = T)
+    res.table <- rbind(res.table, leadlag.dt, fill = T)
     res.table <- rbind(res.table, lp.dt, fill = T)
     res.table$N_module_stores <- N_module_stores
     fwrite(res.table, reg.outfile)
