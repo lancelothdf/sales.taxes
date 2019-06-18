@@ -190,7 +190,7 @@ all_pi <- all_pi[between(year, 2009, 2014)]
 formula_RHS <- paste0(X_vec[!grepl("F1", X_vec)], collapse = "+")
 formula_IV <- paste0(
   "(", paste0(X_add_vec, collapse = "|"), "~",
-  paste0(X_vec[grepl("F1", X_vec)], collapse = "+")
+  paste0(X_vec[grepl("F1", X_vec)], collapse = "+"), ")"
 )
 
 outcomes <- c("ln_cpricei", "ln_quantity")
@@ -279,10 +279,6 @@ for (Y in outcomes) {
         n_params = res1$p
       ))
     }
-
-    flog.info("Summing lead 4...")
-    F4.test <- glht(res1, linfct = F4.LC)
-    F4.test.est <- coef(summary(F4.test))[[1]]
 
     ## sum leads
     flog.info("Summing leads...")
