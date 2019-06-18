@@ -99,6 +99,7 @@ for (lag.val in 1:4) {
   all_pi[, (lead.X) := shift(ln_sales_tax, n=lag.val, type="lead"),
          by = .(store_code_uc, product_module_code)]
 }
+all_pi <- all_pi[between(year, 2009, 2014)]
 
 ## generate interacted leads and lags (interacted with year-semester)
 all_lags_leads <- c(
@@ -117,7 +118,8 @@ for (yr in 2009:2014) {
       else if (yr == 2014 & LX  %in% c("F3.ln_sales_tax", "F2.ln_sales_tax")) next
       else if (yr == 2014 & smstr == 2 & LX == "F1.ln_sales_tax") next
       new_var <- paste0(LX, ".", yr_smstr)
-      all_pi[, (new_var) := get(LX) * as.integer(year == yr & semester == smstr)]
+      all_pi[, (new_var) := ifelse(is.na(get(LX)) & (year != yr | semester != smstr),
+                                   0, get(LX))]
       # NA should only happen if the year-semester is outside 2008-2014
       print(nrow(all_pi[is.na(get(new_var))]))
       X_vec <- c(X_vec, new_var)
@@ -126,8 +128,6 @@ for (yr in 2009:2014) {
 }
 
 ### Estimation ---------------------------------------------------
-all_pi <- all_pi[between(year, 2009, 2014)]
-
 formula_RHS <- paste0(X_vec, collapse = "+")
 
 outcomes <- c("ln_cpricei", "ln_quantity")
