@@ -157,7 +157,7 @@ L4.LC <- paste0("(", paste(L4.vars, collapse = "+"), ") / ", length(L4.vars), "=
 lead.vars <- paste(
   "(", paste(F4.vars, collapse = " + "), ") / ", length(F4.vars) * 3,
   " + (", paste(F3.vars, collapse = " + "), ") / ", length(F3.vars) * 3,
-  " + (", paste(F1.vars, collapse = " + "), ") / ", length(F1.vars) * 3, ")"
+  " + (", paste(F1.vars, collapse = " + "), ") / ", length(F1.vars) * 3
 )
 
 lag.vars <- paste(
@@ -165,7 +165,7 @@ lag.vars <- paste(
   " + (", paste(L1.vars, collapse = " + "), ") / ", length(L1.vars) * 5,
   " + (", paste(L2.vars, collapse = " + "), ") / ", length(L2.vars) * 5,
   " + (", paste(L3.vars, collapse = " + "), ") / ", length(L3.vars) * 5,
-  " + (", paste(L4.vars, collapse = " + "), ") / ", length(L4.vars) * 5, ")"
+  " + (", paste(L4.vars, collapse = " + "), ") / ", length(L4.vars) * 5
 )
 
 total.vars <- lag.vars <- paste(
@@ -176,7 +176,7 @@ total.vars <- lag.vars <- paste(
   " + (", paste(L1.vars, collapse = " + "), ") / ", length(L1.vars) * 8,
   " + (", paste(L2.vars, collapse = " + "), ") / ", length(L2.vars) * 8,
   " + (", paste(L3.vars, collapse = " + "), ") / ", length(L3.vars) * 8,
-  " + (", paste(L4.vars, collapse = " + "), ") / ", length(L4.vars) * 8, ")"
+  " + (", paste(L4.vars, collapse = " + "), ") / ", length(L4.vars) * 8
 )
 
 lead.lp.restr <- paste(lead.vars, "= 0")
@@ -217,10 +217,6 @@ for (Y in outcomes) {
         n_params = res1$p
       ))
     }
-
-    flog.info("Summing lead 4...")
-    F4.test <- glht(res1, linfct = F4.LC)
-    F4.test.est <- coef(summary(F4.test))[[1]]
 
     ## sum leads
     flog.info("Summing leads...")

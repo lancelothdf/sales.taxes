@@ -220,7 +220,7 @@ L4.LC <- paste0("(", paste(L4.vars, collapse = "+"), ") / ", length(L4.vars), "=
 
 lead.vars <- paste(
   "(", paste(F4.vars, collapse = " + "), ") / ", length(F4.vars) * 2,
-  " + (", paste(F3.vars, collapse = " + "), ") / ", length(F3.vars) * 2, ")"
+  " + (", paste(F3.vars, collapse = " + "), ") / ", length(F3.vars) * 2
 )
 
 lag.vars <- paste(
@@ -228,7 +228,7 @@ lag.vars <- paste(
   " + (", paste(L1.vars, collapse = " + "), ") / ", length(L1.vars) * 5,
   " + (", paste(L2.vars, collapse = " + "), ") / ", length(L2.vars) * 5,
   " + (", paste(L3.vars, collapse = " + "), ") / ", length(L3.vars) * 5,
-  " + (", paste(L4.vars, collapse = " + "), ") / ", length(L4.vars) * 5, ")"
+  " + (", paste(L4.vars, collapse = " + "), ") / ", length(L4.vars) * 5
 )
 
 total.vars <- lag.vars <- paste(
@@ -238,7 +238,7 @@ total.vars <- lag.vars <- paste(
   " + (", paste(L1.vars, collapse = " + "), ") / ", length(L1.vars) * 7,
   " + (", paste(L2.vars, collapse = " + "), ") / ", length(L2.vars) * 7,
   " + (", paste(L3.vars, collapse = " + "), ") / ", length(L3.vars) * 7,
-  " + (", paste(L4.vars, collapse = " + "), ") / ", length(L4.vars) * 7, ")"
+  " + (", paste(L4.vars, collapse = " + "), ") / ", length(L4.vars) * 7
 )
 
 lead.lp.restr <- paste(lead.vars, "= 0")
