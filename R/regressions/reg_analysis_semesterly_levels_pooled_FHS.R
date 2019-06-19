@@ -53,6 +53,7 @@ unemp_dt <- unemp_dt[, list(unemp_rate = mean(rate)),
 all_pi <- fread(data.full.path)
 # build a frame to make sure we can assign every county a home price
 all_counties <- unique(all_pi[, .(fips_state, fips_county)])
+all_counties <- all_counties[!is.na(fips_state) & !is.na(fips_county)]
 county_skeleton <- data.table(NULL)
 for (X in 2009:2014) {
   for (Y in 1:12) {
@@ -92,7 +93,7 @@ zillow_dt[, semester := ceiling(month / 6)]
 zillow_dt <- zillow_dt[, list(ln_home_price = mean(log(median_home_price))),
                        by = .(year, semester, fips_state, fips_county)]
 print(head(zillow_dt))
-stop()
+
 ## prep the 2006-2016 data ---------------------------------------
 
 #old_pi <- fread(old_pi_path)
