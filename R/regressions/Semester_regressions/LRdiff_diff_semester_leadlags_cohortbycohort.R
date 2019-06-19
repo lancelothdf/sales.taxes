@@ -206,73 +206,12 @@ for(y in 2008:2014){
   }
 }
 
-# Lead 4
+# Lag 4
 for(y in 2008:2014){
   for(s in 1:2) {
     if(y >= 2011 | (y == 2010 & s == 2)) {
-      interact.var <- paste0("y", y, "s", s, ".F4.D.ln_sales_tax")
-      all_pi[, (interact.var) := (year == y & semester == s)*F4.D.ln_sales_tax]
-
-      large_formula <- paste0(large_formula, " + ", interact.var)
-    }
-  }
-}
-
-# Lead 3
-for(y in 2008:2014){
-  for(s in 1:2) {
-    if(y >= 2010) {
-      interact.var <- paste0("y", y, "s", s, ".F3.D.ln_sales_tax")
-      all_pi[, (interact.var) := (year == y & semester == s)*F3.D.ln_sales_tax]
-
-      large_formula <- paste0(large_formula, " + ", interact.var)
-    }
-  }
-}
-
-# Lead 2
-for(y in 2008:2014){
-  for(s in 1:2) {
-    if(y >= 2010 | (y == 2009 & s == 2)) {
-      interact.var <- paste0("y", y, "s", s, ".F2.D.ln_sales_tax")
-      all_pi[, (interact.var) := (year == y & semester == s)*F2.D.ln_sales_tax]
-
-      large_formula <- paste0(large_formula, " + ", interact.var)
-    }
-  }
-}
-
-# Lead 1
-for(y in 2008:2014){
-  for(s in 1:2) {
-    if(y >= 2009) {
-      interact.var <- paste0("y", y, "s", s, ".F1.D.ln_sales_tax")
-      all_pi[, (interact.var) := (year == y & semester == s)*F1.D.ln_sales_tax]
-
-      large_formula <- paste0(large_formula, " + ", interact.var)
-    }
-  }
-}
-
-
-# Lag 1
-for(y in 2008:2014){
-  for(s in 1:2) {
-    if((y <= 2013 & y >= 2009) | (y == 2014 & s == 1) | (y == 2008 & s == 2)) {
-      interact.var <- paste0("y", y, "s", s, ".L1.D.ln_sales_tax")
-      all_pi[, (interact.var) := (year == y & semester == s)*L1.D.ln_sales_tax]
-
-      large_formula <- paste0(large_formula, " + ", interact.var)
-    }
-  }
-}
-
-# Lag 2
-for(y in 2008:2014){
-  for(s in 1:2) {
-    if((y <= 2013 & y >= 2009) | (y == 2008 & s == 2)) {
-      interact.var <- paste0("y", y, "s", s, ".L2.D.ln_sales_tax")
-      all_pi[, (interact.var) := (year == y & semester == s)*L2.D.ln_sales_tax]
+      interact.var <- paste0("y", y, "s", s, ".L4.D.ln_sales_tax")
+      all_pi[, (interact.var) := (year == y & semester == s)*L4.D.ln_sales_tax]
 
       large_formula <- paste0(large_formula, " + ", interact.var)
     }
@@ -282,7 +221,7 @@ for(y in 2008:2014){
 # Lag 3
 for(y in 2008:2014){
   for(s in 1:2) {
-    if((y <= 2012 & y >= 2009) | (y == 2013 & s == 1) | (y == 2008 & s == 2)) {
+    if(y >= 2010) {
       interact.var <- paste0("y", y, "s", s, ".L3.D.ln_sales_tax")
       all_pi[, (interact.var) := (year == y & semester == s)*L3.D.ln_sales_tax]
 
@@ -291,12 +230,73 @@ for(y in 2008:2014){
   }
 }
 
-# Lag 4
+# Lag 2
+for(y in 2008:2014){
+  for(s in 1:2) {
+    if(y >= 2010 | (y == 2009 & s == 2)) {
+      interact.var <- paste0("y", y, "s", s, ".L2.D.ln_sales_tax")
+      all_pi[, (interact.var) := (year == y & semester == s)*L2.D.ln_sales_tax]
+
+      large_formula <- paste0(large_formula, " + ", interact.var)
+    }
+  }
+}
+
+# Lag 1
+for(y in 2008:2014){
+  for(s in 1:2) {
+    if(y >= 2009) {
+      interact.var <- paste0("y", y, "s", s, ".L1.D.ln_sales_tax")
+      all_pi[, (interact.var) := (year == y & semester == s)*L1.D.ln_sales_tax]
+
+      large_formula <- paste0(large_formula, " + ", interact.var)
+    }
+  }
+}
+
+
+# Lead 1
+for(y in 2008:2014){
+  for(s in 1:2) {
+    if((y <= 2013 & y >= 2009) | (y == 2014 & s == 1) | (y == 2008 & s == 2)) {
+      interact.var <- paste0("y", y, "s", s, ".F1.D.ln_sales_tax")
+      all_pi[, (interact.var) := (year == y & semester == s)*F1.D.ln_sales_tax]
+
+      large_formula <- paste0(large_formula, " + ", interact.var)
+    }
+  }
+}
+
+# Lead 2
+for(y in 2008:2014){
+  for(s in 1:2) {
+    if((y <= 2013 & y >= 2009) | (y == 2008 & s == 2)) {
+      interact.var <- paste0("y", y, "s", s, ".F2.D.ln_sales_tax")
+      all_pi[, (interact.var) := (year == y & semester == s)*F2.D.ln_sales_tax]
+
+      large_formula <- paste0(large_formula, " + ", interact.var)
+    }
+  }
+}
+
+# Lead 3
+for(y in 2008:2014){
+  for(s in 1:2) {
+    if((y <= 2012 & y >= 2009) | (y == 2013 & s == 1) | (y == 2008 & s == 2)) {
+      interact.var <- paste0("y", y, "s", s, ".F3.D.ln_sales_tax")
+      all_pi[, (interact.var) := (year == y & semester == s)*F3.D.ln_sales_tax]
+
+      large_formula <- paste0(large_formula, " + ", interact.var)
+    }
+  }
+}
+
+# Lead 4
 for(y in 2008:2014){
   for(s in 1:2) {
     if((y <= 2012 & y >= 2009) | (y == 2008 & s == 2)) {
-      interact.var <- paste0("y", y, "s", s, ".L4.D.ln_sales_tax")
-      all_pi[, (interact.var) := (year == y & semester == s)*L4.D.ln_sales_tax]
+      interact.var <- paste0("y", y, "s", s, ".F4.D.ln_sales_tax")
+      all_pi[, (interact.var) := (year == y & semester == s)*F4.D.ln_sales_tax]
 
       large_formula <- paste0(large_formula, " + ", interact.var)
     }
