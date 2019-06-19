@@ -108,6 +108,7 @@ all_pi <- merge(all_pi, zillow_dt,
 
 ## at this point, we subset based on which covariate we want to use
 all_pi <- all_pi[!is.na(ln_home_price) | year < 2009]
+flog.info("N: %s", nrow(all_pi))
 setnames(all_pi, "ln_home_price", "X")
 
 # all_pi <- all_pi[!is.na(unemp_rate) | year < 2009]
@@ -124,6 +125,7 @@ all_pi[, division_by_module_by_time := .GRP, by = .(division, product_module_cod
 ## Balance the sample from 2006-2014
 all_pi <- all_pi[!is.na(base.sales) & !is.na(sales) & !is.na(ln_cpricei) &
                    !is.na(ln_sales_tax) & !is.na(ln_quantity)]
+flog.info("N: %s", nrow(all_pi))
 
 ## balance on store-module level
 keep_store_modules <- all_pi[, list(n = .N),
@@ -135,9 +137,11 @@ setkey(keep_store_modules, store_code_uc, product_module_code)
 
 all_pi <- all_pi[keep_store_modules]
 setkey(all_pi, store_code_uc, product_module_code, year, semester)
+flog.info("N: %s", nrow(all_pi))
 
 ## keep only 2008-2014
 all_pi <- all_pi[between(year, 2008, 2014)]
+flog.info("N: %s", nrow(all_pi))
 
 ## demean the outcomes/treatment on the store-module level
 all_pi[, ln_cpricei := ln_cpricei - mean(ln_cpricei), by = .(store_code_uc, product_module_code)]
@@ -180,9 +184,12 @@ for (yr in 2009:2014) {
     }
     new_var2 <- paste0("X.", yr_smstr)
     all_pi[, (new_var2) := X * as.integer(year == yr & semester == smstr)]
+    print(nrow(all_pi[is.na(get(new_var2))])) # should be 0
     X_add_vec <- c(X_add_vec, new_var2)
   }
 }
+
+print(names(all_pi))
 
 ### Estimation ---------------------------------------------------
 all_pi <- all_pi[between(year, 2009, 2014)]
@@ -317,6 +324,7 @@ for (Y in outcomes) {
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := Y]
     res1.dt[, controls := FE]
+    res1.dt[, n_params := res1$p]
     res.table <- rbind(res.table, res1.dt, fill = T)
     res.table <- rbind(res.table, leadlag.dt, fill = T)
     res.table <- rbind(res.table, lp.dt, fill = T)

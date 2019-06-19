@@ -255,10 +255,12 @@ for (Y in outcomes) {
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := Y]
     res1.dt[, controls := FE]
+    res1.dt[, n_params := res1$p]
     res.table <- rbind(res.table, res1.dt, fill = T)
     res.table <- rbind(res.table, leadlag.dt, fill = T)
     res.table <- rbind(res.table, lp.dt, fill = T)
     res.table$N_module_stores <- N_module_stores
+    res.table$n_params <- res1$p
     fwrite(res.table, reg.outfile)
   }
 }
