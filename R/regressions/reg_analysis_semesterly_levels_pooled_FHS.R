@@ -130,7 +130,9 @@ flog.info("N: %s", nrow(all_pi))
 ## balance on store-module level
 keep_store_modules <- all_pi[, list(n = .N),
                              by = .(store_code_uc, product_module_code)]
+summary(keep_store_modules$n)
 keep_store_modules <- keep_store_modules[n == (2016 - 2005) * 2]
+flog.info("N: %s", nrow(all_pi))
 
 setkey(all_pi, store_code_uc, product_module_code)
 setkey(keep_store_modules, store_code_uc, product_module_code)
