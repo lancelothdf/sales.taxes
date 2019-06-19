@@ -63,6 +63,7 @@ for (X in 2009:2014) {
 }
 
 zillow_dt <- fread(zillow_path)
+print(head(zillow_dt))
 zillow_dt <- zillow_dt[between(year, 2009, 2014)]
 zillow_dt <- zillow_dt[, .(fips_state, fips_county, median_home_price, year, month)]
 zillow_dt <- merge(county_skeleton, zillow_dt, all.x = T,
@@ -70,6 +71,7 @@ zillow_dt <- merge(county_skeleton, zillow_dt, all.x = T,
 
 ## prep state-level house prices (for when county-level is missing)
 zillow_state_dt <- fread(zillow_state_path)
+print(head(zillow_state_dt))
 zillow_state_dt <- zillow_state_dt[between(year, 2009, 2014)]
 zillow_state_dt <- zillow_state_dt[, .(fips_state, median_home_price, year, month)]
 setnames(zillow_state_dt, "median_home_price", "state_median_home_price")
@@ -77,6 +79,7 @@ zillow_state_dt$month <- as.integer(round(zillow_state_dt$month))
 
 zillow_dt <- merge(zillow_dt, zillow_state_dt, all.x = T,
                    by = c("fips_state", "year", "month"))
+print(head(zillow_dt))
 zillow_dt[is.na(median_home_price), median_home_price := state_median_home_price]
 zillow_dt[, state_median_home_price := NULL]
 
@@ -86,7 +89,7 @@ zillow_dt[, semester := ceiling(month / 6)]
 zillow_dt <- zillow_dt[, list(ln_home_price = mean(log(median_home_price))),
                        by = .(year, semester, fips_state, fips_county)]
 print(head(zillow_dt))
-
+stop()
 ## prep the 2006-2016 data ---------------------------------------
 
 #old_pi <- fread(old_pi_path)
