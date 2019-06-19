@@ -186,8 +186,8 @@ total.lp.restr <- paste(total.vars, "= 0")
 ## collect results
 N_module_stores <- nrow(unique(all_pi[, .(store_code_uc, product_module_code)]))
 res.table <- data.table(NULL)
-for (Y in outcomes) {
-  for (FE in FE_opts) {
+for (Y in outcomes[2]) {
+  for (FE in FE_opts[1:2]) {
     formula1 <- as.formula(paste0(
       Y, "~", formula_RHS, "| ", FE, " | 0 | module_by_state"
     ))
