@@ -81,9 +81,11 @@ zillow_dt[is.na(median_home_price), median_home_price := state_median_home_price
 zillow_dt[, state_median_home_price := NULL]
 
 ## collapse to semesters
+print(head(zillow_dt))
 zillow_dt[, semester := ceiling(month / 6)]
 zillow_dt <- zillow_dt[, list(ln_home_price = mean(log(median_home_price))),
                        by = .(year, semester, fips_state, fips_county)]
+print(head(zillow_dt))
 
 ## prep the 2006-2016 data ---------------------------------------
 
@@ -132,7 +134,7 @@ keep_store_modules <- all_pi[, list(n = .N),
                              by = .(store_code_uc, product_module_code)]
 summary(keep_store_modules$n)
 keep_store_modules <- keep_store_modules[n == (2016 - 2005) * 2]
-flog.info("N: %s", nrow(all_pi))
+flog.info("N: %s", nrow(keep_store_modules))
 
 setkey(all_pi, store_code_uc, product_module_code)
 setkey(keep_store_modules, store_code_uc, product_module_code)
