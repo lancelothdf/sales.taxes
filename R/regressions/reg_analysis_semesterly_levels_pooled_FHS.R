@@ -68,6 +68,8 @@ zillow_dt <- zillow_dt[between(year, 2009, 2014)]
 zillow_dt <- zillow_dt[, .(fips_state, fips_county, median_home_price, year, month)]
 zillow_dt <- merge(county_skeleton, zillow_dt, all.x = T,
                    by = c("fips_state", "fips_county", "year", "month"))
+print(head(zillow_dt))
+print(head(county_skeleton))
 
 ## prep state-level house prices (for when county-level is missing)
 zillow_state_dt <- fread(zillow_state_path)
