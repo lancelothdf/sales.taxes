@@ -61,6 +61,7 @@ for (X in 2009:2014) {
     county_skeleton <- rbind(county_skeleton, all_counties)
   }
 }
+fwrite(county_skeleton, "Data/county_skeleton_test.csv")
 
 zillow_dt <- fread(zillow_path)
 print(head(zillow_dt))
