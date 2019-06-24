@@ -173,6 +173,10 @@ all_pi <- all_pi[keep_store_modules]
 setkey(all_pi, store_code_uc, product_module_code, year, quarter)
 
 
+## Delete some variables to save memory
+all_pi <- all_pi[, c("fips_state", "fips_county", "year", "quarter", "product_module_code", "store_code_uc", "ln_cpricei", "ln_sales_tax", "ln_quantity", "store_by_module", "cal_time", "module_by_time", "module_by_state", "region_by_module_by_time", "division_by_module_by_time", "base.sales", "ln_home_price", "ln_unemp")]
+
+
 ## take first differences of outcomes and treatment
 all_pi[, D.ln_cpricei := ln_cpricei - shift(ln_cpricei, n=1, type="lag"),
        by = .(store_code_uc, product_module_code)]
