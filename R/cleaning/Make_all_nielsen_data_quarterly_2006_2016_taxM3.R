@@ -115,8 +115,8 @@ all_pi[taxable == 2 & fips_state == 8 & (year >= 2011 | (year == 2010 & quarter 
 all_pi[taxable == 2 & fips_state == 17, "sales_tax"] <- 0.01
 all_pi[taxable == 2 & fips_state == 17, "taxable"] <- 1
 
-all_pi[taxable == 3 & fips_state == 17 & (year == 2008 | (year == 2009 & quarter <= 2)), "sales_tax"] <- 0.01 ##month <= 8
-all_pi[taxable == 3 & fips_state == 17 & (year == 2008 | (year == 2009 & quarter <= 2)), "taxable"] <- 1 ## month <= 8
+all_pi[taxable == 3 & fips_state == 17 & (year <= 2008 | (year == 2009 & quarter <= 2)), "sales_tax"] <- 0.01 ##month <= 8
+all_pi[taxable == 3 & fips_state == 17 & (year <= 2008 | (year == 2009 & quarter <= 2)), "taxable"] <- 1 ## month <= 8
 all_pi[taxable == 3 & fips_state == 17 & (year >= 2010 | (year == 2009 & quarter >= 3)), "taxable"] <- 1 ## month >= 9
 
 all_pi[taxable == 2 & fips_state == 23 & (year <= 2012 | (year == 2013 & quarter <= 3)), "taxable"] <- 0 ## month <= 9
@@ -146,8 +146,8 @@ all_pi[taxable == 2 & fips_state == 51, "taxable"] <- 1
 all_pi[taxable == 2 & fips_state == 53 & (year <= 2009 | (year == 2010 & (quarter < 2 | quarter > 3)) | year >= 2011), "taxable"] <- 0  ## (month <= 5 | month == 12)
 all_pi[taxable == 2 & fips_state == 53 & (year == 2010 & ( quarter >= 2 & quarter <= 3)), "taxable"] <- 1 ## ( month >= 6 & month <= 11)
 
-all_pi[taxable == 2 & fips_state == 54 & (year == 2008 & quarter <= 2), "sales_tax"] <- 0.04  ## month <= 6
-all_pi[taxable == 2 & fips_state == 54 & (year == 2008 & quarter <= 2), "taxable"] <- 1 ## month <= 6
+all_pi[taxable == 2 & fips_state == 54 & (year <= 2008 | (year == 2008 & quarter <= 2)), "sales_tax"] <- 0.04  ## month <= 6
+all_pi[taxable == 2 & fips_state == 54 & (year <= 2008 | (year == 2008 & quarter <= 2)), "taxable"] <- 1 ## month <= 6
 
 all_pi[taxable == 2 & fips_state == 54 & ((year == 2008 & quarter >= 3) | (year >= 2009 & year <= 2011)), "sales_tax"] <- 0.03 ## month >= 7
 all_pi[taxable == 2 & fips_state == 54 & ((year == 2008 & quarter >= 3) | (year >= 2009 & year <= 2011)), "taxable"] <- 1 ## month >= 7
