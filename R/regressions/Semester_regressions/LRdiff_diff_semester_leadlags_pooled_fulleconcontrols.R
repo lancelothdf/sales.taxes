@@ -18,13 +18,12 @@ old_pi_path <- "Data/Nielsen/Quarterly_old_pi.csv"
 #' This data is the same as all_goods_pi_path, except it has 2015-2016 data as well.
 data.full.path <- "Data/Nielsen/semester_nielsen_data.csv"
 ## output filepaths ----------------------------------------------
-reg.outfile <- "Data/LRdiff_results_semester_diff_leadlags_borderstates.csv"
+reg.outfile <- "Data/LRdiff_results_semester_diff_leadlags_pooled_fulleconcontrols.csv"
 
 
 zillow_path <- "Data/covariates/zillow_long_by_county_clean.csv"
 zillow_state_path <- "Data/covariates/zillow_long_by_state_clean.csv"
 unemp.path <- "Data/covariates/county_monthly_unemp_clean.csv"
-border.path <- "Data/Border_states.csv"
 
 
 ## prep Census region/division data ------------------------------
@@ -135,55 +134,6 @@ unemp.data <- unemp.data[, ln_unemp := log(unemp)]
 ##
 all_pi <- merge(all_pi, unemp.data, by = c("fips_state", "fips_county", "year", "semester"), all.x = T)
 
-###########################################################################
-## Make state border pairs
-
-## Import data with all pairs of border states
-border.states <- fread(border.path)
-
-
-##Only keep states that are in the Nielsen dataset
-#List of unique states in the sales data
-list.states <- data.frame(unique(all_pi[,c('fips_state')]))
-border.states <- merge(list.states, border.states,by = c("fips_state"), all.x = T)
-
-
-#Only keep pairs for which both states are in the data
-setDT(border.states)
-keep_states <- border.states[, list(n = .N),
-                                 by = .(bordindx)]
-keep_states <- keep_states[n == 2]
-
-setkey(border.states, bordindx)
-setkey(keep_states, bordindx)
-
-border.states <- border.states[keep_states]
-border.states <- border.states[, c("fips_state", "bordindx")]
-
-
-#Count the number of times each state appears in the data set (number of pairs that it is a part of)
-n_states <- border.states[, list(n = .N),
-                              by = .(fips_state)]
-border.states[, id := seq_len(.N), by = .(fips_state)] ##Create an ID within each state (that will map into a border index bordindx).  Later we will duplicate each observation in all_pi as many times as this state appears in border pairs and will create the same id --> so that we can then assign a bordindx to each
-
-
-## Duplicate each observation in all_pi as many times as this state appears in the border dataset
-all_pi <- merge(all_pi, n_states, by = c("fips_state"), all.x = TRUE) #Merge number of times each state appears in list of border pairs
-all_pi <- all_pi[!is.na(n)]
-all_pi <- expandRows(all_pi, "n", drop = FALSE) #Duplicate observations as many times as state appears in border state pairs
-all_pi <- all_pi[ , id := seq_len(.N), by = .(store_code_uc, product_module_code, year)] #Create the same ID as in border.states.
-
-
-## Merge all_pi with the bordindx IDs
-all_pi <- merge(all_pi, border.states, by = c("fips_state", "id"), all.x = T)
-
-## Generate some pair-specific FE
-all_pi[, pair_by_time := .GRP, by = .(bordindx, cal_time)]
-all_pi[, pair_by_module_by_time := .GRP, by = .(bordindx, cal_time, product_module_code)]
-
-## Generate some regressions weights (want to divide usual weights by number of times the state appears in the dataset)
-all_pi[, weight := base.sales/n]
-
 
 
 ###########################################################################
@@ -191,35 +141,26 @@ all_pi[, weight := base.sales/n]
 all_pi[, D.ln_cpricei := ln_cpricei - shift(ln_cpricei, n=1, type="lag"),
        by = .(store_code_uc, product_module_code)]
 
-all_pi[, D.ln_cpricei_Q2 := ln_cpricei_Q2 - shift(ln_cpricei_Q2, n=1, type="lag"),
-       by = .(store_code_uc, product_module_code)]
+#all_pi[, D.ln_cpricei_Q2 := ln_cpricei_Q2 - shift(ln_cpricei_Q2, n=1, type="lag"),
+#       by = .(store_code_uc, product_module_code)]
 
 all_pi[, D.ln_quantity := ln_quantity - shift(ln_quantity, n=1, type="lag"),
        by = .(store_code_uc, product_module_code)]
 
-all_pi[, D.ln_quantity_Q2 := ln_quantity_Q2 - shift(ln_quantity_Q2, n=1, type="lag"),
-       by = .(store_code_uc, product_module_code)]
+#all_pi[, D.ln_quantity_Q2 := ln_quantity_Q2 - shift(ln_quantity_Q2, n=1, type="lag"),
+#       by = .(store_code_uc, product_module_code)]
 
 all_pi[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
        by = .(store_code_uc, product_module_code)]
 
-all_pi[, D.ln_sales_tax_Q2 := ln_sales_tax_Q2 - shift(ln_sales_tax_Q2, n=1, type="lag"),
-       by = .(store_code_uc, product_module_code)]
+#all_pi[, D.ln_sales_tax_Q2 := ln_sales_tax_Q2 - shift(ln_sales_tax_Q2, n=1, type="lag"),
+#       by = .(store_code_uc, product_module_code)]
 
 all_pi[, D.ln_home_price := ln_home_price - shift(ln_home_price, n = 1, type = "lag"),
        by = .(store_code_uc, product_module_code)]
 
 all_pi[, D.ln_unemp := ln_unemp - shift(ln_unemp, n = 1, type = "lag"),
        by = .(store_code_uc, product_module_code)]
-
-
-
-##########################################################################
-## Get rid of variables that we are not using to make dataset smaller
-all_pi <- all_pi[, -c("product_group_code", "pricei", "quantityi", "cpricei", "sales", "sales_tax", "sales_tax_Q2", "pricei_Q2", "cpricei_Q2", "sales_Q2", "base.tax", "base.tax.Q2", "ln_pricei", "ln_pricei_Q2", "ln_cpricei", "ln_cpricei_Q2", "ln_sales_tax", "ln_sales_tax_Q2", "ln_quantity", "ln_quantity_Q2", "ln_sales", "ln_sales_Q2", "n", "region", "division")]
-
-############################################################
-
 
 
 ## generate lags and leads of ln_sales_tax
@@ -232,12 +173,28 @@ for (lag.val in 1:4) {
   all_pi[, (lead.X) := shift(D.ln_sales_tax, n=lag.val, type="lead"),
          by = .(store_code_uc, product_module_code)]
 
-  lag.X <- paste0("L", lag.val, ".D.ln_sales_tax_Q2")
-  all_pi[, (lag.X) := shift(D.ln_sales_tax_Q2, n=lag.val, type="lag"),
-         by = .(store_code_uc, product_module_code)]
+  #lag.X <- paste0("L", lag.val, ".D.ln_sales_tax_Q2")
+  #all_pi[, (lag.X) := shift(D.ln_sales_tax_Q2, n=lag.val, type="lag"),
+  #       by = .(store_code_uc, product_module_code)]
 
-  lead.X <- paste0("F", lag.val, ".D.ln_sales_tax_Q2")
-  all_pi[, (lead.X) := shift(D.ln_sales_tax_Q2, n=lag.val, type="lead"),
+  #lead.X <- paste0("F", lag.val, ".D.ln_sales_tax_Q2")
+  #all_pi[, (lead.X) := shift(D.ln_sales_tax_Q2, n=lag.val, type="lead"),
+  #       by = .(store_code_uc, product_module_code)]
+  
+  lag.X <- paste0("L", lag.val, ".D.ln_unemp")
+  all_pi[, (lag.X) := shift(D.ln_sales_tax, n=lag.val, type="lag"),
+         by = .(store_code_uc, product_module_code)]
+  
+  lead.X <- paste0("F", lag.val, ".D.ln_unemp")
+  all_pi[, (lead.X) := shift(D.ln_sales_tax, n=lag.val, type="lead"),
+         by = .(store_code_uc, product_module_code)]
+  
+  lag.X <- paste0("L", lag.val, ".D.ln_home_price")
+  all_pi[, (lag.X) := shift(D.ln_sales_tax, n=lag.val, type="lag"),
+         by = .(store_code_uc, product_module_code)]
+  
+  lead.X <- paste0("F", lag.val, ".D.ln_home_price")
+  all_pi[, (lead.X) := shift(D.ln_sales_tax, n=lag.val, type="lead"),
          by = .(store_code_uc, product_module_code)]
 }
 
@@ -248,31 +205,34 @@ all_pi <- all_pi[ year >= 2009 | (year == 2008 & semester == 2)] ## First semest
 
 formula_lags <- paste0("L", 1:4, ".D.ln_sales_tax", collapse = "+")
 formula_leads <- paste0("F", 1:4, ".D.ln_sales_tax", collapse = "+")
+formula_lags_unemp <- paste0("L", 1:4, ".D.ln_unemp", collapse = "+")
+formula_leads_unemp <- paste0("F", 1:4, ".D.ln_unemp", collapse = "+")
+formula_lags_homeprice <- paste0("L", 1:4, ".D.ln_home_price", collapse = "+")
+formula_leads_homeprice <- paste0("F", 1:4, ".D.ln_home_price", collapse = "+")
 formula_RHS <- paste0("D.ln_sales_tax + ", formula_lags, "+", formula_leads)
+formula_RHS_unemp <- paste0("D.ln_unemp + ", formula_lags_unemp, "+", formula_leads_unemp)
+formula_RHS_homeprice <- paste0("D.ln_home_price + ", formula_lags_homeprice, "+", formula_leads_homeprice)
 
-formula_lags_Q2 <- paste0("L", 1:4, ".D.ln_sales_tax_Q2", collapse = "+")
-formula_leads_Q2 <- paste0("F", 1:4, ".D.ln_sales_tax_Q2", collapse = "+")
-formula_RHS_Q2 <- paste0("D.ln_sales_tax_Q2 + ", formula_lags_Q2, "+", formula_leads_Q2)
+#formula_lags_Q2 <- paste0("L", 1:4, ".D.ln_sales_tax_Q2", collapse = "+")
+#formula_leads_Q2 <- paste0("F", 1:4, ".D.ln_sales_tax_Q2", collapse = "+")
+#formula_RHS_Q2 <- paste0("D.ln_sales_tax_Q2 + ", formula_lags_Q2, "+", formula_leads_Q2)
 
 outcomes <- c("D.ln_cpricei", "D.ln_quantity")
 econ.outcomes <- c("D.ln_home_price", "D.ln_unemp")
-outcomes.Q2 <- c("D.ln_cpricei_Q2", "D.ln_quantity_Q2")
-
-#FE_opts <- c("cal_time", "module_by_time", "region_by_module_by_time", "division_by_module_by_time")
-FE_opts <- c("module_by_time", "region_by_module_by_time", "division_by_module_by_time", "module_by_time + pair_by_time", "pair_by_module_by_time")
-
+#outcomes.Q2 <- c("D.ln_cpricei_Q2", "D.ln_quantity_Q2")
+FE_opts <- c("cal_time", "module_by_time", "region_by_module_by_time", "division_by_module_by_time")
 
 ## for linear hypothesis tests
 lead.vars <- paste(paste0("F", 4:1, ".D.ln_sales_tax"), collapse = " + ")
 lag.vars <- paste(paste0("L", 4:1, ".D.ln_sales_tax"), collapse = " + ")
-lead.vars.Q2 <- paste(paste0("F", 4:1, ".D.ln_sales_tax_Q2"), collapse = " + ")
-lag.vars.Q2 <- paste(paste0("L", 4:1, ".D.ln_sales_tax_Q2"), collapse = " + ")
+#lead.vars.Q2 <- paste(paste0("F", 4:1, ".D.ln_sales_tax_Q2"), collapse = " + ")
+#lag.vars.Q2 <- paste(paste0("L", 4:1, ".D.ln_sales_tax_Q2"), collapse = " + ")
 lead.lp.restr <- paste(lead.vars, "= 0")
-lead.lp.restr.Q2 <- paste(lead.vars.Q2, "= 0")
+#lead.lp.restr.Q2 <- paste(lead.vars.Q2, "= 0")
 lag.lp.restr <- paste(lag.vars, "+ D.ln_sales_tax = 0")
-lag.lp.restr.Q2 <- paste(lag.vars.Q2, "+ D.ln_sales_tax_Q2 = 0")
+#lag.lp.restr.Q2 <- paste(lag.vars.Q2, "+ D.ln_sales_tax_Q2 = 0")
 total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
-total.lp.restr.Q2 <- paste(lag.vars.Q2, "+", lead.vars.Q2, "+ D.ln_sales_tax_Q2 = 0")
+#total.lp.restr.Q2 <- paste(lag.vars.Q2, "+", lead.vars.Q2, "+ D.ln_sales_tax_Q2 = 0")
 
 
 ##
@@ -280,14 +240,18 @@ print(" Start with mean ln_sales_tax in each semester")
 ##
 
 res.table <- data.table(NULL)
-for (Y in c(outcomes, econ.outcomes)) {
+
+## First control for unemployment only
+for (Y in outcomes) {
   for (FE in FE_opts) {
+    
+    
     formula1 <- as.formula(paste0(
-      Y, "~", formula_RHS, "| ", FE, " | 0 | module_by_state"
+      Y, "~", formula_RHS, " + ", formula_RHS_unemp, "| ", FE, " | 0 | module_by_state"
     ))
     flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
     res1 <- felm(formula = formula1, data = all_pi,
-                 weights = all_pi$weight)
+                 weights = all_pi$base.sales)
     flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
 
     ## sum leads
@@ -318,7 +282,8 @@ for (Y in c(outcomes, econ.outcomes)) {
        `Cluster s.e.` = c(lead.test.se, lag.test.se, total.test.se),
        `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
        outcome = Y,
-       controls = FE
+       controls = FE,
+       econ_controls = "unemp"
     )
 
     ## attach results
@@ -326,61 +291,7 @@ for (Y in c(outcomes, econ.outcomes)) {
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := Y]
     res1.dt[, controls := FE]
-    res.table <- rbind(res.table, res1.dt, fill = T)
-    res.table <- rbind(res.table, lp.dt, fill = T)
-    fwrite(res.table, reg.outfile)
-  }
-}
-
-##
-print("Now use ln_sales_tax_Q2")
-##
-for (Y in c(outcomes, econ.outcomes, outcomes.Q2)) {
-  for (FE in FE_opts) {
-    formula1 <- as.formula(paste0(
-      Y, "~", formula_RHS_Q2, "| ", FE, " | 0 | module_by_state"
-    ))
-    flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
-    res1 <- felm(formula = formula1, data = all_pi,
-                 weights = all_pi$weight)
-    flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
-
-    ## sum leads
-    flog.info("Summing leads...")
-    lead.test <- glht(res1, linfct = lead.lp.restr.Q2)
-    lead.test.est <- coef(summary(lead.test))[[1]]
-    lead.test.se <- sqrt(vcov(summary(lead.test)))[[1]]
-    lead.test.pval <- 2*(1 - pnorm(abs(lead.test.est/lead.test.se)))
-
-    ## sum lags
-    flog.info("Summing lags...")
-    lag.test <- glht(res1, linfct = lag.lp.restr.Q2)
-    lag.test.est <- coef(summary(lag.test))[[1]]
-    lag.test.se <- sqrt(vcov(summary(lag.test)))[[1]]
-    lag.test.pval <- 2*(1 - pnorm(abs(lag.test.est/lag.test.se)))
-
-    ## sum all
-    flog.info("Summing all...")
-    total.test <- glht(res1, linfct = total.lp.restr.Q2)
-    total.test.est <- coef(summary(total.test))[[1]]
-    total.test.se <- sqrt(vcov(summary(total.test)))[[1]]
-    total.test.pval <- 2*(1 - pnorm(abs(total.test.est/total.test.se)))
-
-    ## linear hypothesis results
-    lp.dt <- data.table(
-      rn = c("Pre.D.ln_sales_tax_Q2", "Post.D.ln_sales_tax_Q2", "All.D.ln_sales_tax_Q2"),
-      Estimate = c(lead.test.est, lag.test.est, total.test.est),
-      `Cluster s.e.` = c(lead.test.se, lag.test.se, total.test.se),
-      `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
-      outcome = Y,
-      controls = FE
-    )
-
-    ## attach results
-    flog.info("Writing results...")
-    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-    res1.dt[, outcome := Y]
-    res1.dt[, controls := FE]
+    res1.dt[, econ_controls := "unemp"]
     res.table <- rbind(res.table, res1.dt, fill = T)
     res.table <- rbind(res.table, lp.dt, fill = T)
     fwrite(res.table, reg.outfile)
@@ -388,48 +299,40 @@ for (Y in c(outcomes, econ.outcomes, outcomes.Q2)) {
 }
 
 
-
-########################################
-## Control for Econ conditions in the regression
-
-##
-print(" Start with mean ln_sales_tax in each semester")
-##
-
-for (Y in c(outcomes)) {
+## Second control for home price only
+for (Y in outcomes) {
   for (FE in FE_opts) {
-
-    RHS1 <- paste(formula_RHS, " + D.ln_home_price + D.ln_unemp", sep = "")
-
+    
+    
     formula1 <- as.formula(paste0(
-      Y, "~", RHS1, "| ", FE, " | 0 | module_by_state"
+      Y, "~", formula_RHS, " + ", formula_RHS_homeprice, "| ", FE, " | 0 | module_by_state"
     ))
     flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
     res1 <- felm(formula = formula1, data = all_pi,
-                 weights = all_pi$weight)
+                 weights = all_pi$base.sales)
     flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
-
+    
     ## sum leads
     flog.info("Summing leads...")
     lead.test <- glht(res1, linfct = lead.lp.restr)
     lead.test.est <- coef(summary(lead.test))[[1]]
     lead.test.se <- sqrt(vcov(summary(lead.test)))[[1]]
     lead.test.pval <- 2*(1 - pnorm(abs(lead.test.est/lead.test.se)))
-
+    
     ## sum lags
     flog.info("Summing lags...")
     lag.test <- glht(res1, linfct = lag.lp.restr)
     lag.test.est <- coef(summary(lag.test))[[1]]
     lag.test.se <- sqrt(vcov(summary(lag.test)))[[1]]
     lag.test.pval <- 2*(1 - pnorm(abs(lag.test.est/lag.test.se)))
-
+    
     ## sum all
     flog.info("Summing all...")
     total.test <- glht(res1, linfct = total.lp.restr)
     total.test.est <- coef(summary(total.test))[[1]]
     total.test.se <- sqrt(vcov(summary(total.test)))[[1]]
     total.test.pval <- 2*(1 - pnorm(abs(total.test.est/total.test.se)))
-
+    
     ## linear hypothesis results
     lp.dt <- data.table(
       rn = c("Pre.D.ln_sales_tax", "Post.D.ln_sales_tax", "All.D.ln_sales_tax"),
@@ -437,74 +340,80 @@ for (Y in c(outcomes)) {
       `Cluster s.e.` = c(lead.test.se, lag.test.se, total.test.se),
       `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
       outcome = Y,
-      controls = FE
+      controls = FE,
+      econ_controls = "Home Price"
     )
-
+    
     ## attach results
     flog.info("Writing results...")
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := Y]
     res1.dt[, controls := FE]
+    res1.dt[, econ_controls := "Home Price"]
     res.table <- rbind(res.table, res1.dt, fill = T)
     res.table <- rbind(res.table, lp.dt, fill = T)
     fwrite(res.table, reg.outfile)
   }
 }
 
-##
-print("Now use ln_sales_tax_Q2")
-##
-for (Y in c(outcomes, outcomes.Q2)) {
+
+## Third control for both home price and unemployment
+for (Y in outcomes) {
   for (FE in FE_opts) {
-
-    RHS1 <- paste(formula_RHS_Q2, " + D.ln_home_price + D.ln_unemp", sep = "")
-
+    
+    
     formula1 <- as.formula(paste0(
-      Y, "~", RHS1, "| ", FE, " | 0 | module_by_state"
+      Y, "~", formula_RHS, " + ", formula_RHS_unemp, " + ", formula_RHS_homeprice, "| ", FE, " | 0 | module_by_state"
     ))
     flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
     res1 <- felm(formula = formula1, data = all_pi,
-                 weights = all_pi$weight)
+                 weights = all_pi$base.sales)
     flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
-
+    
     ## sum leads
     flog.info("Summing leads...")
-    lead.test <- glht(res1, linfct = lead.lp.restr.Q2)
+    lead.test <- glht(res1, linfct = lead.lp.restr)
     lead.test.est <- coef(summary(lead.test))[[1]]
     lead.test.se <- sqrt(vcov(summary(lead.test)))[[1]]
     lead.test.pval <- 2*(1 - pnorm(abs(lead.test.est/lead.test.se)))
-
+    
     ## sum lags
     flog.info("Summing lags...")
-    lag.test <- glht(res1, linfct = lag.lp.restr.Q2)
+    lag.test <- glht(res1, linfct = lag.lp.restr)
     lag.test.est <- coef(summary(lag.test))[[1]]
     lag.test.se <- sqrt(vcov(summary(lag.test)))[[1]]
     lag.test.pval <- 2*(1 - pnorm(abs(lag.test.est/lag.test.se)))
-
+    
     ## sum all
     flog.info("Summing all...")
-    total.test <- glht(res1, linfct = total.lp.restr.Q2)
+    total.test <- glht(res1, linfct = total.lp.restr)
     total.test.est <- coef(summary(total.test))[[1]]
     total.test.se <- sqrt(vcov(summary(total.test)))[[1]]
     total.test.pval <- 2*(1 - pnorm(abs(total.test.est/total.test.se)))
-
+    
     ## linear hypothesis results
     lp.dt <- data.table(
-      rn = c("Pre.D.ln_sales_tax_Q2", "Post.D.ln_sales_tax_Q2", "All.D.ln_sales_tax_Q2"),
+      rn = c("Pre.D.ln_sales_tax", "Post.D.ln_sales_tax", "All.D.ln_sales_tax"),
       Estimate = c(lead.test.est, lag.test.est, total.test.est),
       `Cluster s.e.` = c(lead.test.se, lag.test.se, total.test.se),
       `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
       outcome = Y,
-      controls = FE
+      controls = FE,
+      econ_controls = "Home Price + Unemp"
     )
-
+    
     ## attach results
     flog.info("Writing results...")
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := Y]
     res1.dt[, controls := FE]
+    res1.dt[, econ_controls := "Home Price + Unemp"]
     res.table <- rbind(res.table, res1.dt, fill = T)
     res.table <- rbind(res.table, lp.dt, fill = T)
     fwrite(res.table, reg.outfile)
   }
 }
+
+
+
+
