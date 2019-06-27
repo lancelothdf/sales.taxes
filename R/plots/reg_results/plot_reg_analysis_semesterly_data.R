@@ -6,6 +6,17 @@ setwd("C:/Users/John Bonney/Desktop/Magne_projects/sales_taxes/output/server")
 
 ## setup -------------------
 res.all <- fread("pi_data/semesterly_pi_output_pooled.csv")
+## check that things are what they should be...
+# check L0
+res.test1 <- res.all[grepl("^(L0\\.)*ln_sales_tax", rn) & controls == "module_by_time"]
+sum(res.test1[grepl("S[1-2]", rn)]$Estimate) / length(res.test1[grepl("S[1-2]", rn)]$Estimate)
+# check L3
+res.test2 <- res.all[grepl("^(L3\\.)", rn) & controls == "module_by_time"]
+sum(res.test2[grepl("S[1-2]", rn)]$Estimate) / length(res.test2[grepl("S[1-2]", rn)]$Estimate)
+## okay, these check out
+## Now let's pool the post estimates to see if they match (Post.ln_sales_tax)
+res.test3 <- res.all[grepl("(")]
+
 res.all <- res.all[rn %in% paste0(c("L0", "L1", "L2", "L3", "L4", "F1", "F3", "F4", "Pre", "Post", "All"), ".ln_sales_tax")]
 # res.all <- res.all[controls %in% c("module_by_time", "region_by_module_by_time")]
 

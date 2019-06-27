@@ -168,7 +168,7 @@ lag.vars <- paste(
   " + (", paste(L4.vars, collapse = " + "), ") / ", length(L4.vars) * 5
 )
 
-total.vars <- lag.vars <- paste(
+total.vars <- paste(
   "(", paste(F4.vars, collapse = " + "), ") / ", length(F4.vars) * 8,
   " + (", paste(F3.vars, collapse = " + "), ") / ", length(F3.vars) * 8,
   " + (", paste(F1.vars, collapse = " + "), ") / ", length(F1.vars) * 8,
