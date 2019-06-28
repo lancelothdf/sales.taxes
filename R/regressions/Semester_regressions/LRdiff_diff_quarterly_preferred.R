@@ -172,6 +172,12 @@ all_pi[, D.ln_quantity := ln_quantity - shift(ln_quantity, n=1, type="lag"),
 all_pi[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
        by = .(store_code_uc, product_module_code)]
 
+all_pi[, D.ln_unemp := ln_unemp - shift(ln_unemp, n=1, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+all_pi[, D.ln_home_price := ln_home_price - shift(ln_home_price, n=1, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
 
 
 ## generate lags and leads of ln_sales_tax
