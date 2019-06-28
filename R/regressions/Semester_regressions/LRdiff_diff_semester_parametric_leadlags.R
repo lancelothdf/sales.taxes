@@ -218,7 +218,7 @@ Econ_opts <- c("D.ln_unemp", "D.ln_home_price", "D.ln_unemp + D.ln_home_price")
 Econ_w_lags <- c("D.ln_unemp", "D.ln_unemp", "D.ln_unemp + D.ln_home_price", "D.ln_unemp + D.ln_home_price")
 Econ_w_lags <- rbind(Econ_w_lags, c("Yes", "Yes", "Yes", "Yes"))
 Econ_w_lags <- rbind(Econ_w_lags, c("No", "Yes", "No", "Yes"))
-Econ_w_lags <- rbind(Econ_w_lags, c("L1.D2.ln_unemp + D.ln_unemp", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp", "L1.D2.ln_unemp + D.ln_unemp L1.D2.ln_home_price + D.ln_home_price", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp + F4.D2.ln_home_price + D.ln_home_price + L1.D2.ln_home_price"))
+Econ_w_lags <- rbind(Econ_w_lags, c("L1.D2.ln_unemp + D.ln_unemp", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp", "L1.D2.ln_unemp + D.ln_unemp + L1.D2.ln_home_price + D.ln_home_price", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp + F4.D2.ln_home_price + D.ln_home_price + L1.D2.ln_home_price"))
 
 
 

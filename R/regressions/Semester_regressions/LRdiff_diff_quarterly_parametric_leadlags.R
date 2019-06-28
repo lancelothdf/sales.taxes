@@ -18,6 +18,11 @@ all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_not
 old_pi_path <- "Data/Nielsen/Quarterly_old_pi.csv"
 #' This data is the same as all_goods_pi_path, except it has 2015-2016 data as well.
 data.full.path <- "Data/all_nielsen_data_2006_2016_quarterly.csv"
+
+zillow_path <- "Data/covariates/zillow_long_by_county_clean.csv"
+zillow_state_path <- "Data/covariates/zillow_long_by_state_clean.csv"
+unemp.path <- "Data/covariates/county_monthly_unemp_clean.csv"
+
 ## output filepaths ----------------------------------------------
 output.results.file <- "Data/LRdiff_quarterly_results_parametric_leadlags.csv"
 
@@ -82,6 +87,10 @@ zillow_dt <- zillow_dt[, list(ln_home_price = log(mean(median_home_price))),
                        by = .(year, quarter, fips_state, fips_county)]
 
 
+##
+all_pi <- merge(all_pi, zillow_dt, by = c("fips_state", "fips_county", "year", "quarter"), all.x = T)
+
+
 ### Unemployment data
 unemp.data <- fread(unemp.path)
 unemp.data <- unemp.data[, c("fips_state", "fips_county", "year", "month", "rate")]
@@ -90,6 +99,9 @@ unemp.data <- unemp.data[, list(unemp = mean(rate)), by = .(year, quarter, fips_
 unemp.data <- unemp.data[year >= 2006 & year <= 2016,]
 unemp.data <- unemp.data[, ln_unemp := log(unemp)]
 
+
+##
+all_pi <- merge(all_pi, unemp.data, by = c("fips_state", "fips_county", "year", "quarter"), all.x = T)
 
 
 ## prep the 2006-2016 data --------------------------------------- ##NOTE: in this version we do not merge to "old price indices" because they are under construction

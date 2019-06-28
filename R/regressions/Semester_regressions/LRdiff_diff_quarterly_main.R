@@ -87,6 +87,9 @@ zillow_dt <- zillow_dt[, quarter := ceiling((month/12)*4)]
 zillow_dt <- zillow_dt[, list(ln_home_price = log(mean(median_home_price))),
                        by = .(year, quarter, fips_state, fips_county)]
 
+##
+all_pi <- merge(all_pi, zillow_dt, by = c("fips_state", "fips_county", "year", "quarter"), all.x = T)
+
 
 ### Unemployment data
 unemp.data <- fread(unemp.path)
@@ -97,6 +100,8 @@ unemp.data <- unemp.data[year >= 2006 & year <= 2016,]
 unemp.data <- unemp.data[, ln_unemp := log(unemp)]
 
 
+##
+all_pi <- merge(all_pi, unemp.data, by = c("fips_state", "fips_county", "year", "quarter"), all.x = T)
 
 ## prep the 2006-2016 data --------------------------------------- ##NOTE: in this version we do not merge to "old price indices" because they are under construction
 #old_pi <- fread(old_pi_path)

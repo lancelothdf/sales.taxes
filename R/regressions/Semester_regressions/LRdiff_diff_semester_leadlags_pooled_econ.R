@@ -135,7 +135,7 @@ unemp.data <- unemp.data[, ln_unemp := log(unemp)]
 
 ##
 all_pi <- merge(all_pi, unemp.data, by = c("fips_state", "fips_county", "year", "semester"), all.x = T)
-
+rm(unemp.data)
 
 ## Delete some variables to save memory
 all_pi <- all_pi[, c("fips_state", "fips_county", "year", "semester", "store_code_uc", "product_module_code", "ln_cpricei", "ln_sales_tax", "ln_quantity", "base.sales", "store_by_module", "cal_time", "module_by_time", "module_by_state", "region_by_module_by_time", "division_by_module_by_time", "ln_home_price", "ln_unemp")]
@@ -222,12 +222,16 @@ Econ_opts <- c("D.ln_unemp", "D.ln_home_price", "D.ln_unemp + D.ln_home_price")
 
 
 ## Create a matrix with controls for econ conditions that include leads and lags - also store indicators that will be used in final matrix with results
-Econ_w_lags <- c("D.ln_unemp", "D.ln_unemp", "D.ln_unemp", "D.ln_unemp + D.ln_home_price", "D.ln_unemp + D.ln_home_price", "D.ln_unemp + D.ln_home_price")
-Econ_w_lags <- rbind(Econ_w_lags, c("Yes", "Yes", "No", "Yes", "Yes", "No"))
-Econ_w_lags <- rbind(Econ_w_lags, c("No", "Yes", "No", "No", "Yes", "No"))
-Econ_w_lags <- rbind(Econ_w_lags, c("L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp + D.ln_unemp", "L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp + D.ln_unemp + F1.D.ln_unemp + F2.D.ln_unemp + F3.D.ln_unemp + F4.D.ln_unemp", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp", "L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp + L4.D.ln_home_price + L3.D.ln_home_price + L2.D.ln_home_price + L1.D.ln_home_price + D.ln_unemp + D.ln_home_price", "L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp + L4.D.ln_home_price + L3.D.ln_home_price + L2.D.ln_home_price + L1.D.ln_home_price + D.ln_unemp + D.ln_home_price + F1.D.ln_unemp + F2.D.ln_unemp + F3.D.ln_unemp + F4.D.ln_unemp + F1.D.ln_home_price + F2.D.ln_home_price + F3.D.ln_home_price + F4.D.ln_home_price", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp + F4.D2.ln_home_price + D.ln_home_price + L1.D2.ln_home_price"))
-Econ_w_lags <- rbind(Econ_w_lags, c("No", "No", "Yes", "No", "No", "Yes"))
-
+#Econ_w_lags <- c("D.ln_unemp", "D.ln_unemp", "D.ln_unemp", "D.ln_unemp + D.ln_home_price", "D.ln_unemp + D.ln_home_price", "D.ln_unemp + D.ln_home_price")
+#Econ_w_lags <- rbind(Econ_w_lags, c("Yes", "Yes", "No", "Yes", "Yes", "No"))
+#Econ_w_lags <- rbind(Econ_w_lags, c("No", "Yes", "No", "No", "Yes", "No"))
+#Econ_w_lags <- rbind(Econ_w_lags, c("L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp + D.ln_unemp", "L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp + D.ln_unemp + F1.D.ln_unemp + F2.D.ln_unemp + F3.D.ln_unemp + F4.D.ln_unemp", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp", "L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp + L4.D.ln_home_price + L3.D.ln_home_price + L2.D.ln_home_price + L1.D.ln_home_price + D.ln_unemp + D.ln_home_price", "L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp + L4.D.ln_home_price + L3.D.ln_home_price + L2.D.ln_home_price + L1.D.ln_home_price + D.ln_unemp + D.ln_home_price + F1.D.ln_unemp + F2.D.ln_unemp + F3.D.ln_unemp + F4.D.ln_unemp + F1.D.ln_home_price + F2.D.ln_home_price + F3.D.ln_home_price + F4.D.ln_home_price", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp + F4.D2.ln_home_price + D.ln_home_price + L1.D2.ln_home_price"))
+#Econ_w_lags <- rbind(Econ_w_lags, c("No", "No", "Yes", "No", "No", "Yes"))
+Econ_w_lags <- c("D.ln_unemp", "D.ln_unemp", "D.ln_unemp + D.ln_home_price", "D.ln_unemp + D.ln_home_price")
+Econ_w_lags <- rbind(Econ_w_lags, c("Yes", "No", "Yes", "No"))
+Econ_w_lags <- rbind(Econ_w_lags, c("No", "No", "No", "No"))
+Econ_w_lags <- rbind(Econ_w_lags, c("L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp + D.ln_unemp", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp", "L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp + L4.D.ln_home_price + L3.D.ln_home_price + L2.D.ln_home_price + L1.D.ln_home_price + D.ln_unemp + D.ln_home_price", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp + F4.D2.ln_home_price + D.ln_home_price + L1.D2.ln_home_price"))
+Econ_w_lags <- rbind(Econ_w_lags, c("No", "Yes", "No", "Yes"))
 
 ## for linear hypothesis tests
 lead.vars <- paste(paste0("F", 4:1, ".D.ln_sales_tax"), collapse = " + ")
