@@ -217,7 +217,8 @@ formula_RHS <- paste0("D.ln_sales_tax + ", formula_lags, "+", formula_leads)
 
 
 outcomes <- c("D.ln_cpricei", "D.ln_quantity")
-FE_opts <- c("cal_time", "module_by_time", "region_by_module_by_time", "division_by_module_by_time")
+#FE_opts <- c("cal_time", "module_by_time", "region_by_module_by_time", "division_by_module_by_time")
+FE_opts <- c("module_by_time", "region_by_module_by_time", "division_by_module_by_time")
 Econ_opts <- c("D.ln_unemp", "D.ln_home_price", "D.ln_unemp + D.ln_home_price")
 
 
@@ -227,11 +228,11 @@ Econ_opts <- c("D.ln_unemp", "D.ln_home_price", "D.ln_unemp + D.ln_home_price")
 #Econ_w_lags <- rbind(Econ_w_lags, c("No", "Yes", "No", "No", "Yes", "No"))
 #Econ_w_lags <- rbind(Econ_w_lags, c("L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp + D.ln_unemp", "L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp + D.ln_unemp + F1.D.ln_unemp + F2.D.ln_unemp + F3.D.ln_unemp + F4.D.ln_unemp", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp", "L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp + L4.D.ln_home_price + L3.D.ln_home_price + L2.D.ln_home_price + L1.D.ln_home_price + D.ln_unemp + D.ln_home_price", "L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp + L4.D.ln_home_price + L3.D.ln_home_price + L2.D.ln_home_price + L1.D.ln_home_price + D.ln_unemp + D.ln_home_price + F1.D.ln_unemp + F2.D.ln_unemp + F3.D.ln_unemp + F4.D.ln_unemp + F1.D.ln_home_price + F2.D.ln_home_price + F3.D.ln_home_price + F4.D.ln_home_price", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp + F4.D2.ln_home_price + D.ln_home_price + L1.D2.ln_home_price"))
 #Econ_w_lags <- rbind(Econ_w_lags, c("No", "No", "Yes", "No", "No", "Yes"))
-Econ_w_lags <- c("D.ln_unemp", "D.ln_unemp", "D.ln_unemp + D.ln_home_price", "D.ln_unemp + D.ln_home_price")
-Econ_w_lags <- rbind(Econ_w_lags, c("Yes", "No", "Yes", "No"))
-Econ_w_lags <- rbind(Econ_w_lags, c("No", "No", "No", "No"))
-Econ_w_lags <- rbind(Econ_w_lags, c("L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp + D.ln_unemp", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp", "L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp + L4.D.ln_home_price + L3.D.ln_home_price + L2.D.ln_home_price + L1.D.ln_home_price + D.ln_unemp + D.ln_home_price", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp + F4.D2.ln_home_price + D.ln_home_price + L1.D2.ln_home_price"))
-Econ_w_lags <- rbind(Econ_w_lags, c("No", "Yes", "No", "Yes"))
+Econ_w_lags <- c("D.ln_unemp", "D.ln_unemp", "D.ln_unemp + D.ln_home_price")
+Econ_w_lags <- rbind(Econ_w_lags, c("Yes", "No", "No"))
+Econ_w_lags <- rbind(Econ_w_lags, c("No", "No", "No"))
+Econ_w_lags <- rbind(Econ_w_lags, c("L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp + D.ln_unemp", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp + F4.D2.ln_home_price + D.ln_home_price + L1.D2.ln_home_price"))
+Econ_w_lags <- rbind(Econ_w_lags, c("No", "Yes", "Yes"))
 
 ## for linear hypothesis tests
 lead.vars <- paste(paste0("F", 4:1, ".D.ln_sales_tax"), collapse = " + ")
@@ -448,12 +449,12 @@ for (Y in c(outcomes)) {
 
 
 ## summary values --------------------------------------------------------------
-LRdiff_res$N_obs <- nrow(yearly_data)
-LRdiff_res$N_modules <- length(unique(yearly_data$product_module_code))
-LRdiff_res$N_stores <- length(unique(yearly_data$store_code_uc))
-LRdiff_res$N_counties <- uniqueN(yearly_data, by = c("fips_state", "fips_county"))
-LRdiff_res$N_years <- uniqueN(yearly_data, by = c("year")) # should be 6 (we lose one because we difference)
-LRdiff_res$N_county_modules <- uniqueN(yearly_data, by = c("fips_state", "fips_county",
+LRdiff_res$N_obs <- nrow(all_pi)
+LRdiff_res$N_modules <- length(unique(all_pi$product_module_code))
+LRdiff_res$N_stores <- length(unique(all_pi$store_code_uc))
+LRdiff_res$N_counties <- uniqueN(all_pi, by = c("fips_state", "fips_county"))
+LRdiff_res$N_years <- uniqueN(all_pi, by = c("year")) # should be 6 (we lose one because we difference)
+LRdiff_res$N_county_modules <- uniqueN(all_pi, by = c("fips_state", "fips_county",
                                                            "product_module_code"))
 
 fwrite(LRdiff_res, output.results.file)

@@ -171,6 +171,12 @@ all_pi[, D.ln_quantity := ln_quantity - shift(ln_quantity, n=1, type="lag"),
 all_pi[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
        by = .(store_code_uc, product_module_code)]
 
+all_pi[, D.ln_unemp := ln_unemp - shift(ln_unemp, n=1, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+all_pi[, D.ln_home_price := ln_home_price - shift(ln_home_price, n=1, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
 
 ## Create 2 year differences (= 8 quarters)
 all_pi[, D2.ln_unemp := ln_unemp - shift(ln_unemp, n=8, type = "lag"),
@@ -213,6 +219,7 @@ formula_RHS <- paste0("D.ln_sales_tax + ", formula_lags, "+", formula_leads)
 
 outcomes <- c("D.ln_cpricei", "D.ln_quantity")
 FE_opts <- c("cal_time", "module_by_time", "region_by_module_by_time", "division_by_module_by_time")
+Econ_opts <- c("D.ln_unemp", "D.ln_home_price", "D.ln_unemp + D.ln_home_price")
 
 ## Create a matrix with controls for econ conditions that include leads and lags - also store indicators that will be used in final matrix with results
 Econ_w_lags <- c("D.ln_unemp", "D.ln_unemp", "D.ln_unemp + D.ln_home_price", "D.ln_unemp + D.ln_home_price")
@@ -428,12 +435,12 @@ for (Y in outcomes) {
 }
 
 ## summary values --------------------------------------------------------------
-LRdiff_res$N_obs <- nrow(yearly_data)
-LRdiff_res$N_modules <- length(unique(yearly_data$product_module_code))
-LRdiff_res$N_stores <- length(unique(yearly_data$store_code_uc))
-LRdiff_res$N_counties <- uniqueN(yearly_data, by = c("fips_state", "fips_county"))
-LRdiff_res$N_years <- uniqueN(yearly_data, by = c("year")) # should be 6 (we lose one because we difference)
-LRdiff_res$N_county_modules <- uniqueN(yearly_data, by = c("fips_state", "fips_county",
+LRdiff_res$N_obs <- nrow(all_pi)
+LRdiff_res$N_modules <- length(unique(all_pi$product_module_code))
+LRdiff_res$N_stores <- length(unique(all_pi$store_code_uc))
+LRdiff_res$N_counties <- uniqueN(all_pi, by = c("fips_state", "fips_county"))
+LRdiff_res$N_years <- uniqueN(all_pi, by = c("year")) # should be 6 (we lose one because we difference)
+LRdiff_res$N_county_modules <- uniqueN(all_pi, by = c("fips_state", "fips_county",
                                                            "product_module_code"))
 
 fwrite(LRdiff_res, output.results.file)
