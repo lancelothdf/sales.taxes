@@ -293,9 +293,14 @@ for (Y in c(outcomes, econ.outcomes)) {
     cumul.lead1.est <- 0
     cumul.lead1.se <- NA
     cumul.lead1.pval <- NA
-
+    
+    #cumul.lead2.est is just equal to minus the change between -2 and -1
+    cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_sales_tax", "Estimate"]
+    cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Cluster s.e."]
+    cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Pr(>|t|)"]
+    
     ##LEADS
-    for(j in 2:8) {
+    for(j in 3:9) {
 
       ## Create a name for estimate, se and pval of each lead
       cumul.test.est.name <- paste("cumul.lead", j, ".est", sep = "")
@@ -303,7 +308,7 @@ for (Y in c(outcomes, econ.outcomes)) {
       cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
 
       ## Create the formula to compute cumulative estimate at each lead/lag
-      cumul.test.form <- paste(paste0("F", j:1, ".D.ln_sales_tax"), collapse = " - ")
+      cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_sales_tax"), collapse = " - "))
       cumul.test.form <- paste(cumul.test.form, " = 0")
 
       ## Compute estimate and store in variables names
@@ -324,9 +329,9 @@ for (Y in c(outcomes, econ.outcomes)) {
     for(j in 1:8) {
 
       ## Create a name for estimate, se and pval of each lead
-      cumul.test.est.name <- paste("cumul.lead", j, ".est", sep = "")
-      cumul.test.se.name <- paste("cumul.lead", j, ".se", sep = "")
-      cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
+      cumul.test.est.name <- paste("cumul.lag", j, ".est", sep = "")
+      cumul.test.se.name <- paste("cumul.lag", j, ".se", sep = "")
+      cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
 
       ## Create the formula to compute cumulative estimate at each lead/lag
       cumul.test.form <- paste("D.ln_sales_tax + ", paste(paste0("L", 1:j, ".D.ln_sales_tax"), collapse = " + "), sep = "")
@@ -563,7 +568,7 @@ for (Y in c(outcomes, econ.outcomes)) {
     ##### Add the cumulative effect at each lead/lag (relative to -1)
   
     # At 0, the cumulative effect is just lag.poly0 (in level)
-    cumul.lag0.est <- -coef(summary(res1))[ "lag.poly0", "Estimate"]
+    cumul.lag0.est <- coef(summary(res1))[ "lag.poly0", "Estimate"]
     cumul.lag0.se <- coef(summary(res1))[ "lag.poly0", "Cluster s.e."]
     cumul.lag0.pval <- coef(summary(res1))[ "lag.poly0", "Pr(>|t|)"]
     

@@ -436,7 +436,7 @@ for (Y in outcomes) {
     ##### Add the cumulative effect at each lead/lag (relative to -1)
     
     # At 0, the cumulative effect is just D.ln_sales_tax (in level)
-    cumul.lag0.est <- -coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
+    cumul.lag0.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
     cumul.lag0.se <- coef(summary(res1))[ "D.ln_sales_tax", "Cluster s.e."]
     cumul.lag0.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
     
@@ -444,9 +444,9 @@ for (Y in outcomes) {
     cumul.test.form <- "D.ln_sales_tax + lag.poly0 = 0"
     cumul.test <- glht(res1, linfct = cumul.test.form)
     
-    cumul.lag0.est <- coef(summary(cumul.test))[[1]]
-    cumul.lag0.se <- sqrt(vcov(summary(cumul.test)))[[1]]
-    cumul.lag0.pval <- 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]])))
+    cumul.lag1.est <- coef(summary(cumul.test))[[1]]
+    cumul.lag1.se <- sqrt(vcov(summary(cumul.test)))[[1]]
+    cumul.lag1.pval <- 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]])))
     
     
     # LAGS from 1 to 8
@@ -706,7 +706,7 @@ for (Y in outcomes) {
     ##### Add the cumulative effect at each lead/lag (relative to -1)
     
     # At 0, the cumulative effect is just D.ln_sales_tax (in level)
-    cumul.lag0.est <- -coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
+    cumul.lag0.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
     cumul.lag0.se <- coef(summary(res1))[ "D.ln_sales_tax", "Cluster s.e."]
     cumul.lag0.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
     
@@ -714,9 +714,9 @@ for (Y in outcomes) {
     cumul.test.form <- "D.ln_sales_tax + lag.poly0 = 0"
     cumul.test <- glht(res1, linfct = cumul.test.form)
     
-    cumul.lag0.est <- coef(summary(cumul.test))[[1]]
-    cumul.lag0.se <- sqrt(vcov(summary(cumul.test)))[[1]]
-    cumul.lag0.pval <- 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]])))
+    cumul.lag1.est <- coef(summary(cumul.test))[[1]]
+    cumul.lag1.se <- sqrt(vcov(summary(cumul.test)))[[1]]
+    cumul.lag1.pval <- 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]])))
     
     
     # LAGS from 1 to 8

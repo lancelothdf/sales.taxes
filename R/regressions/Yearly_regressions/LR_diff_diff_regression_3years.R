@@ -29,8 +29,7 @@ border.path <- "Data/Border_states.csv"
 
 
 ###OUTPUT
-output.results.file <- "Data/LRdiff_2years_FE.csv"
-output.pretrend.file <- "Data/LRdiff_2years_pretrends.csv"
+output.results.file <- "Data/LRdiff_3years_FE.csv"
 
 
 ######### Regression analysis
@@ -58,7 +57,7 @@ yearly_data[, region_by_time := .GRP, by = .(Region, year)]
 yearly_data[, division_by_time := .GRP, by = .(Division, year)]
 yearly_data[, region_by_module_by_time := .GRP, by = .(Region, product_module_code, year)]
 yearly_data[, division_by_module_by_time := .GRP, by = .(Division, product_module_code, year)]
-yearly_data[, cal_time := (year-2008)/2] ## Of course normalization here does not matter to estimation - normalization chosen here so that with two year intervals, cal_time will take values 0, 1, 2 and 3
+yearly_data[, cal_time := (year-2008)/3] ## Of course normalization here does not matter to estimation - normalization chosen here so that with two year intervals, cal_time will take values 0, 1, and 2
 
 
 ######## Import and prep house price and unemployment data
@@ -117,43 +116,12 @@ yearly_data <- merge(yearly_data, unemp.data, by = c("fips_state", "fips_county"
 
 ######## Limit data to relevant time periods only and create lag and lead econ conditions
 ##NOTE: Make sure that we only include 2008-2014 in the regressions!!
-yearly_data <- yearly_data[year %in% c(2006, 2008, 2010, 2012, 2014, 2016),]
+yearly_data <- yearly_data[year %in% c(2008, 2011, 2014),]
 yearly_data <- yearly_data[order(store_code_uc, product_module_code, year),]
 
 
-##
-yearly_data[, lag_ln_unemp := shift(ln_unemp, n=1, type="lag"),
-         by = .(store_code_uc, product_module_code)]
 
-yearly_data[, lag_ln_home_price := shift(ln_home_price, n=1, type="lag"),
-            by = .(store_code_uc, product_module_code)]
-
-yearly_data[, lead_ln_unemp := shift(ln_unemp, n=1, type = "lead"),
-            by = .(store_code_uc, product_module_code)]
-
-yearly_data[, lead_ln_home_price := shift(ln_home_price, n=1, type = "lead"),
-            by = .(store_code_uc, product_module_code)]
-
-
-## Create lead of tax rate and outcomes to test for pre-trends
-yearly_data[, lead_ln_cpricei := shift(ln_cpricei, n=1, type = "lead"),
-            by = .(store_code_uc, product_module_code)]
-
-yearly_data[, lead_ln_cpricei2 := shift(ln_cpricei2, n=1, type = "lead"),
-            by = .(store_code_uc, product_module_code)]
-
-yearly_data[, lead_ln_quantity := shift(ln_quantity, n=1, type = "lead"),
-            by = .(store_code_uc, product_module_code)]
-
-yearly_data[, lead_ln_quantity2 := shift(ln_quantity2, n=1, type = "lead"),
-            by = .(store_code_uc, product_module_code)]
-
-yearly_data[, lead_ln_sales_tax := shift(ln_sales_tax, n=1, type = "lead"),
-            by = .(store_code_uc, product_module_code)]
-
-
-
-## !!! Only include 2008 - 2010 - 2012 - 2014 to create 2-year differences
+## !!! Only include 2008 - 2011 - 2014 to create 3-year differences
 ## ---------------------------------------------------
 yearly_data <- yearly_data[year >= 2008 & year <= 2014,]
 #yearly_data <- yearly_data[year %in% c(2008, 2010, 2012, 2014),]
@@ -167,7 +135,7 @@ list.outcomes <- c("ln_cpricei", "ln_cpricei2", "ln_quantity", "ln_quantity2")
 econ.outcomes <- c("ln_unemp", "ln_home_price")
 
 FE_opts <- c("module_by_time", "region_by_module_by_time", "division_by_module_by_time")
-Econ_opts <- c("ln_unemp + lag_ln_unemp + ln_home_price + lag_ln_home_price")
+Econ_opts <- c("ln_unemp + ln_home_price")
 
 
 
@@ -231,7 +199,7 @@ for(Y in c(list.outcomes)) {
       res1.dt[, outcome := Y]
       res1.dt[, controls := FE]
       res1.dt[, econ := "ln_unemp + ln_home_price"]
-      res1.dt[, lag.econ := "Yes"]
+      res1.dt[, lag.econ := "No"]
       res1.dt[, Rsq := summary(res1)$r.squared]
       res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
       LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
@@ -258,99 +226,3 @@ LRdiff_res$N_state_modules <- uniqueN(yearly_data, by = c("fips_state",
 
 fwrite(LRdiff_res, output.results.file)
 
-
-
-########################
-########################
-### PRE-TREND test
-
-#############################################
-### First: regress price and quantity on tax rate after controling for econ. conditions (+ without econ controls)
-list.outcomes <- c("lead_ln_cpricei", "lead_ln_cpricei2", "lead_ln_quantity", "lead_ln_quantity2", "lead_ln_unemp", "lead_ln_home_price")
-econ.outcomes <- c("lead_ln_unemp", "lead_ln_home_price")
-
-FE_opts <- c("module_by_time", "region_by_module_by_time", "division_by_module_by_time")
-
-
-#### First: pre-trends without econ controls
-LRdiff_res <- data.table(NULL)
-for(Y in c(list.outcomes, econ.outcomes)) {
-  for(FE in FE_opts) {
-
-
-
-    ## Formula
-    formula1 <- as.formula(paste0(
-      Y, " ~ ln_sales_tax + lead_ln_sales_tax | ", "store_module + ", FE, " | 0 | state_by_module "
-    ))
-
-
-    ## Run regression
-    res1 <- felm(data = yearly_data,
-                 formula = formula1,
-                 weights = yearly_data$base.sales)
-
-
-    ## attach results
-    flog.info("Writing results...")
-    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-    res1.dt[, outcome := Y]
-    res1.dt[, controls := FE]
-    res1.dt[, econ := "none"]
-    res1.dt[, Rsq := summary(res1)$r.squared]
-    res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-    fwrite(LRdiff_res, output.pretrend.file)
-
-  }
-}
-
-
-### Second: pre-trends with econ controls
-for(Y in c(list.outcomes)) {
-  for(FE in FE_opts) {
-
-
-
-    ## Formula
-    formula1 <- as.formula(paste0(
-      Y, " ~ ln_sales_tax + lead_ln_sales_tax + lead_ln_unemp + lead_ln_home_price | ", "store_module + ", FE, " | 0 | state_by_module "
-    ))
-
-
-    ## Run regression
-    res1 <- felm(data = yearly_data,
-                 formula = formula1,
-                 weights = yearly_data$base.sales)
-
-
-    ## attach results
-    flog.info("Writing results...")
-    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-    res1.dt[, outcome := Y]
-    res1.dt[, controls := FE]
-    res1.dt[, econ := "ln_unemp + ln_home_price"]
-    res1.dt[, Rsq := summary(res1)$r.squared]
-    res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-    fwrite(LRdiff_res, output.pretrend.file)
-
-  }
-}
-
-
-## summary values --------------------------------------------------------------
-LRdiff_res$N_obs <- nrow(yearly_data)
-LRdiff_res$N_modules <- length(unique(yearly_data$product_module_code))
-LRdiff_res$N_stores <- length(unique(yearly_data$store_code_uc))
-LRdiff_res$N_counties <- uniqueN(yearly_data, by = c("fips_state", "fips_county"))
-LRdiff_res$N_years <- uniqueN(yearly_data, by = c("year")) # should be 7
-LRdiff_res$N_county_modules <- uniqueN(yearly_data, by = c("fips_state", "fips_county",
-                                                           "product_module_code"))
-LRdiff_res$N_store_modules <- uniqueN(yearly_data, by = c("store_code_uc",
-                                                          "product_module_code"))
-LRdiff_res$N_state_modules <- uniqueN(yearly_data, by = c("fips_state",
-                                                          "product_module_code"))
-
-
-fwrite(LRdiff_res, output.pretrend.file)

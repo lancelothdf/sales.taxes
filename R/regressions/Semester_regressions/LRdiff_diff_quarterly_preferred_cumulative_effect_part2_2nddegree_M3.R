@@ -1,6 +1,7 @@
 #' Author: Lancelot Henry de Frahan and John Bonney
 #'
 #'Same as LRdiff_diff_quarterly_preferred_part2 but we plot the cumulative effect as opposed to changes
+#'And we only use a second degree polynomial for pre- and post- tax reform dynamics
 
 library(data.table)
 library(futile.logger)
@@ -17,7 +18,7 @@ all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_not
 #' This data set contains an old price index that Lance constructed, from
 old_pi_path <- "Data/Nielsen/Quarterly_old_pi.csv"
 #' This data is the same as all_goods_pi_path, except it has 2015-2016 data as well.
-data.full.path <- "Data/all_nielsen_data_2006_2016_quarterly.csv"
+data.full.path <- "Data/all_nielsen_data_2006_2016_quarterly_taxM3.csv"
 
 zillow_path <- "Data/covariates/zillow_long_by_county_clean.csv"
 zillow_state_path <- "Data/covariates/zillow_long_by_state_clean.csv"
@@ -25,7 +26,7 @@ unemp.path <- "Data/covariates/county_monthly_unemp_clean.csv"
 
 
 ## output filepaths ----------------------------------------------
-output.results.file <- "Data/LRdiff_quarterly_results_preferred_cumulative_part2.csv"
+output.results.file <- "Data/LRdiff_quarterly_results_preferred_cumulative_part2_2nddegree_M3.csv"
 
 
 ## prep Census region/division data ------------------------------
@@ -116,16 +117,17 @@ rm(unemp.data)
 ## merge on the census region/division info
 all_pi <- merge(all_pi, geo_dt, by = "fips_state")
 
-# impute tax rates prior to 2008 and after 2014
-all_pi[, sales_tax := ifelse(year < 2008, sales_tax[year == 2008 & quarter == 1], sales_tax),
-            by = .(store_code_uc, product_module_code)]
-all_pi[, sales_tax := ifelse(year > 2014, sales_tax[year == 2014 & quarter == 4], sales_tax),
-            by = .(store_code_uc, product_module_code)]
+#### create necessary variables
 
-# create necessary variables
+## First create cpricei
+all_pi[, sales_tax := 1 + sales_tax]
+all_pi[, cpricei := sales_tax*pricei]
+
 all_pi[, ln_cpricei := log(cpricei)]
 all_pi[, ln_sales_tax := log(sales_tax)]
+#all_pi[, ln_cpricei2 := ln_pricei2 + ln_sales_tax]
 all_pi[, ln_quantity := log(sales) - log(pricei)]
+#all_pi[, ln_quantity2 := log(sales) - ln_pricei2]
 all_pi[, store_by_module := .GRP, by = .(store_code_uc, product_module_code)]
 all_pi[, cal_time := 4 * year + quarter]
 all_pi[, module_by_time := .GRP, by = .(product_module_code, cal_time)]
@@ -135,10 +137,11 @@ all_pi[, division_by_module_by_time := .GRP, by = .(division, product_module_cod
 
 ## get sales weights
 all_pi[, base.sales := sales[year == 2008 & quarter == 1],
-            by = .(store_code_uc, product_module_code)]
+       by = .(store_code_uc, product_module_code)]
+
 
 all_pi <- all_pi[!is.na(base.sales) & !is.na(sales) & !is.na(ln_cpricei) &
-                             !is.na(ln_sales_tax) & !is.na(ln_quantity)]
+                   !is.na(ln_sales_tax) & !is.na(ln_quantity)]
 #                             & !is.na(ln_quantity2) & !is.na(ln_cpricei2)]
 
 ## balance on store-module level
@@ -228,13 +231,13 @@ total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 all_pi[, lead.poly0 := F8.D.ln_sales_tax + F7.D.ln_sales_tax + F6.D.ln_sales_tax + F5.D.ln_sales_tax + F4.D.ln_sales_tax + F3.D.ln_sales_tax + F2.D.ln_sales_tax + F1.D.ln_sales_tax ]
 all_pi[, lead.poly1 := 7*F8.D.ln_sales_tax + 6*F7.D.ln_sales_tax + 5*F6.D.ln_sales_tax + 4*F5.D.ln_sales_tax + 3*F4.D.ln_sales_tax + 2*F3.D.ln_sales_tax + F2.D.ln_sales_tax]
 all_pi[, lead.poly2 := 49*F8.D.ln_sales_tax + 36*F7.D.ln_sales_tax + 25*F6.D.ln_sales_tax + 16*F5.D.ln_sales_tax + 9*F4.D.ln_sales_tax + 4*F3.D.ln_sales_tax + F2.D.ln_sales_tax]
-all_pi[, lead.poly3 := 343*F8.D.ln_sales_tax + 216*F7.D.ln_sales_tax + 125*F6.D.ln_sales_tax + 64*F5.D.ln_sales_tax + 27*F4.D.ln_sales_tax + 8*F3.D.ln_sales_tax + F2.D.ln_sales_tax]
+#all_pi[, lead.poly3 := 343*F8.D.ln_sales_tax + 216*F7.D.ln_sales_tax + 125*F6.D.ln_sales_tax + 64*F5.D.ln_sales_tax + 27*F4.D.ln_sales_tax + 8*F3.D.ln_sales_tax + F2.D.ln_sales_tax]
 
 all_pi[, lag.poly0 := L8.D.ln_sales_tax + L7.D.ln_sales_tax + L6.D.ln_sales_tax + L5.D.ln_sales_tax + L4.D.ln_sales_tax + L3.D.ln_sales_tax + L2.D.ln_sales_tax + L1.D.ln_sales_tax + D.ln_sales_tax]
 all_pi[, lag.poly1 := 8*L8.D.ln_sales_tax + 7*L7.D.ln_sales_tax + 6*L6.D.ln_sales_tax + 5*L5.D.ln_sales_tax + 4*L4.D.ln_sales_tax + 3*L3.D.ln_sales_tax + 2*L2.D.ln_sales_tax + L1.D.ln_sales_tax ]
 all_pi[, lag.poly2 := 64*L8.D.ln_sales_tax + 49*L7.D.ln_sales_tax + 36*L6.D.ln_sales_tax + 25*L5.D.ln_sales_tax + 16*L4.D.ln_sales_tax + 9*L3.D.ln_sales_tax + 4*L2.D.ln_sales_tax + L1.D.ln_sales_tax ]
-all_pi[, lag.poly3 := 512*L8.D.ln_sales_tax + 343*L7.D.ln_sales_tax + 216*L6.D.ln_sales_tax + 125*L5.D.ln_sales_tax + 64*L4.D.ln_sales_tax + 27*L3.D.ln_sales_tax + 8*L2.D.ln_sales_tax + L1.D.ln_sales_tax ]
-all_pi[, lag.poly4 := 4096*L8.D.ln_sales_tax + 2401*L7.D.ln_sales_tax + 1296*L6.D.ln_sales_tax + 625*L5.D.ln_sales_tax + 256*L4.D.ln_sales_tax + 81*L3.D.ln_sales_tax + 16*L2.D.ln_sales_tax + L1.D.ln_sales_tax ]
+#all_pi[, lag.poly3 := 512*L8.D.ln_sales_tax + 343*L7.D.ln_sales_tax + 216*L6.D.ln_sales_tax + 125*L5.D.ln_sales_tax + 64*L4.D.ln_sales_tax + 27*L3.D.ln_sales_tax + 8*L2.D.ln_sales_tax + L1.D.ln_sales_tax ]
+#all_pi[, lag.poly4 := 4096*L8.D.ln_sales_tax + 2401*L7.D.ln_sales_tax + 1296*L6.D.ln_sales_tax + 625*L5.D.ln_sales_tax + 256*L4.D.ln_sales_tax + 81*L3.D.ln_sales_tax + 16*L2.D.ln_sales_tax + L1.D.ln_sales_tax ]
 
 
 
@@ -378,10 +381,10 @@ for (Y in c(outcomes)) {
 
     ## linear hypothesis results
     lp.dt <- data.table(
-      rn = c("cumul.lead8.D.ln_sales_tax", "cumul.lead7.D.ln_sales_tax", "cumul.lead6.D.ln_sales_tax", "cumul.lead5.D.ln_sales_tax", "cumul.lead4.D.ln_sales_tax", "cumul.lead3.D.ln_sales_tax", "cumul.lead2.D.ln_sales_tax", "cumul.lead1.D.ln_sales_tax", "cumul.lag0.D.ln_sales_tax", "cumul.lag1.D.ln_sales_tax", "cumul.lag2.D.ln_sales_tax", "cumul.lag3.D.ln_sales_tax", "cumul.lag4.D.ln_sales_tax", "cumul.lag5.D.ln_sales_tax", "cumul.lag6.D.ln_sales_tax", "cumul.lag7.D.ln_sales_tax", "cumul.lag8.D.ln_sales_tax"),
-      Estimate = c(cumul.lead8.est, cumul.lead7.est, cumul.lead6.est, cumul.lead5.est, cumul.lead4.est, cumul.lead3.est, cumul.lead2.est, cumul.lead1.est, cumul.lag0.est, cumul.lag1.est, cumul.lag2.est, cumul.lag3.est, cumul.lag4.est, cumul.lag5.est, cumul.lag6.est, cumul.lag7.est, cumul.lag8.est),
-      `Cluster s.e.` = c(cumul.lead8.se, cumul.lead7.se, cumul.lead6.se, cumul.lead5.se, cumul.lead4.se, cumul.lead3.se, cumul.lead2.se, cumul.lead1.se, cumul.lag0.se, cumul.lag1.se, cumul.lag2.se, cumul.lag3.se, cumul.lag4.se, cumul.lag5.se, cumul.lag6.se, cumul.lag7.se, cumul.lag8.se),
-      `Pr(>|t|)` = c(cumul.lead8.pval, cumul.lead7.pval, cumul.lead6.pval, cumul.lead5.pval, cumul.lead4.pval, cumul.lead3.pval, cumul.lead2.pval, cumul.lead1.pval, cumul.lag0.pval, cumul.lag1.pval, cumul.lag2.pval, cumul.lag3.pval, cumul.lag4.pval, cumul.lag5.pval, cumul.lag6.pval, cumul.lag7.pval, cumul.lag8.pval),
+      rn = c("cumul.lead9.D.ln_sales_tax", "cumul.lead8.D.ln_sales_tax", "cumul.lead7.D.ln_sales_tax", "cumul.lead6.D.ln_sales_tax", "cumul.lead5.D.ln_sales_tax", "cumul.lead4.D.ln_sales_tax", "cumul.lead3.D.ln_sales_tax", "cumul.lead2.D.ln_sales_tax", "cumul.lead1.D.ln_sales_tax", "cumul.lag0.D.ln_sales_tax", "cumul.lag1.D.ln_sales_tax", "cumul.lag2.D.ln_sales_tax", "cumul.lag3.D.ln_sales_tax", "cumul.lag4.D.ln_sales_tax", "cumul.lag5.D.ln_sales_tax", "cumul.lag6.D.ln_sales_tax", "cumul.lag7.D.ln_sales_tax", "cumul.lag8.D.ln_sales_tax"),
+      Estimate = c(cumul.lead9.est, cumul.lead8.est, cumul.lead7.est, cumul.lead6.est, cumul.lead5.est, cumul.lead4.est, cumul.lead3.est, cumul.lead2.est, cumul.lead1.est, cumul.lag0.est, cumul.lag1.est, cumul.lag2.est, cumul.lag3.est, cumul.lag4.est, cumul.lag5.est, cumul.lag6.est, cumul.lag7.est, cumul.lag8.est),
+      `Cluster s.e.` = c(cumul.lead9.se, cumul.lead8.se, cumul.lead7.se, cumul.lead6.se, cumul.lead5.se, cumul.lead4.se, cumul.lead3.se, cumul.lead2.se, cumul.lead1.se, cumul.lag0.se, cumul.lag1.se, cumul.lag2.se, cumul.lag3.se, cumul.lag4.se, cumul.lag5.se, cumul.lag6.se, cumul.lag7.se, cumul.lag8.se),
+      `Pr(>|t|)` = c(cumul.lead9.pval, cumul.lead8.pval, cumul.lead7.pval, cumul.lead6.pval, cumul.lead5.pval, cumul.lead4.pval, cumul.lead3.pval, cumul.lead2.pval, cumul.lead1.pval, cumul.lag0.pval, cumul.lag1.pval, cumul.lag2.pval, cumul.lag3.pval, cumul.lag4.pval, cumul.lag5.pval, cumul.lag6.pval, cumul.lag7.pval, cumul.lag8.pval),
       outcome = Y,
       controls = FE,
       econ = "ln_unemp + ln_home_price",
@@ -401,10 +404,10 @@ for (Y in c(outcomes)) {
 ## Also include polynomials in lags of unemployment and house prices (This will probably be the preferred specification)
 
 
-formula_RHS <- "lead.poly0 + lead.poly1 + lead.poly2 + lead.poly3 + lag.poly0 + lag.poly1 + lag.poly2 + lag.poly3 + lag.poly4"
+formula_RHS <- "lead.poly0 + lead.poly1 + lead.poly2 + lag.poly0 + lag.poly1 + lag.poly2"
 formula_RHS <- paste0(formula_RHS, " + lag.unemp0 + lag.unemp1 + lag.unemp2 + lag.unemp3 + lag.unemp4 + lag.home_price0 + lag.home_price1 + lag.home_price2 + lag.home_price3 + lag.home_price4")
-n.poly.lead <- 3
-n.poly.lag <- 4
+n.poly.lead <- 2
+n.poly.lag <- 2
 
 
 for (Y in c(outcomes)) {

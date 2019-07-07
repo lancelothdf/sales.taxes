@@ -29,8 +29,8 @@ border.path <- "Data/Border_states.csv"
 
 
 ###OUTPUT
-output.results.file <- "Data/LRdiff_2years_FE.csv"
-output.pretrend.file <- "Data/LRdiff_2years_pretrends.csv"
+output.results.file <- "Data/LRdiff_2years_triple_diff.csv"
+output.pretrend.file <- "Data/LRdiff_2years_pretrends_triple_diff.csv"
 
 
 ######### Regression analysis
@@ -54,11 +54,16 @@ census.regions$Division <- census.regions$Region*10 + census.regions$Division
 yearly_data <- merge(yearly_data, census.regions, by = c("fips_state", "fips_county"), all.x = T)
 
 
-yearly_data[, region_by_time := .GRP, by = .(Region, year)]
-yearly_data[, division_by_time := .GRP, by = .(Division, year)]
+#yearly_data[, region_by_time := .GRP, by = .(Region, year)]
+#yearly_data[, division_by_time := .GRP, by = .(Division, year)]
 yearly_data[, region_by_module_by_time := .GRP, by = .(Region, product_module_code, year)]
 yearly_data[, division_by_module_by_time := .GRP, by = .(Division, product_module_code, year)]
 yearly_data[, cal_time := (year-2008)/2] ## Of course normalization here does not matter to estimation - normalization chosen here so that with two year intervals, cal_time will take values 0, 1, 2 and 3
+
+
+#########
+# Delete some variables to save some memory
+yearly_data <- yearly_data[ , c("fips_state", "fips_county", "store_code_uc", "year", "product_module_code", "ln_cpricei", "ln_sales_tax", "ln_quantity", "base.sales", "ln_cpricei2", "ln_quantity2", "store_module", "state_by_module", "module_by_time", "store_by_time", "region_by_module_by_time", "division_by_module_by_time", "cal_time")]
 
 
 ######## Import and prep house price and unemployment data
@@ -177,9 +182,9 @@ for(Y in c(list.outcomes, econ.outcomes)) {
 
 
 
-    ## Formula
+    ## Formula ### !!! Add store_by_time to get triple difference specification
     formula1 <- as.formula(paste0(
-      Y, " ~ ln_sales_tax | ", "store_module + ", FE, " | 0 | state_by_module "
+      Y, " ~ ln_sales_tax | ", "store_module + store_by_time + ", FE, " | 0 | state_by_module "
     ))
 
 
@@ -193,7 +198,7 @@ for(Y in c(list.outcomes, econ.outcomes)) {
     flog.info("Writing results...")
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := Y]
-    res1.dt[, controls := FE]
+    res1.dt[, controls := paste0(FE, "+ store_by_time")]
     res1.dt[, econ := "none"]
     res1.dt[, lag.econ := NA]
     res1.dt[, Rsq := summary(res1)$r.squared]
@@ -213,9 +218,9 @@ for(Y in c(list.outcomes)) {
   for(FE in FE_opts) {
     for(EC in Econ_opts) {
 
-      ## Formula
+      ## Formula ### !!! Add store_by_time to get triple difference specification
       formula1 <- as.formula(paste0(
-        Y, " ~ ln_sales_tax", " + ", EC, " | ", "store_module + ", FE, " | 0 | state_by_module "
+        Y, " ~ ln_sales_tax", " + ", EC, " | ", "store_module + store_by_time + ", FE, " | 0 | state_by_module "
       ))
 
 
@@ -229,7 +234,7 @@ for(Y in c(list.outcomes)) {
       flog.info("Writing results...")
       res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
       res1.dt[, outcome := Y]
-      res1.dt[, controls := FE]
+      res1.dt[, controls := paste0(FE, "+ store_by_time")]
       res1.dt[, econ := "ln_unemp + ln_home_price"]
       res1.dt[, lag.econ := "Yes"]
       res1.dt[, Rsq := summary(res1)$r.squared]
@@ -279,9 +284,9 @@ for(Y in c(list.outcomes, econ.outcomes)) {
 
 
 
-    ## Formula
+    ## Formula ### !!! Add store_by_time to get triple difference specification
     formula1 <- as.formula(paste0(
-      Y, " ~ ln_sales_tax + lead_ln_sales_tax | ", "store_module + ", FE, " | 0 | state_by_module "
+      Y, " ~ ln_sales_tax + lead_ln_sales_tax | ", "store_module + store_by_time +", FE, " | 0 | state_by_module "
     ))
 
 
@@ -295,7 +300,7 @@ for(Y in c(list.outcomes, econ.outcomes)) {
     flog.info("Writing results...")
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := Y]
-    res1.dt[, controls := FE]
+    res1.dt[, controls := paste0(FE, "+ store_by_time")]
     res1.dt[, econ := "none"]
     res1.dt[, Rsq := summary(res1)$r.squared]
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
@@ -312,9 +317,9 @@ for(Y in c(list.outcomes)) {
 
 
 
-    ## Formula
+    ## Formula ### !!! Add store_by_time to get triple difference specification
     formula1 <- as.formula(paste0(
-      Y, " ~ ln_sales_tax + lead_ln_sales_tax + lead_ln_unemp + lead_ln_home_price | ", "store_module + ", FE, " | 0 | state_by_module "
+      Y, " ~ ln_sales_tax + lead_ln_sales_tax + lead_ln_unemp + lead_ln_home_price | ", "store_module + store_by_time + ", FE, " | 0 | state_by_module "
     ))
 
 
@@ -328,7 +333,7 @@ for(Y in c(list.outcomes)) {
     flog.info("Writing results...")
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := Y]
-    res1.dt[, controls := FE]
+    res1.dt[, controls := paste0(FE, "+ store_by_time")]
     res1.dt[, econ := "ln_unemp + ln_home_price"]
     res1.dt[, Rsq := summary(res1)$r.squared]
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
