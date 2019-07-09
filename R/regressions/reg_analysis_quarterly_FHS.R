@@ -181,18 +181,18 @@ for (yr in 2008:2014) {
     ct <- yr * 4 + qtr
 
     ## sum over all leads of treatment 8+ periods in the future
-    dt[, F8.D.ln_sales_tax := ifelse(
-      ct == cal_time,
-      sum(D.ln_sales_tax[cal_time >= ct + 8], na.rm = T),
-      F8.D.ln_sales_tax
-      ), by = id]
+    all_pi[, F8.D.ln_sales_tax := ifelse(
+          ct == cal_time,
+          sum(D.ln_sales_tax[cal_time >= ct + 8], na.rm = T),
+          F8.D.ln_sales_tax
+          ), by = id]
 
     ## sum over all lags of treatment 7+ periods in the past
-    dt[, L7.D.ln_sales_tax := ifelse(
-      ct == cal_time,
-      sum(D.ln_sales_tax[cal_time <= ct - 7], na.rm = T),
-      L7.D.ln_sales_tax
-      ), by = id]
+    all_pi[, L7.D.ln_sales_tax := ifelse(
+          ct == cal_time,
+          sum(D.ln_sales_tax[cal_time <= ct - 7], na.rm = T),
+          L7.D.ln_sales_tax
+          ), by = id]
   }
 }
 
