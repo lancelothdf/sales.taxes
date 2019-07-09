@@ -18,6 +18,11 @@ all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_not
 old_pi_path <- "Data/Nielsen/Quarterly_old_pi.csv"
 #' This data is the same as all_goods_pi_path, except it has 2015-2016 data as well.
 data.full.path <- "Data/all_nielsen_data_2006_2016_quarterly.csv"
+
+zillow_path <- "Data/covariates/zillow_long_by_county_clean.csv"
+zillow_state_path <- "Data/covariates/zillow_long_by_state_clean.csv"
+unemp.path <- "Data/covariates/county_monthly_unemp_clean.csv"
+
 ## output filepaths ----------------------------------------------
 output.results.file <- "Data/LRdiff_quarterly_results_parametric_leadlags.csv"
 
@@ -82,6 +87,10 @@ zillow_dt <- zillow_dt[, list(ln_home_price = log(mean(median_home_price))),
                        by = .(year, quarter, fips_state, fips_county)]
 
 
+##
+all_pi <- merge(all_pi, zillow_dt, by = c("fips_state", "fips_county", "year", "quarter"), all.x = T)
+
+
 ### Unemployment data
 unemp.data <- fread(unemp.path)
 unemp.data <- unemp.data[, c("fips_state", "fips_county", "year", "month", "rate")]
@@ -90,6 +99,9 @@ unemp.data <- unemp.data[, list(unemp = mean(rate)), by = .(year, quarter, fips_
 unemp.data <- unemp.data[year >= 2006 & year <= 2016,]
 unemp.data <- unemp.data[, ln_unemp := log(unemp)]
 
+
+##
+all_pi <- merge(all_pi, unemp.data, by = c("fips_state", "fips_county", "year", "quarter"), all.x = T)
 
 
 ## prep the 2006-2016 data --------------------------------------- ##NOTE: in this version we do not merge to "old price indices" because they are under construction
@@ -160,6 +172,12 @@ all_pi[, D.ln_quantity := ln_quantity - shift(ln_quantity, n=1, type="lag"),
 all_pi[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
        by = .(store_code_uc, product_module_code)]
 
+all_pi[, D.ln_unemp := ln_unemp - shift(ln_unemp, n=1, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+all_pi[, D.ln_home_price := ln_home_price - shift(ln_home_price, n=1, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
 
 ## Create 2 year differences (= 8 quarters)
 all_pi[, D2.ln_unemp := ln_unemp - shift(ln_unemp, n=8, type = "lag"),
@@ -218,6 +236,8 @@ formula_lag4 <- "lag.poly0 + lag.poly1 + lag.poly2 + lag.poly3 + lag.poly4"
 
 outcomes <- c("D.ln_cpricei", "D.ln_quantity")
 FE_opts <- c("cal_time", "module_by_time", "region_by_module_by_time", "division_by_module_by_time")
+Econ_opts <- c("D.ln_unemp", "D.ln_home_price", "D.ln_unemp + D.ln_home_price")
+
 
 ## Create a matrix with controls for econ conditions that include leads and lags - also store indicators that will be used in final matrix with results
 Econ_w_lags <- c("D.ln_unemp", "D.ln_unemp", "D.ln_unemp + D.ln_home_price", "D.ln_unemp + D.ln_home_price")
@@ -661,12 +681,12 @@ for (Y in outcomes) {
 }
 
 ## summary values --------------------------------------------------------------
-LRdiff_res$N_obs <- nrow(yearly_data)
-LRdiff_res$N_modules <- length(unique(yearly_data$product_module_code))
-LRdiff_res$N_stores <- length(unique(yearly_data$store_code_uc))
-LRdiff_res$N_counties <- uniqueN(yearly_data, by = c("fips_state", "fips_county"))
-LRdiff_res$N_years <- uniqueN(yearly_data, by = c("year")) # should be 6 (we lose one because we difference)
-LRdiff_res$N_county_modules <- uniqueN(yearly_data, by = c("fips_state", "fips_county",
+LRdiff_res$N_obs <- nrow(all_pi)
+LRdiff_res$N_modules <- length(unique(all_pi$product_module_code))
+LRdiff_res$N_stores <- length(unique(all_pi$store_code_uc))
+LRdiff_res$N_counties <- uniqueN(all_pi, by = c("fips_state", "fips_county"))
+LRdiff_res$N_years <- uniqueN(all_pi, by = c("year")) # should be 6 (we lose one because we difference)
+LRdiff_res$N_county_modules <- uniqueN(all_pi, by = c("fips_state", "fips_county",
                                                            "product_module_code"))
 
 fwrite(LRdiff_res, output.results.file)

@@ -6,6 +6,7 @@ library(data.table)
 library(futile.logger)
 library(lfe)
 library(multcomp)
+library(splitstackshape)
 
 setwd("/project2/igaarder")
 
@@ -22,10 +23,11 @@ data.full.path <- "Data/all_nielsen_data_2006_2016_quarterly.csv"
 zillow_path <- "Data/covariates/zillow_long_by_county_clean.csv"
 zillow_state_path <- "Data/covariates/zillow_long_by_state_clean.csv"
 unemp.path <- "Data/covariates/county_monthly_unemp_clean.csv"
+border.path <- "Data/Border_states.csv"
 
 
 ## output filepaths ----------------------------------------------
-output.results.file <- "Data/LRdiff_quarterly_results_preferred_cpricei.csv"
+output.results.file <- "Data/LRdiff_quarterly_results_borderstates.csv"
 
 
 ## prep Census region/division data ------------------------------
@@ -91,7 +93,6 @@ zillow_dt <- zillow_dt[, list(ln_home_price = log(mean(median_home_price))),
 all_pi <- merge(all_pi, zillow_dt, by = c("fips_state", "fips_county", "year", "quarter"), all.x = T)
 rm(zillow_dt)
 
-
 ### Unemployment data
 unemp.data <- fread(unemp.path)
 unemp.data <- unemp.data[, c("fips_state", "fips_county", "year", "month", "rate")]
@@ -131,8 +132,8 @@ all_pi[, store_by_module := .GRP, by = .(store_code_uc, product_module_code)]
 all_pi[, cal_time := 4 * year + quarter]
 all_pi[, module_by_time := .GRP, by = .(product_module_code, cal_time)]
 all_pi[, module_by_state := .GRP, by = .(product_module_code, fips_state)]
-all_pi[, region_by_module_by_time := .GRP, by = .(region, product_module_code, cal_time)]
-all_pi[, division_by_module_by_time := .GRP, by = .(division, product_module_code, cal_time)]
+#all_pi[, region_by_module_by_time := .GRP, by = .(region, product_module_code, cal_time)]
+#all_pi[, division_by_module_by_time := .GRP, by = .(division, product_module_code, cal_time)]
 
 ## get sales weights
 all_pi[, base.sales := sales[year == 2008 & quarter == 1],
@@ -156,7 +157,57 @@ setkey(all_pi, store_code_uc, product_module_code, year, quarter)
 
 #############################################################
 ## Delete some variables to save memory
-all_pi <- all_pi[, c("fips_state", "fips_county", "year", "quarter", "store_code_uc", "product_module_code", "ln_cpricei", "ln_sales_tax", "ln_quantity", "base.sales", "store_by_module", "cal_time", "module_by_time", "module_by_state", "region_by_module_by_time", "division_by_module_by_time", "ln_home_price", "ln_unemp")]
+all_pi <- all_pi[, c("fips_state", "fips_county", "year", "quarter", "store_code_uc", "product_module_code", "ln_cpricei", "ln_sales_tax", "ln_quantity", "base.sales", "cal_time", "module_by_time", "module_by_state", "ln_home_price", "ln_unemp")]
+
+
+#########################################################
+## Make state border pairs
+
+## Import data with all pairs of border states
+border.states <- fread(border.path)
+
+
+##Only keep states that are in the Nielsen dataset
+#List of unique states in the sales data
+list.states <- data.frame(unique(all_pi[,c('fips_state')]))
+border.states <- merge(list.states, border.states,by = c("fips_state"), all.x = T)
+
+
+#Only keep pairs for which both states are in the data
+setDT(border.states)
+keep_states <- border.states[, list(n = .N),
+                             by = .(bordindx)]
+keep_states <- keep_states[n == 2]
+
+setkey(border.states, bordindx)
+setkey(keep_states, bordindx)
+
+border.states <- border.states[keep_states]
+border.states <- border.states[, c("fips_state", "bordindx")]
+
+
+#Count the number of times each state appears in the data set (number of pairs that it is a part of)
+n_states <- border.states[, list(n = .N),
+                          by = .(fips_state)]
+border.states[, id := seq_len(.N), by = .(fips_state)] ##Create an ID within each state (that will map into a border index bordindx).  Later we will duplicate each observation in all_pi as many times as this state appears in border pairs and will create the same id --> so that we can then assign a bordindx to each
+
+
+## Duplicate each observation in all_pi as many times as this state appears in the border dataset
+all_pi <- merge(all_pi, n_states, by = c("fips_state"), all.x = TRUE) #Merge number of times each state appears in list of border pairs
+all_pi <- all_pi[!is.na(n)]
+all_pi <- expandRows(all_pi, "n", drop = FALSE) #Duplicate observations as many times as state appears in border state pairs
+all_pi <- all_pi[ , id := seq_len(.N), by = .(store_code_uc, product_module_code, year)] #Create the same ID as in border.states.
+
+
+## Merge all_pi with the bordindx IDs
+all_pi <- merge(all_pi, border.states, by = c("fips_state", "id"), all.x = T)
+
+## Generate some pair-specific FE
+#all_pi[, pair_by_time := .GRP, by = .(bordindx, cal_time)]
+all_pi[, pair_by_module_by_time := .GRP, by = .(bordindx, cal_time, product_module_code)]
+
+## Generate some regressions weights (want to divide usual weights by number of times the state appears in the dataset)
+all_pi[, weight := base.sales/n]
 
 
 #######################################################
@@ -190,15 +241,52 @@ for (lag.val in 1:8) {
   lead.X <- paste0("F", lag.val, ".D.ln_sales_tax")
   all_pi[, (lead.X) := shift(D.ln_sales_tax, n=lag.val, type="lead"),
          by = .(store_code_uc, product_module_code)]
+}
+
+
+## generate polynomials in lags of ln_unemp and ln_home_price
+for(lag.val in 1:8) {
   
   lag.X <- paste0("L", lag.val, ".D.ln_unemp")
   all_pi[, (lag.X) := shift(D.ln_unemp, n=lag.val, type="lag"),
          by = .(store_code_uc, product_module_code)]
   
+}
+
+all_pi[, lag.unemp0 := D.ln_unemp + L8.D.ln_unemp + L7.D.ln_unemp + L6.D.ln_unemp + L5.D.ln_unemp + L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp ]
+all_pi[, lag.unemp1 := 8*L8.D.ln_unemp + 7*L7.D.ln_unemp + 6*L6.D.ln_unemp + 5*L5.D.ln_unemp + 4*L4.D.ln_unemp + 3*L3.D.ln_unemp + 2*L2.D.ln_unemp + L1.D.ln_unemp ]
+all_pi[, lag.unemp2 := 64*L8.D.ln_unemp + 49*L7.D.ln_unemp + 36*L6.D.ln_unemp + 25*L5.D.ln_unemp + 16*L4.D.ln_unemp + 9*L3.D.ln_unemp + 4*L2.D.ln_unemp + L1.D.ln_unemp ]
+all_pi[, lag.unemp3 := 512*L8.D.ln_unemp + 343*L7.D.ln_unemp + 216*L6.D.ln_unemp + 125*L5.D.ln_unemp + 64*L4.D.ln_unemp + 27*L3.D.ln_unemp + 8*L2.D.ln_unemp + L1.D.ln_unemp ]
+all_pi[, lag.unemp4 := 4096*L8.D.ln_unemp + 2401*L7.D.ln_unemp + 1296*L6.D.ln_unemp + 625*L5.D.ln_unemp + 256*L4.D.ln_unemp + 81*L3.D.ln_unemp + 16*L2.D.ln_unemp + L1.D.ln_unemp ]
+
+
+#############################################################
+## Delete some variables to save memory
+all_pi <- all_pi[, c("year", "quarter", "product_module_code", "store_code_uc", "D.ln_cpricei", "D.ln_quantity", "D.ln_sales_tax", "D.ln_unemp", "D.ln_home_price", "module_by_state", "pair_by_module_by_time", "weight", "F8.D.ln_sales_tax", "F7.D.ln_sales_tax", "F6.D.ln_sales_tax", "F5.D.ln_sales_tax", "F4.D.ln_sales_tax", "F3.D.ln_sales_tax", "F2.D.ln_sales_tax", "F1.D.ln_sales_tax", "L1.D.ln_sales_tax", "L2.D.ln_sales_tax", "L3.D.ln_sales_tax", "L4.D.ln_sales_tax", "L5.D.ln_sales_tax", "L6.D.ln_sales_tax", "L7.D.ln_sales_tax", "L8.D.ln_sales_tax", "lag.unemp0", "lag.unemp1", "lag.unemp2", "lag.unemp3", "lag.unemp4")]
+
+
+#########################################################
+
+for(lag.val in 1:8) {
+
   lag.X <- paste0("L", lag.val, ".D.ln_home_price")
   all_pi[, (lag.X) := shift(D.ln_home_price, n=lag.val, type="lag"),
          by = .(store_code_uc, product_module_code)]
 }
+
+all_pi[, lag.home_price0 := D.ln_home_price + L8.D.ln_home_price + L7.D.ln_home_price + L6.D.ln_home_price + L5.D.ln_home_price + L4.D.ln_home_price + L3.D.ln_home_price + L2.D.ln_home_price + L1.D.ln_home_price ]
+all_pi[, lag.home_price1 := 8*L8.D.ln_home_price + 7*L7.D.ln_home_price + 6*L6.D.ln_home_price + 5*L5.D.ln_home_price + 4*L4.D.ln_home_price + 3*L3.D.ln_home_price + 2*L2.D.ln_home_price + L1.D.ln_home_price ]
+all_pi[, lag.home_price2 := 64*L8.D.ln_home_price + 49*L7.D.ln_home_price + 36*L6.D.ln_home_price + 25*L5.D.ln_home_price + 16*L4.D.ln_home_price + 9*L3.D.ln_home_price + 4*L2.D.ln_home_price + L1.D.ln_home_price ]
+all_pi[, lag.home_price3 := 512*L8.D.ln_home_price + 343*L7.D.ln_home_price + 216*L6.D.ln_home_price + 125*L5.D.ln_home_price + 64*L4.D.ln_home_price + 27*L3.D.ln_home_price + 8*L2.D.ln_home_price + L1.D.ln_home_price ]
+all_pi[, lag.home_price4 := 4096*L8.D.ln_home_price + 2401*L7.D.ln_home_price + 1296*L6.D.ln_home_price + 625*L5.D.ln_home_price + 256*L4.D.ln_home_price + 81*L3.D.ln_home_price + 16*L2.D.ln_home_price + L1.D.ln_home_price ]
+
+
+#############################################################
+## Delete some variables to save memory
+all_pi <- all_pi[, c("year", "quarter", "D.ln_cpricei", "D.ln_quantity", "D.ln_sales_tax", "D.ln_unemp", "D.ln_home_price", "module_by_state", "pair_by_module_by_time", "weight", "F8.D.ln_sales_tax", "F7.D.ln_sales_tax", "F6.D.ln_sales_tax", "F5.D.ln_sales_tax", "F4.D.ln_sales_tax", "F3.D.ln_sales_tax", "F2.D.ln_sales_tax", "F1.D.ln_sales_tax", "L1.D.ln_sales_tax", "L2.D.ln_sales_tax", "L3.D.ln_sales_tax", "L4.D.ln_sales_tax", "L5.D.ln_sales_tax", "L6.D.ln_sales_tax", "L7.D.ln_sales_tax", "L8.D.ln_sales_tax", "lag.unemp0", "lag.unemp1", "lag.unemp2", "lag.unemp3", "lag.unemp4", "lag.home_price0", "lag.home_price1", "lag.home_price2", "lag.home_price3", "lag.home_price4")]
+##NOTE: among other, we drop store_code_uc and product_module_code
+
+#########################################################
 
 
 
@@ -213,9 +301,9 @@ formula_RHS <- paste0("D.ln_sales_tax + ", formula_lags, "+", formula_leads)
 
 
 
-outcomes <- c("D.ln_cpricei")
+outcomes <- c("D.ln_cpricei", "D.ln_quantity")
 econ.outcomes <- c("D.ln_unemp", "D.ln_home_price")
-FE_opts <- c("module_by_time", "region_by_module_by_time", "division_by_module_by_time")
+FE_opts <- c("pair_by_module_by_time")
 
 
 ## for linear hypothesis tests
@@ -226,44 +314,107 @@ lag.lp.restr <- paste(lag.vars, "+ D.ln_sales_tax = 0")
 total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 
 
-
-### First: We impose smoothness on lagged and lead effects of tax rate on cpricei (but allow for a one-time impact at zero)
-## Still No Econ controls (and we run the placebos)
-
-## Create sum of lag/lead tax rates interacted with lag/lead
-## Stupid way to code this
-all_pi[, lead.poly0 := F8.D.ln_sales_tax + F7.D.ln_sales_tax + F6.D.ln_sales_tax + F5.D.ln_sales_tax + F4.D.ln_sales_tax + F3.D.ln_sales_tax + F2.D.ln_sales_tax + F1.D.ln_sales_tax ]
-all_pi[, lead.poly1 := 7*F8.D.ln_sales_tax + 6*F7.D.ln_sales_tax + 5*F6.D.ln_sales_tax + 4*F5.D.ln_sales_tax + 3*F4.D.ln_sales_tax + 2*F3.D.ln_sales_tax + F2.D.ln_sales_tax]
-all_pi[, lead.poly2 := 49*F8.D.ln_sales_tax + 36*F7.D.ln_sales_tax + 25*F6.D.ln_sales_tax + 16*F5.D.ln_sales_tax + 9*F4.D.ln_sales_tax + 4*F3.D.ln_sales_tax + F2.D.ln_sales_tax]
-all_pi[, lead.poly3 := 343*F8.D.ln_sales_tax + 216*F7.D.ln_sales_tax + 125*F6.D.ln_sales_tax + 64*F5.D.ln_sales_tax + 27*F4.D.ln_sales_tax + 8*F3.D.ln_sales_tax + F2.D.ln_sales_tax]
-
-## For lags - we fit starting from lag 1
-all_pi[, lag.poly0 := L8.D.ln_sales_tax + L7.D.ln_sales_tax + L6.D.ln_sales_tax + L5.D.ln_sales_tax + L4.D.ln_sales_tax + L3.D.ln_sales_tax + L2.D.ln_sales_tax + L1.D.ln_sales_tax ]
-all_pi[, lag.poly1 := 7*L8.D.ln_sales_tax + 6*L7.D.ln_sales_tax + 5*L6.D.ln_sales_tax + 4*L5.D.ln_sales_tax + 3*L4.D.ln_sales_tax + 2*L3.D.ln_sales_tax + L2.D.ln_sales_tax]
-all_pi[, lag.poly2 := 49*L8.D.ln_sales_tax + 36*L7.D.ln_sales_tax + 25*L6.D.ln_sales_tax + 16*L5.D.ln_sales_tax + 9*L4.D.ln_sales_tax + 4*L3.D.ln_sales_tax + L2.D.ln_sales_tax]
-all_pi[, lag.poly3 := 343*L8.D.ln_sales_tax + 216*L7.D.ln_sales_tax + 125*L6.D.ln_sales_tax + 64*L5.D.ln_sales_tax + 27*L4.D.ln_sales_tax + 8*L3.D.ln_sales_tax + L2.D.ln_sales_tax]
-#all_pi[, lag.poly4 := 2401*L8.D.ln_sales_tax + 1296*L7.D.ln_sales_tax + 625*L6.D.ln_sales_tax + 256*L5.D.ln_sales_tax + 81*L4.D.ln_sales_tax + 16*L3.D.ln_sales_tax + L2.D.ln_sales_tax]
-
-
-#formula_RHS <- "D.ln_sales_tax + lead.poly0 + lead.poly1 + lead.poly2 + lead.poly3 + lag.poly0 + lag.poly1 + lag.poly2 + lag.poly3 + lag.poly4"
-formula_RHS <- "D.ln_sales_tax + lead.poly0 + lead.poly1 + lead.poly2 + lead.poly3 + lag.poly0 + lag.poly1 + lag.poly2 + lag.poly3"
-n.poly.lead <- 3
-#n.poly.lag <- 4
-n.poly.lag <- 3
-
-
+### First: run regression and estimate leads and lags directly (without imposing smoothness)
+## No Econ controls (but we run the placebos)
 LRdiff_res <- data.table(NULL)
-for (Y in outcomes) {
+for (Y in c(outcomes, econ.outcomes)) {
   for (FE in FE_opts) {
-    
+
     formula1 <- as.formula(paste0(
       Y, "~", formula_RHS, "| ", FE, " | 0 | module_by_state"
     ))
     flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
     res1 <- felm(formula = formula1, data = all_pi,
-                 weights = all_pi$base.sales)
+                 weights = all_pi$weight) ####### For weights, we use "weight"
     flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
-    
+
+
+    ## attach results
+    flog.info("Writing results...")
+    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+    res1.dt[, outcome := Y]
+    res1.dt[, controls := FE]
+    res1.dt[, econ := "none"]
+    res1.dt[, parametric := "No"]
+    res1.dt[, Rsq := summary(res1)$r.squared]
+    res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
+    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)
+
+    ## sum leads
+    flog.info("Summing leads...")
+    lead.test <- glht(res1, linfct = lead.lp.restr)
+    lead.test.est <- coef(summary(lead.test))[[1]]
+    lead.test.se <- sqrt(vcov(summary(lead.test)))[[1]]
+    lead.test.pval <- 2*(1 - pnorm(abs(lead.test.est/lead.test.se)))
+
+    ## sum lags
+    flog.info("Summing lags...")
+    lag.test <- glht(res1, linfct = lag.lp.restr)
+    lag.test.est <- coef(summary(lag.test))[[1]]
+    lag.test.se <- sqrt(vcov(summary(lag.test)))[[1]]
+    lag.test.pval <- 2*(1 - pnorm(abs(lag.test.est/lag.test.se)))
+
+    ## sum all
+    flog.info("Summing all...")
+    total.test <- glht(res1, linfct = total.lp.restr)
+    total.test.est <- coef(summary(total.test))[[1]]
+    total.test.se <- sqrt(vcov(summary(total.test)))[[1]]
+    total.test.pval <- 2*(1 - pnorm(abs(total.test.est/total.test.se)))
+
+    ## linear hypothesis results
+    lp.dt <- data.table(
+      rn = c("Pre.D.ln_sales_tax", "Post.D.ln_sales_tax", "All.D.ln_sales_tax"),
+      Estimate = c(lead.test.est, lag.test.est, total.test.est),
+      `Cluster s.e.` = c(lead.test.se, lag.test.se, total.test.se),
+      `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
+      outcome = Y,
+      controls = FE,
+      econ = "none",
+      parametric = "No",
+      Rsq = summary(res1)$r.squared,
+      adj.Rsq = summary(res1)$adj.r.squared)
+    LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)
+
+
+    }
+}
+
+
+### Second: We impose smoothness on lagged and lead effects of tax rate on outcomes
+## Still No Econ controls (and we run the placebos)
+
+## Create sum of lag/lead tax rates interacted with lag/lead
+## Stupid way to code this -- NOTE: For leads, we treat first lead as "period zero".  For lags, we treat zero as period zero (because we include the on impact effect as part of the lags)
+all_pi[, lead.poly0 := F8.D.ln_sales_tax + F7.D.ln_sales_tax + F6.D.ln_sales_tax + F5.D.ln_sales_tax + F4.D.ln_sales_tax + F3.D.ln_sales_tax + F2.D.ln_sales_tax + F1.D.ln_sales_tax ]
+all_pi[, lead.poly1 := 7*F8.D.ln_sales_tax + 6*F7.D.ln_sales_tax + 5*F6.D.ln_sales_tax + 4*F5.D.ln_sales_tax + 3*F4.D.ln_sales_tax + 2*F3.D.ln_sales_tax + F2.D.ln_sales_tax]
+all_pi[, lead.poly2 := 49*F8.D.ln_sales_tax + 36*F7.D.ln_sales_tax + 25*F6.D.ln_sales_tax + 16*F5.D.ln_sales_tax + 9*F4.D.ln_sales_tax + 4*F3.D.ln_sales_tax + F2.D.ln_sales_tax]
+all_pi[, lead.poly3 := 343*F8.D.ln_sales_tax + 216*F7.D.ln_sales_tax + 125*F6.D.ln_sales_tax + 64*F5.D.ln_sales_tax + 27*F4.D.ln_sales_tax + 8*F3.D.ln_sales_tax + F2.D.ln_sales_tax]
+
+all_pi[, lag.poly0 := L8.D.ln_sales_tax + L7.D.ln_sales_tax + L6.D.ln_sales_tax + L5.D.ln_sales_tax + L4.D.ln_sales_tax + L3.D.ln_sales_tax + L2.D.ln_sales_tax + L1.D.ln_sales_tax + D.ln_sales_tax]
+all_pi[, lag.poly1 := 8*L8.D.ln_sales_tax + 7*L7.D.ln_sales_tax + 6*L6.D.ln_sales_tax + 5*L5.D.ln_sales_tax + 4*L4.D.ln_sales_tax + 3*L3.D.ln_sales_tax + 2*L2.D.ln_sales_tax + L1.D.ln_sales_tax ]
+all_pi[, lag.poly2 := 64*L8.D.ln_sales_tax + 49*L7.D.ln_sales_tax + 36*L6.D.ln_sales_tax + 25*L5.D.ln_sales_tax + 16*L4.D.ln_sales_tax + 9*L3.D.ln_sales_tax + 4*L2.D.ln_sales_tax + L1.D.ln_sales_tax ]
+all_pi[, lag.poly3 := 512*L8.D.ln_sales_tax + 343*L7.D.ln_sales_tax + 216*L6.D.ln_sales_tax + 125*L5.D.ln_sales_tax + 64*L4.D.ln_sales_tax + 27*L3.D.ln_sales_tax + 8*L2.D.ln_sales_tax + L1.D.ln_sales_tax ]
+all_pi[, lag.poly4 := 4096*L8.D.ln_sales_tax + 2401*L7.D.ln_sales_tax + 1296*L6.D.ln_sales_tax + 625*L5.D.ln_sales_tax + 256*L4.D.ln_sales_tax + 81*L3.D.ln_sales_tax + 16*L2.D.ln_sales_tax + L1.D.ln_sales_tax ]
+
+
+formula_RHS <- "lead.poly0 + lead.poly1 + lead.poly2 + lead.poly3 + lag.poly0 + lag.poly1 + lag.poly2 + lag.poly3 + lag.poly4"
+n.poly.lead <- 3
+n.poly.lag <- 4
+
+
+for (Y in c(outcomes, econ.outcomes)) {
+  for (FE in FE_opts) {
+
+    formula1 <- as.formula(paste0(
+      Y, "~", formula_RHS, "| ", FE, " | 0 | module_by_state"
+    ))
+    flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
+    res1 <- felm(formula = formula1, data = all_pi,
+                 weights = all_pi$weight)  ####### For weights, we use "weight"
+    flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
+
     ## attach results
     flog.info("Writing results...")
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
@@ -275,8 +426,8 @@ for (Y in outcomes) {
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
-    
-    
+
+
     for(j in 2:8) { ## Number of leads and lags over which effect is assumed to matter
       
       ###### LEADS
@@ -301,47 +452,44 @@ for (Y in outcomes) {
       assign(lead.test.est.name, coef(summary(lead.test))[[1]])
       assign(lead.test.se.name, sqrt(vcov(summary(lead.test)))[[1]])
       assign(lead.test.pval.name, 2*(1 - pnorm(abs(coef(summary(lead.test))[[1]]/sqrt(vcov(summary(lead.test)))[[1]]))))
-    
       
+    }
+    
+    for(j in 1:8) { ## Number of leads and lags over which effect is assumed to matter  
       ###### LAGS
       ## Create a name for estimate, se and pval of each lead
       lag.test.est.name <- paste("lag", j, ".test.est", sep = "")
       lag.test.se.name <- paste("lag", j, ".test.se", sep = "")
       lag.test.pval.name <- paste("lag", j, ".test.pval", sep = "")
-    
+      
       ## Create the formula to compute estimate at each lead
       lag.test.form <- "lag.poly0"
       for(k in 1:n.poly.lag) {
-      
-        lag.test.form <- paste(lag.test.form, " + lag.poly", k, "*", (j-1)^k, sep = "")
-      
+        
+        lag.test.form <- paste(lag.test.form, " + lag.poly", k, "*", j^k, sep = "")
+        
       }
       lag.test.form <- paste(lag.test.form, " = 0")
-    
-    
+      
+      
       ## Compute estimate and store in variables names
       lag.test <- glht(res1, linfct = lag.test.form)
-    
+      
       assign(lag.test.est.name, coef(summary(lag.test))[[1]])
       assign(lag.test.se.name, sqrt(vcov(summary(lag.test)))[[1]])
       assign(lag.test.pval.name, 2*(1 - pnorm(abs(coef(summary(lag.test))[[1]]/sqrt(vcov(summary(lag.test)))[[1]]))))
       
-    }  
+    }
     
-    ## On Impact --> Effect = coefficient on D.ln_sales_tax
-    lag0.test.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
-    lag0.test.se <- coef(summary(res1))[ "D.ln_sales_tax", "Cluster s.e."]
-    lag0.test.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
+    ## On Impact --> Effect = coefficient on lag.poly0
+    lag0.test.est <- coef(summary(res1))[ "lag.poly0", "Estimate"]
+    lag0.test.se <- coef(summary(res1))[ "lag.poly0", "Cluster s.e."]
+    lag0.test.pval <- coef(summary(res1))[ "lag.poly0", "Pr(>|t|)"]
     
     ##
     lead1.test.est <- coef(summary(res1))[ "lead.poly0", "Estimate"]
     lead1.test.se <- coef(summary(res1))[ "lead.poly0", "Cluster s.e."]
     lead1.test.pval <- coef(summary(res1))[ "lead.poly0", "Pr(>|t|)"]
-    
-    ##
-    lag1.test.est <- coef(summary(res1))[ "lag.poly0", "Estimate"]
-    lag1.test.se <- coef(summary(res1))[ "lag.poly0", "Cluster s.e."]
-    lag1.test.pval <- coef(summary(res1))[ "lag.poly0", "Pr(>|t|)"]
     
     
     ## sum leads
@@ -362,10 +510,10 @@ for (Y in outcomes) {
     
     ## sum lags
     flog.info("Summing lags...")
-    lag.test.form <- "D.ln_sales_tax + 8*lag.poly0"
+    lag.test.form <- "9*lag.poly0"
     for(k in 1:n.poly.lag) {
       
-      tot.lag.n <- 1^k + 2^k + 3^k + 4^k + 5^k + 6^k + 7^k
+      tot.lag.n <- 1^k + 2^k + 3^k + 4^k + 5^k + 6^k + 7^k + 8^k
       lag.test.form <- paste(lag.test.form, " + ", tot.lag.n, "*lag.poly", k, sep = "")
     }
     lag.test.form <- paste(lag.test.form, " = 0", sep = "")
@@ -373,8 +521,8 @@ for (Y in outcomes) {
     lag.test.est <- coef(summary(lag.test))[[1]]
     lag.test.se <- sqrt(vcov(summary(lag.test)))[[1]]
     lag.test.pval <- 2*(1 - pnorm(abs(lag.test.est/lag.test.se)))
-    
-    
+
+
     ## linear hypothesis results
     lp.dt <- data.table(
       rn = c("lead8.D.ln_sales_tax", "lead7.D.ln_sales_tax", "lead6.D.ln_sales_tax", "lead5.D.ln_sales_tax", "lead4.D.ln_sales_tax", "lead3.D.ln_sales_tax", "lead2.D.ln_sales_tax", "lead1.D.ln_sales_tax", "Pre.D.ln_sales_tax", "lag0.D.ln_sales_tax", "lag1.D.ln_sales_tax", "lag2.D.ln_sales_tax", "lag3.D.ln_sales_tax", "lag4.D.ln_sales_tax", "lag5.D.ln_sales_tax", "lag6.D.ln_sales_tax", "lag7.D.ln_sales_tax", "lag8.D.ln_sales_tax", "Post.D.ln_sales_tax"),
@@ -389,49 +537,108 @@ for (Y in outcomes) {
       adj.Rsq = summary(res1)$adj.r.squared)
     LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
-    
-    
+
+
   }
 }
 
 
 
 
-### Second: We impose smoothness on lagged and lead effects of tax rate on outcomes
-## Also include polynomials in lags of unemployment and house prices (This will probably be the preferred specification)
-all_pi[, lag.unemp0 := D.ln_unemp + L8.D.ln_unemp + L7.D.ln_unemp + L6.D.ln_unemp + L5.D.ln_unemp + L4.D.ln_unemp + L3.D.ln_unemp + L2.D.ln_unemp + L1.D.ln_unemp ]
-all_pi[, lag.unemp1 := 8*L8.D.ln_unemp + 7*L7.D.ln_unemp + 6*L6.D.ln_unemp + 5*L5.D.ln_unemp + 4*L4.D.ln_unemp + 3*L3.D.ln_unemp + 2*L2.D.ln_unemp + L1.D.ln_unemp ]
-all_pi[, lag.unemp2 := 64*L8.D.ln_unemp + 49*L7.D.ln_unemp + 36*L6.D.ln_unemp + 25*L5.D.ln_unemp + 16*L4.D.ln_unemp + 9*L3.D.ln_unemp + 4*L2.D.ln_unemp + L1.D.ln_unemp ]
-all_pi[, lag.unemp3 := 512*L8.D.ln_unemp + 343*L7.D.ln_unemp + 216*L6.D.ln_unemp + 125*L5.D.ln_unemp + 64*L4.D.ln_unemp + 27*L3.D.ln_unemp + 8*L2.D.ln_unemp + L1.D.ln_unemp ]
-all_pi[, lag.unemp4 := 4096*L8.D.ln_unemp + 2401*L7.D.ln_unemp + 1296*L6.D.ln_unemp + 625*L5.D.ln_unemp + 256*L4.D.ln_unemp + 81*L3.D.ln_unemp + 16*L2.D.ln_unemp + L1.D.ln_unemp ]
-
-all_pi[, lag.home_price0 := D.ln_home_price + L8.D.ln_home_price + L7.D.ln_home_price + L6.D.ln_home_price + L5.D.ln_home_price + L4.D.ln_home_price + L3.D.ln_home_price + L2.D.ln_home_price + L1.D.ln_home_price ]
-all_pi[, lag.home_price1 := 8*L8.D.ln_home_price + 7*L7.D.ln_home_price + 6*L6.D.ln_home_price + 5*L5.D.ln_home_price + 4*L4.D.ln_home_price + 3*L3.D.ln_home_price + 2*L2.D.ln_home_price + L1.D.ln_home_price ]
-all_pi[, lag.home_price2 := 64*L8.D.ln_home_price + 49*L7.D.ln_home_price + 36*L6.D.ln_home_price + 25*L5.D.ln_home_price + 16*L4.D.ln_home_price + 9*L3.D.ln_home_price + 4*L2.D.ln_home_price + L1.D.ln_home_price ]
-all_pi[, lag.home_price3 := 512*L8.D.ln_home_price + 343*L7.D.ln_home_price + 216*L6.D.ln_home_price + 125*L5.D.ln_home_price + 64*L4.D.ln_home_price + 27*L3.D.ln_home_price + 8*L2.D.ln_home_price + L1.D.ln_home_price ]
-all_pi[, lag.home_price4 := 4096*L8.D.ln_home_price + 2401*L7.D.ln_home_price + 1296*L6.D.ln_home_price + 625*L5.D.ln_home_price + 256*L4.D.ln_home_price + 81*L3.D.ln_home_price + 16*L2.D.ln_home_price + L1.D.ln_home_price ]
+### Third: run regression and estimate leads and lags directly (without imposing smoothness)
+## Now include a polynomial in lags of unemployment and home prices
 
 
 ## Change formula_RHS
-formula_RHS <- "D.ln_sales_tax + lead.poly0 + lead.poly1 + lead.poly2 + lead.poly3 + lag.poly0 + lag.poly1 + lag.poly2 + lag.poly3"
+formula_RHS <- paste0("D.ln_sales_tax + ", formula_lags, "+", formula_leads)
 formula_RHS <- paste0(formula_RHS, " + lag.unemp0 + lag.unemp1 + lag.unemp2 + lag.unemp3 + lag.unemp4 + lag.home_price0 + lag.home_price1 + lag.home_price2 + lag.home_price3 + lag.home_price4")
 
-##!!! NOTE: formula just above assume 3rd degree polynomial for lags
-n.poly.lead <- 3
-n.poly.lag <- 3
-
-
-for (Y in outcomes) {
+for (Y in c(outcomes)) {
   for (FE in FE_opts) {
-    
+
     formula1 <- as.formula(paste0(
       Y, "~", formula_RHS, "| ", FE, " | 0 | module_by_state"
     ))
     flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
     res1 <- felm(formula = formula1, data = all_pi,
-                 weights = all_pi$base.sales)
+                 weights = all_pi$weight)  ####### For weights, we use "weight"
     flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
-    
+
+
+    ## attach results
+    flog.info("Writing results...")
+    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+    res1.dt[, outcome := Y]
+    res1.dt[, controls := FE]
+    res1.dt[, econ := "ln_unemp + ln_home_price"]
+    res1.dt[, parametric := "No"]
+    res1.dt[, Rsq := summary(res1)$r.squared]
+    res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
+    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)
+
+    ## sum leads
+    flog.info("Summing leads...")
+    lead.test <- glht(res1, linfct = lead.lp.restr)
+    lead.test.est <- coef(summary(lead.test))[[1]]
+    lead.test.se <- sqrt(vcov(summary(lead.test)))[[1]]
+    lead.test.pval <- 2*(1 - pnorm(abs(lead.test.est/lead.test.se)))
+
+    ## sum lags
+    flog.info("Summing lags...")
+    lag.test <- glht(res1, linfct = lag.lp.restr)
+    lag.test.est <- coef(summary(lag.test))[[1]]
+    lag.test.se <- sqrt(vcov(summary(lag.test)))[[1]]
+    lag.test.pval <- 2*(1 - pnorm(abs(lag.test.est/lag.test.se)))
+
+    ## sum all
+    flog.info("Summing all...")
+    total.test <- glht(res1, linfct = total.lp.restr)
+    total.test.est <- coef(summary(total.test))[[1]]
+    total.test.se <- sqrt(vcov(summary(total.test)))[[1]]
+    total.test.pval <- 2*(1 - pnorm(abs(total.test.est/total.test.se)))
+
+    ## linear hypothesis results
+    lp.dt <- data.table(
+      rn = c("Pre.D.ln_sales_tax", "Post.D.ln_sales_tax", "All.D.ln_sales_tax"),
+      Estimate = c(lead.test.est, lag.test.est, total.test.est),
+      `Cluster s.e.` = c(lead.test.se, lag.test.se, total.test.se),
+      `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
+      outcome = Y,
+      controls = FE,
+      econ = "ln_unemp + ln_home_price",
+      parametric = "No",
+      Rsq = summary(res1)$r.squared,
+      adj.Rsq = summary(res1)$adj.r.squared)
+    LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)
+
+
+  }
+}
+
+
+### Second: We impose smoothness on lagged and lead effects of tax rate on outcomes
+## Also include polynomials in lags of unemployment and house prices (This will probably be the preferred specification)
+
+
+formula_RHS <- "lead.poly0 + lead.poly1 + lead.poly2 + lead.poly3 + lag.poly0 + lag.poly1 + lag.poly2 + lag.poly3 + lag.poly4"
+formula_RHS <- paste0(formula_RHS, " + lag.unemp0 + lag.unemp1 + lag.unemp2 + lag.unemp3 + lag.unemp4 + lag.home_price0 + lag.home_price1 + lag.home_price2 + lag.home_price3 + lag.home_price4")
+n.poly.lead <- 3
+n.poly.lag <- 4
+
+
+for (Y in c(outcomes)) {
+  for (FE in FE_opts) {
+
+    formula1 <- as.formula(paste0(
+      Y, "~", formula_RHS, "| ", FE, " | 0 | module_by_state"
+    ))
+    flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
+    res1 <- felm(formula = formula1, data = all_pi,
+                 weights = all_pi$weight)   ####### For weights, we use "weight"
+    flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
+
     ## attach results
     flog.info("Writing results...")
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
@@ -443,8 +650,8 @@ for (Y in outcomes) {
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
-    
-    
+
+
     for(j in 2:8) { ## Number of leads and lags over which effect is assumed to matter
       
       ###### LEADS
@@ -470,7 +677,9 @@ for (Y in outcomes) {
       assign(lead.test.se.name, sqrt(vcov(summary(lead.test)))[[1]])
       assign(lead.test.pval.name, 2*(1 - pnorm(abs(coef(summary(lead.test))[[1]]/sqrt(vcov(summary(lead.test)))[[1]]))))
       
-      
+    }
+    
+    for(j in 1:8) { ## Number of leads and lags over which effect is assumed to matter  
       ###### LAGS
       ## Create a name for estimate, se and pval of each lead
       lag.test.est.name <- paste("lag", j, ".test.est", sep = "")
@@ -481,7 +690,7 @@ for (Y in outcomes) {
       lag.test.form <- "lag.poly0"
       for(k in 1:n.poly.lag) {
         
-        lag.test.form <- paste(lag.test.form, " + lag.poly", k, "*", (j-1)^k, sep = "")
+        lag.test.form <- paste(lag.test.form, " + lag.poly", k, "*", j^k, sep = "")
         
       }
       lag.test.form <- paste(lag.test.form, " = 0")
@@ -494,22 +703,17 @@ for (Y in outcomes) {
       assign(lag.test.se.name, sqrt(vcov(summary(lag.test)))[[1]])
       assign(lag.test.pval.name, 2*(1 - pnorm(abs(coef(summary(lag.test))[[1]]/sqrt(vcov(summary(lag.test)))[[1]]))))
       
-    }  
+    }
     
-    ## On Impact --> Effect = coefficient on D.ln_sales_tax
-    lag0.test.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
-    lag0.test.se <- coef(summary(res1))[ "D.ln_sales_tax", "Cluster s.e."]
-    lag0.test.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
+    ## On Impact --> Effect = coefficient on lag.poly0
+    lag0.test.est <- coef(summary(res1))[ "lag.poly0", "Estimate"]
+    lag0.test.se <- coef(summary(res1))[ "lag.poly0", "Cluster s.e."]
+    lag0.test.pval <- coef(summary(res1))[ "lag.poly0", "Pr(>|t|)"]
     
     ##
     lead1.test.est <- coef(summary(res1))[ "lead.poly0", "Estimate"]
     lead1.test.se <- coef(summary(res1))[ "lead.poly0", "Cluster s.e."]
     lead1.test.pval <- coef(summary(res1))[ "lead.poly0", "Pr(>|t|)"]
-    
-    ##
-    lag1.test.est <- coef(summary(res1))[ "lag.poly0", "Estimate"]
-    lag1.test.se <- coef(summary(res1))[ "lag.poly0", "Cluster s.e."]
-    lag1.test.pval <- coef(summary(res1))[ "lag.poly0", "Pr(>|t|)"]
     
     
     ## sum leads
@@ -530,10 +734,10 @@ for (Y in outcomes) {
     
     ## sum lags
     flog.info("Summing lags...")
-    lag.test.form <- "D.ln_sales_tax + 8*lag.poly0"
+    lag.test.form <- "9*lag.poly0"
     for(k in 1:n.poly.lag) {
       
-      tot.lag.n <- 1^k + 2^k + 3^k + 4^k + 5^k + 6^k + 7^k
+      tot.lag.n <- 1^k + 2^k + 3^k + 4^k + 5^k + 6^k + 7^k + 8^k
       lag.test.form <- paste(lag.test.form, " + ", tot.lag.n, "*lag.poly", k, sep = "")
     }
     lag.test.form <- paste(lag.test.form, " = 0", sep = "")
@@ -541,8 +745,8 @@ for (Y in outcomes) {
     lag.test.est <- coef(summary(lag.test))[[1]]
     lag.test.se <- sqrt(vcov(summary(lag.test)))[[1]]
     lag.test.pval <- 2*(1 - pnorm(abs(lag.test.est/lag.test.se)))
-    
-    
+
+
     ## linear hypothesis results
     lp.dt <- data.table(
       rn = c("lead8.D.ln_sales_tax", "lead7.D.ln_sales_tax", "lead6.D.ln_sales_tax", "lead5.D.ln_sales_tax", "lead4.D.ln_sales_tax", "lead3.D.ln_sales_tax", "lead2.D.ln_sales_tax", "lead1.D.ln_sales_tax", "Pre.D.ln_sales_tax", "lag0.D.ln_sales_tax", "lag1.D.ln_sales_tax", "lag2.D.ln_sales_tax", "lag3.D.ln_sales_tax", "lag4.D.ln_sales_tax", "lag5.D.ln_sales_tax", "lag6.D.ln_sales_tax", "lag7.D.ln_sales_tax", "lag8.D.ln_sales_tax", "Post.D.ln_sales_tax"),
@@ -557,8 +761,8 @@ for (Y in outcomes) {
       adj.Rsq = summary(res1)$adj.r.squared)
     LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
-    
-    
+
+
   }
 }
 
@@ -566,12 +770,12 @@ for (Y in outcomes) {
 
 ## summary values --------------------------------------------------------------
 LRdiff_res$N_obs <- nrow(all_pi)
-LRdiff_res$N_modules <- length(unique(all_pi$product_module_code))
-LRdiff_res$N_stores <- length(unique(all_pi$store_code_uc))
-LRdiff_res$N_counties <- uniqueN(all_pi, by = c("fips_state", "fips_county"))
-LRdiff_res$N_years <- uniqueN(all_pi, by = c("year")) # should be 6 (we lose one because we difference)
-LRdiff_res$N_county_modules <- uniqueN(all_pi, by = c("fips_state", "fips_county",
-                                                           "product_module_code"))
+#LRdiff_res$N_modules <- length(unique(all_pi$product_module_code))
+#LRdiff_res$N_stores <- length(unique(all_pi$store_code_uc))
+#LRdiff_res$N_counties <- uniqueN(all_pi, by = c("fips_state", "fips_county"))
+#LRdiff_res$N_years <- uniqueN(all_pi, by = c("year")) # should be 6 (we lose one because we difference)
+#LRdiff_res$N_county_modules <- uniqueN(all_pi, by = c("fips_state", "fips_county",
+#                                                           "product_module_code"))
 
 fwrite(LRdiff_res, output.results.file)
 

@@ -218,7 +218,7 @@ Econ_opts <- c("D.ln_unemp", "D.ln_home_price", "D.ln_unemp + D.ln_home_price")
 Econ_w_lags <- c("D.ln_unemp", "D.ln_unemp", "D.ln_unemp + D.ln_home_price", "D.ln_unemp + D.ln_home_price")
 Econ_w_lags <- rbind(Econ_w_lags, c("Yes", "Yes", "Yes", "Yes"))
 Econ_w_lags <- rbind(Econ_w_lags, c("No", "Yes", "No", "Yes"))
-Econ_w_lags <- rbind(Econ_w_lags, c("L1.D2.ln_unemp + D.ln_unemp", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp", "L1.D2.ln_unemp + D.ln_unemp L1.D2.ln_home_price + D.ln_home_price", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp + F4.D2.ln_home_price + D.ln_home_price + L1.D2.ln_home_price"))
+Econ_w_lags <- rbind(Econ_w_lags, c("L1.D2.ln_unemp + D.ln_unemp", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp", "L1.D2.ln_unemp + D.ln_unemp + L1.D2.ln_home_price + D.ln_home_price", "F4.D2.ln_unemp + D.ln_unemp + L1.D2.ln_unemp + F4.D2.ln_home_price + D.ln_home_price + L1.D2.ln_home_price"))
 
 
 
@@ -917,12 +917,12 @@ for (Y in c(outcomes)) {
 
 
 ## summary values --------------------------------------------------------------
-LRdiff_res$N_obs <- nrow(yearly_data)
-LRdiff_res$N_modules <- length(unique(yearly_data$product_module_code))
-LRdiff_res$N_stores <- length(unique(yearly_data$store_code_uc))
-LRdiff_res$N_counties <- uniqueN(yearly_data, by = c("fips_state", "fips_county"))
-LRdiff_res$N_years <- uniqueN(yearly_data, by = c("year")) # should be 6 (we lose one because we difference)
-LRdiff_res$N_county_modules <- uniqueN(yearly_data, by = c("fips_state", "fips_county",
+LRdiff_res$N_obs <- nrow(all_pi)
+LRdiff_res$N_modules <- length(unique(all_pi$product_module_code))
+LRdiff_res$N_stores <- length(unique(all_pi$store_code_uc))
+LRdiff_res$N_counties <- uniqueN(all_pi, by = c("fips_state", "fips_county"))
+LRdiff_res$N_years <- uniqueN(all_pi, by = c("year")) # should be 6 (we lose one because we difference)
+LRdiff_res$N_county_modules <- uniqueN(all_pi, by = c("fips_state", "fips_county",
                                                            "product_module_code"))
 
 fwrite(LRdiff_res, output.results.file)

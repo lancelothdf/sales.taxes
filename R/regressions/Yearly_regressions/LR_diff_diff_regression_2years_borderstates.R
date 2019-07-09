@@ -5,6 +5,7 @@ library(data.table)
 library(lfe)
 library(futile.logger)
 library(AER)
+library(splitstackshape)
 
 
 setwd("/project2/igaarder")
@@ -29,8 +30,8 @@ border.path <- "Data/Border_states.csv"
 
 
 ###OUTPUT
-output.results.file <- "Data/LRdiff_2years_FE.csv"
-output.pretrend.file <- "Data/LRdiff_2years_pretrends.csv"
+output.results.file <- "Data/LRdiff_2years_FE_borderstates.csv"
+output.pretrend.file <- "Data/LRdiff_2years_pretrends_borderstates.csv"
 
 
 ######### Regression analysis
@@ -54,10 +55,11 @@ census.regions$Division <- census.regions$Region*10 + census.regions$Division
 yearly_data <- merge(yearly_data, census.regions, by = c("fips_state", "fips_county"), all.x = T)
 
 
-yearly_data[, region_by_time := .GRP, by = .(Region, year)]
-yearly_data[, division_by_time := .GRP, by = .(Division, year)]
-yearly_data[, region_by_module_by_time := .GRP, by = .(Region, product_module_code, year)]
-yearly_data[, division_by_module_by_time := .GRP, by = .(Division, product_module_code, year)]
+## Actually we do not need the region and division specific fixed effects in this file
+#yearly_data[, region_by_time := .GRP, by = .(Region, year)]
+#yearly_data[, division_by_time := .GRP, by = .(Division, year)]
+#yearly_data[, region_by_module_by_time := .GRP, by = .(Region, product_module_code, year)]
+#yearly_data[, division_by_module_by_time := .GRP, by = .(Division, product_module_code, year)]
 yearly_data[, cal_time := (year-2008)/2] ## Of course normalization here does not matter to estimation - normalization chosen here so that with two year intervals, cal_time will take values 0, 1, 2 and 3
 
 
@@ -114,6 +116,9 @@ unemp.data <- unemp.data[, ln_unemp := log(unemp)]
 yearly_data <- merge(yearly_data, unemp.data, by = c("fips_state", "fips_county", "year"), all.x = T)
 
 
+######## Delete some variables to save some memory
+yearly_data <- yearly_data[, c("fips_state", "fips_county", "year", "store_code_uc", "product_module_code", "ln_cpricei", "ln_sales_tax", "ln_quantity", "base.sales", "ln_cpricei2", "ln_quantity2", "store_module", "state_by_module", "module_by_time", "cal_time", "ln_home_price", "ln_unemp")]
+
 
 ######## Limit data to relevant time periods only and create lag and lead econ conditions
 ##NOTE: Make sure that we only include 2008-2014 in the regressions!!
@@ -160,13 +165,66 @@ yearly_data <- yearly_data[year >= 2008 & year <= 2014,]
 
 
 
+#########################################################
+## Make state border pairs
+
+## Import data with all pairs of border states
+border.states <- fread(border.path)
+
+
+##Only keep states that are in the Nielsen dataset
+#List of unique states in the sales data
+list.states <- data.frame(unique(yearly_data[,c('fips_state')]))
+border.states <- merge(list.states, border.states,by = c("fips_state"), all.x = T)
+
+
+#Only keep pairs for which both states are in the data
+setDT(border.states)
+keep_states <- border.states[, list(n = .N),
+                             by = .(bordindx)]
+keep_states <- keep_states[n == 2]
+
+setkey(border.states, bordindx)
+setkey(keep_states, bordindx)
+
+border.states <- border.states[keep_states]
+border.states <- border.states[, c("fips_state", "bordindx")]
+
+
+#Count the number of times each state appears in the data set (number of pairs that it is a part of)
+n_states <- border.states[, list(n = .N),
+                          by = .(fips_state)]
+border.states[, id := seq_len(.N), by = .(fips_state)] ##Create an ID within each state (that will map into a border index bordindx).  Later we will duplicate each observation in all_pi as many times as this state appears in border pairs and will create the same id --> so that we can then assign a bordindx to each
+
+
+## Duplicate each observation in all_pi as many times as this state appears in the border dataset
+yearly_data <- merge(yearly_data, n_states, by = c("fips_state"), all.x = TRUE) #Merge number of times each state appears in list of border pairs
+yearly_data <- yearly_data[!is.na(n)]
+yearly_data <- expandRows(yearly_data, "n", drop = FALSE) #Duplicate observations as many times as state appears in border state pairs
+yearly_data <- yearly_data[ , id := seq_len(.N), by = .(store_code_uc, product_module_code, year)] #Create the same ID as in border.states.
+
+
+## Merge all_pi with the bordindx IDs
+yearly_data <- merge(yearly_data, border.states, by = c("fips_state", "id"), all.x = T)
+
+## Generate some pair-specific FE
+yearly_data[, pair_by_module_by_time := .GRP, by = .(bordindx, cal_time, product_module_code)]
+
+## Generate some regressions weights (want to divide usual weights by number of times the state appears in the dataset)
+yearly_data[, weight := base.sales/n]
+
+
+#######################################################
+
+
+
 
 #############################################
 ### First: regress price and quantity on tax rate after controling for econ. conditions (+ without econ controls)
 list.outcomes <- c("ln_cpricei", "ln_cpricei2", "ln_quantity", "ln_quantity2")
 econ.outcomes <- c("ln_unemp", "ln_home_price")
 
-FE_opts <- c("module_by_time", "region_by_module_by_time", "division_by_module_by_time")
+FE_opts <- c("pair_by_module_by_time")
 Econ_opts <- c("ln_unemp + lag_ln_unemp + ln_home_price + lag_ln_home_price")
 
 
@@ -186,7 +244,7 @@ for(Y in c(list.outcomes, econ.outcomes)) {
     ## Run regression
     res1 <- felm(data = yearly_data,
                        formula = formula1,
-                       weights = yearly_data$base.sales)
+                       weights = yearly_data$weight)   ###!!! Use the proper weight variable
 
 
     ## attach results
@@ -222,7 +280,7 @@ for(Y in c(list.outcomes)) {
       ## Run regression
       res1 <- felm(data = yearly_data,
                    formula = formula1,
-                   weights = yearly_data$base.sales)
+                   weights = yearly_data$weight) ###!!! Use the proper weight variable
 
 
       ## attach results
@@ -255,6 +313,11 @@ LRdiff_res$N_store_modules <- uniqueN(yearly_data, by = c("store_code_uc",
 LRdiff_res$N_state_modules <- uniqueN(yearly_data, by = c("fips_state",
                                                            "product_module_code"))
 
+LRdiff_res$N_state_pairs <- length(unique(yearly_data$bordindx))
+LRdiff_res$N_module_years <- uniqueN(yearly_data, by = c("product_module_code", "year"))
+LRdiff_res$N_pair_years <- uniqueN(yearly_data, by = c("bordindx", "year"))
+LRdiff_res$N_pair_year_modules <- uniqueN(yearly_data, by = c("bordindx", "year", "product_module_code"))
+
 
 fwrite(LRdiff_res, output.results.file)
 
@@ -268,8 +331,6 @@ fwrite(LRdiff_res, output.results.file)
 ### First: regress price and quantity on tax rate after controling for econ. conditions (+ without econ controls)
 list.outcomes <- c("lead_ln_cpricei", "lead_ln_cpricei2", "lead_ln_quantity", "lead_ln_quantity2", "lead_ln_unemp", "lead_ln_home_price")
 econ.outcomes <- c("lead_ln_unemp", "lead_ln_home_price")
-
-FE_opts <- c("module_by_time", "region_by_module_by_time", "division_by_module_by_time")
 
 
 #### First: pre-trends without econ controls
@@ -288,7 +349,7 @@ for(Y in c(list.outcomes, econ.outcomes)) {
     ## Run regression
     res1 <- felm(data = yearly_data,
                  formula = formula1,
-                 weights = yearly_data$base.sales)
+                 weights = yearly_data$weight)  ### !!! Use the proper weight variable
 
 
     ## attach results
@@ -321,7 +382,7 @@ for(Y in c(list.outcomes)) {
     ## Run regression
     res1 <- felm(data = yearly_data,
                  formula = formula1,
-                 weights = yearly_data$base.sales)
+                 weights = yearly_data$weight)
 
 
     ## attach results
@@ -351,6 +412,11 @@ LRdiff_res$N_store_modules <- uniqueN(yearly_data, by = c("store_code_uc",
                                                           "product_module_code"))
 LRdiff_res$N_state_modules <- uniqueN(yearly_data, by = c("fips_state",
                                                           "product_module_code"))
+
+LRdiff_res$N_state_pairs <- length(unique(yearly_data$bordindx))
+LRdiff_res$N_module_years <- uniqueN(yearly_data, by = c("product_module_code", "year"))
+LRdiff_res$N_pair_years <- uniqueN(yearly_data, by = c("bordindx", "year"))
+LRdiff_res$N_pair_year_modules <- uniqueN(yearly_data, by = c("bordindx", "year", "product_module_code"))
 
 
 fwrite(LRdiff_res, output.pretrend.file)
