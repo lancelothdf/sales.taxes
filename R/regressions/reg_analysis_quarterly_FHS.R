@@ -185,14 +185,14 @@ for (yr in 2008:2014) {
           ct == cal_time,
           sum(D.ln_sales_tax[cal_time >= ct + 8], na.rm = T),
           F8.D.ln_sales_tax
-          ), by = id]
+          ), by = .(store_code_uc, product_module_code)]
 
     ## sum over all lags of treatment 7+ periods in the past
     all_pi[, L7.D.ln_sales_tax := ifelse(
           ct == cal_time,
           sum(D.ln_sales_tax[cal_time <= ct - 7], na.rm = T),
           L7.D.ln_sales_tax
-          ), by = id]
+          ), by = .(store_code_uc, product_module_code)]
   }
 }
 
