@@ -234,6 +234,11 @@ for (Y in outcomes) {
                  weights = all_pi[sample.not.imputed==1]$base.sales)
     flog.info("Finished estimating with %s as outcome with %s FE (not imputing).", Y, FE)
 
+    res.dt <- as.data.table(coef(summary(res1)), keep.rownames = T)
+    res.dt[, `:=` (outcome = Y, controls = FE, imputed = F, spec = "no_X")]
+    res.table <- rbind(res.table, res.dt, fill = T)
+    fwrite(res.table, reg.outfile)
+
     ## Estimation without accounting for covariates, imputing
 
     flog.info("Estimating with %s as outcome with %s FE (imputing).", Y, FE)
@@ -241,6 +246,11 @@ for (Y in outcomes) {
                      data    = all_pi[sample.imputed==1],
                      weights = all_pi[sample.imputed==1]$base.sales)
     flog.info("Finished estimating with %s as outcome with %s FE (imputing).", Y, FE)
+
+    res.dt <- as.data.table(coef(summary(res1.imp)), keep.rownames = T)
+    res.dt[, `:=` (outcome = Y, controls = FE, imputed = T, spec = "no_X")]
+    res.table <- rbind(res.table, res.dt, fill = T)
+    fwrite(res.table, reg.outfile)
 
     ## Estimation controlling for unemployment via FHS, not imputing
     flog.info("Controlling for unemployment via FHS...")
@@ -255,6 +265,11 @@ for (Y in outcomes) {
                  weights = all_pi[sample.unemp==1 & sample.not.imputed==1]$base.sales)
     flog.info("Finished estimating with %s as outcome with %s FE (not imputing).", Y, FE)
 
+    res.dt <- as.data.table(coef(summary(res2)), keep.rownames = T)
+    res.dt[, `:=` (outcome = Y, controls = FE, imputed = F, spec = "unemp_FHS")]
+    res.table <- rbind(res.table, res.dt, fill = T)
+    fwrite(res.table, reg.outfile)
+
     ## Estimation controlling for unemployment via FHS, imputing
 
     flog.info("Estimating with %s as outcome with %s FE (imputing).", Y, FE)
@@ -263,6 +278,11 @@ for (Y in outcomes) {
                  weights = all_pi[sample.unemp==1 & sample.imputed==1]$base.sales)
     flog.info("Finished estimating with %s as outcome with %s FE (imputing).", Y, FE)
 
+    res.dt <- as.data.table(coef(summary(res2.imp)), keep.rownames = T)
+    res.dt[, `:=` (outcome = Y, controls = FE, imputed = T, spec = "unemp_FHS")]
+    res.table <- rbind(res.table, res.dt, fill = T)
+    fwrite(res.table, reg.outfile)
+
     ## Estimation controlling for house prices via FHS, not imputing
     flog.info("Controlling for house prices via FHS...")
 
@@ -270,34 +290,33 @@ for (Y in outcomes) {
       Y, "~", formula_RHS.FHS, " | ", FE,
       " | (ln_home_price~F1.D.ln_sales_tax) | module_by_state"
     ))
+    flog.info("Number of valid rows for house price: %s", nrow(all_pi[sample.houseprice==1]))
     flog.info("Estimating with %s as outcome with %s FE (not imputing).", Y, FE)
-    res3 <- felm(formula = formula3,
+    res3 <- try(felm(formula = formula3,
                  data    = all_pi[sample.houseprice==1 & sample.not.imputed==1],
-                 weights = all_pi[sample.houseprice==1 & sample.not.imputed==1]$base.sales)
+                 weights = all_pi[sample.houseprice==1 & sample.not.imputed==1]$base.sales))
     flog.info("Finished estimating with %s as outcome with %s FE (not imputing).", Y, FE)
+
+    if (class(res3) == "try-error") res.dt <- data.table(rn = NA)
+    else res.dt <- as.data.table(coef(summary(res3)), keep.rownames = T)
+    res.dt[, `:=` (outcome = Y, controls = FE, imputed = F, spec = "houseprice_FHS")]
+    res.table <- rbind(res.table, res.dt, fill = T)
+    fwrite(res.table, reg.outfile)
 
 
     ## Estimation controlling for house prices via FHS, imputing
 
     flog.info("Estimating with %s as outcome with %s FE (imputing).", Y, FE)
-    res3.imp <- felm(formula = formula3,
+    res3.imp <- try(felm(formula = formula3,
                      data    = all_pi[sample.houseprice==1 & sample.imputed==1],
-                     weights = all_pi[sample.houseprice==1 & sample.imputed==1]$base.sales)
+                     weights = all_pi[sample.houseprice==1 & sample.imputed==1]$base.sales))
     flog.info("Finished estimating with %s as outcome with %s FE (imputing).", Y, FE)
 
-    ## attach results
-    flog.info("Writing results...")
-    res.dt <- rbindlist(list(
-      no_X               = as.data.table(res1,     keep.rownames = T),
-      no_X_imp           = as.data.table(res1.imp, keep.rownames = T),
-      unemp_FHS          = as.data.table(res2,     keep.rownames = T),
-      unemp_FHS_imp      = as.data.table(res2.imp, keep.rownames = T),
-      houseprice_FHS     = as.data.table(res3,     keep.rownames = T),
-      houseprice_FHS_imp = as.data.table(res3.imp, keep.rownames = T)
-    ), idcol = "specification")
-    res.dt[, outcome := Y]
-    res.dt[, controls := FE]
+    if (class(res3.imp) == "try-error") res.dt <- data.table(rn = NA)
+    else res.dt <- as.data.table(coef(summary(res3.imp)), keep.rownames = T)
+    res.dt[, `:=` (outcome = Y, controls = FE, imputed = T, spec = "houseprice_FHS")]
     res.table <- rbind(res.table, res.dt, fill = T)
     fwrite(res.table, reg.outfile)
+
   }
 }
