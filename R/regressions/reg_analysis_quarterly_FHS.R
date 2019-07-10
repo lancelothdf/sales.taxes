@@ -271,7 +271,7 @@ for (Y in outcomes) {
       " | (ln_home_price~F1.D.ln_sales_tax) | module_by_state"
     ))
     flog.info("Estimating with %s as outcome with %s FE (not imputing).", Y, FE)
-    res3 <- felm(formula = formula4,
+    res3 <- felm(formula = formula3,
                  data    = all_pi[sample.houseprice==1 & sample.not.imputed==1],
                  weights = all_pi[sample.houseprice==1 & sample.not.imputed==1]$base.sales)
     flog.info("Finished estimating with %s as outcome with %s FE (not imputing).", Y, FE)
