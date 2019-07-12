@@ -137,39 +137,37 @@ all_pi[, region_by_module_by_time := .GRP, by = .(region, product_module_code, c
 all_pi[, division_by_module_by_time := .GRP, by = .(division, product_module_code, cal_time)]
 
 ## get sales weights
-all_pi[, base.sales := sales[year == 2008 & quarter == 1],
-       by = .(store_code_uc, product_module_code)]
+all_pi[, base.sales := sales[year == 2008 & quarter == 1], by = store_by_module]
 
 all_pi <- all_pi[!is.na(base.sales) & !is.na(sales) & !is.na(ln_cpricei) &
                    !is.na(ln_sales_tax) & !is.na(ln_quantity)]
 
 ## balance on store-module level from 2006-2016
-keep_store_modules <- all_pi[, list(n = .N),
-                             by = .(store_code_uc, product_module_code)]
+keep_store_modules <- all_pi[, list(n = .N), by = store_by_module]
 keep_store_modules <- keep_store_modules[n == (2016 - 2005) * 4]
 
-setkey(all_pi, store_code_uc, product_module_code)
-setkey(keep_store_modules, store_code_uc, product_module_code)
+setkey(all_pi, store_by_module)
+setkey(keep_store_modules, store_by_module)
 
 all_pi <- all_pi[keep_store_modules]
-setkey(all_pi, store_code_uc, product_module_code, year, quarter)
+setkey(all_pi, store_by_module, year, quarter)
 
 ## take contemporaneous first difference of ln_sales_tax variables
 all_pi[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
-       by = .(store_code_uc, product_module_code)]
+       by = store_by_module]
 
 ## generate lags and leads of ln_sales_tax (imputed and not imputed)
 for (lag.val in 1:7) {
 
   lead.X <- paste0("F", lag.val, ".D.ln_sales_tax")
   all_pi[, (lead.X) := shift(D.ln_sales_tax, n=lag.val, type="lead"),
-         by = .(store_code_uc, product_module_code)]
+         by = store_by_module]
 
-  if (lag.val == 7) break # we bin endpoints for the 7th lag (and 8th lead)
+  if (lag.val == 7) break # we will bin endpoints for the 7th lag (and 8th lead)
 
   lag.X <- paste0("L", lag.val, ".D.ln_sales_tax")
   all_pi[, (lag.X) := shift(D.ln_sales_tax, n=lag.val, type="lag"),
-         by = .(store_code_uc, product_module_code)]
+         by = store_by_module]
 
 }
 
@@ -185,14 +183,14 @@ for (yr in 2008:2014) {
           ct == cal_time,
           sum(D.ln_sales_tax[cal_time >= ct + 8], na.rm = T),
           F8.D.ln_sales_tax
-          ), by = .(store_code_uc, product_module_code)]
+          ), by = store_by_module]
 
     ## sum over all lags of treatment 7+ periods in the past
     all_pi[, L7.D.ln_sales_tax := ifelse(
           ct == cal_time,
           sum(D.ln_sales_tax[cal_time <= ct - 7], na.rm = T),
           L7.D.ln_sales_tax
-          ), by = .(store_code_uc, product_module_code)]
+          ), by = store_by_module]
   }
 }
 
@@ -203,8 +201,20 @@ all_pi[, sample.all.X := as.integer(!is.na(unemp_rate) & !is.na(ln_home_price))]
 all_pi[, sample.unemp := as.integer(!is.na(unemp_rate))]
 all_pi[, sample.houseprice := as.integer(!is.na(ln_home_price))]
 
+## Demean on store-module level to reduce dimensionality
+all_vars <- c(
+  paste0("L", 1:7, ".D.ln_sales_tax"), "D.ln_sales_tax",
+  paste0("F", c(1, 3:8), ".D.ln_sales_tax"),
+  "ln_cpricei", "ln_quantity", "unemp_rate",  "ln_home_price"
+)
+for (V in all_vars) {
+  all_pi[, (V) := get(V) - mean(get(V)), by = store_by_module]
+}
+
+
 ### Estimation ---------------------------------------------------
 all_pi <- all_pi[between(year, 2008, 2014)]
+fwrite(all_pi, "Data/temp_houseprice_check.csv")
 
 formula_lags <- paste0("L", 1:7, ".D.ln_sales_tax", collapse = "+")
 formula_leads <- paste0("F", c(1, 3:8), ".D.ln_sales_tax", collapse = "+")
@@ -220,7 +230,7 @@ FE_opts <- c("cal_time", "module_by_time",
 res.table <- data.table(NULL)
 for (Y in outcomes) {
   for (FE in FE_opts) {
-    FE <- paste(FE, " + store_by_module") # include a unit FE
+    # FE <- paste(FE, "+ store_by_module") # include a unit FE
 
     ## Estimation without accounting for covariates, not imputing
     flog.info("Estimating without accounting for covariates...")
@@ -281,42 +291,43 @@ for (Y in outcomes) {
     res.dt <- as.data.table(coef(summary(res2.imp)), keep.rownames = T)
     res.dt[, `:=` (outcome = Y, controls = FE, imputed = T, spec = "unemp_FHS")]
     res.table <- rbind(res.table, res.dt, fill = T)
+    res.table$unit_FE <- "DEMEANED"
     fwrite(res.table, reg.outfile)
 
     ## Estimation controlling for house prices via FHS, not imputing
-    flog.info("Controlling for house prices via FHS...")
-
-    formula3 <- as.formula(paste0(
-      Y, "~", formula_RHS.FHS, " | ", FE,
-      " | (ln_home_price~F1.D.ln_sales_tax) | module_by_state"
-    ))
-    flog.info("Number of valid rows for house price: %s", nrow(all_pi[sample.houseprice==1]))
-    flog.info("Estimating with %s as outcome with %s FE (not imputing).", Y, FE)
-    res3 <- try(felm(formula = formula3,
-                 data    = all_pi[sample.houseprice==1 & sample.not.imputed==1],
-                 weights = all_pi[sample.houseprice==1 & sample.not.imputed==1]$base.sales))
-    flog.info("Finished estimating with %s as outcome with %s FE (not imputing).", Y, FE)
-
-    if (class(res3) == "try-error") res.dt <- data.table(rn = NA)
-    else res.dt <- as.data.table(coef(summary(res3)), keep.rownames = T)
-    res.dt[, `:=` (outcome = Y, controls = FE, imputed = F, spec = "houseprice_FHS")]
-    res.table <- rbind(res.table, res.dt, fill = T)
-    fwrite(res.table, reg.outfile)
+    # flog.info("Controlling for house prices via FHS...")
+    #
+    # formula3 <- as.formula(paste0(
+    #   Y, "~", formula_RHS.FHS, " | ", FE,
+    #   " | (ln_home_price~F1.D.ln_sales_tax) | module_by_state"
+    # ))
+    # flog.info("Number of valid rows for house price: %s", nrow(all_pi[sample.houseprice==1]))
+    # flog.info("Estimating with %s as outcome with %s FE (not imputing).", Y, FE)
+    # res3 <- try(felm(formula = formula3,
+    #              data    = all_pi[sample.houseprice==1 & sample.not.imputed==1],
+    #              weights = all_pi[sample.houseprice==1 & sample.not.imputed==1]$base.sales))
+    # flog.info("Finished estimating with %s as outcome with %s FE (not imputing).", Y, FE)
+    #
+    # if (class(res3) == "try-error") res.dt <- data.table(rn = NA)
+    # else res.dt <- as.data.table(coef(summary(res3)), keep.rownames = T)
+    # res.dt[, `:=` (outcome = Y, controls = FE, imputed = F, spec = "houseprice_FHS")]
+    # res.table <- rbind(res.table, res.dt, fill = T)
+    # fwrite(res.table, reg.outfile)
 
 
     ## Estimation controlling for house prices via FHS, imputing
 
-    flog.info("Estimating with %s as outcome with %s FE (imputing).", Y, FE)
-    res3.imp <- try(felm(formula = formula3,
-                     data    = all_pi[sample.houseprice==1 & sample.imputed==1],
-                     weights = all_pi[sample.houseprice==1 & sample.imputed==1]$base.sales))
-    flog.info("Finished estimating with %s as outcome with %s FE (imputing).", Y, FE)
-
-    if (class(res3.imp) == "try-error") res.dt <- data.table(rn = NA)
-    else res.dt <- as.data.table(coef(summary(res3.imp)), keep.rownames = T)
-    res.dt[, `:=` (outcome = Y, controls = FE, imputed = T, spec = "houseprice_FHS")]
-    res.table <- rbind(res.table, res.dt, fill = T)
-    fwrite(res.table, reg.outfile)
+    # flog.info("Estimating with %s as outcome with %s FE (imputing).", Y, FE)
+    # res3.imp <- try(felm(formula = formula3,
+    #                  data    = all_pi[sample.houseprice==1 & sample.imputed==1],
+    #                  weights = all_pi[sample.houseprice==1 & sample.imputed==1]$base.sales))
+    # flog.info("Finished estimating with %s as outcome with %s FE (imputing).", Y, FE)
+    #
+    # if (class(res3.imp) == "try-error") res.dt <- data.table(rn = NA)
+    # else res.dt <- as.data.table(coef(summary(res3.imp)), keep.rownames = T)
+    # res.dt[, `:=` (outcome = Y, controls = FE, imputed = T, spec = "houseprice_FHS")]
+    # res.table <- rbind(res.table, res.dt, fill = T)
+    # fwrite(res.table, reg.outfile)
 
   }
 }
