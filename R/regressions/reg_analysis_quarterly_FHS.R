@@ -208,7 +208,7 @@ all_vars <- c(
   "ln_cpricei", "ln_quantity", "unemp_rate",  "ln_home_price"
 )
 for (V in all_vars) {
-  all_pi[, (V) := get(V) - mean(get(V)), by = store_by_module]
+  all_pi[, (V) := get(V) - mean(get(V), na.rm = T), by = store_by_module]
 }
 
 
