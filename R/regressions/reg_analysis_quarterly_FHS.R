@@ -201,20 +201,9 @@ all_pi[, sample.all.X := as.integer(!is.na(unemp_rate) & !is.na(ln_home_price))]
 all_pi[, sample.unemp := as.integer(!is.na(unemp_rate))]
 all_pi[, sample.houseprice := as.integer(!is.na(ln_home_price))]
 
-## Demean on store-module level to reduce dimensionality
-all_vars <- c(
-  paste0("L", 1:7, ".D.ln_sales_tax"), "D.ln_sales_tax",
-  paste0("F", c(1, 3:8), ".D.ln_sales_tax"),
-  "ln_cpricei", "ln_quantity", "unemp_rate",  "ln_home_price"
-)
-for (V in all_vars) {
-  all_pi[, (V) := get(V) - mean(get(V), na.rm = T), by = store_by_module]
-}
-
-
 ### Estimation ---------------------------------------------------
 all_pi <- all_pi[between(year, 2008, 2014)]
-fwrite(all_pi, "Data/temp_houseprice_check.csv")
+# fwrite(all_pi, "Data/temp_houseprice_check.csv")
 
 formula_lags <- paste0("L", 1:7, ".D.ln_sales_tax", collapse = "+")
 formula_leads <- paste0("F", c(1, 3:8), ".D.ln_sales_tax", collapse = "+")
@@ -226,6 +215,27 @@ outcomes <- c("ln_cpricei", "ln_quantity")
 FE_opts <- c("cal_time", "module_by_time",
              "region_by_module_by_time",
              "division_by_module_by_time")
+
+## subset the data
+all_pi.imputed <- all_pi[sample.imputed == 1]
+all_pi.not.imputed <- all_pi[sample.not.imputed == 1]
+rm(all_pi)
+
+## Demean on store-module level to reduce dimensionality
+all_vars <- c(
+  paste0("L", 1:7, ".D.ln_sales_tax"), "D.ln_sales_tax",
+  paste0("F", c(1, 3:8), ".D.ln_sales_tax"),
+  "ln_cpricei", "ln_quantity", "unemp_rate",  "ln_home_price"
+)
+
+## Need to demean separately for different subsamples
+for (V in all_vars) {
+  all_pi.imputed[, (V) := get(V) - mean(get(V), na.rm = T),
+                 by = store_by_module]
+
+  all_pi.not.imputed[, (V) := get(V) - mean(get(V), na.rm = T),
+                     by = store_by_module]
+}
 
 res.table <- data.table(NULL)
 for (Y in outcomes) {
@@ -240,8 +250,8 @@ for (Y in outcomes) {
     ))
     flog.info("Estimating with %s as outcome with %s FE (not imputing).", Y, FE)
     res1 <- felm(formula = formula1,
-                 data    = all_pi[sample.not.imputed==1],
-                 weights = all_pi[sample.not.imputed==1]$base.sales)
+                 data    = all_pi.not.imputed,
+                 weights = all_pi.not.imputed$base.sales)
     flog.info("Finished estimating with %s as outcome with %s FE (not imputing).", Y, FE)
 
     res.dt <- as.data.table(coef(summary(res1)), keep.rownames = T)
@@ -253,8 +263,8 @@ for (Y in outcomes) {
 
     flog.info("Estimating with %s as outcome with %s FE (imputing).", Y, FE)
     res1.imp <- felm(formula = formula1,
-                     data    = all_pi[sample.imputed==1],
-                     weights = all_pi[sample.imputed==1]$base.sales)
+                     data    = all_pi.imputed,
+                     weights = all_pi.imputed$base.sales)
     flog.info("Finished estimating with %s as outcome with %s FE (imputing).", Y, FE)
 
     res.dt <- as.data.table(coef(summary(res1.imp)), keep.rownames = T)
@@ -271,8 +281,8 @@ for (Y in outcomes) {
     ))
     flog.info("Estimating with %s as outcome with %s FE (not imputing).", Y, FE)
     res2 <- felm(formula = formula2,
-                 data    = all_pi[sample.unemp==1 & sample.not.imputed==1],
-                 weights = all_pi[sample.unemp==1 & sample.not.imputed==1]$base.sales)
+                 data    = all_pi.not.imputed[sample.unemp == 1],
+                 weights = all_pi.not.imputed[sample.unemp == 1]$base.sales)
     flog.info("Finished estimating with %s as outcome with %s FE (not imputing).", Y, FE)
 
     res.dt <- as.data.table(coef(summary(res2)), keep.rownames = T)
@@ -284,8 +294,8 @@ for (Y in outcomes) {
 
     flog.info("Estimating with %s as outcome with %s FE (imputing).", Y, FE)
     res2.imp <- felm(formula = formula2,
-                 data    = all_pi[sample.unemp==1 & sample.imputed==1],
-                 weights = all_pi[sample.unemp==1 & sample.imputed==1]$base.sales)
+                 data    = all_pi.imputed[sample.unemp == 1],
+                 weights = all_pi.imputed[sample.unemp == 1]$base.sales)
     flog.info("Finished estimating with %s as outcome with %s FE (imputing).", Y, FE)
 
     res.dt <- as.data.table(coef(summary(res2.imp)), keep.rownames = T)
@@ -304,8 +314,8 @@ for (Y in outcomes) {
     # flog.info("Number of valid rows for house price: %s", nrow(all_pi[sample.houseprice==1]))
     # flog.info("Estimating with %s as outcome with %s FE (not imputing).", Y, FE)
     # res3 <- try(felm(formula = formula3,
-    #              data    = all_pi[sample.houseprice==1 & sample.not.imputed==1],
-    #              weights = all_pi[sample.houseprice==1 & sample.not.imputed==1]$base.sales))
+    #              data    = all_pi.not.imputed[sample.houseprice == 1],
+    #              weights = all_pi.not.imputed[sample.houseprice == 1]$base.sales))
     # flog.info("Finished estimating with %s as outcome with %s FE (not imputing).", Y, FE)
     #
     # if (class(res3) == "try-error") res.dt <- data.table(rn = NA)
@@ -319,8 +329,8 @@ for (Y in outcomes) {
 
     # flog.info("Estimating with %s as outcome with %s FE (imputing).", Y, FE)
     # res3.imp <- try(felm(formula = formula3,
-    #                  data    = all_pi[sample.houseprice==1 & sample.imputed==1],
-    #                  weights = all_pi[sample.houseprice==1 & sample.imputed==1]$base.sales))
+    #                  data    = all_pi.imputed[sample.houseprice == 1],
+    #                  weights = all_pi.imputed[sample.houseprice == 1]$base.sales))
     # flog.info("Finished estimating with %s as outcome with %s FE (imputing).", Y, FE)
     #
     # if (class(res3.imp) == "try-error") res.dt <- data.table(rn = NA)
