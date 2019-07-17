@@ -67,6 +67,7 @@ for (yr in 2006:2016) {
   flog.info("Merging store data to purchases for %s", yr)
   purchases <- merge(purchases, stores, by = c("store_code_uc", "year"), all.x = T)
 
+
   ## merge on some individual information?
   flog.info("Loading in panelists data for %s", yr)
   panelists <- fread(panelists_file)
@@ -87,17 +88,12 @@ for (yr in 2006:2016) {
 }
 
 ## link all these annual files
-best_selling_modules <- fread("/project2/igaarder/Data/best_selling_modules.csv")
-keep_modules <- unique(best_selling_modules[, .(Module)][[1]])
-
 purchases.all <- data.table(NULL)
 for (yr in 2006:2016) {
   flog.info("Appending %s data to master file", yr)
   annual.path <- paste0("cleaning/purchases_", yr, ".csv")
   annual.file <- fread(annual.path)
 
-  ## Subset to just the best-selling modules
-  annual.file <- annual.file[product_module_code %in% keep_modules]
   ## attach
   purchases.all <- rbind(purchases.all, annual.file)
 }
@@ -120,6 +116,11 @@ purchases.all <- purchases.all[, list(
 purchases.all[, sum_total_exp := sum(total_expenditures),
              by = .(household_code, year, quarter, store_code_uc)]
 
+## Subset to just the best-selling modules
+best_selling_modules <- fread("/project2/igaarder/Data/best_selling_modules.csv")
+keep_modules <- unique(best_selling_modules[, .(Module)][[1]])
+
+purchases.all <- purchases.all[product_module_code %in% keep_modules]
 fwrite(purchases.all, "cleaning/consumer_panel_2006-2016.csv")
 
 purchases.all <- fread("cleaning/consumer_panel_2006-2016.csv")
