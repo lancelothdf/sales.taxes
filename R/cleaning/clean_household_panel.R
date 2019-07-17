@@ -50,7 +50,7 @@ for (yr in 2006:2016) {
   setDT(stores)
   stores[, year := yr]
 
-  if (year > 2006) {
+  if (yr > 2006) {
     stores2 <- read.dta13(store_file2)
     stores2[, year := yr - 1] # TODO: end of prior year or beginning of next year?
     setDT(stores2)
