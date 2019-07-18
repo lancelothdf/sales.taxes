@@ -217,8 +217,8 @@ FE_opts <- c("cal_time", "module_by_time",
              "division_by_module_by_time")
 
 ## subset the data
-all_pi.imputed <- all_pi[sample.imputed == 1]
-all_pi.not.imputed <- all_pi[sample.not.imputed == 1]
+temp.all_pi.imputed <- all_pi[sample.imputed == 1]
+temp.all_pi.not.imputed <- all_pi[sample.not.imputed == 1]
 rm(all_pi)
 
 ## Demean on store-module level to reduce dimensionality
@@ -229,24 +229,37 @@ all_vars <- c(
 )
 
 ## Need to demean separately for different subsamples
-for (V in all_vars) {
-  all_pi.imputed[, (V) := get(V) - mean(get(V), na.rm = T),
-                 by = store_by_module]
-
-  all_pi.not.imputed[, (V) := get(V) - mean(get(V), na.rm = T),
-                     by = store_by_module]
-}
+# for (V in all_vars) {
+#   all_pi.imputed[, (V) := get(V) - mean(get(V), na.rm = T),
+#                  by = store_by_module]
+#
+#   all_pi.not.imputed[, (V) := get(V) - mean(get(V), na.rm = T),
+#                      by = store_by_module]
+# }
 
 res.table <- data.table(NULL)
-for (Y in outcomes) {
-  for (FE in FE_opts) {
+for (FE in FE_opts) {
+  ## Demean by the fixed effects
+  all_pi.imputed <- copy(temp.all_pi.imputed)
+  all_pi.not.imputed <- copy(temp.all_pi.not.imputed)
+
+  for (V in all_vars) {
+    all_pi.imputed[, (V) := get(V) - mean(get(V), na.rm = T),
+                   by = FE]
+
+    all_pi.not.imputed[, (V) := get(V) - mean(get(V), na.rm = T),
+                       by = FE]
+  }
+
+  for (Y in outcomes) {
+    model.FE <- "store_by_module"
     # FE <- paste(FE, "+ store_by_module") # include a unit FE
 
     ## Estimation without accounting for covariates, not imputing
     flog.info("Estimating without accounting for covariates...")
 
     formula1 <- as.formula(paste0(
-      Y, "~", formula_RHS, "| ", FE, " | 0 | module_by_state"
+      Y, "~", formula_RHS, "| ", model.FE, " | 0 | module_by_state"
     ))
     flog.info("Estimating with %s as outcome with %s FE (not imputing).", Y, FE)
     res1 <- felm(formula = formula1,
@@ -276,7 +289,7 @@ for (Y in outcomes) {
     flog.info("Controlling for unemployment via FHS...")
 
     formula2 <- as.formula(paste0(
-      Y, "~", formula_RHS.FHS, " | ", FE,
+      Y, "~", formula_RHS.FHS, " | ", model.FE,
       " | (unemp_rate~F1.D.ln_sales_tax) | module_by_state"
     ))
     flog.info("Estimating with %s as outcome with %s FE (not imputing).", Y, FE)
@@ -301,7 +314,8 @@ for (Y in outcomes) {
     res.dt <- as.data.table(coef(summary(res2.imp)), keep.rownames = T)
     res.dt[, `:=` (outcome = Y, controls = FE, imputed = T, spec = "unemp_FHS")]
     res.table <- rbind(res.table, res.dt, fill = T)
-    res.table$unit_FE <- "DEMEANED"
+    res.table$unit_FE <- "included"
+    res.table$FE_det <- "FE demeaned"
     fwrite(res.table, reg.outfile)
 
     ## Estimation controlling for house prices via FHS, not imputing
