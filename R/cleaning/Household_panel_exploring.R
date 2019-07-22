@@ -31,14 +31,14 @@ purchases.store <- purchases.full[, list(sum_total_exp_store = sum(total_expendi
                                     by = .(household_code, year, quarter, store_code_uc)]
 descriptives <- describe(purchases.store[, .(sum_total_exp_store, modules_by_store)])
 desc.est  <- data.table(descriptives, keep.rownames=T)
-des.est.out <- rbind(des.est.out, desc.est)
+des.est.out <- rbind(des.est.out, desc.est, fill = T)
 
 # by quarter
 purchases.quarter <- purchases.store[, list(sum_total_exp_quarter = sum(sum_total_exp_store), stores = .N),
                                   by = .(household_code, year, quarter)]
 descriptives <- describe(purchases.quarter[, .(sum_total_exp_quarter, stores)])
-desc.est  <- data.table(descriptives, keep.rownames=T, fill = T)
-des.est.out <- rbind(des.est.out, desc.est)
+desc.est  <- data.table(descriptives, keep.rownames=T)
+des.est.out <- rbind(des.est.out, desc.est, fill = T)
 
 
 fwrite(des.est.out, "../../../../../home/slacouture/HMS/Basic_Descriptives.csv")
