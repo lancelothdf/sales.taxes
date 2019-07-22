@@ -37,7 +37,7 @@ des.est.out <- rbind(des.est.out, desc.est)
 purchases.quarter <- purchases.store[, list(sum_total_exp_quarter = sum(sum_total_exp_store), stores = .N),
                                   by = .(household_code, year, quarter)]
 descriptives <- describe(purchases.quarter[, .(sum_total_exp_quarter, stores)])
-desc.est  <- data.table(descriptives, keep.rownames=T)
+desc.est  <- data.table(descriptives, keep.rownames=T, fill = T)
 des.est.out <- rbind(des.est.out, desc.est)
 
 
