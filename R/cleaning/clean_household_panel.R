@@ -57,6 +57,9 @@ for (yr in 2006:2016) {
   ), by = .(household_code, product_module_code, product_group_code,
             store_code_uc, quarter, year)]
   
+  ## Keep purchases greater than 0
+  purchases<-purchases[total_expenditures > 0]
+  
   ## merge on the retailer info to get channel type and county FIPS codes
   flog.info("Loading in store data for %s", yr)
   stores <- read.dta13(store_file)
@@ -133,9 +136,12 @@ for (yr in 2006:2016) {
   purchases.full <- rbind(purchases.full, purchase.yr)
 }
 rm(purchases.all)
-## Calculate total expenditure per consumer in each quarter (across modules)
+## Calculate total expenditure per consumer in each quarter in each store (across modules)
 purchases.full[, sum_total_exp := sum(total_expenditures),
                by = .(household_code, year, quarter, store_code_uc)]
+## Calculate total expenditure per consumer in each quarter (across stores and modules)
+purchases.full[, sum_total_exp := sum(total_expenditures),
+               by = .(household_code, year, quarter)]
 
 ## Subset to just the best-selling modules
 best_selling_modules <- fread("/project2/igaarder/Data/best_selling_modules.csv")
