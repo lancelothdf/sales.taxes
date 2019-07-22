@@ -1,6 +1,6 @@
 ## Sales taxes Project. Household Panel
 # Running first Basic Estimations
-# This code further cleans panel: creates and cleans interest variables and ids
+# Runs basic identification without covariates and without time lags
 # Author: Santiago Lacouture
 
 
@@ -16,17 +16,7 @@ setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 
 ## Filepaths
 # Exporting results to my folder in the server
-out.path <- "/home/slacouture/HMS"
-
 purchases.full <- fread("cleaning/consumer_panel_2006-2016_ids.csv")
-
-## Basic Descriptive Statistics -------
-descriptives <- describe(purchases.full[, .(ln_sales_tax, ln_cpricei, ln_quantity, ln_share_expend,
-                                           total_expenditures, share_expend, ln_share_expend_100)])
-desc.est  <- data.table(descriptives, keep.rownames=T)
-
-fwrite(desc.est, "../../../../../home/slacouture/HMS/Basic_Descriptives.csv")
-
 
 
 ## Constraining Data set for estimations ------------ 
