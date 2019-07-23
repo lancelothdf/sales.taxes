@@ -14,9 +14,7 @@ library(ggplot2)
 
 setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 
-## Filepaths
-# Exporting results to my folder in the server
-
+## Open Data
 purchases.full <- fread("cleaning/consumer_panel_2006-2016_ids.csv")
 
 ### Identify households missing in each quarter
@@ -36,13 +34,14 @@ purchases.retail <- purchases.nomagnet[!is.na(sales_tax)]
 purchases.retail$quarter_of_year <- factor(with(purchases.retail, 
                                              interaction(year, quarter)))
 
+# Make a "new" set with codes of all household X store X module that appear at least once in data
+flog.info("Building expanding master")
+possible.purchases <- purchases.retail[, list(N_obs = .N), by = .(household_code, product_module_code, store_code_uc)]
+possible.purchases <- possible.purchases[N_obs > 0]
 
-setkey(purchases.retail, household_by_store_by_module, quarter_of_year)
-flog.info("Expanding data to module x store within quarter")
-purchases.retail <- setDT(purchases.retail, key = c("year", "quarter", "household_code", "product_group_code",
-                                                    "store_code_uc"))[CJ(household_code, 
-                                                                         product_group_code, store_code_uc, 
-                                                                         unique=TRUE)]
+# merge with existing data
+flog.info("MErging to expand")
+purchases.retail <- merge(purchases.retail, possible.purchases, by = c("store_code_uc", "household_code", "product_module_code"), all.x = T)
 
 
 ## Now I have to drop real missings: households that actually do not appear in a quarter
