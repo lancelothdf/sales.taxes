@@ -53,8 +53,9 @@ res0.dt[, outcome := "ln_share_expend"]
 res0.dt[, Rsq := summary(res0)$r.squared]
 res0.dt[, adj.Rsq := summary(res0)$adj.r.squared]
 res0.dt[, specification := "Basic"]
+res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_share_expend)))]
 LRdiff_res <- res0.dt ### Create table LRdiff_res in which we store all results (we start with the results we had just stored in res1.dt)
-N_obs <- sum((!is.na(purchases.retail$ln_share_expend)))
+fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results.csv")
 
 # Share of Expenditure
 formula1 <- as.formula(paste0(
@@ -72,8 +73,9 @@ res0.dt[, outcome := "share_expend"]
 res0.dt[, Rsq := summary(res1)$r.squared]
 res0.dt[, adj.Rsq := summary(res1)$adj.r.squared]
 res0.dt[, specification := "Basic"]
+res0.dt[, N_obs := sum((!is.na(purchases.retail$share_expend)))]
 LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append 
-N_obs[2] <- sum((!is.na(purchases.retail$share_expend)))
+fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results.csv")
 
 # Log Price
 formula2 <- as.formula(paste0(
@@ -91,8 +93,9 @@ res0.dt[, outcome := "ln_cpricei"]
 res0.dt[, Rsq := summary(res2)$r.squared]
 res0.dt[, adj.Rsq := summary(res2)$adj.r.squared]
 res0.dt[, specification := "Basic"]
+res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_cpricei)))]
 LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append 
-N_obs[3] <- sum((!is.na(purchases.retail$ln_cpricei)))
+fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results.csv")
 
 # Log Quantity
 formula2 <- as.formula(paste0(
@@ -110,11 +113,6 @@ res0.dt[, outcome := "ln_quantity"]
 res0.dt[, Rsq := summary(res2)$r.squared]
 res0.dt[, adj.Rsq := summary(res2)$adj.r.squared]
 res0.dt[, specification := "Basic"]
+res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_quantity)))]
 LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append 
-N_obs[4] <- sum((!is.na(purchases.retail$ln_quantity)))
-
-# Add Ns
-LRdiff_res$N <- N_obs
-
-
 fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results.csv")
