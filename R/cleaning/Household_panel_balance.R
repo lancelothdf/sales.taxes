@@ -91,7 +91,7 @@ res0.dt[, outcome := "purchased"]
 res0.dt[, Rsq := summary(res0)$r.squared]
 res0.dt[, adj.Rsq := summary(res0)$adj.r.squared]
 res0.dt[, specification := "Basic"]
+res0.dt[, N := sum((!is.na(purchases.retail$purchased)))]
 LRdiff_res <- res0.dt ### Create table LRdiff_res in which we store all results (we start with the results we had just stored in res1.dt)
-LRdiff_res$N <- sum((!is.na(purchases.retail$purchased)))
 
-fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_balance_Results.csv")
+fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_balance_results.csv")
