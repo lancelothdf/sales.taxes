@@ -68,10 +68,6 @@ flog.info("Extrapolating variables for missings")
 purchases.retail <- purchases.retail[, ln_sales_tax := mean(ln_sales_tax, na.rm = T), 
                                      by = .(product_module_code, store_code_uc, quarter, year)]
 
-## Extrapolate projection factor for new observations
-purchases.retail <- purchases.retail[, projection_factor := mean(projection_factor, na.rm = T), 
-                                     , by = .(household_code, quarter, year)]
-
 ## Estimate desired especification on this new variable
 
 # Log Share of Expenditure
@@ -82,7 +78,6 @@ formula0 <- as.formula(paste0(
 flog.info("Estimating Balance")
 res0 <- felm(data = purchases.retail,
              formula = formula0,
-             weights = purchases.retail$projection_factor,
              na.omit)
 
 flog.info("Writing results...")
