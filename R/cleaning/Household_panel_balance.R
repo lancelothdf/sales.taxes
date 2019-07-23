@@ -38,9 +38,9 @@ purchases.retail$quarter_of_year <- factor(with(purchases.retail,
 
 
 setkey(purchases.retail, household_by_store_by_module, quarter_of_year)
-flog.info("Expanding data to stor x module")
+flog.info("Expanding data to module x store within quarter")
 purchases.retail <- setDT(purchases.retail, key = c("year", "quarter", "household_code", "product_group_code",
-                                                    "store_code_uc"))[CJ(year, quarter, household_code, 
+                                                    "store_code_uc"))[CJ(household_code, 
                                                                          product_group_code, store_code_uc, 
                                                                          unique=TRUE)]
 
