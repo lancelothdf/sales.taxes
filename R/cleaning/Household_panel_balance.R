@@ -38,15 +38,15 @@ purchases.retail$quarter_of_year <- factor(with(purchases.retail,
 
 
 setkey(purchases.retail, household_by_store_by_module, quarter_of_year)
-flog.info("Expanding data")
-purchases.retail <- purchases.retail[, list(quarter_of_year = seq.int(quarter_of_year[1L], quarter_of_year[.N])),
-                                 by = list(household_by_store_by_module, product_module_code, household_code,
-                                           product_group_code, store_code_uc, channel_code, fips_county,
-                                           fips_state)]
-purchases.retail <- purchases.retail[setkey(purchases.retail)]
+flog.info("Expanding data to stor x module")
+purchases.retail <- setDT(purchases.retail, key = c("year", "quarter", "household_code", "product_group_code",
+                                                    "store_code_uc"))[CJ(year, quarter, household_code, 
+                                                                         product_group_code, store_code_uc, 
+                                                                         unique=TRUE)]
+
 
 ## Now I have to drop real missings: households that actually do not appear in a quarter
-flog.info("Drop 'Real' Missings")
+flog.info("Drop 'Real' Missings") # Just to check
 purchases.retail <- purchases.retail[, missing := mean(!is.na(total_expenditures)), 
                                   by = .(household_code, quarter_of_year) ]
 purchases.retail <- purchases.retail[missing == 1]
@@ -55,7 +55,7 @@ flog.info("Building 'Attrition' variable")
 purchases.retail <- purchases.retail[, purchased := !is.na(total_expenditures)]
 
 ## Extrapolate sales tax for new observations
-flog.info("Extrapolating missings")
+flog.info("Extrapolating variables for missings")
 purchases.retail <- purchases.retail[, .( ln_sales_tax := mean(ln_sales_tax, na.rm = T), 
                                           module_by_time := mean(module_by_time, na.rm = T) 
                                           ), by = .(product_module_code, quarter_of_year)]
@@ -63,6 +63,15 @@ purchases.retail <- purchases.retail[, .( ln_sales_tax := mean(ln_sales_tax, na.
 purchases.retail <- purchases.retail[, projection_factor := mean(projection_factor, na.rm = T), 
                                           , by = .(household_by_store_by_module, quarter_of_year)]
 
+
+## Create again the IDs for estimation
+purchases.retail$module_by_time <- factor(with(purchases.retail, 
+                                             interaction(year, quarter, product_module_code )))
+
+purchases.retail <- within(purchases.retail,{household_by_store_by_module<-as.numeric(
+  factor(paste0(product_module_code,
+                store_code_uc,
+                household_code)))}) 
 
 ## Estimate desired especification on this new variable
 
