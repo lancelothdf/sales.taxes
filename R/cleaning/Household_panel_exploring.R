@@ -58,7 +58,7 @@ ggplot(purchases.full, aes(x=ln_sales_tax, y = ..density..), na.rm = T) +
   geom_histogram()
 ggsave("../../../../../home/slacouture/HMS/histogram_ln_sales_tax.png")
 
-ggplot(purchases.full[ln_cpricei < 5 & ln_quantity > -3], aes(x=ln_quantity, y = ..density..), na.rm = T) +
+ggplot(purchases.full[ln_quantity < 5 & ln_quantity > -3], aes(x=ln_quantity, y = ..density..), na.rm = T) +
   geom_histogram(binwidth = 0.2)
 ggsave("../../../../../home/slacouture/HMS/histogram_ln_quantity.png")
 
@@ -78,7 +78,7 @@ ggplot(purchases.store[modules_by_store < 100], aes(x=modules_by_store, y = ..de
   geom_histogram(binwidth = 1)
 ggsave("../../../../../home/slacouture/HMS/histogram_modules_by_store.png")
 
-ggplot(purchases.quarter[sum_total_exp_store < 3000], aes(x=sum_total_exp_quarter, y = ..density..), na.rm = T) +
+ggplot(purchases.quarter[sum_total_exp_quarter < 3000], aes(x=sum_total_exp_quarter, y = ..density..), na.rm = T) +
   geom_histogram(binwidth = 30)
 ggsave("../../../../../home/slacouture/HMS/histogram_sum_total_exp_quarter.png")
 
@@ -139,7 +139,7 @@ ggplot(purchases.retail, aes(x=ln_sales_tax, y = ..density..), na.rm = T) +
   geom_histogram()
 ggsave("../../../../../home/slacouture/HMS/histogram_ln_sales_tax_esample.png")
 
-ggplot(purchases.retail[ln_cpricei < 5 & ln_quantity > -3], aes(x=ln_quantity, y = ..density..), na.rm = T) +
+ggplot(purchases.retail[ln_quantity < 5 & ln_quantity > -3], aes(x=ln_quantity, y = ..density..), na.rm = T) +
   geom_histogram(binwidth = 0.2)
 ggsave("../../../../../home/slacouture/HMS/histogram_ln_quantity_esample.png")
 
@@ -159,7 +159,7 @@ ggplot(purchases.store[modules_by_store < 100], aes(x=modules_by_store, y = ..de
   geom_histogram(binwidth = 1)
 ggsave("../../../../../home/slacouture/HMS/histogram_modules_by_store_esample.png")
 
-ggplot(purchases.quarter[sum_total_exp_store < 3000], aes(x=sum_total_exp_quarter, y = ..density..), na.rm = T) +
+ggplot(purchases.quarter[sum_total_exp_quarter < 3000], aes(x=sum_total_exp_quarter, y = ..density..), na.rm = T) +
   geom_histogram(binwidth = 30)
 ggsave("../../../../../home/slacouture/HMS/histogram_sum_total_exp_quarter_esample.png")
 

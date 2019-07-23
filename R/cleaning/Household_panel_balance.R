@@ -40,15 +40,15 @@ possible.purchases <- purchases.retail[, list(N_obs = .N), by = .(household_code
 possible.purchases <- possible.purchases[N_obs > 0]
 
 # merge with existing data
-flog.info("MErging to expand")
+flog.info("Merging to expand")
 purchases.retail <- merge(purchases.retail, possible.purchases, by = c("store_code_uc", "household_code", "product_module_code"), all.x = T)
 
 
 ## Now I have to drop real missings: households that actually do not appear in a quarter
-flog.info("Drop 'Real' Missings") # Just to check
-purchases.retail <- purchases.retail[, missing := mean(!is.na(total_expenditures)), 
-                                  by = .(household_code, quarter_of_year) ]
-purchases.retail <- purchases.retail[missing == 1]
+flog.info("Dropping 'Real' Missings") # Just to check
+purchases.retail <- purchases.retail[, missing := mean(is.na(total_expenditures)), 
+                                  by = .(household_code, quarter, year) ]
+purchases.retail <- purchases.retail[missing != 1]
 ## Now I build a new variable for attition of module x store by transform expenses
 flog.info("Building 'Attrition' variable")
 purchases.retail <- purchases.retail[, purchased := !is.na(total_expenditures)]
