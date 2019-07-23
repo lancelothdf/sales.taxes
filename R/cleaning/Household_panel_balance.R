@@ -55,9 +55,9 @@ purchases.retail <- purchases.retail[, purchased := !is.na(total_expenditures)]
 
 ## Extrapolate sales tax for new observations
 flog.info("Extrapolating variables for missings")
-purchases.retail <- purchases.retail[, .( ln_sales_tax := mean(ln_sales_tax, na.rm = T), 
-                                          module_by_time := mean(module_by_time, na.rm = T) 
-                                          ), by = .(product_module_code, quarter_of_year)]
+purchases.retail <- purchases.retail[, ln_sales_tax := mean(ln_sales_tax, na.rm = T), 
+                                                           by = .(product_module_code, quarter_of_year)]
+
 ## Extrapolate projection factor for new observations
 purchases.retail <- purchases.retail[, projection_factor := mean(projection_factor, na.rm = T), 
                                           , by = .(household_by_store_by_module, quarter_of_year)]
