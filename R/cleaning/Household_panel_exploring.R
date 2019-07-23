@@ -46,40 +46,40 @@ fwrite(des.est.out, "../../../../../home/slacouture/HMS/Basic_Descriptives.csv")
 ## Graphing Descriptives: Oneway ---------------
 
 # Histograms
-ggplot(purchases.full[total_expenditures < 900], aes(x=total_expenditures, y = ..density..), na.rm = T) +
-  geom_histogram(binwidth = 10)
+ggplot(purchases.full[total_expenditures < 250], aes(x=total_expenditures, y = ..density..), na.rm = T) +
+  geom_histogram(binwidth = 5)
 ggsave("../../../../../home/slacouture/HMS/histogram_expenditures.png")
 
-ggplot(purchases.full[ln_cpricei < 5 & ln_cpricei > -5], aes(x=ln_cpricei, y = ..density..), na.rm = T) +
-  geom_histogram(binwidth = 0.25)
+ggplot(purchases.full[ln_cpricei < 2 & ln_cpricei > -2], aes(x=ln_cpricei, y = ..density..), na.rm = T) +
+  geom_histogram(binwidth = 0.1)
 ggsave("../../../../../home/slacouture/HMS/histogram_ln_cpricei.png")
 
 ggplot(purchases.full, aes(x=ln_sales_tax, y = ..density..), na.rm = T) +
   geom_histogram()
 ggsave("../../../../../home/slacouture/HMS/histogram_ln_sales_tax.png")
 
-ggplot(purchases.full[ln_cpricei < 7 & ln_quantity > -4], aes(x=ln_quantity, y = ..density..), na.rm = T) +
-  geom_histogram(binwidth = 0.25)
+ggplot(purchases.full[ln_cpricei < 5 & ln_quantity > -3], aes(x=ln_quantity, y = ..density..), na.rm = T) +
+  geom_histogram(binwidth = 0.2)
 ggsave("../../../../../home/slacouture/HMS/histogram_ln_quantity.png")
 
-ggplot(purchases.full[share_expend < 0.3], aes(x=share_expend, y = ..density..), na.rm = T) +
-  geom_histogram(binwidth = 0.025)
+ggplot(purchases.full[share_expend < 0.2], aes(x=share_expend, y = ..density..), na.rm = T) +
+  geom_histogram(binwidth = 0.005)
 ggsave("../../../../../home/slacouture/HMS/histogram_share_expend.png")
 
 ggplot(purchases.full, aes(x=ln_share_expend, y = ..density..), na.rm = T) +
   geom_histogram()
 ggsave("../../../../../home/slacouture/HMS/histogram_ln_share_expend.png")
 
-ggplot(purchases.store[sum_total_exp_store < 3000], aes(x=sum_total_exp_store, y = ..density..), na.rm = T) +
-  geom_histogram(binwidth = 30)
+ggplot(purchases.store[sum_total_exp_store < 1500], aes(x=sum_total_exp_store, y = ..density..), na.rm = T) +
+  geom_histogram(binwidth = 15)
 ggsave("../../../../../home/slacouture/HMS/histogram_sum_total_exp_store.png")
 
-ggplot(purchases.store[modules_by_store < 150], aes(x=modules_by_store, y = ..density..), na.rm = T) +
-  geom_histogram()
+ggplot(purchases.store[modules_by_store < 100], aes(x=modules_by_store, y = ..density..), na.rm = T) +
+  geom_histogram(binwidth = 1)
 ggsave("../../../../../home/slacouture/HMS/histogram_modules_by_store.png")
 
-ggplot(purchases.quarter[sum_total_exp_store < 5000], aes(x=sum_total_exp_quarter, y = ..density..), na.rm = T) +
-  geom_histogram(binwidth = 50)
+ggplot(purchases.quarter[sum_total_exp_store < 3000], aes(x=sum_total_exp_quarter, y = ..density..), na.rm = T) +
+  geom_histogram(binwidth = 30)
 ggsave("../../../../../home/slacouture/HMS/histogram_sum_total_exp_quarter.png")
 
 ggplot(purchases.quarter[stores < 20], aes(x=stores, y = ..density..), na.rm = T) +
@@ -127,20 +127,20 @@ fwrite(des.est.out, "../../../../../home/slacouture/HMS/Basic_Descriptives_esamp
 ## Repeat Graphing Descriptives: Oneway ---------------
 
 # Histograms
-ggplot(purchases.retail[total_expenditures < 900], aes(x=total_expenditures, y = ..density..), na.rm = T) +
-  geom_histogram(binwidth = 10)
+ggplot(purchases.retail[total_expenditures < 250], aes(x=total_expenditures, y = ..density..), na.rm = T) +
+  geom_histogram(binwidth = 5)
 ggsave("../../../../../home/slacouture/HMS/histogram_expenditures_esample.png")
 
-ggplot(purchases.retail[ln_cpricei < 5 & ln_cpricei > -5], aes(x=ln_cpricei, y = ..density..), na.rm = T) +
-  geom_histogram(binwidth = 0.25)
+ggplot(purchases.retail[ln_cpricei < 2 & ln_cpricei > -2], aes(x=ln_cpricei, y = ..density..), na.rm = T) +
+  geom_histogram(binwidth = 0.1)
 ggsave("../../../../../home/slacouture/HMS/histogram_ln_cpricei_esample.png")
 
 ggplot(purchases.retail, aes(x=ln_sales_tax, y = ..density..), na.rm = T) +
   geom_histogram()
 ggsave("../../../../../home/slacouture/HMS/histogram_ln_sales_tax_esample.png")
 
-ggplot(purchases.retail[ln_cpricei < 7 & ln_quantity > -4], aes(x=ln_quantity, y = ..density..), na.rm = T) +
-  geom_histogram(binwidth = 0.25)
+ggplot(purchases.retail[ln_cpricei < 5 & ln_quantity > -3], aes(x=ln_quantity, y = ..density..), na.rm = T) +
+  geom_histogram(binwidth = 0.2)
 ggsave("../../../../../home/slacouture/HMS/histogram_ln_quantity_esample.png")
 
 ggplot(purchases.retail[share_expend < 0.3], aes(x=share_expend, y = ..density..), na.rm = T) +
@@ -151,16 +151,16 @@ ggplot(purchases.retail, aes(x=ln_share_expend, y = ..density..), na.rm = T) +
   geom_histogram()
 ggsave("../../../../../home/slacouture/HMS/histogram_ln_share_expend_esample.png")
 
-ggplot(purchases.store[sum_total_exp_store < 3000], aes(x=sum_total_exp_store, y = ..density..), na.rm = T) +
-  geom_histogram(binwidth = 30)
+ggplot(purchases.store[sum_total_exp_store < 1500], aes(x=sum_total_exp_store, y = ..density..), na.rm = T) +
+  geom_histogram(binwidth = 15)
 ggsave("../../../../../home/slacouture/HMS/histogram_sum_total_exp_store_esample.png")
 
-ggplot(purchases.store[modules_by_store < 150], aes(x=modules_by_store, y = ..density..), na.rm = T) +
-  geom_histogram()
+ggplot(purchases.store[modules_by_store < 100], aes(x=modules_by_store, y = ..density..), na.rm = T) +
+  geom_histogram(binwidth = 1)
 ggsave("../../../../../home/slacouture/HMS/histogram_modules_by_store_esample.png")
 
-ggplot(purchases.quarter[sum_total_exp_store < 5000], aes(x=sum_total_exp_quarter, y = ..density..), na.rm = T) +
-  geom_histogram(binwidth = 50)
+ggplot(purchases.quarter[sum_total_exp_store < 3000], aes(x=sum_total_exp_quarter, y = ..density..), na.rm = T) +
+  geom_histogram(binwidth = 30)
 ggsave("../../../../../home/slacouture/HMS/histogram_sum_total_exp_quarter_esample.png")
 
 ggplot(purchases.quarter[stores < 20], aes(x=stores, y = ..density..), na.rm = T) +
