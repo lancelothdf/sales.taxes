@@ -46,7 +46,7 @@ fwrite(des.est.out, "../../../../../home/slacouture/HMS/Basic_Descriptives.csv")
 ## Graphing Descriptives: Oneway ---------------
 
 # Histograms
-ggplot(purchases.full[total_expenditure < 900], aes(x=total_expenditures, y = ..density..), na.rm = T) +
+ggplot(purchases.full[total_expenditures < 900], aes(x=total_expenditures, y = ..density..), na.rm = T) +
   geom_histogram(binwidth = 10)
 ggsave("../../../../../home/slacouture/HMS/histogram_expenditures.png")
 
@@ -127,7 +127,7 @@ fwrite(des.est.out, "../../../../../home/slacouture/HMS/Basic_Descriptives_esamp
 ## Repeat Graphing Descriptives: Oneway ---------------
 
 # Histograms
-ggplot(purchases.retail[total_expenditure < 900], aes(x=total_expenditures, y = ..density..), na.rm = T) +
+ggplot(purchases.retail[total_expenditures < 900], aes(x=total_expenditures, y = ..density..), na.rm = T) +
   geom_histogram(binwidth = 10)
 ggsave("../../../../../home/slacouture/HMS/histogram_expenditures_esample.png")
 
