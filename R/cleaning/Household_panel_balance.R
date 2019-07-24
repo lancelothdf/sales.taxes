@@ -44,7 +44,7 @@ possible.purchases <- possible.purchases[CJ(quarter = 1:4, household_code = hous
                                             store_code_uc = store_code_uc, product_module_code = product_module_code,
                                             unique = TRUE), on = .(household_code, store_code_uc, product_module_code), nomatch = 0]
 # Expand by year
-possible.purchases <- possible.purchases[CJ(quarter = 1:4, household_code = household_code, 
+possible.purchases <- possible.purchases[CJ(year = 2008:2014, household_code = household_code, 
                                             store_code_uc = store_code_uc, product_module_code = product_module_code,
                                             quarter = quarter, unique = TRUE), on = .(household_code, store_code_uc, 
                                                                                       product_module_code, quarter), nomatch = 0]
