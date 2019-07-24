@@ -39,6 +39,7 @@ flog.info("Building expanding master")
 # Collapse to hh x store x module that appeared at least once
 possible.purchases <- purchases.retail[, list(N_obs = .N), by = .(household_code, product_module_code, store_code_uc)]
 possible.purchases <- possible.purchases[N_obs > 0]
+possible.purchases[N_obs > 0]
 # Expand by quarter
 possible.purchases <- possible.purchases[CJ(quarter = 1:4, household_code = household_code, 
                                             store_code_uc = store_code_uc, product_module_code = product_module_code,
