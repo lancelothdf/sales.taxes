@@ -40,20 +40,23 @@ flog.info("Building expanding master")
 possible.purchases <- purchases.retail[, list(N_obs = .N), by = .(household_code, product_module_code, store_code_uc)]
 possible.purchases <- possible.purchases[N_obs > 0]
 possible.purchases[N_obs > 0]
-# Expand by quarter
-possible.purchases <- possible.purchases[CJ(quarter = 1:4, household_code = household_code, 
-                                            store_code_uc = store_code_uc, product_module_code = product_module_code,
-                                            unique = TRUE), on = .(household_code, store_code_uc, product_module_code), nomatch = 0]
+# Expand by quarter (old fashioned: CJ does not work in this case because of dimensionality)
+possible.purchases.q <- possible.purchases[ , quarter := 1]
+for (i in 2:4) {
+  possible.purchases.t <- possible.purchases[ , quarter := i ]
+  possible.purchases.q <- rbind(possible.purchases.q, possible.purchases.t)
+  
+}
 # Expand by year
-possible.purchases <- possible.purchases[CJ(year = 2008:2014, household_code = household_code, 
-                                            store_code_uc = store_code_uc, product_module_code = product_module_code,
-                                            quarter = quarter, unique = TRUE), on = .(household_code, store_code_uc, 
-                                                                                      product_module_code, quarter), nomatch = 0]
-
+possible.purchases.full <- possible.purchases.q[ , year := 2008]
+for (i in 2009:2014) {
+  possible.purchases.t <- possible.purchases.q[ , year := i ]
+  possible.purchases.full <- rbind(possible.purchases.full, possible.purchases.t)
+}
 
 # merge with existing data
 flog.info("Merging to expand")
-purchases.retail <- merge(purchases.retail, possible.purchases, by = c("store_code_uc", "household_code", "product_module_code", "quarter", "year"), all.y = T)
+purchases.retail <- merge(purchases.retail, possible.purchases.full, by = c("store_code_uc", "household_code", "product_module_code", "quarter", "year"), all.y = T)
 
 
 ## Now I have to drop real missings: households that actually do not appear in a quarter
