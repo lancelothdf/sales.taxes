@@ -14,8 +14,7 @@ library(ggplot2)
 
 setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 
-## Filepaths
-# Exporting results to my folder in the server
+## Open Data
 purchases.full <- fread("cleaning/consumer_panel_2006-2016_ids.csv")
 
 
