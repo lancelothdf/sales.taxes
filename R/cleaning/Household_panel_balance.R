@@ -36,12 +36,23 @@ purchases.retail$quarter_of_year <- factor(with(purchases.retail,
 
 # Make a "new" set with codes of all household X store X module that appear at least once in data
 flog.info("Building expanding master")
+# Collapse to hh x store x module that appeared at least once
 possible.purchases <- purchases.retail[, list(N_obs = .N), by = .(household_code, product_module_code, store_code_uc)]
 possible.purchases <- possible.purchases[N_obs > 0]
+# Expand by quarter
+possible.purchases <- possible.purchases[CJ(quarter = 1:4, household_code = household_code, 
+                                            store_code_uc = store_code_uc, product_module_code = product_module_code,
+                                            unique = TRUE), on = .(household_code, store_code_uc, product_module_code), nomatch = 0]
+# Expand by year
+possible.purchases <- possible.purchases[CJ(quarter = 1:4, household_code = household_code, 
+                                            store_code_uc = store_code_uc, product_module_code = product_module_code,
+                                            quarter = quarter, unique = TRUE), on = .(household_code, store_code_uc, 
+                                                                                      product_module_code, quarter), nomatch = 0]
+
 
 # merge with existing data
 flog.info("Merging to expand")
-purchases.retail <- merge(purchases.retail, possible.purchases, by = c("store_code_uc", "household_code", "product_module_code"), all.x = T)
+purchases.retail <- merge(purchases.retail, possible.purchases, by = c("store_code_uc", "household_code", "product_module_code", "quarter", "year"), all.y = T)
 
 
 ## Now I have to drop real missings: households that actually do not appear in a quarter
@@ -67,6 +78,8 @@ purchases.retail <- within(purchases.retail,{household_by_store_by_module<-as.nu
 flog.info("Extrapolating variables for missings")
 purchases.retail <- purchases.retail[, ln_sales_tax := mean(ln_sales_tax, na.rm = T), 
                                      by = .(product_module_code, store_code_uc, quarter, year)]
+purchases.retail <- purchases.retail[, projection_factor := mean(projection_factor, na.rm = T), 
+                                     by = .(household_code, quarter, year)]
 
 ## Estimate desired especification on this new variable
 
@@ -78,6 +91,7 @@ formula0 <- as.formula(paste0(
 flog.info("Estimating Balance")
 res0 <- felm(data = purchases.retail,
              formula = formula0,
+             weights = purchases.retail$projection_factor,
              na.omit)
 
 flog.info("Writing results...")
@@ -88,5 +102,18 @@ res0.dt[, adj.Rsq := summary(res0)$adj.r.squared]
 res0.dt[, specification := "Basic"]
 res0.dt[, N := sum((!is.na(purchases.retail$purchased)))]
 LRdiff_res <- res0.dt ### Create table LRdiff_res in which we store all results (we start with the results we had just stored in res1.dt)
+LRdiff_res$N_hholds <- length(unique(purchases.retail$household_code))
+LRdiff_res$N_modules <- length(unique(purchases.retail$product_module_code))
+LRdiff_res$N_stores <- length(unique(purchases.retail$store_code_uc))
+LRdiff_res$N_counties <- uniqueN(purchases.retail, by = c("fips_state", "fips_county"))
+LRdiff_res$N_years <- uniqueN(purchases.retail, by = c("year"))
+LRdiff_res$N_county_modules <- uniqueN(purchases.retail, by = c("fips_state", "fips_county",
+                                                                "product_module_code"))
+LRdiff_res$N_store_modules <- uniqueN(purchases.retail, by = c("store_code_uc", "product_module_code"))
+LRdiff_res$N_state_modules <- uniqueN(purchases.retail, by = c("fips_state", "product_module_code"))
+LRdiff_res$N_hholds_modules <- uniqueN(purchases.retail, by = c("household_code", "product_module_code"))
+LRdiff_res$N_hholds_stores <- uniqueN(purchases.retail, by = c("household_code", "store_code_uc"))
+LRdiff_res$N_hholds_modules_stores <- length(purchases.retail$household_by_store_by_module)
+LRdiff_res$N_module_time <- length(purchases.retail$module_by_time)
 
 fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_balance_results.csv")
