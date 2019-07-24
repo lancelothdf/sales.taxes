@@ -116,3 +116,21 @@ res0.dt[, specification := "Basic"]
 res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_quantity)))]
 LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append 
 fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results_clustered.csv")
+
+
+## summary values --------------------------------------------------------------
+LRdiff_res$N_hholds <- length(unique(purchases.retail$household_code))
+LRdiff_res$N_modules <- length(unique(purchases.retail$product_module_code))
+LRdiff_res$N_stores <- length(unique(purchases.retail$store_code_uc))
+LRdiff_res$N_counties <- uniqueN(purchases.retail, by = c("fips_state", "fips_county"))
+LRdiff_res$N_years <- uniqueN(purchases.retail, by = c("year"))
+LRdiff_res$N_county_modules <- uniqueN(purchases.retail, by = c("fips_state", "fips_county",
+                                                                "product_module_code"))
+LRdiff_res$N_store_modules <- uniqueN(purchases.retail, by = c("store_code_uc", "product_module_code"))
+LRdiff_res$N_state_modules <- uniqueN(purchases.retail, by = c("fips_state", "product_module_code"))
+LRdiff_res$N_hholds_modules <- uniqueN(purchases.retail, by = c("household_code", "product_module_code"))
+LRdiff_res$N_hholds_stores <- uniqueN(purchases.retail, by = c("household_code", "store_code_uc"))
+LRdiff_res$N_hholds_modules_stores <- length(purchases.retail$household_by_store_by_module)
+LRdiff_res$N_module_time <- length(purchases.retail$module_by_time)
+
+fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results_clustered.csv")
