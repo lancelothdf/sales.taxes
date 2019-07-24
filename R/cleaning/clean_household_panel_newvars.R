@@ -53,7 +53,7 @@ purchases.full$ln_cpricei[is.infinite(purchases.full$ln_cpricei)] <- NA
 purchases.full <- purchases.full[, ln_expenditures := log(total_expenditures) ]
 purchases.full$ln_expenditures[is.infinite(purchases.full$ln_expenditures)] <- NA
 # Log quantities
-purchases.full <- purchases.full[, ln_quantity := ln_expenditures - ln_cpricei ]
+purchases.full <- purchases.full[, ln_quantity := ln_expenditures - log(pricei) ]
 purchases.full$ln_quantity[is.infinite(purchases.full$ln_quantity)] <- NA
 
 # Share of expenditure on a given module X store
