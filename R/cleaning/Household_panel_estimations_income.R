@@ -33,7 +33,7 @@ purchases.retail <- purchases.nomagnet[!is.na(sales_tax)]
 
 ## Control for income using linear log total expenditure of quarter ----------
 
-purchases.retail <- purchases.nomagnet[, ln_quarter_expenditure := log(sum_total_exp_quarter)]
+purchases.retail <- purchases.retail[, ln_quarter_expenditure := log(sum_total_exp_quarter)]
 
 # Log Share of Expenditure
 formula0 <- as.formula(paste0(
@@ -131,7 +131,7 @@ formula0 <- as.formula(paste0(
 flog.info("Estimating Log Share")
 res0 <- felm(data = purchases.retail.est,
              formula = formula0,
-             weights = purchases.retail$projection_factor,
+             weights = purchases.retail.est$projection_factor,
              na.omit)
 
 flog.info("Writing results...")
@@ -152,7 +152,7 @@ formula1 <- as.formula(paste0(
 flog.info("Estimating Share")
 res1 <- felm(data = purchases.retail.est,
              formula = formula1,
-             weights = purchases.retail$projection_factor,
+             weights = purchases.retail.est$projection_factor,
              na.omit)
 flog.info("Writing results...")
 res0.dt <- data.table(coef(summary(res1)), keep.rownames=T)
@@ -171,7 +171,7 @@ formula2 <- as.formula(paste0(
 flog.info("Estimating Log Price")
 res2 <- felm(data = purchases.retail.est,
              formula = formula2,
-             weights = purchases.retail$projection_factor,
+             weights = purchases.retail.est$projection_factor,
              na.omit)
 
 flog.info("Writing results...")
@@ -191,7 +191,7 @@ formula2 <- as.formula(paste0(
 flog.info("Estimating Log Price")
 res2 <- felm(data = purchases.retail.est,
              formula = formula2,
-             weights = purchases.retail$projection_factor,
+             weights = purchases.retail.est$projection_factor,
              na.omit)
 
 flog.info("Writing results...")
@@ -241,7 +241,7 @@ formula0 <- as.formula(paste0(
 flog.info("Estimating Log Share")
 res0 <- felm(data = purchases.retail.est,
              formula = formula0,
-             weights = purchases.retail$projection_factor,
+             weights = purchases.retail.est$projection_factor,
              na.omit)
 
 flog.info("Writing results...")
@@ -262,7 +262,7 @@ formula1 <- as.formula(paste0(
 flog.info("Estimating Share")
 res1 <- felm(data = purchases.retail.est,
              formula = formula1,
-             weights = purchases.retail$projection_factor,
+             weights = purchases.retail.est$projection_factor,
              na.omit)
 flog.info("Writing results...")
 res0.dt <- data.table(coef(summary(res1)), keep.rownames=T)
@@ -281,7 +281,7 @@ formula2 <- as.formula(paste0(
 flog.info("Estimating Log Price")
 res2 <- felm(data = purchases.retail.est,
              formula = formula2,
-             weights = purchases.retail$projection_factor,
+             weights = purchases.retail.est$projection_factor,
              na.omit)
 
 flog.info("Writing results...")
@@ -301,7 +301,7 @@ formula2 <- as.formula(paste0(
 flog.info("Estimating Log Price")
 res2 <- felm(data = purchases.retail.est,
              formula = formula2,
-             weights = purchases.retail$projection_factor,
+             weights = purchases.retail.est$projection_factor,
              na.omit)
 
 flog.info("Writing results...")
