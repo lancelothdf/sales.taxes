@@ -40,14 +40,14 @@ all_pi <- all_pi[, ln_sales_tax := log(sales_tax)]
 setkeyv(all_pi, c("year","quarter"))
 
 # Lags:
-all_pi[, lag1.ln_sales_tax := c(NA, ln_sales_tax[-.N]), by=.(store_code_uc, product_module_code)]
-all_pi[, lag2.ln_sales_tax := c(NA, lag1.ln_sales_tax[-.N]), by=.(store_code_uc, product_module_code)]
-all_pi[, lag3.ln_sales_tax := c(NA, lag2.ln_sales_tax[-.N]), by=.(store_code_uc, product_module_code)]
-all_pi[, lag4.ln_sales_tax := c(NA, lag3.ln_sales_tax[-.N]), by=.(store_code_uc, product_module_code)]
-all_pi[, lag5.ln_sales_tax := c(NA, lag4.ln_sales_tax[-.N]), by=.(store_code_uc, product_module_code)]
-all_pi[, lag6.ln_sales_tax := c(NA, lag5.ln_sales_tax[-.N]), by=.(store_code_uc, product_module_code)]
-all_pi[, lag7.ln_sales_tax := c(NA, lag6.ln_sales_tax[-.N]), by=.(store_code_uc, product_module_code)]
-all_pi[, lag8.ln_sales_tax := c(NA, lag7.ln_sales_tax[-.N]), by=.(store_code_uc, product_module_code)]
+all_pi[, lag1.ln_sales_tax := shift(ln_sales_tax, 1), by=.(store_code_uc, product_module_code)]
+all_pi[, lag2.ln_sales_tax := shift(ln_sales_tax, 2), by=.(store_code_uc, product_module_code)]
+all_pi[, lag3.ln_sales_tax := shift(ln_sales_tax, 3), by=.(store_code_uc, product_module_code)]
+all_pi[, lag4.ln_sales_tax := shift(ln_sales_tax, 4), by=.(store_code_uc, product_module_code)]
+all_pi[, lag5.ln_sales_tax := shift(ln_sales_tax, 5), by=.(store_code_uc, product_module_code)]
+all_pi[, lag6.ln_sales_tax := shift(ln_sales_tax, 6), by=.(store_code_uc, product_module_code)]
+all_pi[, lag7.ln_sales_tax := shift(ln_sales_tax, 7), by=.(store_code_uc, product_module_code)]
+all_pi[, lag8.ln_sales_tax := shift(ln_sales_tax, 8), by=.(store_code_uc, product_module_code)]
 
 # Leads: 
 
@@ -66,20 +66,14 @@ purchases.retail <- merge(
   by = c("store_code_uc", "product_module_code", "year", "quarter"),
   all.x = T
 )
-## Now I will restrict to data having all leads and lags, which is equal to drop first 2 and last 2 years
+## Now I will restrict to data having all leads and lags, which is (should be) equal to drop first 2 and last 2 years
 purchases.retail <- purchases.retail[year < 2013 & year > 2009]
-
 
 ## Basic Specifications ----------
 
 # Log Share of Expenditure
 formula0 <- as.formula(paste0(
-  "ln_share_expend ~ ln_sales_tax +
-            lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + 
-            lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + 
-            lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + 
-            lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea5.ln_sales_tax |
-            module_by_time + household_by_store_by_module"
+  "ln_share_expend ~ ln_sales_tax + lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea1.ln_sales_tax | module_by_time + household_by_store_by_module"
 ))
 
 flog.info("Estimating Log Share")
@@ -100,12 +94,7 @@ fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
 
 # Share of Expenditure
 formula1 <- as.formula(paste0(
-  "share_expend ~ ln_sales_tax +
-  lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + 
-  lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + 
-  lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + 
-  lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea5.ln_sales_tax |
-  module_by_time + household_by_store_by_module"
+  "share_expend ~ ln_sales_tax + lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea1.ln_sales_tax | module_by_time + household_by_store_by_module"
 ))
 
 
@@ -126,12 +115,7 @@ fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
 
 # Log Price
 formula2 <- as.formula(paste0(
-  "ln_cpricei ~ ln_sales_tax +
-  lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + 
-  lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + 
-  lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + 
-  lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea5.ln_sales_tax |
-  module_by_time + household_by_store_by_module"
+  "ln_cpricei ~ ln_sales_tax + lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea1.ln_sales_tax | module_by_time + household_by_store_by_module"
 ))
 flog.info("Estimating Log Price")
 res2 <- felm(data = purchases.retail,
@@ -151,12 +135,7 @@ fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
 
 # Log Quantity
 formula2 <- as.formula(paste0(
-  "ln_quantity ~ ln_sales_tax +
-  lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + 
-  lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + 
-  lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + 
-  lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea5.ln_sales_tax |
-  module_by_time + household_by_store_by_module"
+  "ln_quantity ~ ln_sales_tax + lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea1.ln_sales_tax | module_by_time + household_by_store_by_module"
 ))
 flog.info("Estimating Log Price")
 res2 <- felm(data = purchases.retail,
