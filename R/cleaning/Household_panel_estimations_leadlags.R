@@ -29,6 +29,8 @@ purchases.full[, sum(is.na(sales_tax))]
 purchases.retail <- purchases.nomagnet[!is.na(sales_tax)]
 
 ## Generate lags and leads of sales tax
+# Need to drop it in existing because of conflict
+purchases.retail <- purchases.retail[, -c("ln_sales_tax", "sales_tax")]
 
 # Need to retrieve the stores x module data: panel is not balanced
 all_goods_pi_path <- "../../all_nielsen_data_2006_2016_quarterly.csv"
