@@ -41,6 +41,71 @@ purchases.retail <- purchases.retail[weight_quarterly := projection_factor * (to
 
 # Log Share of Expenditure
 formula0 <- as.formula(paste0(
+  "ln_share_expend ~ ln_sales_tax | module_by_time + household_by_store_by_module "
+))
+
+flog.info("Estimating Log Share")
+res0 <- felm(data = purchases.retail,
+             formula = formula0,
+             weights = purchases.retail$weight_quarterly,
+             na.omit)
+
+flog.info("Writing results...")
+res0.dt <- data.table(coef(summary(res0)), keep.rownames=T)
+res0.dt[, outcome := "ln_share_expend"]
+res0.dt[, Rsq := summary(res0)$r.squared]
+res0.dt[, adj.Rsq := summary(res0)$adj.r.squared]
+res0.dt[, specification := "Weight: PF x Share"]
+res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_share_expend)))]
+LRdiff_res <- res0.dt ### Create table LRdiff_res in which we store all results (we start with the results we had just stored in res1.dt)
+fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results_weights.csv")
+
+
+# Log Price
+formula2 <- as.formula(paste0(
+  "ln_cpricei ~ ln_sales_tax | module_by_time + household_by_store_by_module "
+))
+flog.info("Estimating Log Price")
+res2 <- felm(data = purchases.retail,
+             formula = formula2,
+             weights = purchases.retail$weight_quarterly,
+             na.omit)
+
+flog.info("Writing results...")
+res0.dt <- data.table(coef(summary(res2)), keep.rownames=T)
+res0.dt[, outcome := "ln_cpricei"]
+res0.dt[, Rsq := summary(res2)$r.squared]
+res0.dt[, adj.Rsq := summary(res2)$adj.r.squared]
+res0.dt[, specification := "Weight: PF x Share"]
+res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_cpricei)))]
+LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append 
+fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results_weights.csv")
+
+# Log Quantity
+formula2 <- as.formula(paste0(
+  "ln_quantity ~ ln_sales_tax | module_by_time + household_by_store_by_module "
+))
+flog.info("Estimating Log Price")
+res2 <- felm(data = purchases.retail,
+             formula = formula2,
+             weights = purchases.retail$weight_quarterly,
+             na.omit)
+
+flog.info("Writing results...")
+res0.dt <- data.table(coef(summary(res2)), keep.rownames=T)
+res0.dt[, outcome := "ln_quantity"]
+res0.dt[, Rsq := summary(res2)$r.squared]
+res0.dt[, adj.Rsq := summary(res2)$adj.r.squared]
+res0.dt[, specification := "Weight: PF x Share"]
+res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_quantity)))]
+LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append 
+fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results_weights.csv")
+
+
+## Basic Specifications ----------
+
+# Log Share of Expenditure
+formula0 <- as.formula(paste0(
   "ln_share_expend ~ ln_sales_tax | module_by_time + household_by_store_by_module | 0 | household_code"
 ))
 
@@ -58,7 +123,7 @@ res0.dt[, adj.Rsq := summary(res0)$adj.r.squared]
 res0.dt[, specification := "Weight: PF x Share"]
 res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_share_expend)))]
 LRdiff_res <- res0.dt ### Create table LRdiff_res in which we store all results (we start with the results we had just stored in res1.dt)
-fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results_clustered_weights.csv")
+fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results_weights.csv")
 
 
 # Log Price
@@ -79,7 +144,7 @@ res0.dt[, adj.Rsq := summary(res2)$adj.r.squared]
 res0.dt[, specification := "Weight: PF x Share"]
 res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_cpricei)))]
 LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append 
-fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results_clustered_weights.csv")
+fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results_weights.csv")
 
 # Log Quantity
 formula2 <- as.formula(paste0(
@@ -99,7 +164,8 @@ res0.dt[, adj.Rsq := summary(res2)$adj.r.squared]
 res0.dt[, specification := "Weight: PF x Share"]
 res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_quantity)))]
 LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append 
-fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results_clustered_weights.csv")
+fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results_weights.csv")
+
 
 
 ## summary values --------------------------------------------------------------
@@ -117,4 +183,4 @@ LRdiff_res$N_hholds_stores <- uniqueN(purchases.retail, by = c("household_code",
 LRdiff_res$N_hholds_modules_stores <- length(purchases.retail$household_by_store_by_module)
 LRdiff_res$N_module_time <- length(purchases.retail$module_by_time)
 
-fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results_clustered_weights.csv")
+fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results_weights.csv")
