@@ -35,7 +35,7 @@ all_goods_pi_path <- "../../all_nielsen_data_2006_2016_quarterly.csv"
 all_pi <- fread(all_goods_pi_path)
 all_pi <- all_pi[, .(store_code_uc, product_module_code,
                      year, quarter, pricei, cpricei, sales_tax)]
-all_pi <- all_pi[, .ln_sales_tax := log(sales_tax)]
+all_pi <- all_pi[, ln_sales_tax := log(sales_tax)]
 
 setkey(all_pi, c("year","quarter"))
 
