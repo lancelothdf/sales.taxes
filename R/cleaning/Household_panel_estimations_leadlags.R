@@ -37,7 +37,7 @@ all_pi <- all_pi[, .(store_code_uc, product_module_code,
                      year, quarter, pricei, cpricei, sales_tax)]
 all_pi <- all_pi[, ln_sales_tax := log(sales_tax)]
 
-setkey(all_pi, c("year","quarter"))
+setkeyv(all_pi, c("year","quarter"))
 
 # Lags:
 all_pi[, lag1.ln_sales_tax := c(NA, ln_sales_tax[-.N]), by=.(store_code_uc, product_module_code)]
