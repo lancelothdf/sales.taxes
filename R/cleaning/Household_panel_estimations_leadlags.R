@@ -95,7 +95,7 @@ res0.dt[, adj.Rsq := summary(res0)$adj.r.squared]
 res0.dt[, specification := "Basic"]
 res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_share_expend)))]
 LRdiff_res <- res0.dt ### Create table LRdiff_res in which we store all results (we start with the results we had just stored in res1.dt)
-fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results.csv")
+fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
 
 # Share of Expenditure
 formula1 <- as.formula(paste0(
@@ -121,7 +121,7 @@ res0.dt[, adj.Rsq := summary(res1)$adj.r.squared]
 res0.dt[, specification := "Basic"]
 res0.dt[, N_obs := sum((!is.na(purchases.retail$share_expend)))]
 LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append 
-fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results.csv")
+fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
 
 # Log Price
 formula2 <- as.formula(paste0(
@@ -146,7 +146,7 @@ res0.dt[, adj.Rsq := summary(res2)$adj.r.squared]
 res0.dt[, specification := "Basic"]
 res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_cpricei)))]
 LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append 
-fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results.csv")
+fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
 
 # Log Quantity
 formula2 <- as.formula(paste0(
@@ -171,7 +171,7 @@ res0.dt[, adj.Rsq := summary(res2)$adj.r.squared]
 res0.dt[, specification := "Basic"]
 res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_quantity)))]
 LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append 
-fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results.csv")
+fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
 
 
 ## summary values --------------------------------------------------------------
@@ -189,4 +189,4 @@ LRdiff_res$N_hholds_stores <- uniqueN(purchases.retail, by = c("household_code",
 LRdiff_res$N_hholds_modules_stores <- length(purchases.retail$household_by_store_by_module)
 LRdiff_res$N_module_time <- length(purchases.retail$module_by_time)
 
-fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results.csv")
+fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
