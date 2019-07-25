@@ -32,8 +32,8 @@ purchases.retail <- purchases.nomagnet[!is.na(sales_tax)]
 
 ## Building weights as in retailer data
 # Approach 1. Use factor projection x share of expenditure in module X store X quarter for each household (among items in data)
-purchases.retail <- purchases.retail[expend_retail_quarter := sum(total_expenditures), by = .(household_code, quarter, year) ]
-purchases.retail <- purchases.retail[weight_quarterly := projection_factor * (total_expenditures / expend_retail_quarter) ]
+purchases.retail <- purchases.retail[, expend_retail_quarter := sum(total_expenditures), by = .(household_code, quarter, year) ]
+purchases.retail <- purchases.retail[, weight_quarterly := projection_factor * (total_expenditures / expend_retail_quarter) ]
 
 #TODO: Approach 2. Same as above but using only the shares in 2008 
 
