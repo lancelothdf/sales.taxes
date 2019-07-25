@@ -50,14 +50,15 @@ all_pi[, lag7.ln_sales_tax := c(NA, lag6.ln_sales_tax[-.N]), by=.(store_code_uc,
 all_pi[, lag8.ln_sales_tax := c(NA, lag7.ln_sales_tax[-.N]), by=.(store_code_uc, product_module_code)]
 
 # Leads: 
-all_pi[, lea1.ln_sales_tax := c(NA, ln_sales_tax[+.N]), by=.(store_code_uc, product_module_code)]
-all_pi[, lea2.ln_sales_tax := c(NA, lea1.ln_sales_tax[+.N]), by=.(store_code_uc, product_module_code)]
-all_pi[, lea3.ln_sales_tax := c(NA, lea2.ln_sales_tax[+.N]), by=.(store_code_uc, product_module_code)]
-all_pi[, lea4.ln_sales_tax := c(NA, lea3.ln_sales_tax[+.N]), by=.(store_code_uc, product_module_code)]
-all_pi[, lea5.ln_sales_tax := c(NA, lea4.ln_sales_tax[+.N]), by=.(store_code_uc, product_module_code)]
-all_pi[, lea6.ln_sales_tax := c(NA, lea5.ln_sales_tax[+.N]), by=.(store_code_uc, product_module_code)]
-all_pi[, lea7.ln_sales_tax := c(NA, lea6.ln_sales_tax[+.N]), by=.(store_code_uc, product_module_code)]
-all_pi[, lea8.ln_sales_tax := c(NA, lea7.ln_sales_tax[+.N]), by=.(store_code_uc, product_module_code)]
+
+all_pi[, lea1.ln_sales_tax := shift(ln_sales_tax, 1, type='lead'), by=.(store_code_uc, product_module_code)]
+all_pi[, lea2.ln_sales_tax := shift(ln_sales_tax, 2, type='lead'), by=.(store_code_uc, product_module_code)]
+all_pi[, lea3.ln_sales_tax := shift(ln_sales_tax, 3, type='lead'), by=.(store_code_uc, product_module_code)]
+all_pi[, lea4.ln_sales_tax := shift(ln_sales_tax, 4, type='lead'), by=.(store_code_uc, product_module_code)]
+all_pi[, lea5.ln_sales_tax := shift(ln_sales_tax, 5, type='lead'), by=.(store_code_uc, product_module_code)]
+all_pi[, lea6.ln_sales_tax := shift(ln_sales_tax, 6, type='lead'), by=.(store_code_uc, product_module_code)]
+all_pi[, lea7.ln_sales_tax := shift(ln_sales_tax, 7, type='lead'), by=.(store_code_uc, product_module_code)]
+all_pi[, lea8.ln_sales_tax := shift(ln_sales_tax, 8, type='lead'), by=.(store_code_uc, product_module_code)]
 
 ## Merge with existing data
 purchases.retail <- merge(
