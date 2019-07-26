@@ -25,7 +25,7 @@ differences <- data.table(NULL)
 differences$mean_1 <- purchases.full[esample == 1, mean(total_expenditures)]
 differences$mean_0 <- purchases.full[esample == 0, mean(total_expenditures)]
 samples.diff <- t.test(purchases.full$share_expend ~ purchases.full$esample)
-differences$estimate <- samples.diff$estimat
+differences$estimate <- samples.diff$estimate
 differences$p.value <- samples.diff$p.value
 differences$type <- "Full sample"
 
