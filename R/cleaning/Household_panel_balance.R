@@ -46,15 +46,15 @@ length(unique(possible.purchases$product_module_code))
 length(unique(possible.purchases$store_code_uc))
 
 # Expand by quarter (old fashioned: CJ does not work in this case because of dimensionality)
-possible.purchases.q <- possible.purchases[ , quarter := 1]
-for (i in 2:4) {
+possible.purchases.q <- data.table(NULL)
+for (i in 1:4) {
   possible.purchases.t <- possible.purchases[ , quarter := i ]
   possible.purchases.q <- rbind(possible.purchases.q, possible.purchases.t)
   
 }
 # Expand by year
-possible.purchases.full <- possible.purchases.q[ , year := 2008]
-for (i in 2009:2014) {
+possible.purchases.full <- data.table(NULL)
+for (i in 2008:2014) {
   possible.purchases.t <- possible.purchases.q[ , year := i ]
   possible.purchases.full <- rbind(possible.purchases.full, possible.purchases.t)
 }
