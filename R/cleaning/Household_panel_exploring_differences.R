@@ -38,4 +38,4 @@ for (yr in 2008:2014) {
   differences.yr[, p.value := samples.diff$p.value]
   differences <- rbind(differences, differences.yr)
 }
-fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Difference_samples.csv")
+fwrite(differences, "../../../../../home/slacouture/HMS/Difference_samples.csv")
