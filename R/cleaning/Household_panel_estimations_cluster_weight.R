@@ -180,7 +180,7 @@ LRdiff_res$N_store_modules <- uniqueN(purchases.retail, by = c("store_code_uc", 
 LRdiff_res$N_state_modules <- uniqueN(purchases.retail, by = c("fips_state", "product_module_code"))
 LRdiff_res$N_hholds_modules <- uniqueN(purchases.retail, by = c("household_code", "product_module_code"))
 LRdiff_res$N_hholds_stores <- uniqueN(purchases.retail, by = c("household_code", "store_code_uc"))
-LRdiff_res$N_hholds_modules_stores <- length(purchases.retail$household_by_store_by_module)
-LRdiff_res$N_module_time <- length(purchases.retail$module_by_time)
+LRdiff_res$N_hholds_modules_stores <- length(unique(purchases.retail$household_by_store_by_module))
+LRdiff_res$N_module_time <- length(unique(purchases.retail$module_by_time))
 
 fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results_weights.csv")

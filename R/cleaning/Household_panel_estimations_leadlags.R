@@ -38,29 +38,34 @@ all_pi <- fread(all_goods_pi_path)
 all_pi <- all_pi[, .(store_code_uc, product_module_code,
                      year, quarter, pricei, cpricei, sales_tax)]
 all_pi <- all_pi[, ln_sales_tax := log(sales_tax)]
+all_pi <- all_pi[, ln_cpricei := log(cpricei)]
 
 setkeyv(all_pi, c("year","quarter"))
+# Differences
+all_pi <- all_pi[, d_ln_sales_tax := c(NA, diff(ln_sales_tax)), by=.(store_code_uc, product_module_code)]
+all_pi <- all_pi[, d_ln_cpricei := c(NA, diff(ln_cpricei)), by=.(store_code_uc, product_module_code)]
 
-# Lags:
-all_pi[, lag1.ln_sales_tax := shift(ln_sales_tax, 1), by=.(store_code_uc, product_module_code)]
-all_pi[, lag2.ln_sales_tax := shift(ln_sales_tax, 2), by=.(store_code_uc, product_module_code)]
-all_pi[, lag3.ln_sales_tax := shift(ln_sales_tax, 3), by=.(store_code_uc, product_module_code)]
-all_pi[, lag4.ln_sales_tax := shift(ln_sales_tax, 4), by=.(store_code_uc, product_module_code)]
-all_pi[, lag5.ln_sales_tax := shift(ln_sales_tax, 5), by=.(store_code_uc, product_module_code)]
-all_pi[, lag6.ln_sales_tax := shift(ln_sales_tax, 6), by=.(store_code_uc, product_module_code)]
-all_pi[, lag7.ln_sales_tax := shift(ln_sales_tax, 7), by=.(store_code_uc, product_module_code)]
-all_pi[, lag8.ln_sales_tax := shift(ln_sales_tax, 8), by=.(store_code_uc, product_module_code)]
+
+# Lags of difference:
+all_pi <- all_pi[, lag1.ln_sales_tax := shift(d_ln_sales_tax, 1), by=.(store_code_uc, product_module_code)]
+all_pi <- all_pi[, lag2.ln_sales_tax := shift(d_ln_sales_tax, 2), by=.(store_code_uc, product_module_code)]
+all_pi <- all_pi[, lag3.ln_sales_tax := shift(d_ln_sales_tax, 3), by=.(store_code_uc, product_module_code)]
+all_pi <- all_pi[, lag4.ln_sales_tax := shift(d_ln_sales_tax, 4), by=.(store_code_uc, product_module_code)]
+all_pi <- all_pi[, lag5.ln_sales_tax := shift(d_ln_sales_tax, 5), by=.(store_code_uc, product_module_code)]
+all_pi <- all_pi[, lag6.ln_sales_tax := shift(d_ln_sales_tax, 6), by=.(store_code_uc, product_module_code)]
+all_pi <- all_pi[, lag7.ln_sales_tax := shift(d_ln_sales_tax, 7), by=.(store_code_uc, product_module_code)]
+all_pi <- all_pi[, lag8.ln_sales_tax := shift(d_ln_sales_tax, 8), by=.(store_code_uc, product_module_code)]
 
 # Leads: 
 
-all_pi[, lea1.ln_sales_tax := shift(ln_sales_tax, 1, type='lead'), by=.(store_code_uc, product_module_code)]
-all_pi[, lea2.ln_sales_tax := shift(ln_sales_tax, 2, type='lead'), by=.(store_code_uc, product_module_code)]
-all_pi[, lea3.ln_sales_tax := shift(ln_sales_tax, 3, type='lead'), by=.(store_code_uc, product_module_code)]
-all_pi[, lea4.ln_sales_tax := shift(ln_sales_tax, 4, type='lead'), by=.(store_code_uc, product_module_code)]
-all_pi[, lea5.ln_sales_tax := shift(ln_sales_tax, 5, type='lead'), by=.(store_code_uc, product_module_code)]
-all_pi[, lea6.ln_sales_tax := shift(ln_sales_tax, 6, type='lead'), by=.(store_code_uc, product_module_code)]
-all_pi[, lea7.ln_sales_tax := shift(ln_sales_tax, 7, type='lead'), by=.(store_code_uc, product_module_code)]
-all_pi[, lea8.ln_sales_tax := shift(ln_sales_tax, 8, type='lead'), by=.(store_code_uc, product_module_code)]
+all_pi <- all_pi[, lea1.ln_sales_tax := shift(d_ln_sales_tax, 1, type='lead'), by=.(store_code_uc, product_module_code)]
+all_pi <- all_pi[, lea2.ln_sales_tax := shift(d_ln_sales_tax, 2, type='lead'), by=.(store_code_uc, product_module_code)]
+all_pi <- all_pi[, lea3.ln_sales_tax := shift(d_ln_sales_tax, 3, type='lead'), by=.(store_code_uc, product_module_code)]
+all_pi <- all_pi[, lea4.ln_sales_tax := shift(d_ln_sales_tax, 4, type='lead'), by=.(store_code_uc, product_module_code)]
+all_pi <- all_pi[, lea5.ln_sales_tax := shift(d_ln_sales_tax, 5, type='lead'), by=.(store_code_uc, product_module_code)]
+all_pi <- all_pi[, lea6.ln_sales_tax := shift(d_ln_sales_tax, 6, type='lead'), by=.(store_code_uc, product_module_code)]
+all_pi <- all_pi[, lea7.ln_sales_tax := shift(d_ln_sales_tax, 7, type='lead'), by=.(store_code_uc, product_module_code)]
+all_pi <- all_pi[, lea8.ln_sales_tax := shift(d_ln_sales_tax, 8, type='lead'), by=.(store_code_uc, product_module_code)]
 
 ## Merge with existing data
 purchases.retail <- merge(
@@ -68,14 +73,20 @@ purchases.retail <- merge(
   by = c("store_code_uc", "product_module_code", "year", "quarter"),
   all.x = T
 )
-## Now I will restrict to data having all leads and lags, which is (should be) equal to drop first 2 and last 2 years
+
+## Almost there: now I have to get the lag of the log share of expenditure. To be clear: we are going to lose many observations
+setkeyv(purchases.retail, c("year","quarter"))
+purchases.retail <- purchases.retail[, d_ln_share_expend := c(NA, diff(ln_share_expend)), by=.(household_code, store_code_uc, product_module_code)]
+purchases.retail <- purchases.retail[, d_ln_quantity := c(NA, diff(ln_quantity)), by=.(household_code, store_code_uc, product_module_code)]
+
+## Finally I will restrict to data having all leads and lags, which is (should be) equal to drop first 2 and last 2 years
 purchases.retail <- purchases.retail[year < 2013 & year > 2009]
 
 ## Basic Specifications ----------
 
 # Log Share of Expenditure
 formula0 <- as.formula(paste0(
-  "ln_share_expend ~ ln_sales_tax + lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea1.ln_sales_tax | module_by_time + household_by_store_by_module"
+  "d_ln_share_expend ~ d_ln_sales_tax + lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea1.ln_sales_tax | module_by_time "
 ))
 
 flog.info("Estimating Log Share")
@@ -94,30 +105,10 @@ res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_share_expend)))]
 LRdiff_res <- res0.dt ### Create table LRdiff_res in which we store all results (we start with the results we had just stored in res1.dt)
 fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
 
-# Share of Expenditure
-formula1 <- as.formula(paste0(
-  "share_expend ~ ln_sales_tax + lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea1.ln_sales_tax | module_by_time + household_by_store_by_module"
-))
-
-
-flog.info("Estimating Share")
-res1 <- felm(data = purchases.retail,
-             formula = formula1,
-             weights = purchases.retail$projection_factor,
-             na.omit)
-flog.info("Writing results...")
-res0.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-res0.dt[, outcome := "share_expend"]
-res0.dt[, Rsq := summary(res1)$r.squared]
-res0.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-res0.dt[, specification := "Basic"]
-res0.dt[, N_obs := sum((!is.na(purchases.retail$share_expend)))]
-LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append 
-fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
 
 # Log Price
 formula2 <- as.formula(paste0(
-  "ln_cpricei ~ ln_sales_tax + lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea1.ln_sales_tax | module_by_time + household_by_store_by_module"
+  "d_ln_cpricei ~ d_ln_sales_tax + lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea1.ln_sales_tax | module_by_time "
 ))
 flog.info("Estimating Log Price")
 res2 <- felm(data = purchases.retail,
@@ -137,9 +128,9 @@ fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
 
 # Log Quantity
 formula2 <- as.formula(paste0(
-  "ln_quantity ~ ln_sales_tax + lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea1.ln_sales_tax | module_by_time + household_by_store_by_module"
+  "d_ln_quantity ~ d_ln_sales_tax + lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea1.ln_sales_tax | module_by_time "
 ))
-flog.info("Estimating Log Price")
+flog.info("Estimating Log Quantity")
 res2 <- felm(data = purchases.retail,
              formula = formula2,
              weights = purchases.retail$projection_factor,
@@ -168,7 +159,7 @@ LRdiff_res$N_store_modules <- uniqueN(purchases.retail, by = c("store_code_uc", 
 LRdiff_res$N_state_modules <- uniqueN(purchases.retail, by = c("fips_state", "product_module_code"))
 LRdiff_res$N_hholds_modules <- uniqueN(purchases.retail, by = c("household_code", "product_module_code"))
 LRdiff_res$N_hholds_stores <- uniqueN(purchases.retail, by = c("household_code", "store_code_uc"))
-LRdiff_res$N_hholds_modules_stores <- length(purchases.retail$household_by_store_by_module)
-LRdiff_res$N_module_time <- length(purchases.retail$module_by_time)
+LRdiff_res$N_hholds_modules_stores <- length(unique(purchases.retail$household_by_store_by_module))
+LRdiff_res$N_module_time <- length(unique(purchases.retail$module_by_time))
 
 fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")

@@ -63,6 +63,7 @@ length(unique(possible.purchases.full$household_code))
 length(unique(possible.purchases.full$product_module_code))
 length(unique(possible.purchases.full$store_code_uc))
 length(unique(possible.purchases.full$year))
+unique(possible.purchases.full$year)
 
 # merge with existing data
 flog.info("Merging to expand")
