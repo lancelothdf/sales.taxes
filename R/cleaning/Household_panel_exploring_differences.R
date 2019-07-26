@@ -22,16 +22,16 @@ purchases.full <- fread("cleaning/consumer_panel_2006-2016_ids.csv")
 purchases.full <- purchases.full[, esample := (!is.na(sales_tax) & !is.na(projection_factor))]
 
 differences <- "Full sample"
-differences <- purchases.full[esample == 1, mean_1 = mean(total_expenditures)]
-differences[, mean_0 := purchases.full[esample == 0, mean_0 = mean(total_expenditures)]]
+differences <- purchases.full[esample == 1, mean_1 := mean(total_expenditures)]
+differences[, mean_0 := purchases.full[esample == 0, mean_0 := mean(total_expenditures)]]
 samples.diff <- t.test(purchases.full$share_expend ~ purchases.full$esample)
 differences[, estimate := samples.diff$estimate]
 differences[, p.value := samples.diff$p.value]
 
 for (yr in 2008:2014) {
   differences.yr <- yr
-  differences.yr[, mean_1 := purchases.full[esample == 1 & year == yr, mean_1 = mean(total_expenditures)]]
-  differences.yr[, mean_0 := purchases.full[esample == 0 & year == yr, mean_0 = mean(total_expenditures)]]
+  differences.yr[, mean_1 := purchases.full[esample == 1 & year == yr, mean_1 := mean(total_expenditures)]]
+  differences.yr[, mean_0 := purchases.full[esample == 0 & year == yr, mean_0 := mean(total_expenditures)]]
   purchases.yr <- purchases.full[year == yr]
   samples.diff <- t.test(purchases.yr$share_expend ~ purchases.yr$esample)
   differences.yr[, estimate := samples.diff$estimate]
