@@ -44,7 +44,8 @@ setkeyv(all_pi, c("year","quarter"))
 # Differences
 all_pi <- all_pi[, d_ln_sales_tax := c(NA, diff(ln_sales_tax)), by=.(store_code_uc, product_module_code)]
 all_pi <- all_pi[, d_ln_cpricei := c(NA, diff(ln_cpricei)), by=.(store_code_uc, product_module_code)]
-
+describe(all_pi$d_ln_sales_tax)
+describe(all_pi$d_ln_cpricei)
 
 # Lags of difference:
 all_pi <- all_pi[, lag1.ln_sales_tax := shift(d_ln_sales_tax, 1), by=.(store_code_uc, product_module_code)]
@@ -97,11 +98,11 @@ res0 <- felm(data = purchases.retail,
 
 flog.info("Writing results...")
 res0.dt <- data.table(coef(summary(res0)), keep.rownames=T)
-res0.dt[, outcome := "ln_share_expend"]
+res0.dt[, outcome := "d_ln_share_expend"]
 res0.dt[, Rsq := summary(res0)$r.squared]
 res0.dt[, adj.Rsq := summary(res0)$adj.r.squared]
 res0.dt[, specification := "Basic"]
-res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_share_expend)))]
+res0.dt[, N_obs := sum((!is.na(purchases.retail$d_ln_share_expend)))]
 LRdiff_res <- res0.dt ### Create table LRdiff_res in which we store all results (we start with the results we had just stored in res1.dt)
 fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
 
@@ -118,11 +119,11 @@ res2 <- felm(data = purchases.retail,
 
 flog.info("Writing results...")
 res0.dt <- data.table(coef(summary(res2)), keep.rownames=T)
-res0.dt[, outcome := "ln_cpricei"]
+res0.dt[, outcome := "d_ln_cpricei"]
 res0.dt[, Rsq := summary(res2)$r.squared]
 res0.dt[, adj.Rsq := summary(res2)$adj.r.squared]
 res0.dt[, specification := "Basic"]
-res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_cpricei)))]
+res0.dt[, N_obs := sum((!is.na(purchases.retail$d_ln_cpricei)))]
 LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append 
 fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
 
@@ -138,11 +139,11 @@ res2 <- felm(data = purchases.retail,
 
 flog.info("Writing results...")
 res0.dt <- data.table(coef(summary(res2)), keep.rownames=T)
-res0.dt[, outcome := "ln_quantity"]
+res0.dt[, outcome := "d_ln_quantity"]
 res0.dt[, Rsq := summary(res2)$r.squared]
 res0.dt[, adj.Rsq := summary(res2)$adj.r.squared]
 res0.dt[, specification := "Basic"]
-res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_quantity)))]
+res0.dt[, N_obs := sum((!is.na(purchases.retail$d_ln_quantity)))]
 LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append 
 fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
 
