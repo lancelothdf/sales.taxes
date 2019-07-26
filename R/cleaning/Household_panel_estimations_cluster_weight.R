@@ -102,7 +102,7 @@ LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append
 fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results_weights.csv")
 
 
-## Basic Specifications ----------
+## Basic Specifications clustered ----------
 
 # Log Share of Expenditure
 formula0 <- as.formula(paste0(
@@ -122,7 +122,7 @@ res0.dt[, Rsq := summary(res0)$r.squared]
 res0.dt[, adj.Rsq := summary(res0)$adj.r.squared]
 res0.dt[, specification := "Weight: PF x Share"]
 res0.dt[, N_obs := sum((!is.na(purchases.retail$ln_share_expend)))]
-LRdiff_res <- res0.dt ### Create table LRdiff_res in which we store all results (we start with the results we had just stored in res1.dt)
+LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append 
 fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Basic_Results_weights.csv")
 
 

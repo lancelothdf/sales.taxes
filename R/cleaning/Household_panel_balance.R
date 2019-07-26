@@ -82,7 +82,8 @@ purchases.retail <- within(purchases.retail,{household_by_store_by_module<-as.nu
 flog.info("Extrapolating variables for missings")
 purchases.retail <- purchases.retail[, ln_sales_tax := mean(ln_sales_tax, na.rm = T), 
                                      by = .(product_module_code, store_code_uc, quarter, year)]
-purchases.retail <- purchases.retail[, projection_factor := median(projection_factor, na.rm = T), 
+
+purchases.retail <- purchases.retail[, projection_factor := as.integer(median(projection_factor, na.rm = T)), 
                                      by = .(household_code, quarter, year)]
 
 ## Estimate desired especification on this new variable
