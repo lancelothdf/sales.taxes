@@ -35,7 +35,7 @@ for (yr in 2008:2014) {
   purchases.yr <- purchases.full[year == yr]
   samples.diff <- t.test(purchases.yr$share_expend ~ purchases.yr$esample)
   differences.yr$p.value <-samples.diff$p.value
-  differences <- rbind(differences, differences.yr)
   differences.yr$type <- yr
+  differences <- rbind(differences, differences.yr)
 }
 fwrite(differences, "../../../../../home/slacouture/HMS/Difference_samples.csv")
