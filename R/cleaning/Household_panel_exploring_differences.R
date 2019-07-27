@@ -25,7 +25,6 @@ differences <- data.table(NULL)
 differences$mean_1 <- purchases.full[esample == 1, mean(total_expenditures)]
 differences$mean_0 <- purchases.full[esample == 0, mean(total_expenditures)]
 samples.diff <- t.test(purchases.full$share_expend ~ purchases.full$esample)
-differences$estimate <- samples.diff$estimate
 differences$p.value <- samples.diff$p.value
 differences$type <- "Full sample"
 
@@ -34,7 +33,6 @@ for (yr in 2008:2014) {
   differences.yr$mean_0 <- purchases.full[esample == 0 & year == yr, mean(total_expenditures)]
   purchases.yr <- purchases.full[year == yr]
   samples.diff <- t.test(purchases.yr$share_expend ~ purchases.yr$esample)
-  differences.yr$estimate <- samples.diff$estimate
   differences.yr$p.value <-samples.diff$p.value
   differences <- rbind(differences, differences.yr)
   differences.yr$type <- yr
