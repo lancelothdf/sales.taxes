@@ -29,6 +29,7 @@ differences$p.value <- samples.diff$p.value
 differences$type <- "Full sample"
 
 for (yr in 2008:2014) {
+  differences.yr <- data.table(NULL)
   differences.yr$mean_1 <- purchases.full[esample == 1 & year == yr, mean(total_expenditures)]
   differences.yr$mean_0 <- purchases.full[esample == 0 & year == yr, mean(total_expenditures)]
   purchases.yr <- purchases.full[year == yr]
