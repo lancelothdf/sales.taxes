@@ -148,7 +148,7 @@ purchases.full <- dcast(purchases.full, household_code + taxability + fips_count
                           zip_code + month + year + projection_factor + projection_factor_magnet + 
                           sum_total_exp_month + household_income ~ same_3zip_store, value.var = "total_expenditures")
 setnames(purchases.full,
-         old = c("total_expenditures_same_3zip_store0", "total_expenditures_same_3zip_store1"),
+         old = c("total_expenditures_0", "total_expenditures_1"),
          new = c("expenditures_diff3", "expenditures_same3"))
 ## reshape to get a hh data
 purchases.full <- dcast(purchases.full, household_code + fips_county_code + fips_state_code + zip_code + month
@@ -171,11 +171,11 @@ purchases.full <- merge(
 
 ## Create interest variables
 purchases.full <- purchases.full[, ln_sales_tax := log1p(sales_tax)]
-purchases.full <- purchases.full[, expenditure_taxable := expenditures_diff3_taxability1 + expenditures_same3_taxability1]
-purchases.full <- purchases.full[, expenditure_non_taxable := expenditures_diff3_taxability0 + expenditures_same3_taxability0]
-purchases.full <- purchases.full[, expenditure_unknown := expenditures_diff3_taxability2 + expenditures_same3_taxability2]
-purchases.full <- purchases.full[, expenditure_same3 := expenditures_same3_taxability0 + expenditures_same3_taxability1 + expenditures_same3_taxability2]
-purchases.full <- purchases.full[, expenditure_diff3 := expenditures_diff3_taxability0 + expenditures_diff3_taxability1 + expenditures_diff3_taxability2]
+purchases.full <- purchases.full[, expenditure_taxable := expenditures_diff3_1 + expenditures_same3_1]
+purchases.full <- purchases.full[, expenditure_non_taxable := expenditures_diff3_0 + expenditures_same3_0]
+purchases.full <- purchases.full[, expenditure_unknown := expenditures_diff3_2 + expenditures_same3_2]
+purchases.full <- purchases.full[, expenditure_same3 := expenditures_same3_0 + expenditures_same3_1 + expenditures_same3_2]
+purchases.full <- purchases.full[, expenditure_diff3 := expenditures_diff3_0 + expenditures_diff3_1 + expenditures_diff3_2]
 
 
 fwrite(purchases.full, "cleaning/consumer_panel_m_hh_2006-2016.csv")
