@@ -108,17 +108,16 @@ for (Y in outcomes) {
   formula1 <- as.formula(paste0(
     Y, "~", formula_RHS, "| module_by_time"
   ))
-  flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
+  flog.info("Estimating with %s as outcome", Y)
   res1 <- felm(formula = formula1, data = purchases.retail,
                weights = purchases.retail$projection_factor)
-  flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
+  flog.info("Finished estimating with %s as outcome.", Y)
   
   
   ## attach results
   flog.info("Writing results...")
   res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
   res1.dt[, outcome := Y]
-  res1.dt[, parametric := "No"]
   res1.dt[, Rsq := summary(res1)$r.squared]
   res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
   LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
@@ -149,10 +148,9 @@ for (Y in outcomes) {
   lp.dt <- data.table(
     rn = c("Pre.D.ln_sales_tax", "Post.D.ln_sales_tax", "All.D.ln_sales_tax"),
     Estimate = c(lead.test.est, lag.test.est, total.test.est),
-    `Cluster s.e.` = c(lead.test.se, lag.test.se, total.test.se),
+    `Std. Error` = c(lead.test.se, lag.test.se, total.test.se),
     `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
     outcome = Y,
-    parametric = "No",
     Rsq = summary(res1)$r.squared,
     adj.Rsq = summary(res1)$adj.r.squared)
   LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
