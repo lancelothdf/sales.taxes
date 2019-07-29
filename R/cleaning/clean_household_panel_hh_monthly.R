@@ -66,7 +66,7 @@ for (yr in 2006:2016) {
   panelists <- fread(panelists_file)
   panelists <- panelists[, .(Household_Cd, Panel_Year, Projection_Factor,
                              Projection_Factor_Magnet, Household_Income,
-                             fips_state_code, fips_county_code, panelist_zip_code)]
+                             fips_state, fips_county, panelist_zip_code)]
   setnames(panelists,
            old = c("Household_Cd", "Panel_Year", "Projection_Factor",
                    "Projection_Factor_Magnet", "Household_Income", "panelist_zip_code"),
