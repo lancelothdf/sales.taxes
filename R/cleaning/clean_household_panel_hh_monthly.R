@@ -171,4 +171,14 @@ purchases.full <- merge(
   by = c("fips_county", "fips_state", "zip_code", "year", "month"),
   all.x = T
 )
+
+## Create interest variables
+purchases.full <- purchases.full[, ln_sales_tax := log1p(sales_tax)]
+purchases.full <- purchases.full[, expenditure_taxable := expenditures_diff3_taxability1 + expenditures_same3_taxability1]
+purchases.full <- purchases.full[, expenditure_non_taxable := expenditures_diff3_taxability0 + expenditures_same3_taxability0]
+purchases.full <- purchases.full[, expenditure_unknown := expenditures_diff3_taxability2 + expenditures_same3_taxability2]
+purchases.full <- purchases.full[, expenditure_same3 := expenditures_same3_taxability0 + expenditures_same3_taxability1 + expenditures_same3_taxability2]
+purchases.full <- purchases.full[, expenditure_diff3 := expenditures_diff3_taxability0 + expenditures_diff3_taxability1 + expenditures_diff3_taxability2]
+
+
 fwrite(purchases.full, "cleaning/consumer_panel_m_hh_2006-2016.csv")
