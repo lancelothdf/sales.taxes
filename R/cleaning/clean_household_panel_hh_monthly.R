@@ -109,7 +109,7 @@ for (yr in 2006:2016) {
     projection_factor_magnet = mean(projection_factor_magnet, na.rm = T),
     household_income = mean(household_income, na.rm = T)
   ), by = .(household_code, product_module_code, product_group_code,
-            same_3zip_store, fips_county, fips_state, zip_code,
+            same_3zip_store, fips_county_code, fips_state_code, zip_code,
             month, year)  ]
   ## attach
   flog.info("Appending %s data to master file", yr)
@@ -131,10 +131,13 @@ purchases.full <- purchases.full[product_module_code %in% keep_modules]
 taxability_panel <- fread("/project2/igaarder/Data/taxability_state_panel.csv")
 taxability_panel <- taxability_panel[, .(product_module_code, product_group_code, 
                                          fips_state, taxability, month, year)]
+setnames(taxability_panel,
+         old = c("fips_state"),
+         new = c("fips_state_code"))
 
 purchases.full <- merge(
   purchases.full, taxability_panel,
-  by = c("fips_state", "product_module_code", "product_group_code", "year", "month"),
+  by = c("fips_state_code", "product_module_code", "product_group_code", "year", "month"),
   all.x = T
 )
 ## Collapse by household X type of store X taxability of module
@@ -144,17 +147,17 @@ purchases.full <- purchases.full[, list(
             projection_factor = mean(projection_factor, na.rm = T),
             projection_factor_magnet = mean(projection_factor_magnet, na.rm = T),
             household_income = mean(household_income, na.rm = T)
-          ), by = .(household_code, taxability, fips_county, fips_state, zip_code,
+          ), by = .(household_code, taxability, fips_county_code, fips_state_code, zip_code,
                     same_3zip_store, quarter, year)  ]
 ## reshape to get a hh X taxability of module data
-purchases.full <- dcast(purchases.full, household_code + taxability + fips_county + fips_state + 
+purchases.full <- dcast(purchases.full, household_code + taxability + fips_county_code + fips_state_code + 
                           zip_code + quarter + year + projection_factor + projection_factor_magnet + 
                           sum_total_exp_month + household_income ~ same_3zip_store, value.var = "total_expenditures")
 setnames(purchases.full,
          old = c("total_expenditures_same_3zip_store0", "total_expenditures_same_3zip_store1"),
          new = c("expenditures_diff3", "expenditures_same3"))
 ## reshape to get a hh data
-purchases.full <- dcast(purchases.full, household_code + fips_county + fips_state + zip_code + quarter
+purchases.full <- dcast(purchases.full, household_code + fips_county_code + fips_state_code + zip_code + quarter
                         + year + projection_factor + projection_factor_magnet + sum_total_exp_month + 
                           household_income ~ taxability, value.var = c("expenditures_diff3","expenditures_same3"))
 
@@ -165,10 +168,13 @@ purchases.full <- dcast(purchases.full, household_code + fips_county + fips_stat
 all_goods_pi_path <- "../../monthly_taxes_county_5zip_2008_2014.csv"
 all_pi <- fread(all_goods_pi_path)
 all_pi <- all_pi[, .(sales_tax, year, month, fips_county, fips_state, zip_code )]
+setnames(all_pi,
+         old = c("fips_state", "fips_county"),
+         new = c("fips_state_code", "fips_county_code"))
 
 purchases.full <- merge(
   purchases.full, all_pi,
-  by = c("fips_county", "fips_state", "zip_code", "year", "month"),
+  by = c("fips_county_code", "fips_state_code", "zip_code", "year", "month"),
   all.x = T
 )
 
