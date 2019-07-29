@@ -144,20 +144,77 @@ for (Y in outcomes) {
   total.test.se <- sqrt(vcov(summary(total.test)))[[1]]
   total.test.pval <- 2*(1 - pnorm(abs(total.test.est/total.test.se)))
   
+  
+  ##### Add the cumulative effect at each lead/lag (relative to -1)
+  cumul.lead1.est <- 0
+  cumul.lead1.se <- NA
+  cumul.lead1.pval <- NA
+  
+  #cumul.lead2.est is just equal to minus the change between -2 and -1
+  cumul.lead2.est <- - coef(summary(res1))[ "lea1.ln_sales_tax", "Estimate"]
+  cumul.lead2.se <- coef(summary(res1))[ "lea1.ln_sales_tax", "Std. Error"]
+  cumul.lead2.pval <- coef(summary(res1))[ "lea1.ln_sales_tax", "Pr(>|t|)"]
+  
+  ##LEADS
+  for(j in 3:9) {
+    
+    ## Create a name for estimate, se and pval of each lead
+    cumul.test.est.name <- paste("cumul.lead", j, ".est", sep = "")
+    cumul.test.se.name <- paste("cumul.lead", j, ".se", sep = "")
+    cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
+    
+    ## Create the formula to compute cumulative estimate at each lead/lag
+    cumul.test.form <- paste0("-", paste(paste0("lea", (j-1):1, ".ln_sales_tax"), collapse = " - "))
+    cumul.test.form <- paste(cumul.test.form, " = 0")
+    
+    ## Compute estimate and store in variables names
+    cumul.test <- glht(res1, linfct = cumul.test.form)
+    
+    assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
+    assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
+    assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
+  }
+  
+  
+  ##LAGS
+  ## On Impact --> Effect = coefficient on d_ln_sales_tax
+  cumul.lag0.est <- coef(summary(res1))[ "d_ln_sales_tax", "Estimate"]
+  cumul.lag0.se <- coef(summary(res1))[ "d_ln_sales_tax", "Std. Error"]
+  cumul.lag0.pval <- coef(summary(res1))[ "d_ln_sales_tax", "Pr(>|t|)"]
+  
+  for(j in 1:8) {
+    
+    ## Create a name for estimate, se and pval of each lead
+    cumul.test.est.name <- paste("cumul.lag", j, ".est", sep = "")
+    cumul.test.se.name <- paste("cumul.lag", j, ".se", sep = "")
+    cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
+    
+    ## Create the formula to compute cumulative estimate at each lead/lag
+    cumul.test.form <- paste("d_ln_sales_tax + ", paste(paste0("lag", 1:j, ".ln_sales_tax"), collapse = " + "), sep = "")
+    cumul.test.form <- paste(cumul.test.form, " = 0")
+    
+    ## Compute estimate and store in variables names
+    cumul.test <- glht(res1, linfct = cumul.test.form)
+    
+    assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
+    assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
+    assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
+  }
+  
+  
   ## linear hypothesis results
   lp.dt <- data.table(
-    rn = c("Pre.D.ln_sales_tax", "Post.D.ln_sales_tax", "All.D.ln_sales_tax"),
-    Estimate = c(lead.test.est, lag.test.est, total.test.est),
-    `Std. Error` = c(lead.test.se, lag.test.se, total.test.se),
-    `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
+    rn = c("cumul.lead8.ln_sales_tax", "cumul.lead7.ln_sales_tax", "cumul.lead6.ln_sales_tax", "cumul.lead5.ln_sales_tax", "cumul.lead4.ln_sales_tax", "cumul.lead3.ln_sales_tax", "cumul.lead2.ln_sales_tax", "cumul.lead1.ln_sales_tax", "cumul.lag0.ln_sales_tax", "cumul.lag1.ln_sales_tax", "cumul.lag2.ln_sales_tax", "cumul.lag3.ln_sales_tax", "cumul.lag4.ln_sales_tax", "cumul.lag5.ln_sales_tax", "cumul.lag6.ln_sales_tax", "cumul.lag7.ln_sales_tax", "cumul.lag8.ln_sales_tax"),
+    Estimate = c(cumul.lead8.est, cumul.lead7.est, cumul.lead6.est, cumul.lead5.est, cumul.lead4.est, cumul.lead3.est, cumul.lead2.est, cumul.lead1.est, cumul.lag0.est, cumul.lag1.est, cumul.lag2.est, cumul.lag3.est, cumul.lag4.est, cumul.lag5.est, cumul.lag6.est, cumul.lag7.est, cumul.lag8.est),
+    `Std. Error` = c(cumul.lead8.se, cumul.lead7.se, cumul.lead6.se, cumul.lead5.se, cumul.lead4.se, cumul.lead3.se, cumul.lead2.se, cumul.lead1.se, cumul.lag0.se, cumul.lag1.se, cumul.lag2.se, cumul.lag3.se, cumul.lag4.se, cumul.lag5.se, cumul.lag6.se, cumul.lag7.se, cumul.lag8.se),
+    `Pr(>|t|)` = c(cumul.lead8.pval, cumul.lead7.pval, cumul.lead6.pval, cumul.lead5.pval, cumul.lead4.pval, cumul.lead3.pval, cumul.lead2.pval, cumul.lead1.pval, cumul.lag0.pval, cumul.lag1.pval, cumul.lag2.pval, cumul.lag3.pval, cumul.lag4.pval, cumul.lag5.pval, cumul.lag6.pval, cumul.lag7.pval, cumul.lag8.pval),
     outcome = Y,
     Rsq = summary(res1)$r.squared,
     adj.Rsq = summary(res1)$adj.r.squared)
   LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
   fwrite(LRdiff_res, output.results.file)
+
 }
-
-
 
 ## summary values --------------------------------------------------------------
 LRdiff_res$N_obs <- nrow(purchases.retail)
