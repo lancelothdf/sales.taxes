@@ -144,6 +144,17 @@ for (Y in outcomes) {
   total.test.se <- sqrt(vcov(summary(total.test)))[[1]]
   total.test.pval <- 2*(1 - pnorm(abs(total.test.est/total.test.se)))
   
+  ## linear hypothesis results
+  lp.dt <- data.table(
+    rn = c("Pre.D.ln_sales_tax", "Post.D.ln_sales_tax", "All.D.ln_sales_tax"),
+    Estimate = c(lead.test.est, lag.test.est, total.test.est),
+    `Std. Error` = c(lead.test.se, lag.test.se, total.test.se),
+    `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
+    outcome = Y,
+    Rsq = summary(res1)$r.squared,
+    adj.Rsq = summary(res1)$adj.r.squared)
+  LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
+  fwrite(LRdiff_res, output.results.file)
   
   ##### Add the cumulative effect at each lead/lag (relative to -1)
   cumul.lead1.est <- 0
