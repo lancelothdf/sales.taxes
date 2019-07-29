@@ -66,11 +66,11 @@ for (yr in 2006:2016) {
   panelists <- fread(panelists_file)
   panelists <- panelists[, .(Household_Cd, Panel_Year, Projection_Factor,
                              Projection_Factor_Magnet, Household_Income,
-                             fips_state_code, fips_county_code, panelist_zip_code)]
+                             Fips_State_Cd, Fips_County_Cd, Panelist_ZipCd)]
   setnames(panelists,
-           old = c("Household_Cd", "Panel_Year", "Projection_Factor",
-                   "Projection_Factor_Magnet", "Household_Income", "panelist_zip_code"),
-           new = c("household_code", "year", "projection_factor",
+           old = c("Household_Cd", "Panel_Year", "Projection_Factor", "Fips_State_Cd", "Fips_County_Cd",
+                   "Projection_Factor_Magnet", "Household_Income", "Panelist_ZipCd"),
+           new = c("household_code", "year", "projection_factor", "fips_state_code", "fips_county_code",
                    "projection_factor_magnet", "household_income", "zip_code"))
   flog.info("Merging panelists data to purchases for %s", yr)
   purchases <- merge(purchases, panelists, by = c("household_code", "year"), all.x = T)
