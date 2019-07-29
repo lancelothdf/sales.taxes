@@ -18,6 +18,7 @@ library(lfe)
 library(multcomp)
 
 setwd("/project2/igaarder")
+prep_dt <- T
 
 ### Useful filepaths ----------------------------------------------
 # quarterly Laspeyres indices, sales, and sales tax rates from 2006-2014
@@ -33,6 +34,8 @@ unemp_path <- "Data/covariates/county_monthly_unemp_clean.csv"
 ## output filepath --
 temp.outfile <- "Data/price_indices_wX_temp.csv"
 reg.outfile <- "Data/quarterly_pi_output_FHS.csv"
+
+if (prep_dt) {
 
 ## prep Census region/division data ------------------------------
 geo_dt <- structure(list(
@@ -68,7 +71,7 @@ all_pi <- fread(data.full.path)
 all_counties <- unique(all_pi[, .(fips_state, fips_county)])
 all_counties <- all_counties[!is.na(fips_state) & !is.na(fips_county)]
 county_skeleton <- data.table(NULL)
-for (X in 2009:2014) {
+for (X in 2008:2014) {
   for (Y in 1:12) {
     all_counties[, year := X]
     all_counties[, month := Y]
@@ -206,6 +209,7 @@ all_pi[, sample.houseprice := as.integer(!is.na(ln_home_price))]
 all_pi <- all_pi[between(year, 2008, 2014)]
 fwrite(all_pi, temp.outfile)
 stop("Intended")
+}
 
 formula_lags <- paste0("L", 1:7, ".D.ln_sales_tax", collapse = "+")
 formula_leads <- paste0("F", c(1, 3:8), ".D.ln_sales_tax", collapse = "+")
