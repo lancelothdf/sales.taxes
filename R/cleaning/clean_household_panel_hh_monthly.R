@@ -85,7 +85,7 @@ for (yr in 2006:2016) {
   # Collapse
   purchases <- purchases[, list(
     total_expenditures = sum(total_expenditures) , panel_year = max(panel_year)
-  ), by = .(household_code, product_module_code, product_group_code, same_3zip_store, 
+  ), by = .(household_code, product_module_code, product_group_code, same_3zip_store, zip_code,
             household_income, projection_factor, household_income, fips_state_code, fips_county_code,
             month, year)]
   
