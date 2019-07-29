@@ -31,6 +31,7 @@ zillow_state_path <- "Data/covariates/zillow_long_by_state_clean.csv"
 unemp_path <- "Data/covariates/county_monthly_unemp_clean.csv"
 
 ## output filepath --
+temp.outfile <- "Data/price_indices_wX_temp.csv"
 reg.outfile <- "Data/quarterly_pi_output_FHS.csv"
 
 ## prep Census region/division data ------------------------------
@@ -203,7 +204,8 @@ all_pi[, sample.houseprice := as.integer(!is.na(ln_home_price))]
 
 ### Estimation ---------------------------------------------------
 all_pi <- all_pi[between(year, 2008, 2014)]
-# fwrite(all_pi, "Data/temp_houseprice_check.csv")
+fwrite(all_pi, temp.outfile)
+stop("Intended")
 
 formula_lags <- paste0("L", 1:7, ".D.ln_sales_tax", collapse = "+")
 formula_leads <- paste0("F", c(1, 3:8), ".D.ln_sales_tax", collapse = "+")
