@@ -125,7 +125,7 @@ purchases.full[, sum_total_exp_month := sum(total_expenditures),
 best_selling_modules <- fread("/project2/igaarder/Data/best_selling_modules.csv")
 # keep_modules <- unique(best_selling_modules[, .(Module)][[1]])
 setnames(best_selling_modules, old = c("Module"), new = c("product_module_code"))
-best_selling_modules <- best_selling_modules[, best_sold = 1]
+best_selling_modules <- best_selling_modules[, best_sold := 1]
 
 purchases.full <- merge(
   purchases.full, keep_modules,
