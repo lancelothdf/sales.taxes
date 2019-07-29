@@ -59,6 +59,8 @@ for (Y in outcomes) {
   # Now the log
   log.Y <- paste0("ln_", Y)
   purchases.sample[, (log.Y) := log(Y)]
+  # make sure 0s are now missings
+  purchases.full$log.Y[is.infinite(purchases.full$log.Y)] <- NA
 
   formula1 <- as.formula(paste0(
     (log.Y), "~ ln_sales_tax | time + household_code "

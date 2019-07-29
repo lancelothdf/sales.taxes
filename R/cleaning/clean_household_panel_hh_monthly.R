@@ -86,8 +86,8 @@ for (yr in 2006:2016) {
   purchases <- purchases[, list(
     total_expenditures = sum(total_expenditures) , panel_year = max(panel_year)
   ), by = .(household_code, product_module_code, product_group_code, same_3zip_store, zip_code,
-            household_income, projection_factor, household_income, fips_state_code, fips_county_code,
-            month, year)]
+            household_income, projection_factor,projection_factor_magnet, household_income, 
+            fips_state_code, fips_county_code, month, year)]
   
   ## save the final dataset
   flog.info("Saving cleaned dataset for panel year %s", yr)
@@ -161,9 +161,6 @@ purchases.full <- dcast(purchases.full, household_code + fips_county_code + fips
                         + year + projection_factor + projection_factor_magnet + sum_total_exp_month + 
                           household_income ~ taxability, value.var = c("expenditures_diff3","expenditures_same3"))
 
-#fwrite(purchases.full, "cleaning/consumer_panel_2006-2016.csv")
-
-#purchases.full <- fread("cleaning/consumer_panel_2006-2016.csv")
 ## merge on tax rates
 all_goods_pi_path <- "../../monthly_taxes_county_5zip_2008_2014.csv"
 all_pi <- fread(all_goods_pi_path)
