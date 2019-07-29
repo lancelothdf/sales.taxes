@@ -121,18 +121,6 @@ for (yr in 2006:2016) {
 purchases.full[, sum_total_exp_month := sum(total_expenditures),
                by = .(household_code, year, month)]
 
-## Identify the best-selling modules
-# best_selling_modules <- fread("/project2/igaarder/Data/best_selling_modules.csv")
-# best_selling_modules <- best_selling_modules[.(Module)]
-# setnames(best_selling_modules, old = c("Module"), new = c("product_module_code"))
-# best_selling_modules <- best_selling_modules[, best_sold := 1]
-# 
-# purchases.full <- merge(
-#   purchases.full, best_selling_modules,
-#   by = c("product_module_code"),
-#   all.x = T
-# )
-
 ## Identify taxability of module: import
 taxability_panel <- fread("/project2/igaarder/Data/taxability_state_panel.csv")
 taxability_panel <- taxability_panel[, .(product_module_code, product_group_code, 
@@ -146,14 +134,14 @@ purchases.full <- merge(
   by = c("fips_state_code", "product_module_code", "product_group_code", "year", "month"),
   all.x = T
 )
-# Assign unknown to purchases out of best selling module
+# Assign unknown to purchases out of best selling module (taxability only identified for best selling)
 purchases.full$taxability[is.na(purchases.full$taxability)] <- 2
 
 ## Collapse by household X type of store X taxability of module
 purchases.full <- purchases.full[, list(
             total_expenditures = sum(total_expenditures)
           ), by = .(household_code, taxability, fips_county_code, fips_state_code, zip_code,
-                    same_3zip_store, quarter, year, sum_total_exp_month, projection_factor,
+                    same_3zip_store, month, year, sum_total_exp_month, projection_factor,
                     projection_factor_magnet, household_income) ]
 ## reshape to get a hh X taxability of module data
 purchases.full <- dcast(purchases.full, household_code + taxability + fips_county_code + fips_state_code + 
