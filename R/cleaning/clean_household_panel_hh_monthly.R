@@ -128,7 +128,7 @@ setnames(best_selling_modules, old = c("Module"), new = c("product_module_code")
 best_selling_modules <- best_selling_modules[, best_sold := 1]
 
 purchases.full <- merge(
-  purchases.full, keep_modules,
+  purchases.full, best_selling_modules,
   by = c("product_module_code"),
   all.x = T
 )
