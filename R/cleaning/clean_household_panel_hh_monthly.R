@@ -124,8 +124,14 @@ purchases.full[, sum_total_exp_month := sum(total_expenditures),
 ## Identify the best-selling modules
 best_selling_modules <- fread("/project2/igaarder/Data/best_selling_modules.csv")
 keep_modules <- unique(best_selling_modules[, .(Module)][[1]])
+setnames(keep_modules, old = c("Module"), new = c("product_module_code"))
+keep_modules <- keep_modules[, best_sold = 1]
 
-purchases.full <- purchases.full[, best_sold := (product_module_code %in% keep_modules)]
+purchases.full <- merge(
+  purchases.full, keep_modules,
+  by = c("product_module_code"),
+  all.x = T
+)
 
 ## Identify taxability of module: import
 taxability_panel <- fread("/project2/igaarder/Data/taxability_state_panel.csv")
@@ -141,7 +147,7 @@ purchases.full <- merge(
   all.x = T
 )
 # Assign unknown to purchases out of best selling module
-purchases.full$taxability[best_sold == 0] <- 2
+purchases.full$taxability[best_sold != 1] <- 2
 
 ## Collapse by household X type of store X taxability of module
 purchases.full <- purchases.full[, list(
