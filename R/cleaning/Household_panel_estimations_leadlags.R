@@ -82,73 +82,87 @@ purchases.retail <- purchases.retail[, d_ln_quantity := c(NA, diff(ln_quantity))
 
 ## Finally I will restrict to data having all leads and lags, which is (should be) equal to drop first 2 and last 2 years
 purchases.retail <- purchases.retail[year < 2013 & year > 2009]
-
-## Basic Specifications ----------
-
-# Log Share of Expenditure
-formula0 <- as.formula(paste0(
-  "d_ln_share_expend ~ d_ln_sales_tax + lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea1.ln_sales_tax | module_by_time "
-))
-
-flog.info("Estimating Log Share")
-res0 <- felm(data = purchases.retail,
-             formula = formula0,
-             weights = purchases.retail$projection_factor,
-             na.omit)
-
-flog.info("Writing results...")
-res0.dt <- data.table(coef(summary(res0)), keep.rownames=T)
-res0.dt[, outcome := "d_ln_share_expend"]
-res0.dt[, Rsq := summary(res0)$r.squared]
-res0.dt[, adj.Rsq := summary(res0)$adj.r.squared]
-res0.dt[, specification := "Basic"]
-res0.dt[, N_obs := sum((!is.na(purchases.retail$d_ln_share_expend)))]
-LRdiff_res <- res0.dt ### Create table LRdiff_res in which we store all results (we start with the results we had just stored in res1.dt)
-fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
+# to be sure 
+purchases.retail <- purchases.retail[!is.na(d_ln_sales_tax)]
 
 
-# Log Price
-formula2 <- as.formula(paste0(
-  "d_ln_cpricei ~ d_ln_sales_tax + lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea1.ln_sales_tax | module_by_time "
-))
-flog.info("Estimating Log Price")
-res2 <- felm(data = purchases.retail,
-             formula = formula2,
-             weights = purchases.retail$projection_factor,
-             na.omit)
+### Estimation ---------
 
-flog.info("Writing results...")
-res0.dt <- data.table(coef(summary(res2)), keep.rownames=T)
-res0.dt[, outcome := "d_ln_cpricei"]
-res0.dt[, Rsq := summary(res2)$r.squared]
-res0.dt[, adj.Rsq := summary(res2)$adj.r.squared]
-res0.dt[, specification := "Basic"]
-res0.dt[, N_obs := sum((!is.na(purchases.retail$d_ln_cpricei)))]
-LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append 
-fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
+## Preparing Estimation
+output.results.file <- "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv"
+outcomes <- c("d_ln_share_expend", "d_ln_cpricei", "d_ln_quantity")
+formula_RHS <- "d_ln_sales_tax + lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea1.ln_sales_tax"
 
-# Log Quantity
-formula2 <- as.formula(paste0(
-  "d_ln_quantity ~ d_ln_sales_tax + lag8.ln_sales_tax + lag7.ln_sales_tax + lag6.ln_sales_tax + lag5.ln_sales_tax + lag4.ln_sales_tax + lag3.ln_sales_tax + lag2.ln_sales_tax + lag1.ln_sales_tax + lea8.ln_sales_tax + lea7.ln_sales_tax + lea6.ln_sales_tax + lea5.ln_sales_tax + lea4.ln_sales_tax + lea3.ln_sales_tax + lea2.ln_sales_tax + lea1.ln_sales_tax | module_by_time "
-))
-flog.info("Estimating Log Quantity")
-res2 <- felm(data = purchases.retail,
-             formula = formula2,
-             weights = purchases.retail$projection_factor,
-             na.omit)
 
-flog.info("Writing results...")
-res0.dt <- data.table(coef(summary(res2)), keep.rownames=T)
-res0.dt[, outcome := "d_ln_quantity"]
-res0.dt[, Rsq := summary(res2)$r.squared]
-res0.dt[, adj.Rsq := summary(res2)$adj.r.squared]
-res0.dt[, specification := "Basic"]
-res0.dt[, N_obs := sum((!is.na(purchases.retail$d_ln_quantity)))]
-LRdiff_res <- rbind(LRdiff_res,res0.dt) ### Append 
-fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
+## for linear hypothesis tests
+lead.vars <- paste(paste0("lea", 8:1, ".ln_sales_tax"), collapse = " + ")
+lag.vars <- paste(paste0("lag", 8:1, ".ln_sales_tax"), collapse = " + ")
+lead.lp.restr <- paste(lead.vars, "= 0")
+lag.lp.restr <- paste(lag.vars, "+ d_ln_sales_tax = 0")
+total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ d_ln_sales_tax = 0")
+
+
+LRdiff_res <- data.table(NULL)
+for (Y in outcomes) {
+
+  formula1 <- as.formula(paste0(
+    Y, "~", formula_RHS, "| module_by_time"
+  ))
+  flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
+  res1 <- felm(formula = formula1, data = purchases.retail,
+               weights = purchases.retail$projection_factor)
+  flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
+  
+  
+  ## attach results
+  flog.info("Writing results...")
+  res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+  res1.dt[, outcome := Y]
+  res1.dt[, parametric := "No"]
+  res1.dt[, Rsq := summary(res1)$r.squared]
+  res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
+  LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+  fwrite(LRdiff_res, output.results.file)
+  
+  ## sum leads
+  flog.info("Summing leads...")
+  lead.test <- glht(res1, linfct = lead.lp.restr)
+  lead.test.est <- coef(summary(lead.test))[[1]]
+  lead.test.se <- sqrt(vcov(summary(lead.test)))[[1]]
+  lead.test.pval <- 2*(1 - pnorm(abs(lead.test.est/lead.test.se)))
+  
+  ## sum lags
+  flog.info("Summing lags...")
+  lag.test <- glht(res1, linfct = lag.lp.restr)
+  lag.test.est <- coef(summary(lag.test))[[1]]
+  lag.test.se <- sqrt(vcov(summary(lag.test)))[[1]]
+  lag.test.pval <- 2*(1 - pnorm(abs(lag.test.est/lag.test.se)))
+  
+  ## sum all
+  flog.info("Summing all...")
+  total.test <- glht(res1, linfct = total.lp.restr)
+  total.test.est <- coef(summary(total.test))[[1]]
+  total.test.se <- sqrt(vcov(summary(total.test)))[[1]]
+  total.test.pval <- 2*(1 - pnorm(abs(total.test.est/total.test.se)))
+  
+  ## linear hypothesis results
+  lp.dt <- data.table(
+    rn = c("Pre.D.ln_sales_tax", "Post.D.ln_sales_tax", "All.D.ln_sales_tax"),
+    Estimate = c(lead.test.est, lag.test.est, total.test.est),
+    `Cluster s.e.` = c(lead.test.se, lag.test.se, total.test.se),
+    `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
+    outcome = Y,
+    parametric = "No",
+    Rsq = summary(res1)$r.squared,
+    adj.Rsq = summary(res1)$adj.r.squared)
+  LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
+  fwrite(LRdiff_res, output.results.file)
+}
+
 
 
 ## summary values --------------------------------------------------------------
+LRdiff_res$N_obs <- nrow(purchases.retail)
 LRdiff_res$N_hholds <- length(unique(purchases.retail$household_code))
 LRdiff_res$N_modules <- length(unique(purchases.retail$product_module_code))
 LRdiff_res$N_stores <- length(unique(purchases.retail$store_code_uc))
@@ -163,4 +177,4 @@ LRdiff_res$N_hholds_stores <- uniqueN(purchases.retail, by = c("household_code",
 LRdiff_res$N_hholds_modules_stores <- length(unique(purchases.retail$household_by_store_by_module))
 LRdiff_res$N_module_time <- length(unique(purchases.retail$module_by_time))
 
-fwrite(LRdiff_res, "../../../../../home/slacouture/HMS/Leads_Lags_Results.csv")
+fwrite(LRdiff_res, output.results.file)
