@@ -121,18 +121,6 @@ for (yr in 2006:2016) {
 purchases.full[, sum_total_exp_month := sum(total_expenditures),
                by = .(household_code, year, month)]
 
-## Identify the best-selling modules
-# best_selling_modules <- fread("/project2/igaarder/Data/best_selling_modules.csv")
-# best_selling_modules <- best_selling_modules[.(Module)]
-# setnames(best_selling_modules, old = c("Module"), new = c("product_module_code"))
-# best_selling_modules <- best_selling_modules[, best_sold := 1]
-# 
-# purchases.full <- merge(
-#   purchases.full, best_selling_modules,
-#   by = c("product_module_code"),
-#   all.x = T
-# )
-
 ## Identify taxability of module: import
 taxability_panel <- fread("/project2/igaarder/Data/taxability_state_panel.csv")
 taxability_panel <- taxability_panel[, .(product_module_code, product_group_code, 
@@ -146,26 +134,26 @@ purchases.full <- merge(
   by = c("fips_state_code", "product_module_code", "product_group_code", "year", "month"),
   all.x = T
 )
-# Assign unknown to purchases out of best selling module
+# Assign unknown to purchases out of best selling module (taxability only identified for best selling)
 purchases.full$taxability[is.na(purchases.full$taxability)] <- 2
 
 ## Collapse by household X type of store X taxability of module
 purchases.full <- purchases.full[, list(
             total_expenditures = sum(total_expenditures)
           ), by = .(household_code, taxability, fips_county_code, fips_state_code, zip_code,
-                    same_3zip_store, quarter, year, sum_total_exp_month, projection_factor,
+                    same_3zip_store, month, year, sum_total_exp_month, projection_factor,
                     projection_factor_magnet, household_income) ]
 ## reshape to get a hh X taxability of module data
 purchases.full <- dcast(purchases.full, household_code + taxability + fips_county_code + fips_state_code + 
-                          zip_code + quarter + year + projection_factor + projection_factor_magnet + 
+                          zip_code + month + year + projection_factor + projection_factor_magnet + 
                           sum_total_exp_month + household_income ~ same_3zip_store, value.var = "total_expenditures")
 setnames(purchases.full,
-         old = c("total_expenditures_same_3zip_store0", "total_expenditures_same_3zip_store1"),
+         old = c("0", "1"),
          new = c("expenditures_diff3", "expenditures_same3"))
 ## reshape to get a hh data
-purchases.full <- dcast(purchases.full, household_code + fips_county_code + fips_state_code + zip_code + quarter
+purchases.full <- dcast(purchases.full, household_code + fips_county_code + fips_state_code + zip_code + month
                         + year + projection_factor + projection_factor_magnet + sum_total_exp_month + 
-                          household_income ~ taxability, value.var = c("expenditures_diff3","expenditures_same3"))
+                          household_income ~ taxability,  fun=sum, value.var = c("expenditures_diff3","expenditures_same3"))
 
 ## merge on tax rates
 all_goods_pi_path <- "../../monthly_taxes_county_5zip_2008_2014.csv"
@@ -183,11 +171,11 @@ purchases.full <- merge(
 
 ## Create interest variables
 purchases.full <- purchases.full[, ln_sales_tax := log1p(sales_tax)]
-purchases.full <- purchases.full[, expenditure_taxable := expenditures_diff3_taxability1 + expenditures_same3_taxability1]
-purchases.full <- purchases.full[, expenditure_non_taxable := expenditures_diff3_taxability0 + expenditures_same3_taxability0]
-purchases.full <- purchases.full[, expenditure_unknown := expenditures_diff3_taxability2 + expenditures_same3_taxability2]
-purchases.full <- purchases.full[, expenditure_same3 := expenditures_same3_taxability0 + expenditures_same3_taxability1 + expenditures_same3_taxability2]
-purchases.full <- purchases.full[, expenditure_diff3 := expenditures_diff3_taxability0 + expenditures_diff3_taxability1 + expenditures_diff3_taxability2]
+purchases.full <- purchases.full[, expenditure_taxable := expenditures_diff3_1 + expenditures_same3_1]
+purchases.full <- purchases.full[, expenditure_non_taxable := expenditures_diff3_0 + expenditures_same3_0]
+purchases.full <- purchases.full[, expenditure_unknown := expenditures_diff3_2 + expenditures_same3_2]
+purchases.full <- purchases.full[, expenditure_same3 := expenditures_same3_0 + expenditures_same3_1 + expenditures_same3_2]
+purchases.full <- purchases.full[, expenditure_diff3 := expenditures_diff3_0 + expenditures_diff3_1 + expenditures_diff3_2]
 
 
 fwrite(purchases.full, "cleaning/consumer_panel_m_hh_2006-2016.csv")
