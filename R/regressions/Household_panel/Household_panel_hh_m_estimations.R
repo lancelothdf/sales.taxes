@@ -35,8 +35,11 @@ output.results.file <- "../../../../../home/slacouture/HMS/HH_month_basic_result
 outcomes <- c("expenditure_taxable", "expenditure_non_taxable", "expenditure_unknown")
 
 purchases.sample <- purchases.sample[, ln_expenditure_taxable := log(expenditure_taxable)]
+purchases.sample$ln_expenditure_taxable[is.infinite(purchases.sample$ln_expenditure_taxable)] <- NA
 purchases.sample <- purchases.sample[, ln_expenditure_non_taxable := log(expenditure_non_taxable)]
+purchases.sample$ln_expenditure_non_taxable[is.infinite(purchases.sample$ln_expenditure_non_taxable)] <- NA
 purchases.sample <- purchases.sample[, ln_expenditure_unknown := log(expenditure_unknown)]
+purchases.sample$ln_expenditure_unknown[is.infinite(purchases.sample$ln_expenditure_unknown)] <- NA
 
 LRdiff_res <- data.table(NULL)
 for (Y in outcomes) {
