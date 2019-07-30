@@ -148,12 +148,7 @@ purchases.full <- dcast(purchases.full, household_code + taxability + fips_count
                           zip_code + month + year + projection_factor + projection_factor_magnet +
                           sum_total_exp_month + household_income ~ same_3zip_store, fun=sum,
                           value.var = "total_expenditures")
-fwrite(purchases.full, "cleaning/consumer_panel_m_hh_2006-2016.csv")
 
-purchases.full <- fread("cleaning/consumer_panel_m_hh_2006-2016.csv")
-
-
-head(purchases.full)
 setnames(purchases.full,
          old = c("FALSE", "TRUE"),
          new = c("expenditures_diff3", "expenditures_same3"))
