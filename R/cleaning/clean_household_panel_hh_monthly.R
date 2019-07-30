@@ -95,64 +95,67 @@ setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 #   fwrite(purchases, output.path)
 # 
 # }
+# 
+# ## collapse expenditures to the monthly level and link all these annual files
+# purchases.full <- data.table(NULL)
+# for (yr in 2006:2016) {
+#   
+#   annual.path <- paste0("cleaning/purchases_m_", yr, ".csv")
+#   purchase.yr <- fread(annual.path)
+#   
+#   purchase.yr <- purchase.yr[, list(
+#     total_expenditures = sum(total_expenditures), 
+#     projection_factor = mean(projection_factor, na.rm = T),
+#     projection_factor_magnet = mean(projection_factor_magnet, na.rm = T),
+#     household_income = mean(household_income, na.rm = T)
+#   ), by = .(household_code, product_module_code, product_group_code,
+#             same_3zip_store, fips_county_code, fips_state_code, zip_code,
+#             month, year)  ]
+#   ## attach
+#   flog.info("Appending %s data to master file", yr)
+#   purchases.full <- rbind(purchases.full, purchase.yr) 
+# 
+# }
+# 
+# ## Calculate total expenditure per consumer in each month (across stores and modules)
+# purchases.full[, sum_total_exp_month := sum(total_expenditures),
+#                by = .(household_code, year, month)]
+# 
+# ## Identify taxability of module: import
+# taxability_panel <- fread("/project2/igaarder/Data/taxability_state_panel.csv")
+# taxability_panel <- taxability_panel[, .(product_module_code, product_group_code, 
+#                                          fips_state, taxability, month, year)]
+# setnames(taxability_panel,
+#          old = c("fips_state"),
+#          new = c("fips_state_code"))
+# 
+# purchases.full <- merge(
+#   purchases.full, taxability_panel,
+#   by = c("fips_state_code", "product_module_code", "product_group_code", "year", "month"),
+#   all.x = T
+# )
+# # Assign unknown to purchases out of best selling module (taxability only identified for best selling)
+# purchases.full$taxability[is.na(purchases.full$taxability)] <- 2
+# 
+# ## Collapse by household X type of store X taxability of module
+# purchases.full <- purchases.full[, list(
+#             total_expenditures = sum(total_expenditures)
+#           ), by = .(household_code, taxability, fips_county_code, fips_state_code, zip_code,
+#                     same_3zip_store, month, year, sum_total_exp_month, projection_factor,
+#                     projection_factor_magnet, household_income) ]
+# ## reshape to get a hh X taxability of module data
+# purchases.full <- dcast(purchases.full, household_code + taxability + fips_county_code + fips_state_code + 
+#                           zip_code + month + year + projection_factor + projection_factor_magnet + 
+#                           sum_total_exp_month + household_income ~ same_3zip_store, fun=sum,
+#                           value.var = "total_expenditures")
+# fwrite(purchases.full, "cleaning/consumer_panel_m_hh_2006-2016.csv")
 
-## collapse expenditures to the monthly level and link all these annual files
-purchases.full <- data.table(NULL)
-for (yr in 2006:2016) {
-  
-  annual.path <- paste0("cleaning/purchases_m_", yr, ".csv")
-  purchase.yr <- fread(annual.path)
-  
-  purchase.yr <- purchase.yr[, list(
-    total_expenditures = sum(total_expenditures), 
-    projection_factor = mean(projection_factor, na.rm = T),
-    projection_factor_magnet = mean(projection_factor_magnet, na.rm = T),
-    household_income = mean(household_income, na.rm = T)
-  ), by = .(household_code, product_module_code, product_group_code,
-            same_3zip_store, fips_county_code, fips_state_code, zip_code,
-            month, year)  ]
-  ## attach
-  flog.info("Appending %s data to master file", yr)
-  purchases.full <- rbind(purchases.full, purchase.yr) 
+purchases.full <- fread("cleaning/consumer_panel_m_hh_2006-2016_ids.csv")
 
-}
-
-## Calculate total expenditure per consumer in each month (across stores and modules)
-purchases.full[, sum_total_exp_month := sum(total_expenditures),
-               by = .(household_code, year, month)]
-
-## Identify taxability of module: import
-taxability_panel <- fread("/project2/igaarder/Data/taxability_state_panel.csv")
-taxability_panel <- taxability_panel[, .(product_module_code, product_group_code, 
-                                         fips_state, taxability, month, year)]
-setnames(taxability_panel,
-         old = c("fips_state"),
-         new = c("fips_state_code"))
-
-purchases.full <- merge(
-  purchases.full, taxability_panel,
-  by = c("fips_state_code", "product_module_code", "product_group_code", "year", "month"),
-  all.x = T
-)
-# Assign unknown to purchases out of best selling module (taxability only identified for best selling)
-purchases.full$taxability[is.na(purchases.full$taxability)] <- 2
-
-## Collapse by household X type of store X taxability of module
-purchases.full <- purchases.full[, list(
-            total_expenditures = sum(total_expenditures)
-          ), by = .(household_code, taxability, fips_county_code, fips_state_code, zip_code,
-                    same_3zip_store, month, year, sum_total_exp_month, projection_factor,
-                    projection_factor_magnet, household_income) ]
-## reshape to get a hh X taxability of module data
-purchases.full <- dcast(purchases.full, household_code + taxability + fips_county_code + fips_state_code + 
-                          zip_code + month + year + projection_factor + projection_factor_magnet + 
-                          sum_total_exp_month + household_income ~ same_3zip_store, fun=sum,
-                          value.var = "total_expenditures")
-fwrite(purchases.full, "cleaning/consumer_panel_m_hh_2006-2016.csv")
 
 head(purchases.full)
 setnames(purchases.full,
-         old = c("0", "1"),
+         old = c("FALSE", "TRUE"),
          new = c("expenditures_diff3", "expenditures_same3"))
 ## reshape to get a hh data
 purchases.full <- dcast(purchases.full, household_code + fips_county_code + fips_state_code + zip_code + month
