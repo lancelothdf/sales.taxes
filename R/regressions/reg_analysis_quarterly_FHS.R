@@ -221,9 +221,12 @@ formula_RHS <- paste0("D.ln_sales_tax + ", formula_lags, "+", formula_leads)
 formula_RHS.FHS <- paste0("D.ln_sales_tax + ", formula_lags, "+", formula_leads.FHS)
 
 outcomes <- c("ln_cpricei", "ln_quantity")
-FE_opts <- c("cal_time", "module_by_time",
-             "region_by_module_by_time",
+# FE_opts <- c("cal_time", "module_by_time",
+#              "region_by_module_by_time",
+#              "division_by_module_by_time")
+FE_opts <- c("region_by_module_by_time",
              "division_by_module_by_time")
+
 all_vars <- c(
   paste0("L", 1:7, ".D.ln_sales_tax"), "D.ln_sales_tax",
   paste0("F", c(1, 3:8), ".D.ln_sales_tax"),
@@ -240,6 +243,10 @@ analysis_function <- function(demean, impute, FE, outcome, FHS = NULL) {
     dt <- dt[sample.not.imputed == 1]
     flog.info("Not using imputed sample.")
   }
+
+  if (FHS == "unemp_rate")    dt <- dt[sample.unemp == 1]
+  if (FHS == "ln_home_price") dt <- dt[sample.houseprice == 1]
+
   ## demean
   flog.info("Demeaning.")
   for (V in all_vars) {
@@ -250,8 +257,6 @@ analysis_function <- function(demean, impute, FE, outcome, FHS = NULL) {
 
   ## declare formula
   if (!is.null(FHS)) {
-    if (FHS == "unemp_rate")    dt <- dt[sample.unemp == 1]
-    if (FHS == "ln_home_price") dt <- dt[sample.houseprice == 1]
     form <- as.formula(paste0(
       outcome, "~", formula_RHS.FHS, " | ", model.FE,
       " | (", FHS, "~F1.D.ln_sales_tax) | module_by_state"
@@ -281,7 +286,8 @@ analysis_function <- function(demean, impute, FE, outcome, FHS = NULL) {
   return(res.dt)
 }
 
-res.table <- data.table(NULL)
+# res.table <- data.table(NULL)
+res.table <- fread(reg.outfile)
 for (FE in FE_opts) {
   for (Y in outcomes) {
 
