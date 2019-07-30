@@ -148,12 +148,12 @@ purchases.full <- dcast(purchases.full, household_code + taxability + fips_count
                           zip_code + month + year + projection_factor + projection_factor_magnet + 
                           sum_total_exp_month + household_income ~ same_3zip_store, value.var = "total_expenditures")
 setnames(purchases.full,
-         old = c("total_expenditures_0", "total_expenditures_1"),
+         old = c("0", "1"),
          new = c("expenditures_diff3", "expenditures_same3"))
 ## reshape to get a hh data
 purchases.full <- dcast(purchases.full, household_code + fips_county_code + fips_state_code + zip_code + month
                         + year + projection_factor + projection_factor_magnet + sum_total_exp_month + 
-                          household_income ~ taxability, value.var = c("expenditures_diff3","expenditures_same3"))
+                          household_income ~ taxability,  fun=sum, value.var = c("expenditures_diff3","expenditures_same3"))
 
 ## merge on tax rates
 all_goods_pi_path <- "../../monthly_taxes_county_5zip_2008_2014.csv"
