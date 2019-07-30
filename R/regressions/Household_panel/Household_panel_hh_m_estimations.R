@@ -62,14 +62,12 @@ for (Y in outcomes) {
   # Now the log
   log.Y <- paste0("ln_", Y)
   # make sure 0s are now missings
-  purchases.full$log.Y[is.infinite(purchases.full$log.Y)] <- NA
-
   formula1 <- as.formula(paste0(
     (log.Y), "~ ln_sales_tax | time + household_code "
   ))
   flog.info("Estimating with log %s as outcome", Y)
   res1 <- felm(formula = formula1, data = purchases.sample,
-               weights = purchases.sample$projection_factor)
+               weights = purchases.sample$projection_factor, na.omit)
   flog.info("Finished estimating with log %s as outcome.", Y)
   
   
