@@ -39,6 +39,12 @@ purchases.sample <- purchases.sample[, ln_expenditure_unknown := log(expenditure
 purchases.sample$ln_expenditure_unknown[is.infinite(purchases.sample$ln_expenditure_unknown)] <- NA
 purchases.sample[, cal_time := 12 * year + month]
 
+# impute tax rates prior to 2008 and after 2014
+purchases.sample[, ln_sales_tax := ifelse(year < 2008, ln_sales_tax[year == 2008 & month == 1], ln_sales_tax),
+       by = .(household_code)]
+purchases.sample[, ln_sales_tax := ifelse(year > 2014, ln_sales_tax[year == 2014 & month == 12], ln_sales_tax),
+       by = .(household_code)]
+
 ## take first differences of outcomes and treatment
 setkey(purchases.sample, household_code, year, month)
 purchases.sample <- purchases.sample[order(household_code, cal_time),] ##Sort on hh by year-quarter (in ascending order)
@@ -67,6 +73,9 @@ for (lag.val in 1:24) {
   purchases.sample[, (lead.X) := shift(D.ln_sales_tax, n=lag.val, type="lead"),
          by = .(household_code)]
 }
+# Restrict data to interest window
+purchases.sample <- purchases.sample[between(year, 2008, 2014)]
+purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & month >= 2)] ## First month of 2008, the difference was imputed not real data - so we drop it
 
 
 ## Estimations: Expenditure on type of module --------
@@ -74,7 +83,7 @@ output.results.file <- "../../../../../home/slacouture/HMS/HH_month_leadslags_cu
 outcomes <- c("expenditure_taxable", "expenditure_non_taxable", "expenditure_unknown", 
               "ln_expenditure_taxable", "ln_expenditure_non_taxable", "ln_expenditure_unknown")
 
-purchases.sample <- purchases.sample[between(year, 2008, 2014)]
+
 
 formula_lags <- paste0("L", 1:24, ".D.ln_sales_tax", collapse = "+")
 formula_leads <- paste0("F", 1:24, ".D.ln_sales_tax", collapse = "+")
