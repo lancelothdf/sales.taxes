@@ -146,7 +146,7 @@ purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & month >= 2)
 
 
 ## Estimations: Expenditure on type of module --------
-output.results.file <- "../../../../../home/slacouture/HMS/HH_month_leadslags_cumulative_totexpenditure.csv"
+output.results.file <- "../../../../../home/slacouture/HMS/HH_month_leadslags_cumulative_repincome.csv"
 outcomes <- c("D.ln_hh_income", "D.ln_expenditure_taxable", "D.ln_expenditure_non_taxable", "D.ln_expenditure_unknown",
               "D.ln_expenditure_diff3", "D.ln_expenditure_same3", "D.ln_share_taxable",
               "D.ln_share_non_taxable", "D.ln_share_unknown", "D.ln_share_same3", "D.ln_share_diff3")
