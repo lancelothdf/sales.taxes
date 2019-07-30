@@ -92,7 +92,7 @@ LRdiff_res <- data.table(NULL)
 for (Y in outcomes) {
 
   formula1 <- as.formula(paste0(
-    Y, "~", formula_RHS, "| time + household_code"
+    Y, "~", formula_RHS, "| time"
   ))
   flog.info("Estimating with %s as outcome.", Y)
   res1 <- felm(formula = formula1, data = purchases.sample,
@@ -202,10 +202,30 @@ for (Y in outcomes) {
   
   ## linear hypothesis results
   lp.dt <- data.table(
-    rn = c("cumul.lead8.D.ln_sales_tax", "cumul.lead7.D.ln_sales_tax", "cumul.lead6.D.ln_sales_tax", "cumul.lead5.D.ln_sales_tax", "cumul.lead4.D.ln_sales_tax", "cumul.lead3.D.ln_sales_tax", "cumul.lead2.D.ln_sales_tax", "cumul.lead1.D.ln_sales_tax", "cumul.lag0.D.ln_sales_tax", "cumul.lag1.D.ln_sales_tax", "cumul.lag2.D.ln_sales_tax", "cumul.lag3.D.ln_sales_tax", "cumul.lag4.D.ln_sales_tax", "cumul.lag5.D.ln_sales_tax", "cumul.lag6.D.ln_sales_tax", "cumul.lag7.D.ln_sales_tax", "cumul.lag8.D.ln_sales_tax"),
-    Estimate = c(cumul.lead8.est, cumul.lead7.est, cumul.lead6.est, cumul.lead5.est, cumul.lead4.est, cumul.lead3.est, cumul.lead2.est, cumul.lead1.est, cumul.lag0.est, cumul.lag1.est, cumul.lag2.est, cumul.lag3.est, cumul.lag4.est, cumul.lag5.est, cumul.lag6.est, cumul.lag7.est, cumul.lag8.est),
-    `Std. Error` = c(cumul.lead8.se, cumul.lead7.se, cumul.lead6.se, cumul.lead5.se, cumul.lead4.se, cumul.lead3.se, cumul.lead2.se, cumul.lead1.se, cumul.lag0.se, cumul.lag1.se, cumul.lag2.se, cumul.lag3.se, cumul.lag4.se, cumul.lag5.se, cumul.lag6.se, cumul.lag7.se, cumul.lag8.se),
-    `Pr(>|t|)` = c(cumul.lead8.pval, cumul.lead7.pval, cumul.lead6.pval, cumul.lead5.pval, cumul.lead4.pval, cumul.lead3.pval, cumul.lead2.pval, cumul.lead1.pval, cumul.lag0.pval, cumul.lag1.pval, cumul.lag2.pval, cumul.lag3.pval, cumul.lag4.pval, cumul.lag5.pval, cumul.lag6.pval, cumul.lag7.pval, cumul.lag8.pval),
+    rn = c("cumul.lead24.D.ln_sales_tax", "cumul.lead23.D.ln_sales_tax", "cumul.lead22.D.ln_sales_tax", "cumul.lead21.D.ln_sales_tax", "cumul.lead20.D.ln_sales_tax", "cumul.lead19.D.ln_sales_tax", "cumul.lead18.D.ln_sales_tax", "cumul.lead17.D.ln_sales_tax", 
+           "cumul.lead16.D.ln_sales_tax", "cumul.lead15.D.ln_sales_tax", "cumul.lead14.D.ln_sales_tax", "cumul.lead13.D.ln_sales_tax", "cumul.lead12.D.ln_sales_tax", "cumul.lead11.D.ln_sales_tax", "cumul.lead10.D.ln_sales_tax", "cumul.lead9.D.ln_sales_tax", 
+           "cumul.lead8.D.ln_sales_tax", "cumul.lead7.D.ln_sales_tax", "cumul.lead6.D.ln_sales_tax", "cumul.lead5.D.ln_sales_tax", "cumul.lead4.D.ln_sales_tax", "cumul.lead3.D.ln_sales_tax", "cumul.lead2.D.ln_sales_tax", "cumul.lead1.D.ln_sales_tax", 
+           "cumul.lag0.D.ln_sales_tax", "cumul.lag1.D.ln_sales_tax", "cumul.lag2.D.ln_sales_tax", "cumul.lag3.D.ln_sales_tax", "cumul.lag4.D.ln_sales_tax", "cumul.lag5.D.ln_sales_tax", "cumul.lag6.D.ln_sales_tax", "cumul.lag7.D.ln_sales_tax", "cumul.lag8.D.ln_sales_tax",
+           "cumul.lag9.D.ln_sales_tax", "cumul.lag10.D.ln_sales_tax", "cumul.lag11.D.ln_sales_tax", "cumul.lag12.D.ln_sales_tax", "cumul.lag13.D.ln_sales_tax", "cumul.lag14.D.ln_sales_tax", "cumul.lag15.D.ln_sales_tax", "cumul.lag16.D.ln_sales_tax",
+           "cumul.lag17.D.ln_sales_tax", "cumul.lag18.D.ln_sales_tax", "cumul.lag19.D.ln_sales_tax", "cumul.lag20.D.ln_sales_tax", "cumul.lag21.D.ln_sales_tax", "cumul.lag22.D.ln_sales_tax", "cumul.lag23.D.ln_sales_tax", "cumul.lag24.D.ln_sales_tax"),
+    Estimate = c(cumul.lead24.est, cumul.lead23.est, cumul.lead22.est, cumul.lead21.est, cumul.lead20.est, cumul.lead19.est, cumul.lead18.est, cumul.lead17.est,
+                 cumul.lead16.est, cumul.lead15.est, cumul.lead14.est, cumul.lead13.est, cumul.lead12.est, cumul.lead11.est, cumul.lead10.est, cumul.lead9.est,
+                 cumul.lead8.est, cumul.lead7.est, cumul.lead6.est, cumul.lead5.est, cumul.lead4.est, cumul.lead3.est, cumul.lead2.est, cumul.lead1.est, 
+                 cumul.lag0.est, cumul.lag1.est, cumul.lag2.est, cumul.lag3.est, cumul.lag4.est, cumul.lag5.est, cumul.lag6.est, cumul.lag7.est, cumul.lag8.est,
+                 cumul.lag9.est, cumul.lag10.est, cumul.lag11.est, cumul.lag12.est, cumul.lag13.est, cumul.lag14.est, cumul.lag15.est, cumul.lag16.est, 
+                 cumul.lag17.est, cumul.lag18.est, cumul.lag19.est, cumul.lag20.est, cumul.lag21.est, cumul.lag22.est, cumul.lag23.est, cumul.lag24.est),
+    `Std. Error` = c(cumul.lead24.se, cumul.lead23.se, cumul.lead22.se, cumul.lead21.se, cumul.lead20.se, cumul.lead19.se, cumul.lead18.se, cumul.lead17.se,
+                     cumul.lead16.se, cumul.lead15.se, cumul.lead14.se, cumul.lead13.se, cumul.lead12.se, cumul.lead11.se, cumul.lead10.se, cumul.lead9.se,
+                     cumul.lead8.se, cumul.lead7.se, cumul.lead6.se, cumul.lead5.se, cumul.lead4.se, cumul.lead3.se, cumul.lead2.se, cumul.lead1.se, 
+                     cumul.lag0.se, cumul.lag1.se, cumul.lag2.se, cumul.lag3.se, cumul.lag4.se, cumul.lag5.se, cumul.lag6.se, cumul.lag7.se, cumul.lag8.se,
+                     cumul.lag9.se, cumul.lag10.se, cumul.lag11.se, cumul.lag12.se, cumul.lag13.se, cumul.lag14.se, cumul.lag15.se, cumul.lag16.se, 
+                     cumul.lag17.se, cumul.lag18.se, cumul.lag19.se, cumul.lag20.se, cumul.lag21.se, cumul.lag22.se, cumul.lag23.se, cumul.lag24.se),
+    `Pr(>|t|)` = c(cumul.lead24.pval, cumul.lead23.pval, cumul.lead22.pval, cumul.lead21.pval, cumul.lead20.pval, cumul.lead19.pval, cumul.lead18.pval, cumul.lead17.pval,
+                   cumul.lead16.pval, cumul.lead15.pval, cumul.lead14.pval, cumul.lead13.pval, cumul.lead12.pval, cumul.lead11.pval, cumul.lead10.pval, cumul.lead9.pval,
+                   cumul.lead8.pval, cumul.lead7.pval, cumul.lead6.pval, cumul.lead5.pval, cumul.lead4.pval, cumul.lead3.pval, cumul.lead2.pval, cumul.lead1.pval, 
+                   cumul.lag0.pval, cumul.lag1.pval, cumul.lag2.pval, cumul.lag3.pval, cumul.lag4.pval, cumul.lag5.pval, cumul.lag6.pval, cumul.lag7.pval, cumul.lag8.pval,
+                   cumul.lag9.pval, cumul.lag10.pval, cumul.lag11.pval, cumul.lag12.pval, cumul.lag13.pval, cumul.lag14.pval, cumul.lag15.pval, cumul.lag16.pval, 
+                   cumul.lag17.pval, cumul.lag18.pval, cumul.lag19.pval, cumul.lag20.pval, cumul.lag21.pval, cumul.lag22.pval, cumul.lag23.pval, cumul.lag24.pval),
     outcome = Y,
     Rsq = summary(res1)$r.squared,
     adj.Rsq = summary(res1)$adj.r.squared)
