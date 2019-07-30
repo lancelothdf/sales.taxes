@@ -40,6 +40,9 @@ purchases.sample[, share_same3 := expenditure_same3/sum_total_exp_month]
 purchases.sample[, share_diff3 := expenditure_diff3/sum_total_exp_month]
 
 # Logarithms of variables
+purchases.sample[, ln_tot_expenditure := log(sum_total_exp_month)]
+purchases.sample$ln_tot_expenditure[is.infinite(purchases.sample$ln_tot_expenditure)] <- NA
+
 purchases.sample <- purchases.sample[, ln_expenditure_taxable := log(expenditure_taxable)]
 purchases.sample$ln_expenditure_taxable[is.infinite(purchases.sample$ln_expenditure_taxable)] <- NA
 purchases.sample <- purchases.sample[, ln_expenditure_non_taxable := log(expenditure_non_taxable)]
@@ -78,6 +81,10 @@ purchases.sample <- purchases.sample[order(household_code, cal_time),] ##Sort on
 
 purchases.sample[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
                  by = .(household_code)]
+
+purchases.sample[, D.ln_tot_expenditure := ln_tot_expenditure - shift(ln_tot_expenditure, n=1, type="lag"),
+                 by = .(household_code)]
+
 purchases.sample[, D.ln_expenditure_taxable := ln_expenditure_taxable - shift(ln_expenditure_taxable, n=1, type="lag"),
                  by = .(household_code)]
 purchases.sample[, D.ln_expenditure_non_taxable := ln_expenditure_non_taxable - shift(ln_expenditure_non_taxable, n=1, type="lag"),
@@ -119,7 +126,7 @@ purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & month >= 2)
 
 ## Estimations: Expenditure on type of module --------
 output.results.file <- "../../../../../home/slacouture/HMS/HH_month_leadslags_cumulative_totexpenditure.csv"
-outcomes <- c("D.ln_expenditure_taxable", "D.ln_expenditure_non_taxable", "D.ln_expenditure_unknown",
+outcomes <- c("D.ln_tot_expenditure", "D.ln_expenditure_taxable", "D.ln_expenditure_non_taxable", "D.ln_expenditure_unknown",
               "D.ln_expenditure_diff3", "D.ln_expenditure_same3", "D.ln_share_taxable",
               "D.ln_share_non_taxable", "D.ln_share_unknown", "D.ln_share_same3", "D.ln_share_diff3")
 
@@ -140,8 +147,13 @@ LRdiff_res <- data.table(NULL)
 for (Y in outcomes) {
   
   formula1 <- as.formula(paste0(
-    Y, "~ sum_total_exp_month +", formula_RHS, "| time"
+    Y, "~ ln_tot_expenditure +", formula_RHS, "| time"
   ))
+  if (Y == "D.ln_tot_expenditure") {
+    formula1 <- as.formula(paste0(
+      Y, "~ ", formula_RHS, "| time"
+    ))
+  }
   flog.info("Estimating with %s as outcome.", Y)
   res1 <- felm(formula = formula1, data = purchases.sample,
                weights = purchases.sample$projection_factor)
