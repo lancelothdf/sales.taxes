@@ -31,7 +31,7 @@ purchases.full[, sum(is.na(sales_tax))]
 purchases.sample <- purchases.nomagnet[!is.na(sales_tax)]
 
 ## Create Necessary variables -----------------------
-
+head(purchases.sample)
 # Reported income
 purchases.sample$household_income_c[household_income == 3] <- 2500
 purchases.sample$household_income_c[household_income == 4] <- 6500
