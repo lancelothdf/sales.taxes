@@ -34,6 +34,9 @@ purchases.sample <- purchases.nomagnet[!is.na(sales_tax)]
 output.results.file <- "../../../../../home/slacouture/HMS/HH_month_basic_results.csv"
 outcomes <- c("expenditure_taxable", "expenditure_non_taxable", "expenditure_unknown")
 
+purchases.sample <- purchases.sample[, ln_expenditure_taxable := log(expenditure_taxable)]
+purchases.sample <- purchases.sample[, ln_expenditure_non_taxable := log(expenditure_non_taxable)]
+purchases.sample <- purchases.sample[, ln_expenditure_unknown := log(expenditure_unknown)]
 
 LRdiff_res <- data.table(NULL)
 for (Y in outcomes) {
@@ -58,12 +61,11 @@ for (Y in outcomes) {
 
   # Now the log
   log.Y <- paste0("ln_", Y)
-  purchases.sample[, log.Y := log( Y )]
   # make sure 0s are now missings
   purchases.full$log.Y[is.infinite(purchases.full$log.Y)] <- NA
 
   formula1 <- as.formula(paste0(
-    log.Y, "~ ln_sales_tax | time + household_code "
+    (log.Y), "~ ln_sales_tax | time + household_code "
   ))
   flog.info("Estimating with log %s as outcome", Y)
   res1 <- felm(formula = formula1, data = purchases.sample,
