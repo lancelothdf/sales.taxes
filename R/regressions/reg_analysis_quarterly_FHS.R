@@ -244,8 +244,10 @@ analysis_function <- function(demean, impute, FE, outcome, FHS = NULL) {
     flog.info("Not using imputed sample.")
   }
 
-  if (FHS == "unemp_rate")    dt <- dt[sample.unemp == 1]
-  if (FHS == "ln_home_price") dt <- dt[sample.houseprice == 1]
+  if (!is.null(FHS)) {
+    if (FHS == "unemp_rate")    dt <- dt[sample.unemp == 1]
+    if (FHS == "ln_home_price") dt <- dt[sample.houseprice == 1]
+  }
 
   ## demean
   flog.info("Demeaning.")
