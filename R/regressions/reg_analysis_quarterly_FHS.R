@@ -231,7 +231,7 @@ all_vars <- c(
 )
 
 analysis_function <- function(demean, impute, FE, outcome, FHS = NULL) {
-  dt <- fread(all_pi)
+  dt <- fread(temp.outfile)
   ## impute if necessary
   if (impute) {
     dt <- dt[sample.imputed == 1]
