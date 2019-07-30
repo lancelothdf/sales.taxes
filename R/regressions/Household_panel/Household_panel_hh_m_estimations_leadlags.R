@@ -75,7 +75,6 @@ purchases.sample[, ln_sales_tax := ifelse(year > 2014, ln_sales_tax[year == 2014
 setkey(purchases.sample, household_code, year, month)
 purchases.sample <- purchases.sample[order(household_code, cal_time),] ##Sort on hh by year-quarter (in ascending order)
 
-
 purchases.sample[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
        by = .(household_code)]
 purchases.sample[, D.ln_expenditure_taxable := ln_expenditure_taxable - shift(ln_expenditure_taxable, n=1, type="lag"),
@@ -88,6 +87,19 @@ purchases.sample[, D.ln_expenditure_diff3 := ln_expenditure_diff3 - shift(ln_exp
                  by = .(household_code)]
 purchases.sample[, D.ln_expenditure_same3 := ln_expenditure_same3 - shift(ln_expenditure_same3, n=1, type="lag"),
                  by = .(household_code)]
+
+purchases.sample[, D.ln_share_taxable := ln_share_taxable - shift(ln_share_taxable, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_share_non_taxable := ln_share_non_taxable - shift(ln_share_non_taxable, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_share_unknown := ln_share_unknown - shift(ln_share_unknown, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_share_diff3 := ln_share_diff3 - shift(ln_share_diff3, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_share_same3 := ln_share_same3 - shift(ln_share_same3, n=1, type="lag"),
+                 by = .(household_code)]
+
+
 
 ## generate lags and leads of ln_sales_tax
 for (lag.val in 1:24) {
@@ -107,8 +119,8 @@ purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & month >= 2)
 ## Estimations: Expenditure on type of module --------
 output.results.file <- "../../../../../home/slacouture/HMS/HH_month_leadslags_cumulative.csv"
 outcomes <- c("D.ln_expenditure_taxable", "D.ln_expenditure_non_taxable", "D.ln_expenditure_unknown",
-              "D.ln_expenditure_diff3", "D.ln_expenditure_same3", "ln_share_taxable",
-              "ln_share_non_taxable", "ln_share_unknown", "ln_share_same3", "ln_share_diff3")
+              "D.ln_expenditure_diff3", "D.ln_expenditure_same3", "D.ln_share_taxable",
+              "D.ln_share_non_taxable", "D.ln_share_unknown", "D.ln_share_same3", "D.ln_share_diff3")
 
 
 formula_lags <- paste0("L", 1:24, ".D.ln_sales_tax", collapse = "+")
