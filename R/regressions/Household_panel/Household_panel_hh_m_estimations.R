@@ -14,7 +14,7 @@ library(ggplot2)
 setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 
 ## Open Data
-purchases.full <- fread("cleaning/consumer_panel_m_hh_2006-2016_ids.csv")
+purchases.full <- fread("cleaning/consumer_panel_m_hh_2006-2016.csv")
 
 purchases.full$time <- factor(with(purchases.full, interaction(year, month)))
 
@@ -34,6 +34,12 @@ purchases.sample <- purchases.nomagnet[!is.na(sales_tax)]
 output.results.file <- "../../../../../home/slacouture/HMS/HH_month_basic_results.csv"
 outcomes <- c("expenditure_taxable", "expenditure_non_taxable", "expenditure_unknown")
 
+purchases.sample <- purchases.sample[, ln_expenditure_taxable := log(expenditure_taxable)]
+purchases.sample$ln_expenditure_taxable[is.infinite(purchases.sample$ln_expenditure_taxable)] <- NA
+purchases.sample <- purchases.sample[, ln_expenditure_non_taxable := log(expenditure_non_taxable)]
+purchases.sample$ln_expenditure_non_taxable[is.infinite(purchases.sample$ln_expenditure_non_taxable)] <- NA
+purchases.sample <- purchases.sample[, ln_expenditure_unknown := log(expenditure_unknown)]
+purchases.sample$ln_expenditure_unknown[is.infinite(purchases.sample$ln_expenditure_unknown)] <- NA
 
 LRdiff_res <- data.table(NULL)
 for (Y in outcomes) {
@@ -58,16 +64,13 @@ for (Y in outcomes) {
 
   # Now the log
   log.Y <- paste0("ln_", Y)
-  purchases.sample[, (log.Y) := log(Y)]
   # make sure 0s are now missings
-  purchases.full$log.Y[is.infinite(purchases.full$log.Y)] <- NA
-
   formula1 <- as.formula(paste0(
     (log.Y), "~ ln_sales_tax | time + household_code "
   ))
   flog.info("Estimating with log %s as outcome", Y)
   res1 <- felm(formula = formula1, data = purchases.sample,
-               weights = purchases.sample$projection_factor)
+               weights = purchases.sample$projection_factor, na.omit)
   flog.info("Finished estimating with log %s as outcome.", Y)
   
   
