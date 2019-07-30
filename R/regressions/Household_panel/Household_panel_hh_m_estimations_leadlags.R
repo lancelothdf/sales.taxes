@@ -31,6 +31,13 @@ purchases.sample <- purchases.nomagnet[!is.na(sales_tax)]
 
 ## Create Necessary variables -----------------------
 
+# Try also shares
+purchases.sample[, share_taxable := expenditure_taxable/sum_total_exp_month]
+purchases.sample[, share_non_taxable := expenditure_non_taxable/sum_total_exp_month]
+purchases.sample[, share_unknown := expenditure_unknown/sum_total_exp_month]
+purchases.sample[, share_same3 := expenditure_same3/sum_total_exp_month]
+purchases.sample[, share_diff3 := expenditure_diff3/sum_total_exp_month]
+
 # Logarithms of variables
 purchases.sample <- purchases.sample[, ln_expenditure_taxable := log(expenditure_taxable)]
 purchases.sample$ln_expenditure_taxable[is.infinite(purchases.sample$ln_expenditure_taxable)] <- NA
@@ -42,6 +49,20 @@ purchases.sample <- purchases.sample[, ln_expenditure_same3 := log(expenditure_s
 purchases.sample$ln_expenditure_same3[is.infinite(purchases.sample$ln_expenditure_same3)] <- NA
 purchases.sample <- purchases.sample[, ln_expenditure_diff3 := log(expenditure_diff3)]
 purchases.sample$ln_expenditure_diff3[is.infinite(purchases.sample$ln_expenditure_diff3)] <- NA
+
+purchases.sample <- purchases.sample[, ln_share_taxable := log(share_taxable)]
+purchases.sample$ln_share_taxable[is.infinite(purchases.sample$ln_share_taxable)] <- NA
+purchases.sample <- purchases.sample[, ln_share_non_taxable := log(share_non_taxable)]
+purchases.sample$ln_share_non_taxable[is.infinite(purchases.sample$ln_share_non_taxable)] <- NA
+purchases.sample <- purchases.sample[, ln_share_unknown := log(share_unknown)]
+purchases.sample$ln_share_unknown[is.infinite(purchases.sample$ln_share_unknown)] <- NA
+purchases.sample <- purchases.sample[, ln_share_same3 := log(share_same3)]
+purchases.sample$ln_share_same3[is.infinite(purchases.sample$ln_share_same3)] <- NA
+purchases.sample <- purchases.sample[, ln_share_diff3 := log(share_diff3)]
+purchases.sample$ln_share_diff3[is.infinite(purchases.sample$ln_share_diff3)] <- NA
+
+
+# Time
 purchases.sample[, cal_time := 12 * year + month]
 
 # impute tax rates prior to 2008 and after 2014
@@ -86,7 +107,8 @@ purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & month >= 2)
 ## Estimations: Expenditure on type of module --------
 output.results.file <- "../../../../../home/slacouture/HMS/HH_month_leadslags_cumulative.csv"
 outcomes <- c("D.ln_expenditure_taxable", "D.ln_expenditure_non_taxable", "D.ln_expenditure_unknown",
-              "D.ln_expenditure_diff3", "D.ln_expenditure_same3")
+              "D.ln_expenditure_diff3", "D.ln_expenditure_same3", "ln_share_taxable",
+              "ln_share_non_taxable", "ln_share_unknown", "ln_share_same3", "ln_share_diff3")
 
 
 formula_lags <- paste0("L", 1:24, ".D.ln_sales_tax", collapse = "+")
