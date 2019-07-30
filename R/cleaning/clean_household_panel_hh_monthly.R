@@ -150,7 +150,7 @@ setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 #                           value.var = "total_expenditures")
 # fwrite(purchases.full, "cleaning/consumer_panel_m_hh_2006-2016.csv")
 
-purchases.full <- fread("cleaning/consumer_panel_m_hh_2006-2016_ids.csv")
+purchases.full <- fread("cleaning/consumer_panel_m_hh_2006-2016.csv")
 
 
 head(purchases.full)
