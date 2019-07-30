@@ -31,27 +31,28 @@ purchases.full[, sum(is.na(sales_tax))]
 purchases.sample <- purchases.nomagnet[!is.na(sales_tax)]
 
 ## Create Necessary variables -----------------------
-# Reported income
+# Reported income mid-point of interval
+
 purchases.sample[, household_income_c := household_income ]
-purchases.sample$household_income_c[household_income_c == 3] <- 2500
-purchases.sample$household_income_c[household_income_c == 4] <- 6500
-purchases.sample$household_income_c[household_income_c == 6] <- 9000
-purchases.sample$household_income_c[household_income_c == 8] <- 11000
-purchases.sample$household_income_c[household_income_c == 10] <- 13000
-purchases.sample$household_income_c[household_income_c == 11] <- 17500
-purchases.sample$household_income_c[household_income_c == 13] <- 22500
-purchases.sample$household_income_c[household_income_c == 15] <- 27500
-purchases.sample$household_income_c[household_income_c == 16] <- 32500
-purchases.sample$household_income_c[household_income_c == 17] <- 37500
-purchases.sample$household_income_c[household_income_c == 18] <- 42500
-purchases.sample$household_income_c[household_income_c == 19] <- 47500
-purchases.sample$household_income_c[household_income_c == 21] <- 55000
-purchases.sample$household_income_c[household_income_c == 23] <- 65000
-purchases.sample$household_income_c[household_income_c == 26] <- 80000
-purchases.sample$household_income_c[household_income_c == 27] <- 112500
-purchases.sample$household_income_c[household_income_c == 28] <- 137500
-purchases.sample$household_income_c[household_income_c == 29] <- 175000
-purchases.sample$household_income_c[household_income_c == 30] <- 212500
+purchases.sample$household_income_c[purchases.sample$household_income_c == 3] <- 2500
+purchases.sample$household_income_c[purchases.sample$household_income_c == 4] <- 6500
+purchases.sample$household_income_c[purchases.sample$household_income_c == 6] <- 9000
+purchases.sample$household_income_c[purchases.sample$household_income_c == 8] <- 11000
+purchases.sample$household_income_c[purchases.sample$household_income_c == 10] <- 13000
+purchases.sample$household_income_c[purchases.sample$household_income_c == 11] <- 17500
+purchases.sample$household_income_c[purchases.sample$household_income_c == 13] <- 22500
+purchases.sample$household_income_c[purchases.sample$household_income_c == 15] <- 27500
+purchases.sample$household_income_c[purchases.sample$household_income_c == 16] <- 32500
+purchases.sample$household_income_c[purchases.sample$household_income_c == 17] <- 37500
+purchases.sample$household_income_c[purchases.sample$household_income_c == 18] <- 42500
+purchases.sample$household_income_c[purchases.sample$household_income_c == 19] <- 47500
+purchases.sample$household_income_c[purchases.sample$household_income_c == 21] <- 55000
+purchases.sample$household_income_c[purchases.sample$household_income_c == 23] <- 65000
+purchases.sample$household_income_c[purchases.sample$household_income_c == 26] <- 80000
+purchases.sample$household_income_c[purchases.sample$household_income_c == 27] <- 112500
+purchases.sample$household_income_c[purchases.sample$household_income_c == 28] <- 137500
+purchases.sample$household_income_c[purchases.sample$household_income_c == 29] <- 175000
+purchases.sample$household_income_c[purchases.sample$household_income_c == 30] <- 212500
 
 # Try also shares
 purchases.sample[, share_taxable := expenditure_taxable/sum_total_exp_month]
