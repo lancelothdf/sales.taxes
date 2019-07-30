@@ -18,7 +18,7 @@ library(lfe)
 library(multcomp)
 
 setwd("/project2/igaarder")
-prep_dt <- T
+prep_dt <- F
 
 ### Useful filepaths ----------------------------------------------
 # quarterly Laspeyres indices, sales, and sales tax rates from 2006-2014
@@ -211,6 +211,9 @@ fwrite(all_pi, temp.outfile)
 stop("Intended")
 }
 
+# remove all data.frames/data.tables to clear out space
+rm(list = names(Filter(is.data.frame, mget(ls(all = T)))))
+
 formula_lags <- paste0("L", 1:7, ".D.ln_sales_tax", collapse = "+")
 formula_leads <- paste0("F", c(1, 3:8), ".D.ln_sales_tax", collapse = "+")
 formula_leads.FHS <- paste0("F", 3:8, ".D.ln_sales_tax", collapse = "+")
@@ -221,143 +224,132 @@ outcomes <- c("ln_cpricei", "ln_quantity")
 FE_opts <- c("cal_time", "module_by_time",
              "region_by_module_by_time",
              "division_by_module_by_time")
-
-## subset the data
-temp.all_pi.imputed <- all_pi[sample.imputed == 1]
-temp.all_pi.not.imputed <- all_pi[sample.not.imputed == 1]
-rm(all_pi)
-
-## Demean on store-module level to reduce dimensionality
 all_vars <- c(
   paste0("L", 1:7, ".D.ln_sales_tax"), "D.ln_sales_tax",
   paste0("F", c(1, 3:8), ".D.ln_sales_tax"),
   "ln_cpricei", "ln_quantity", "unemp_rate",  "ln_home_price"
 )
 
-## Need to demean separately for different subsamples
-# for (V in all_vars) {
-#   all_pi.imputed[, (V) := get(V) - mean(get(V), na.rm = T),
-#                  by = store_by_module]
-#
-#   all_pi.not.imputed[, (V) := get(V) - mean(get(V), na.rm = T),
-#                      by = store_by_module]
-# }
+analysis_function <- function(demean, impute, FE, outcome, FHS = NULL) {
+  dt <- fread(all_pi)
+  ## impute if necessary
+  if (impute) {
+    dt <- dt[sample.imputed == 1]
+    flog.info("Using imputed sample.")
+  } else {
+    dt <- dt[sample.not.imputed == 1]
+    flog.info("Not using imputed sample.")
+  }
+  ## demean
+  flog.info("Demeaning.")
+  for (V in all_vars) {
+    dt[, (V) := get(V) - mean(get(V), na.rm = T), by = demean]
+  }
+  ## get FE
+  if (length(FE) > 1) model.FE <- paste(FE, collapse = "+") else model.FE <- FE
+
+  ## declare formula
+  if (!is.null(FHS)) {
+    if (FHS == "unemp_rate")    dt <- dt[sample.unemp == 1]
+    if (FHS == "ln_home_price") dt <- dt[sample.houseprice == 1]
+    form <- as.formula(paste0(
+      outcome, "~", formula_RHS.FHS, " | ", model.FE,
+      " | (", FHS, "~F1.D.ln_sales_tax) | module_by_state"
+    ))
+    spec <- FHS
+  } else {
+    form <- as.formula(paste0(
+      outcome, "~", formula_RHS, "| ", model.FE, " | 0 | module_by_state"
+    ))
+    spec <- "no X"
+  }
+
+  flog.info("Estimating with %s as outcome with %s FE.", outcome, FE)
+  res <- felm(formula = form,
+              data    = dt,
+              weights = dt$base.sales)
+  flog.info("Finished estimating with %s as outcome with %s FE.", outcome, FE)
+
+  res.dt <- as.data.table(coef(summary(res)), keep.rownames = T)
+  res.dt[, `:=` (outcome  = outcome,
+                 controls = FE,
+                 imputed  = imputed,
+                 spec     = spec,
+                 unit_FE  = "demeaned")]
+
+  rm(dt)
+  return(res.dt)
+}
 
 res.table <- data.table(NULL)
 for (FE in FE_opts) {
-  ## Demean by the fixed effects
-  all_pi.imputed <- copy(temp.all_pi.imputed)
-  all_pi.not.imputed <- copy(temp.all_pi.not.imputed)
-
-  for (V in all_vars) {
-    all_pi.imputed[, (V) := get(V) - mean(get(V), na.rm = T),
-                   by = FE]
-
-    all_pi.not.imputed[, (V) := get(V) - mean(get(V), na.rm = T),
-                       by = FE]
-  }
-
   for (Y in outcomes) {
-    model.FE <- "store_by_module"
-    # FE <- paste(FE, "+ store_by_module") # include a unit FE
 
     ## Estimation without accounting for covariates, not imputing
     flog.info("Estimating without accounting for covariates...")
-
-    formula1 <- as.formula(paste0(
-      Y, "~", formula_RHS, "| ", model.FE, " | 0 | module_by_state"
-    ))
-    flog.info("Estimating with %s as outcome with %s FE (not imputing).", Y, FE)
-    res1 <- felm(formula = formula1,
-                 data    = all_pi.not.imputed,
-                 weights = all_pi.not.imputed$base.sales)
-    flog.info("Finished estimating with %s as outcome with %s FE (not imputing).", Y, FE)
-
-    res.dt <- as.data.table(coef(summary(res1)), keep.rownames = T)
-    res.dt[, `:=` (outcome = Y, controls = FE, imputed = F, spec = "no_X")]
-    res.table <- rbind(res.table, res.dt, fill = T)
+    res1 <- analysis_function(demean  = "store_by_module",
+                              impute  = FALSE,
+                              FE      = FE,
+                              outcome = Y,
+                              FHS     = NULL)
+    res.table <- rbind(res.table, res1, fill = T)
     fwrite(res.table, reg.outfile)
 
     ## Estimation without accounting for covariates, imputing
 
-    flog.info("Estimating with %s as outcome with %s FE (imputing).", Y, FE)
-    res1.imp <- felm(formula = formula1,
-                     data    = all_pi.imputed,
-                     weights = all_pi.imputed$base.sales)
-    flog.info("Finished estimating with %s as outcome with %s FE (imputing).", Y, FE)
+    res1.imp <- analysis_function(demean  = "store_by_module",
+                                  impute  = TRUE,
+                                  FE      = FE,
+                                  outcome = Y,
+                                  FHS     = NULL)
 
-    res.dt <- as.data.table(coef(summary(res1.imp)), keep.rownames = T)
-    res.dt[, `:=` (outcome = Y, controls = FE, imputed = T, spec = "no_X")]
-    res.table <- rbind(res.table, res.dt, fill = T)
+    res.table <- rbind(res.table, res1.imp, fill = T)
     fwrite(res.table, reg.outfile)
 
     ## Estimation controlling for unemployment via FHS, not imputing
     flog.info("Controlling for unemployment via FHS...")
 
-    formula2 <- as.formula(paste0(
-      Y, "~", formula_RHS.FHS, " | ", model.FE,
-      " | (unemp_rate~F1.D.ln_sales_tax) | module_by_state"
-    ))
-    flog.info("Estimating with %s as outcome with %s FE (not imputing).", Y, FE)
-    res2 <- felm(formula = formula2,
-                 data    = all_pi.not.imputed[sample.unemp == 1],
-                 weights = all_pi.not.imputed[sample.unemp == 1]$base.sales)
-    flog.info("Finished estimating with %s as outcome with %s FE (not imputing).", Y, FE)
+    res2 <- analysis_function(demean  = "store_by_module",
+                              impute  = FALSE,
+                              FE      = FE,
+                              outcome = Y,
+                              FHS     = "unemp_rate")
 
-    res.dt <- as.data.table(coef(summary(res2)), keep.rownames = T)
-    res.dt[, `:=` (outcome = Y, controls = FE, imputed = F, spec = "unemp_FHS")]
-    res.table <- rbind(res.table, res.dt, fill = T)
+    res.table <- rbind(res.table, res2, fill = T)
     fwrite(res.table, reg.outfile)
 
     ## Estimation controlling for unemployment via FHS, imputing
+    res2.imp <- analysis_function(demean  = "store_by_module",
+                                  impute  = TRUE,
+                                  FE      = FE,
+                                  outcome = Y,
+                                  FHS     = "unemp_rate")
 
-    flog.info("Estimating with %s as outcome with %s FE (imputing).", Y, FE)
-    res2.imp <- felm(formula = formula2,
-                 data    = all_pi.imputed[sample.unemp == 1],
-                 weights = all_pi.imputed[sample.unemp == 1]$base.sales)
-    flog.info("Finished estimating with %s as outcome with %s FE (imputing).", Y, FE)
-
-    res.dt <- as.data.table(coef(summary(res2.imp)), keep.rownames = T)
-    res.dt[, `:=` (outcome = Y, controls = FE, imputed = T, spec = "unemp_FHS")]
-    res.table <- rbind(res.table, res.dt, fill = T)
-    res.table$unit_FE <- "included"
-    res.table$FE_det <- "FE demeaned"
+    res.table <- rbind(res.table, res2.imp, fill = T)
     fwrite(res.table, reg.outfile)
 
     ## Estimation controlling for house prices via FHS, not imputing
-    # flog.info("Controlling for house prices via FHS...")
-    #
-    # formula3 <- as.formula(paste0(
-    #   Y, "~", formula_RHS.FHS, " | ", FE,
-    #   " | (ln_home_price~F1.D.ln_sales_tax) | module_by_state"
-    # ))
-    # flog.info("Number of valid rows for house price: %s", nrow(all_pi[sample.houseprice==1]))
-    # flog.info("Estimating with %s as outcome with %s FE (not imputing).", Y, FE)
-    # res3 <- try(felm(formula = formula3,
-    #              data    = all_pi.not.imputed[sample.houseprice == 1],
-    #              weights = all_pi.not.imputed[sample.houseprice == 1]$base.sales))
-    # flog.info("Finished estimating with %s as outcome with %s FE (not imputing).", Y, FE)
-    #
-    # if (class(res3) == "try-error") res.dt <- data.table(rn = NA)
-    # else res.dt <- as.data.table(coef(summary(res3)), keep.rownames = T)
-    # res.dt[, `:=` (outcome = Y, controls = FE, imputed = F, spec = "houseprice_FHS")]
-    # res.table <- rbind(res.table, res.dt, fill = T)
-    # fwrite(res.table, reg.outfile)
+    flog.info("FHS house price estimation")
+    res3 <- analysis_function(demean  = "store_by_module",
+                              impute  = FALSE,
+                              FE      = FE,
+                              outcome = Y,
+                              FHS     = "ln_home_price")
+
+    res.table <- rbind(res.table, res3, fill = T)
+    fwrite(res.table, reg.outfile)
 
 
     ## Estimation controlling for house prices via FHS, imputing
 
-    # flog.info("Estimating with %s as outcome with %s FE (imputing).", Y, FE)
-    # res3.imp <- try(felm(formula = formula3,
-    #                  data    = all_pi.imputed[sample.houseprice == 1],
-    #                  weights = all_pi.imputed[sample.houseprice == 1]$base.sales))
-    # flog.info("Finished estimating with %s as outcome with %s FE (imputing).", Y, FE)
-    #
-    # if (class(res3.imp) == "try-error") res.dt <- data.table(rn = NA)
-    # else res.dt <- as.data.table(coef(summary(res3.imp)), keep.rownames = T)
-    # res.dt[, `:=` (outcome = Y, controls = FE, imputed = T, spec = "houseprice_FHS")]
-    # res.table <- rbind(res.table, res.dt, fill = T)
-    # fwrite(res.table, reg.outfile)
+    res3.imp <- analysis_function(demean  = "store_by_module",
+                                  impute  = TRUE,
+                                  FE      = FE,
+                                  outcome = Y,
+                                  FHS     = "ln_home_price")
+
+    res.table <- rbind(res.table, res3.imp, fill = T)
+    fwrite(res.table, reg.outfile)
 
   }
 }
