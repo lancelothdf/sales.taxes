@@ -273,7 +273,7 @@ analysis_function <- function(demean, impute, FE, outcome, FHS = NULL) {
   res.dt <- as.data.table(coef(summary(res)), keep.rownames = T)
   res.dt[, `:=` (outcome  = outcome,
                  controls = FE,
-                 imputed  = imputed,
+                 imputed  = impute,
                  spec     = spec,
                  unit_FE  = "demeaned")]
 
