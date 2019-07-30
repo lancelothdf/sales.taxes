@@ -94,10 +94,10 @@ for (Y in outcomes) {
   formula1 <- as.formula(paste0(
     Y, "~", formula_RHS, "| time + household_code"
   ))
-  flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
+  flog.info("Estimating with %s as outcome.", Y)
   res1 <- felm(formula = formula1, data = purchases.sample,
                weights = purchases.sample$projection_factor)
-  flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
+  flog.info("Finished estimating with %s as outcome.", Y)
   
   
   ## attach results
