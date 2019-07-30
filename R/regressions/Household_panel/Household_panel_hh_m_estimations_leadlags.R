@@ -31,12 +31,17 @@ purchases.sample <- purchases.nomagnet[!is.na(sales_tax)]
 
 ## Create Necessary variables -----------------------
 
+# Logarithms of variables
 purchases.sample <- purchases.sample[, ln_expenditure_taxable := log(expenditure_taxable)]
 purchases.sample$ln_expenditure_taxable[is.infinite(purchases.sample$ln_expenditure_taxable)] <- NA
 purchases.sample <- purchases.sample[, ln_expenditure_non_taxable := log(expenditure_non_taxable)]
 purchases.sample$ln_expenditure_non_taxable[is.infinite(purchases.sample$ln_expenditure_non_taxable)] <- NA
 purchases.sample <- purchases.sample[, ln_expenditure_unknown := log(expenditure_unknown)]
 purchases.sample$ln_expenditure_unknown[is.infinite(purchases.sample$ln_expenditure_unknown)] <- NA
+purchases.sample <- purchases.sample[, ln_expenditure_same3 := log(expenditure_same3)]
+purchases.sample$ln_expenditure_same3[is.infinite(purchases.sample$ln_expenditure_same3)] <- NA
+purchases.sample <- purchases.sample[, ln_expenditure_diff3 := log(expenditure_diff3)]
+purchases.sample$ln_expenditure_diff3[is.infinite(purchases.sample$ln_expenditure_diff3)] <- NA
 purchases.sample[, cal_time := 12 * year + month]
 
 # impute tax rates prior to 2008 and after 2014
@@ -48,19 +53,19 @@ purchases.sample[, ln_sales_tax := ifelse(year > 2014, ln_sales_tax[year == 2014
 ## take first differences of outcomes and treatment
 setkey(purchases.sample, household_code, year, month)
 purchases.sample <- purchases.sample[order(household_code, cal_time),] ##Sort on hh by year-quarter (in ascending order)
-purchases.sample[, D.expenditure_taxable := expenditure_taxable - shift(expenditure_taxable, n=1, type="lag"),
-       by = .(household_code)]
-purchases.sample[, D.ln_expenditure_taxable := ln_expenditure_taxable - shift(ln_expenditure_taxable, n=1, type="lag"),
-       by = .(household_code)]
+
+
 purchases.sample[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
        by = .(household_code)]
-purchases.sample[, D.expenditure_non_taxable := expenditure_non_taxable - shift(expenditure_non_taxable, n=1, type="lag"),
-       by = .(household_code)]
+purchases.sample[, D.ln_expenditure_taxable := ln_expenditure_taxable - shift(ln_expenditure_taxable, n=1, type="lag"),
+                 by = .(household_code)]
 purchases.sample[, D.ln_expenditure_non_taxable := ln_expenditure_non_taxable - shift(ln_expenditure_non_taxable, n=1, type="lag"),
        by = .(household_code)]
-purchases.sample[, D.expenditure_unknown := expenditure_unknown - shift(expenditure_unknown, n=1, type="lag"),
-                 by = .(household_code)]
 purchases.sample[, D.ln_expenditure_unknown := ln_expenditure_unknown - shift(ln_expenditure_unknown, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_expenditure_diff3 := ln_expenditure_diff3 - shift(ln_expenditure_diff3, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_expenditure_same3 := ln_expenditure_same3 - shift(ln_expenditure_same3, n=1, type="lag"),
                  by = .(household_code)]
 
 ## generate lags and leads of ln_sales_tax
@@ -80,9 +85,8 @@ purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & month >= 2)
 
 ## Estimations: Expenditure on type of module --------
 output.results.file <- "../../../../../home/slacouture/HMS/HH_month_leadslags_cumulative.csv"
-outcomes <- c("expenditure_taxable", "expenditure_non_taxable", "expenditure_unknown", 
-              "ln_expenditure_taxable", "ln_expenditure_non_taxable", "ln_expenditure_unknown")
-
+outcomes <- c("D.ln_expenditure_taxable", "D.ln_expenditure_non_taxable", "D.ln_expenditure_unknown",
+              "D.ln_expenditure_diff3", "D.ln_expenditure_same3")
 
 
 formula_lags <- paste0("L", 1:24, ".D.ln_sales_tax", collapse = "+")
