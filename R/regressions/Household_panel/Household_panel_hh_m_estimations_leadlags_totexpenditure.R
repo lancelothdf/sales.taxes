@@ -147,7 +147,7 @@ LRdiff_res <- data.table(NULL)
 for (Y in outcomes) {
   
   formula1 <- as.formula(paste0(
-    Y, "~ ln_tot_expenditure +", formula_RHS, "| time"
+    Y, "~ D.ln_tot_expenditure +", formula_RHS, "| time"
   ))
   if (Y == "D.ln_tot_expenditure") {
     formula1 <- as.formula(paste0(
