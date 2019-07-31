@@ -374,7 +374,7 @@ for (Y in c(outcomes, outcomes_t)) {
   
   ### Winsorize Outcomes: Above percentile 95 is replaced by 95th percentile
   purchases.sample[, indPct:=rank(Y)/length(Y), by = .(quarter, year)]
-  val.95 <- purchases.sample[indPct == 0.95, Y ]
+  val.95 <- purchases.sample[indPct == 0.95, (Y) ]
   purchases.sample$Y[indPct > 0.95] <- val.95
   
   formula1 <- as.formula(paste0(
