@@ -162,6 +162,7 @@ total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 
 
 LRdiff_res <- data.table(NULL)
+LRdiff_res_w <- data.table(NULL)
 for (Y in c(outcomes, outcomes_t)) {
 
   ## Raw outcomes
@@ -317,8 +318,8 @@ for (Y in c(outcomes, outcomes_t)) {
   res1.dt[, Rsq := summary(res1)$r.squared]
   res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
   res1.dt[, N.obs := nrow(purchases.sample[!is.na((Y))])]
-  LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-  fwrite(LRdiff_res, output.results.file.winsor)
+  LRdiff_res_w <- rbind(LRdiff_res_w, res1.dt, fill = T)
+  fwrite(LRdiff_res_w, output.results.file.winsor)
   
   ## sum leads
   flog.info("Summing leads...")
@@ -351,8 +352,8 @@ for (Y in c(outcomes, outcomes_t)) {
     Rsq = summary(res1)$r.squared,
     adj.Rsq = summary(res1)$adj.r.squared)
   N.obs = nrow(purchases.sample[!is.na((Y))])
-  LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
-  fwrite(LRdiff_res, output.results.file.winsor)
+  LRdiff_res_w <- rbind(LRdiff_res_w, lp.dt, fill = T)
+  fwrite(LRdiff_res_w, output.results.file.winsor)
   
   
   ##### Add the cumulative effect at each lead/lag (relative to -1)
@@ -426,8 +427,8 @@ for (Y in c(outcomes, outcomes_t)) {
     Rsq = summary(res1)$r.squared,
     adj.Rsq = summary(res1)$adj.r.squared)
   N.obs = nrow(purchases.sample[!is.na((Y))])
-  LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
-  fwrite(LRdiff_res, output.results.file.winsor)
+  LRdiff_res_w <- rbind(LRdiff_res_w, lp.dt, fill = T)
+  fwrite(LRdiff_res_w, output.results.file.winsor)
   
   
 }
