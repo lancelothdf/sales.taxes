@@ -56,7 +56,7 @@ for (yr in 2006:2016) {
   purchases <- purchases[, list(
     total_expenditures = sum(total_expenditures) , panel_year = max(panel_year)
   ), by = .(household_code, product_module_code, product_group_code,
-            store_code_uc, quarter, year)]
+            store_zip3, quarter, year)]
 
   ## Keep purchases greater than 0 for efficiency
   purchases<-purchases[total_expenditures > 0]
