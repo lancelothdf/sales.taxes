@@ -153,7 +153,7 @@ purchases.full <- purchases.full[, list(
 ## reshape to get a hh X taxability of module data
 purchases.full <- dcast(purchases.full, household_code + taxability + fips_county_code + fips_state_code +
                           zip_code + quarter + year + projection_factor + projection_factor_magnet +
-                          sum_total_exp_month + household_income ~ same_3zip_store, fun=sum,
+                          sum_total_exp_quarter + household_income ~ same_3zip_store, fun=sum,
                           value.var = "total_expenditures")
 
 setnames(purchases.full,
@@ -161,7 +161,7 @@ setnames(purchases.full,
          new = c("expenditures_diff3", "expenditures_same3"))
 ## reshape to get a hh data
 purchases.full <- dcast(purchases.full, household_code + fips_county_code + fips_state_code + zip_code + quarter
-                        + year + projection_factor + projection_factor_magnet + sum_total_exp_month + 
+                        + year + projection_factor + projection_factor_magnet + sum_total_exp_quarter + 
                           household_income ~ taxability,  fun=sum, value.var = c("expenditures_diff3","expenditures_same3"))
 
 ## merge on tax rates
