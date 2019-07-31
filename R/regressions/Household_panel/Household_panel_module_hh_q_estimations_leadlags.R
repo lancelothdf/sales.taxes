@@ -297,7 +297,7 @@ for (Y in c(outcomes, outcomes_t)) {
   
   ### Winsorize Outcomes: Above percentile 95 is replaced by 95th percentile
   flog.info("Winsorizing %s ", Y)
-  val.95 <- quantile(purchases.sample$Y, probs = 0.95, na.rm = T)
+  val.95 <- quantile(purchases.sample$Y, probs = 0.95, na.rm = T, type = 4)
   flog.info("Percentile 95 for %s is %s ", Y, val.95)
   purchases.sample$Y[purchases.sample$Y > val.95 & !is.na(purchases.sample$Y)] <- val.95
   
