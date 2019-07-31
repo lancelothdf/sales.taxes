@@ -297,7 +297,7 @@ for (Y in c(outcomes, outcomes_t)) {
   
   ### Winsorize Outcomes: Above percentile 95 is replaced by 95th percentile
   flog.info("Winsorizing %s ", Y)
-  purchases.sample[, indPct:=frank(Y, na.last="keep")/sum(!is.na(Y)), by = .(quarter, year)]
+  purchases.sample[, indPct:=frank(Y, na.last="keep")/sum(!is.na(Y))]
   val.95 <- purchases.sample[indPct == 0.95, (Y) ]
   flog.info("Percentile 95 for %s is %s ", Y, val.95)
   purchases.sample$Y[purchases.sample$indPct > 0.95 & !is.na(purchases.sample$Y)] <- val.95
