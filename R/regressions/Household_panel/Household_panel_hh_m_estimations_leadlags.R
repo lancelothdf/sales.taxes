@@ -67,7 +67,7 @@ purchases.sample <- purchases.sample[, ln_expenditure_taxable_diff3 := log(expen
 purchases.sample$ln_expenditure_taxable_diff3[is.infinite(purchases.sample$ln_expenditure_taxable_diff3)] <- NA
 purchases.sample <- purchases.sample[, ln_expenditure_non_taxable_same3 := log(expenditures_same3_0)]
 purchases.sample$ln_expenditure_non_taxable_same3[is.infinite(purchases.sample$ln_expenditure_non_taxable_same3)] <- NA
-purchases.sample <- purchases.sample[, ln_expenditure_non_taxable_diff3 := log(expenditures_diif3_0)]
+purchases.sample <- purchases.sample[, ln_expenditure_non_taxable_diff3 := log(expenditures_diff3_0)]
 purchases.sample$ln_expenditure_non_taxable_diff3[is.infinite(purchases.sample$ln_expenditure_non_taxable_diff3)] <- NA
 purchases.sample <- purchases.sample[, ln_expenditure_unknown_same3 := log(expenditures_same3_2)]
 purchases.sample$ln_expenditure_unknown_same3[is.infinite(purchases.sample$ln_expenditure_unknown_same3)] <- NA
