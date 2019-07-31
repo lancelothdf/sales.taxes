@@ -31,14 +31,24 @@ purchases.sample <- purchases.nomagnet[!is.na(sales_tax)]
 
 ## Create Necessary variables -----------------------
 
-# Try also shares
+## Shares
+# type or taxability
 purchases.sample[, share_taxable := expenditure_taxable/sum_total_exp_month]
 purchases.sample[, share_non_taxable := expenditure_non_taxable/sum_total_exp_month]
 purchases.sample[, share_unknown := expenditure_unknown/sum_total_exp_month]
 purchases.sample[, share_same3 := expenditure_same3/sum_total_exp_month]
 purchases.sample[, share_diff3 := expenditure_diff3/sum_total_exp_month]
 
-# Logarithms of variables
+# type x taxability
+purchases.sample[, share_taxable_same3 := expenditures_same3_1/sum_total_exp_month]
+purchases.sample[, share_taxable_diff3 := expenditures_diff3_1/sum_total_exp_month]
+purchases.sample[, share_non_taxable_same3 := expenditures_same3_0/sum_total_exp_month]
+purchases.sample[, share_non_taxable_diff3 := expenditures_diff3_0/sum_total_exp_month]
+purchases.sample[, share_unknown_same3 := expenditures_same3_2/sum_total_exp_month]
+purchases.sample[, share_unknown_diff3 := expenditures_diff3_2/sum_total_exp_month]
+
+## Logarithms of variables
+# type or taxability
 purchases.sample <- purchases.sample[, ln_expenditure_taxable := log(expenditure_taxable)]
 purchases.sample$ln_expenditure_taxable[is.infinite(purchases.sample$ln_expenditure_taxable)] <- NA
 purchases.sample <- purchases.sample[, ln_expenditure_non_taxable := log(expenditure_non_taxable)]
@@ -50,6 +60,22 @@ purchases.sample$ln_expenditure_same3[is.infinite(purchases.sample$ln_expenditur
 purchases.sample <- purchases.sample[, ln_expenditure_diff3 := log(expenditure_diff3)]
 purchases.sample$ln_expenditure_diff3[is.infinite(purchases.sample$ln_expenditure_diff3)] <- NA
 
+# type x taxability
+purchases.sample <- purchases.sample[, ln_expenditure_taxable_same3 := log(expenditure_same3_1)]
+purchases.sample$ln_expenditure_taxable_same3[is.infinite(purchases.sample$ln_expenditure_taxable_same3)] <- NA
+purchases.sample <- purchases.sample[, ln_expenditure_taxable_diff3 := log(expenditure_diff3_1)]
+purchases.sample$ln_expenditure_taxable_diff3[is.infinite(purchases.sample$ln_expenditure_taxable_diff3)] <- NA
+purchases.sample <- purchases.sample[, ln_expenditure_non_taxable_same3 := log(expenditure_same3_0)]
+purchases.sample$ln_expenditure_non_taxable_same3[is.infinite(purchases.sample$ln_expenditure_non_taxable_same3)] <- NA
+purchases.sample <- purchases.sample[, ln_expenditure_non_taxable_diff3 := log(expenditure_diif3_0)]
+purchases.sample$ln_expenditure_non_taxable_diff3[is.infinite(purchases.sample$ln_expenditure_non_taxable_diff3)] <- NA
+purchases.sample <- purchases.sample[, ln_expenditure_unknown_same3 := log(expenditure_same3_2)]
+purchases.sample$ln_expenditure_unknown_same3[is.infinite(purchases.sample$ln_expenditure_unknown_same3)] <- NA
+purchases.sample <- purchases.sample[, ln_expenditure_unknown_diff3 := log(expenditure_diff3_2)]
+purchases.sample$ln_expenditure_unknown_diff3[is.infinite(purchases.sample$ln_expenditure_unknown_diff3)] <- NA
+
+
+# shares type or taxability
 purchases.sample <- purchases.sample[, ln_share_taxable := log(share_taxable)]
 purchases.sample$ln_share_taxable[is.infinite(purchases.sample$ln_share_taxable)] <- NA
 purchases.sample <- purchases.sample[, ln_share_non_taxable := log(share_non_taxable)]
@@ -60,6 +86,21 @@ purchases.sample <- purchases.sample[, ln_share_same3 := log(share_same3)]
 purchases.sample$ln_share_same3[is.infinite(purchases.sample$ln_share_same3)] <- NA
 purchases.sample <- purchases.sample[, ln_share_diff3 := log(share_diff3)]
 purchases.sample$ln_share_diff3[is.infinite(purchases.sample$ln_share_diff3)] <- NA
+
+
+# shares type x taxability
+purchases.sample <- purchases.sample[, ln_share_taxable_same3 := log(share_taxable_same3)]
+purchases.sample$ln_share_taxable_same3[is.infinite(purchases.sample$ln_share_taxable_same3)] <- NA
+purchases.sample <- purchases.sample[, ln_share_taxable_diff3 := log(share_taxable_diff3)]
+purchases.sample$ln_share_taxable_diff3[is.infinite(purchases.sample$ln_share_taxable_diff3)] <- NA
+purchases.sample <- purchases.sample[, ln_share_non_taxable_same3 := log(share_non_taxable_same3)]
+purchases.sample$ln_share_non_taxable_same3[is.infinite(purchases.sample$ln_share_non_taxable_same3)] <- NA
+purchases.sample <- purchases.sample[, ln_share_non_taxable_diff3 := log(share_non_taxable_diff3)]
+purchases.sample$ln_share_non_taxable_diff3[is.infinite(purchases.sample$ln_share_non_taxable_diff3)] <- NA
+purchases.sample <- purchases.sample[, ln_share_unknown_same3 := log(share_unknown_same3)]
+purchases.sample$ln_share_unknown_same3[is.infinite(purchases.sample$ln_share_unknown_same3)] <- NA
+purchases.sample <- purchases.sample[, ln_share_unknown_diff3 := log(share_unknown_diff3)]
+purchases.sample$ln_share_unknown_diff3[is.infinite(purchases.sample$ln_share_unknown_diff3)] <- NA
 
 
 # Time
@@ -75,8 +116,11 @@ purchases.sample[, ln_sales_tax := ifelse(year > 2014, ln_sales_tax[year == 2014
 setkey(purchases.sample, household_code, year, month)
 purchases.sample <- purchases.sample[order(household_code, cal_time),] ##Sort on hh by year-quarter (in ascending order)
 
+# tax
 purchases.sample[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
        by = .(household_code)]
+
+# type or taxability logs
 purchases.sample[, D.ln_expenditure_taxable := ln_expenditure_taxable - shift(ln_expenditure_taxable, n=1, type="lag"),
                  by = .(household_code)]
 purchases.sample[, D.ln_expenditure_non_taxable := ln_expenditure_non_taxable - shift(ln_expenditure_non_taxable, n=1, type="lag"),
@@ -88,6 +132,7 @@ purchases.sample[, D.ln_expenditure_diff3 := ln_expenditure_diff3 - shift(ln_exp
 purchases.sample[, D.ln_expenditure_same3 := ln_expenditure_same3 - shift(ln_expenditure_same3, n=1, type="lag"),
                  by = .(household_code)]
 
+# type or taxability shares logs
 purchases.sample[, D.ln_share_taxable := ln_share_taxable - shift(ln_share_taxable, n=1, type="lag"),
                  by = .(household_code)]
 purchases.sample[, D.ln_share_non_taxable := ln_share_non_taxable - shift(ln_share_non_taxable, n=1, type="lag"),
@@ -99,6 +144,57 @@ purchases.sample[, D.ln_share_diff3 := ln_share_diff3 - shift(ln_share_diff3, n=
 purchases.sample[, D.ln_share_same3 := ln_share_same3 - shift(ln_share_same3, n=1, type="lag"),
                  by = .(household_code)]
 
+# type or taxability logs
+purchases.sample[, D.ln_expenditure_taxable := ln_expenditure_taxable - shift(ln_expenditure_taxable, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_expenditure_non_taxable := ln_expenditure_non_taxable - shift(ln_expenditure_non_taxable, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_expenditure_unknown := ln_expenditure_unknown - shift(ln_expenditure_unknown, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_expenditure_diff3 := ln_expenditure_diff3 - shift(ln_expenditure_diff3, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_expenditure_same3 := ln_expenditure_same3 - shift(ln_expenditure_same3, n=1, type="lag"),
+                 by = .(household_code)]
+
+# type x taxability logs
+purchases.sample[, D.ln_expenditure_taxable_same3 := ln_expenditure_taxable_same3 - shift(ln_expenditure_taxable_same3, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_expenditure_taxable_diff3 := ln_expenditure_taxable_diff3 - shift(ln_expenditure_taxable_diff3, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_expenditure_non_taxable_same3 := ln_expenditure_non_taxable_same3 - shift(ln_expenditure_non_taxable_same3, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_expenditure_non_taxable_diff3 := ln_expenditure_non_taxable_diff3 - shift(ln_expenditure_non_taxable_diff3, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_expenditure_unknown_same3 := ln_expenditure_unknown_same3 - shift(ln_expenditure_unknown_same3, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_expenditure_unknown_diff3 := ln_expenditure_unknown_diff3 - shift(ln_expenditure_unknown_diff3, n=1, type="lag"),
+                 by = .(household_code)]
+
+# type or taxability shares logs
+purchases.sample[, D.ln_share_taxable := ln_share_taxable - shift(ln_share_taxable, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_share_non_taxable := ln_share_non_taxable - shift(ln_share_non_taxable, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_share_unknown := ln_share_unknown - shift(ln_share_unknown, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_share_diff3 := ln_share_diff3 - shift(ln_share_diff3, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_share_same3 := ln_share_same3 - shift(ln_share_same3, n=1, type="lag"),
+                 by = .(household_code)]
+
+# type x taxability logs
+purchases.sample[, D.ln_share_taxable_same3 := ln_share_taxable_same3 - shift(ln_share_taxable_same3, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_share_taxable_diff3 := ln_share_taxable_diff3 - shift(ln_share_taxable_diff3, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_share_non_taxable_same3 := ln_share_non_taxable_same3 - shift(ln_share_non_taxable_same3, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_share_non_taxable_diff3 := ln_share_non_taxable_diff3 - shift(ln_share_non_taxable_diff3, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_share_unknown_same3 := ln_share_unknown_same3 - shift(ln_share_unknown_same3, n=1, type="lag"),
+                 by = .(household_code)]
+purchases.sample[, D.ln_share_unknown_diff3 := ln_share_unknown_diff3 - shift(ln_share_unknown_diff3, n=1, type="lag"),
+                 by = .(household_code)]
 
 
 ## generate lags and leads of ln_sales_tax
@@ -121,7 +217,12 @@ output.results.file <- "../../../../../home/slacouture/HMS/HH_month_leadslags_cu
 outcomes <- c("D.ln_expenditure_taxable", "D.ln_expenditure_non_taxable", "D.ln_expenditure_unknown",
               "D.ln_expenditure_diff3", "D.ln_expenditure_same3", "D.ln_share_taxable",
               "D.ln_share_non_taxable", "D.ln_share_unknown", "D.ln_share_same3", "D.ln_share_diff3")
-
+outcomes_t <- c("D.ln_expenditure_taxable_same3", "D.ln_expenditure_taxable_diff3", 
+              "D.ln_expenditure_non_taxable_same3", "D.ln_expenditure_non_taxable_diff3",
+              "D.ln_expenditure_unknown_same3", "D.ln_expenditure_unknown_diff3", 
+              "D.ln_share_taxable_same3", "D.ln_share_taxable_diff3", 
+              "D.ln_share_non_taxable_same3", "D.ln_share_non_taxable_diff3",
+              "D.ln_share_unknown_same3", "D.ln_share_unknown_diff3")
 
 formula_lags <- paste0("L", 1:24, ".D.ln_sales_tax", collapse = "+")
 formula_leads <- paste0("F", 1:24, ".D.ln_sales_tax", collapse = "+")
@@ -136,7 +237,7 @@ total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 
 
 LRdiff_res <- data.table(NULL)
-for (Y in outcomes) {
+for (Y in c("outcomes","outcomes_t")) {
 
   formula1 <- as.formula(paste0(
     Y, "~", formula_RHS, "| time"
@@ -153,6 +254,7 @@ for (Y in outcomes) {
   res1.dt[, outcome := Y]
   res1.dt[, Rsq := summary(res1)$r.squared]
   res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
+  res1.dt[, N.obs := nrow(purchases.sample[!is.na((Y))])]
   LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
   fwrite(LRdiff_res, output.results.file)
   
@@ -186,6 +288,7 @@ for (Y in outcomes) {
     outcome = Y,
     Rsq = summary(res1)$r.squared,
     adj.Rsq = summary(res1)$adj.r.squared)
+    N.obs = nrow(purchases.sample[!is.na((Y))])
   LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
   fwrite(LRdiff_res, output.results.file)
   
@@ -276,6 +379,7 @@ for (Y in outcomes) {
     outcome = Y,
     Rsq = summary(res1)$r.squared,
     adj.Rsq = summary(res1)$adj.r.squared)
+    N.obs = nrow(purchases.sample[!is.na((Y))])
   LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
   fwrite(LRdiff_res, output.results.file)
   
@@ -283,7 +387,6 @@ for (Y in outcomes) {
 
 
 ## summary values --------------------------------------------------------------
-LRdiff_res$N_obs <- nrow(purchases.sample)
 LRdiff_res$N_hholds <- length(unique(purchases.sample$household_code))
 LRdiff_res$N_counties <- uniqueN(purchases.sample, by = c("fips_state_code", "fips_county_code"))
 LRdiff_res$N_years <- uniqueN(purchases.sample, by = c("year"))

@@ -133,7 +133,7 @@ setnames(taxability_panel,
 taxability_panel[, quarter := ceiling(month / 3)]
 taxability_panel <- taxability_panel[, list(taxability = round(mean(taxability))) , 
                                      by =.(product_module_code, product_group_code,
-                                         fips_state, quarter, year)]
+                                           fips_state_code, quarter, year)]
 
 
 purchases.full <- merge(
@@ -174,8 +174,8 @@ setnames(all_pi,
 # Collapse rates to the quarter as the mean 
 all_pi[, quarter := ceiling(month / 3)]
 all_pi <- all_pi[, list(sales_tax = mean(sales_tax)) , 
-                                     by =.(zip_code, fips_county,
-                                           fips_state, quarter, year)]
+                                     by =.(zip_code, fips_county_code,
+                                           fips_state_code, quarter, year)]
 purchases.full <- merge(
   purchases.full, all_pi,
   by = c("fips_county_code", "fips_state_code", "zip_code", "year", "quarter"),
