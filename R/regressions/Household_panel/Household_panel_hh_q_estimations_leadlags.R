@@ -376,6 +376,7 @@ for (Y in c(outcomes, outcomes_t)) {
   flog.info("Winsorizing %s ", Y)
   purchases.sample[, indPct:=rank(Y, na.last=NA)/sum(!is.na(Y)), by = .(quarter, year)]
   val.95 <- purchases.sample[indPct == 0.95, (Y) ]
+  flog.info("Percentile 95 for %s is %s ", Y, val.95)
   purchases.sample$Y[purchases.sample$indPct > 0.95 & !is.na(purchases.sample$Y)] <- val.95
   
   formula1 <- as.formula(paste0(
