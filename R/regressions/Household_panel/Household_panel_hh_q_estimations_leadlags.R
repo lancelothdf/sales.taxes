@@ -237,7 +237,7 @@ total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 
 
 LRdiff_res <- data.table(NULL)
-for (Y in c("outcomes","outcomes_t")) {
+for (Y in c(outcomes, outcomes_t)) {
 
   formula1 <- as.formula(paste0(
     Y, "~", formula_RHS, "| time"
