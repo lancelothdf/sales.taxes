@@ -240,7 +240,17 @@ total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 
 ## Run basic descriptives  ------
 
-descriptives <- describe(purchases.sample[, c(outcomes, outcomes_t)])
+descriptives <- describe(purchases.sample[, .(D.ln_expenditure_taxable, D.ln_expenditure_non_taxable,
+                                              D.ln_expenditure_unknown, D.ln_expenditure_diff3, 
+                                              D.ln_expenditure_same3, D.ln_share_taxable,
+                                              D.ln_share_non_taxable, D.ln_share_unknown, 
+                                              D.ln_share_same3, D.ln_share_diff3,
+                                              D.ln_expenditure_taxable_same3, D.ln_expenditure_taxable_diff3,
+                                              D.ln_expenditure_non_taxable_same3, D.ln_expenditure_non_taxable_diff3,
+                                              D.ln_expenditure_unknown_same3, D.ln_expenditure_unknown_diff3, 
+                                              D.ln_share_taxable_same3, D.ln_share_taxable_diff3, 
+                                              D.ln_share_non_taxable_same3, D.ln_share_non_taxable_diff,
+                                              D.ln_share_unknown_same3, D.ln_share_unknown_diff3)])
 des.est.out  <- data.table(descriptives, keep.rownames=T)
 fwrite(des.est.out, output.decriptives.file)
 
