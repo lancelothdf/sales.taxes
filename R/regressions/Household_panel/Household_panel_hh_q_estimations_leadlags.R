@@ -213,7 +213,8 @@ purchases.sample <- purchases.sample[between(year, 2008, 2014)]
 purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & quarter >= 2)] ## First quarter of 2008, the difference was imputed not real data - so we drop it
 
 
-## Estimations: Expenditure on type of module --------
+## Estimation Set up --------
+output.descriptives.file <- "../../../../../home/slacouture/HMS/HH_quarter_leadslags_describe.csv"
 output.results.file <- "../../../../../home/slacouture/HMS/HH_quarter_leadslags_cumulative.csv"
 output.results.file.winsor <- "../../../../../home/slacouture/HMS/HH_quarter_leadslags_cumulative_winsor.csv"
 
@@ -238,6 +239,21 @@ lead.lp.restr <- paste(lead.vars, "= 0")
 lag.lp.restr <- paste(lag.vars, "+ D.ln_sales_tax = 0")
 total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 
+## Run basic descriptives  ------
+
+des.est.out <- data.table(NULL)
+for (Y in c(outcomes, outcomes_t)) {
+  
+  descriptives <- describe(purchases.full[, Y])
+  desc.est  <- data.table(descriptives, keep.rownames=T)
+  des.est.out <- rbind(des.est.out, desc.est)
+  fwrite(des.est.out, output.decriptives.file)
+  
+}
+
+
+
+## Run Estimations ------
 
 LRdiff_res <- data.table(NULL)
 LRdiff_res_w <- data.table(NULL)
@@ -375,7 +391,7 @@ for (Y in c(outcomes, outcomes_t)) {
   
   ### Winsorize Outcomes: Above percentile 95 is replaced by 95th percentile
   flog.info("Winsorizing %s ", Y)
-  purchases.sample[, Y := Winsorize(Y, probs = c(0,.95), na.rm = T), by = year]
+  purchases.sample[, Y := Winsorize(Y, probs = c(0,.95), na.rm = T)]
   
   formula1 <- as.formula(paste0(
     Y, "~", formula_RHS, "| time"
