@@ -1,6 +1,6 @@
 ## Sales taxes Project. Household Panel
 # Run distributed lag regression in differences on (household x quarter x module) by type of module
-# Author: Santiago Lacouture
+# Author: John Bonney & Santiago Lacouture
 
 library(data.table)
 library(lfe)

@@ -1,6 +1,6 @@
 ## Sales taxes Project. Household Panel
 # Running distributed lag regression in differences on the new panel (household aggregate x month)
-# Author: Santiago Lacouture
+# Author: SJohn Bonney & Santiago Lacouture
 
 library(data.table)
 library(lfe)

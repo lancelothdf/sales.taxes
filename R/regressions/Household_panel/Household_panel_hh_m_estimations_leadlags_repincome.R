@@ -1,7 +1,7 @@
 ## Sales taxes Project. Household Panel
 # Running distributed lag regression in differences on the new panel (household aggregate x month)
 # New: control for income: reported income (using midpoint of interval)
-# Author: Santiago Lacouture
+# Author: John Bonney & Santiago Lacouture
 
 library(data.table)
 library(lfe)
