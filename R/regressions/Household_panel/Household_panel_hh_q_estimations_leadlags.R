@@ -214,7 +214,7 @@ purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & quarter >= 
 
 
 ## Estimation Set up --------
-output.descriptives.file <- "../../../../../home/slacouture/HMS/HH_quarter_leadslags_describe.csv"
+output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_quarter_leadslags_describe.csv"
 output.results.file <- "../../../../../home/slacouture/HMS/HH_quarter_leadslags_cumulative.csv"
 
 outcomes <- c("D.ln_expenditure_taxable", "D.ln_expenditure_non_taxable", "D.ln_expenditure_unknown",
