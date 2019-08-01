@@ -20,15 +20,9 @@ purchases.full$time <- factor(with(purchases.full, interaction(year, quarter)))
 
 
 ## Constraining Data set for estimations ------------ 
-# Drop "magnet" households: 
+# Keep only "projection no-magnet" households: 
 purchases.full[, sum(is.na(projection_factor))]
-# 2016154 obs
-purchases.nomagnet <- purchases.full[!is.na(projection_factor)]
-
-# Drop households without sales tax data
-purchases.full[, sum(is.na(sales_tax))]
-# More than 70%: 181247984 obs
-purchases.sample <- purchases.nomagnet[!is.na(sales_tax)]
+purchases.sample <- purchases.full[!is.na(projection_factor)]
 
 ## Create Necessary variables -----------------------
 
