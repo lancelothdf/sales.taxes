@@ -215,6 +215,9 @@ outcomes_t <- c("D.ln_expenditure_taxable_same3", "D.ln_expenditure_taxable_diff
                 "D.ln_share_taxable_same3", "D.ln_share_taxable_diff3", 
                 "D.ln_share_non_taxable_same3", "D.ln_share_non_taxable_diff3",
                 "D.ln_share_unknown_same3", "D.ln_share_unknown_diff3")
+FE_opts <- c("region_by_module_by_time",
+             "division_by_module_by_time")
+
 
 formula_lags <- paste0("L", 1:8, ".D.ln_sales_tax", collapse = "+")
 formula_leads <- paste0("F", 1:8, ".D.ln_sales_tax", collapse = "+")
@@ -226,8 +229,7 @@ lag.vars <- paste(paste0("L", 8:1, ".D.ln_sales_tax"), collapse = " + ")
 lead.lp.restr <- paste(lead.vars, "= 0")
 lag.lp.restr <- paste(lag.vars, "+ D.ln_sales_tax = 0")
 total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
-FE_opts <- c("region_by_module_by_time",
-             "division_by_module_by_time")
+
 
 LRdiff_res <- data.table(NULL)
 LRdiff_res_w <- data.table(NULL)
