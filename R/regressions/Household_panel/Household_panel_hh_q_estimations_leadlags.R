@@ -244,7 +244,7 @@ total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 des.est.out <- data.table(NULL)
 for (Y in c(outcomes, outcomes_t)) {
   
-  descriptives <- describe(purchases.full[, Y])
+  descriptives <- describe(purchases.sample[, Y])
   desc.est  <- data.table(descriptives, keep.rownames=T)
   des.est.out <- rbind(des.est.out, desc.est)
   fwrite(des.est.out, output.decriptives.file)
