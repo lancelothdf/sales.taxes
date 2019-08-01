@@ -70,9 +70,9 @@ for (yr in 2006:2016) {
                              Fips_State_Cd, Fips_County_Cd, Panelist_ZipCd)]
   setnames(panelists,
            old = c("Household_Cd", "Panel_Year", "Projection_Factor", "Fips_State_Cd", "Fips_County_Cd",
-                   "Projection_Factor_Magnet", "Household_Income", "Panelist_ZipCd"),
+                   "Projection_Factor_Magnet", "Household_Income", "Panelist_ZipCd", "Region_Cd"),
            new = c("household_code", "year", "projection_factor", "fips_state_code", "fips_county_code",
-                   "projection_factor_magnet", "household_income", "zip_code"))
+                   "projection_factor_magnet", "household_income", "zip_code", "region_code"))
   flog.info("Merging panelists data to purchases for %s", yr)
   purchases <- merge(purchases, panelists, by = c("household_code", "year"), all.x = T)
 
@@ -88,7 +88,7 @@ for (yr in 2006:2016) {
     total_expenditures = sum(total_expenditures) , panel_year = max(panel_year)
   ), by = .(household_code, product_module_code, product_group_code, same_3zip_store, zip_code,
             household_income, projection_factor,projection_factor_magnet, household_income,
-            fips_state_code, fips_county_code, quarter, year)]
+            fips_state_code, fips_county_code, region_code, quarter, year)]
 
   ## save the final dataset
   flog.info("Saving cleaned dataset for panel year %s", yr)
@@ -110,7 +110,7 @@ for (yr in 2006:2016) {
     projection_factor_magnet = mean(projection_factor_magnet, na.rm = T),
     household_income = mean(household_income, na.rm = T)
   ), by = .(household_code, product_module_code, product_group_code,
-            same_3zip_store, fips_county_code, fips_state_code, zip_code,
+            same_3zip_store, fips_county_code, fips_state_code, zip_code, region_code
             quarter, year)  ]
   ## attach
   flog.info("Appending %s data to master file", yr)
@@ -147,7 +147,7 @@ purchases.full$taxability[is.na(purchases.full$taxability)] <- 2
 
 ## reshape to get a hh X module of module data
 purchases.full <- dcast(purchases.full, household_code + product_module_code + taxability + fips_county_code + fips_state_code +
-                          zip_code + quarter + year + projection_factor + projection_factor_magnet +
+                          zip_code + quarter + year + projection_factor + projection_factor_magnet + region_code +
                           sum_total_exp_quarter + household_income + taxability ~ same_3zip_store, fun=sum,
                           value.var = "total_expenditures")
 
