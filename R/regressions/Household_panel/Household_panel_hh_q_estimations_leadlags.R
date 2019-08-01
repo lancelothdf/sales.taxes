@@ -20,15 +20,10 @@ purchases.full$time <- factor(with(purchases.full, interaction(year, quarter)))
 
 
 ## Constraining Data set for estimations ------------ 
-# Drop "magnet" households: 
+# Keep only "projection no-magnet" households: 
 purchases.full[, sum(is.na(projection_factor))]
-# 2016154 obs
-purchases.nomagnet <- purchases.full[!is.na(projection_factor)]
+purchases.sample <- purchases.full[!is.na(projection_factor)]
 
-# Drop households without sales tax data
-purchases.full[, sum(is.na(sales_tax))]
-# More than 70%: 181247984 obs
-purchases.sample <- purchases.nomagnet[!is.na(sales_tax)]
 
 ## Create Necessary variables -----------------------
 
@@ -145,17 +140,6 @@ purchases.sample[, D.ln_share_diff3 := ln_share_diff3 - shift(ln_share_diff3, n=
 purchases.sample[, D.ln_share_same3 := ln_share_same3 - shift(ln_share_same3, n=1, type="lag"),
                  by = .(household_code)]
 
-# type or taxability logs
-purchases.sample[, D.ln_expenditure_taxable := ln_expenditure_taxable - shift(ln_expenditure_taxable, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_expenditure_non_taxable := ln_expenditure_non_taxable - shift(ln_expenditure_non_taxable, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_expenditure_unknown := ln_expenditure_unknown - shift(ln_expenditure_unknown, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_expenditure_diff3 := ln_expenditure_diff3 - shift(ln_expenditure_diff3, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_expenditure_same3 := ln_expenditure_same3 - shift(ln_expenditure_same3, n=1, type="lag"),
-                 by = .(household_code)]
 
 # type x taxability logs
 purchases.sample[, D.ln_expenditure_taxable_same3 := ln_expenditure_taxable_same3 - shift(ln_expenditure_taxable_same3, n=1, type="lag"),
@@ -171,19 +155,8 @@ purchases.sample[, D.ln_expenditure_unknown_same3 := ln_expenditure_unknown_same
 purchases.sample[, D.ln_expenditure_unknown_diff3 := ln_expenditure_unknown_diff3 - shift(ln_expenditure_unknown_diff3, n=1, type="lag"),
                  by = .(household_code)]
 
-# type or taxability shares logs
-purchases.sample[, D.ln_share_taxable := ln_share_taxable - shift(ln_share_taxable, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_share_non_taxable := ln_share_non_taxable - shift(ln_share_non_taxable, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_share_unknown := ln_share_unknown - shift(ln_share_unknown, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_share_diff3 := ln_share_diff3 - shift(ln_share_diff3, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_share_same3 := ln_share_same3 - shift(ln_share_same3, n=1, type="lag"),
-                 by = .(household_code)]
 
-# type x taxability logs
+# type x taxability shares logs
 purchases.sample[, D.ln_share_taxable_same3 := ln_share_taxable_same3 - shift(ln_share_taxable_same3, n=1, type="lag"),
                  by = .(household_code)]
 purchases.sample[, D.ln_share_taxable_diff3 := ln_share_taxable_diff3 - shift(ln_share_taxable_diff3, n=1, type="lag"),
