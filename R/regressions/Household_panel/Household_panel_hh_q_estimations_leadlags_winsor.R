@@ -240,7 +240,7 @@ total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 
 ## Winsorize outcomes (upper 1%) -------
 
-purchases.sample[ , lapply(.SD, Winsorize, probs = c(0.01,0.99), na.rm = T), .SDcols = c(outcomes, outcomes_t)]
+purchases.sample <- purchases.sample[ , lapply(.SD, Winsorize, probs = c(0.01,0.99), na.rm = T), .SDcols = c(outcomes, outcomes_t)]
 
 ## Run basic descriptives  ------
 
