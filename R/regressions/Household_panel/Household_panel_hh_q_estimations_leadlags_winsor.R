@@ -239,7 +239,7 @@ lag.lp.restr <- paste(lag.vars, "+ D.ln_sales_tax = 0")
 total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 
 ## Winsorize outcomes (5%) -------
-purchases.sample <- purchases.sample[ , c(outcomes, outcomes_t) := (lapply(.SD, Winsorize, probs = c(0.05,0.95), na.rm = T)), by = year, .SDcols = c(outcomes, outcomes_t)]
+purchases.sample <- purchases.sample[ , c(outcomes, outcomes_t) := (lapply(.SD, Winsorize, probs = c(0.02,0.98), na.rm = T)), by = year, .SDcols = c(outcomes, outcomes_t)]
 
 ## Run basic descriptives  ------
 
