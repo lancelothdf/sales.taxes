@@ -244,7 +244,7 @@ total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 des.est.out <- data.table(NULL)
 for (Y in c(outcomes, outcomes_t)) {
   
-  descriptives <- describe(purchases.sample[, Y])
+  descriptives <- describe(purchases.sample[, (Y)])
   desc.est  <- data.table(descriptives, keep.rownames=T)
   des.est.out <- rbind(des.est.out, desc.est)
   fwrite(des.est.out, output.decriptives.file)
@@ -391,7 +391,7 @@ for (Y in c(outcomes, outcomes_t)) {
   
   ### Winsorize Outcomes: Above percentile 95 is replaced by 95th percentile
   flog.info("Winsorizing %s ", Y)
-  purchases.sample[, Y := Winsorize(Y, probs = c(0,.95), na.rm = T)]
+  purchases.sample[, (Y) := Winsorize((Y), probs = c(0,.95), na.rm = T)]
   
   formula1 <- as.formula(paste0(
     Y, "~", formula_RHS, "| time"
