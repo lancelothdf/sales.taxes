@@ -215,8 +215,8 @@ outcomes_t <- c("D.ln_expenditure_taxable_same3", "D.ln_expenditure_taxable_diff
                 "D.ln_share_taxable_same3", "D.ln_share_taxable_diff3", 
                 "D.ln_share_non_taxable_same3", "D.ln_share_non_taxable_diff3",
                 "D.ln_share_unknown_same3", "D.ln_share_unknown_diff3")
-FE_opts <- c("region_by_module_by_time",
-             "division_by_module_by_time")
+
+FE_opts <- c("region_by_module_by_time", "module_by_time")
 
 
 formula_lags <- paste0("L", 1:8, ".D.ln_sales_tax", collapse = "+")
