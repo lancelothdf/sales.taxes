@@ -67,7 +67,7 @@ for (yr in 2006:2016) {
   panelists <- fread(panelists_file)
   panelists <- panelists[, .(Household_Cd, Panel_Year, Projection_Factor,
                              Projection_Factor_Magnet, Household_Income,
-                             Fips_State_Cd, Fips_County_Cd, Panelist_ZipCd)]
+                             Fips_State_Cd, Fips_County_Cd, Panelist_ZipCd, Region_Cd)]
   setnames(panelists,
            old = c("Household_Cd", "Panel_Year", "Projection_Factor", "Fips_State_Cd", "Fips_County_Cd",
                    "Projection_Factor_Magnet", "Household_Income", "Panelist_ZipCd", "Region_Cd"),
@@ -110,7 +110,7 @@ for (yr in 2006:2016) {
     projection_factor_magnet = mean(projection_factor_magnet, na.rm = T),
     household_income = mean(household_income, na.rm = T)
   ), by = .(household_code, product_module_code, product_group_code,
-            same_3zip_store, fips_county_code, fips_state_code, zip_code, region_code
+            same_3zip_store, fips_county_code, fips_state_code, zip_code, region_code,
             quarter, year)  ]
   ## attach
   flog.info("Appending %s data to master file", yr)
