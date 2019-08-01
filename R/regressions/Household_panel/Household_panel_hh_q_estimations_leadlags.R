@@ -249,7 +249,7 @@ descriptives <- describe(purchases.sample[, .(D.ln_expenditure_taxable, D.ln_exp
                                               D.ln_expenditure_non_taxable_same3, D.ln_expenditure_non_taxable_diff3,
                                               D.ln_expenditure_unknown_same3, D.ln_expenditure_unknown_diff3, 
                                               D.ln_share_taxable_same3, D.ln_share_taxable_diff3, 
-                                              D.ln_share_non_taxable_same3, D.ln_share_non_taxable_diff,
+                                              D.ln_share_non_taxable_same3, D.ln_share_non_taxable_diff3,
                                               D.ln_share_unknown_same3, D.ln_share_unknown_diff3)])
 des.est.out  <- data.table(descriptives, keep.rownames=T)
 fwrite(des.est.out, output.decriptives.file)
