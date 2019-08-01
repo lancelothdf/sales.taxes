@@ -375,7 +375,7 @@ for (Y in c(outcomes, outcomes_t)) {
   
   ### Winsorize Outcomes: Above percentile 95 is replaced by 95th percentile
   flog.info("Winsorizing %s ", Y)
-  purchases.sample[, Y := ifelse((Y >= quantile(Y, probs = 0.95, na.rm = T) & !is.na(Y)), quantile(Y, probs = 0.95, na.rm = T), Y ) ]
+  purchases.sample[, Y := Winsorize(Y, probs = c(0,.95), na.rm = T), by = year]
   
   formula1 <- as.formula(paste0(
     Y, "~", formula_RHS, "| time"
