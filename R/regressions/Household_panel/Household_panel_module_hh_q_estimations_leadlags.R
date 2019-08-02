@@ -30,7 +30,7 @@ household.quarter[, ln_sales_tax := ifelse(year > 2014, ln_sales_tax[year == 201
                  by = .(household_code)]
 
 # Time
-purchases.sample[, cal_time := 12 * year + quarter]
+household.quarter[, cal_time := 4 * year + quarter]
 
 ## take first differences of outcomes
 setkey(household.quarter, household_code, year, quarter)
@@ -118,7 +118,7 @@ purchases.sample <- purchases.sample[, -c("share_taxable", "share_taxable", "sha
 
 
 # Time
-purchases.sample[, cal_time := 12 * year + quarter]
+purchases.sample[, cal_time := 4 * year + quarter]
 
 # Module X Time FE
 purchases.sample[, module_by_time := .GRP, by = .(product_module_code, cal_time)]
@@ -421,7 +421,7 @@ purchases.sample <- purchases.sample[, -c("share_taxable_same3", "share_taxable_
 
 
 # Time
-purchases.sample[, cal_time := 12 * year + quarter]
+purchases.sample[, cal_time := 4 * year + quarter]
 
 # Module X Time FE
 purchases.sample[, module_by_time := .GRP, by = .(product_module_code, cal_time)]
