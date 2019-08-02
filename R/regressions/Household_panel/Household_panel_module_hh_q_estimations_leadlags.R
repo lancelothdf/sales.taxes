@@ -19,6 +19,8 @@ setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 
 ## Use previously build data set HH x Quarter to build sales tax lags and merge them on new data HH x module x quarter 
 household.quarter <- fread("cleaning/consumer_panel_q_hh_2006-2016.csv")
+# Keep only "non-magnet" households
+household.quarter <- household.quarter[!is.na(projection_factor)]
 household.quarter <- household.quarter[, .(ln_sales_tax, household_code, year, quarter)]
 
 # impute tax rates prior to 2008 and after 2014
