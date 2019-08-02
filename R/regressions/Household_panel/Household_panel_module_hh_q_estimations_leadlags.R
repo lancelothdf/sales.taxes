@@ -208,7 +208,7 @@ for (FE in FE_opts) {
   
     ## Raw outcomes
     formula1 <- as.formula(paste0(
-      Y, "~", formula_RHS, "|", FE
+      Y, "~", formula_RHS, "|", FE, "| 0 | household_code"
     ))
     flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
     res1 <- felm(formula = formula1, data = purchases.sample,
@@ -516,7 +516,7 @@ for (FE in FE_opts) {
     
     ## Raw outcomes
     formula1 <- as.formula(paste0(
-      Y, "~", formula_RHS, "|", FE
+      Y, "~", formula_RHS, "|", FE, "| 0 | household_code"
     ))
     flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
     res1 <- felm(formula = formula1, data = purchases.sample,
