@@ -57,7 +57,7 @@ purchases.sample[, share_unknown_same3 := expenditures_unknown_same3/sum_total_e
 purchases.sample[, share_unknown_diff3 := expenditures_unknown_diff3/sum_total_exp_quarter]
 
 # Delete variables for efficiency
-purchases.sample <- purchases.sample[, -c("taxability", "expenditures_diff3", "expenditures", "expenditures_same3")]
+purchases.sample <- purchases.sample[, -c("taxability", "expenditures")]
 
 ## Logarithms of variables
 # type or taxability
