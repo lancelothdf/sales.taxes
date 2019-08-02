@@ -149,6 +149,8 @@ purchases.sample <- purchases.sample[, -c("ln_expenditure_taxable", "ln_expendit
                                           "ln_expenditure_same3")]
 
 
+setkey(purchases.sample, household_code, product_module_code, year, quarter)
+purchases.sample <- purchases.sample[order(household_code, product_module_code, cal_time),] ##Sort on hh by year-quarter (in ascending order)
 
 # type or taxability shares logs
 purchases.sample[, D.ln_share_taxable := ln_share_taxable - shift(ln_share_taxable, n=1, type="lag"),
@@ -185,7 +187,7 @@ outcomes <- c("D.ln_expenditure_taxable", "D.ln_expenditure_non_taxable", "D.ln_
               "D.ln_expenditure_diff3", "D.ln_expenditure_same3", "D.ln_share_taxable",
               "D.ln_share_non_taxable", "D.ln_share_unknown", "D.ln_share_same3", "D.ln_share_diff3")
 
-FE_opts <- c("region_by_module_by_time", "module_by_time")
+FE_opts <- c("module_by_region_time", "module_by_time")
 
 
 formula_lags <- paste0("L", 1:8, ".D.ln_sales_tax", collapse = "+")
@@ -208,10 +210,10 @@ for (FE in FE_opts) {
     formula1 <- as.formula(paste0(
       Y, "~", formula_RHS, "|", FE
     ))
-    flog.info("Estimating with %s as outcome.", Y)
+    flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
     res1 <- felm(formula = formula1, data = purchases.sample,
                  weights = purchases.sample$projection_factor)
-    flog.info("Finished estimating with %s as outcome.", Y)
+    flog.info("Finished estimating with %s as outcome and  %s FE.", Y, FE)
     
     ## attach results
     flog.info("Writing results...")
@@ -451,6 +453,10 @@ purchases.sample <- purchases.sample[, -c("ln_expenditure_taxable_same3", "ln_ex
                                           "ln_expenditure_non_taxable_same3", "ln_expenditure_non_taxable_diff3", 
                                           "ln_expenditure_unknown_same3", "ln_expenditure_unknown_diff3")]
 
+setkey(purchases.sample, household_code, product_module_code, year, quarter)
+purchases.sample <- purchases.sample[order(household_code, product_module_code, cal_time),] ##Sort on hh by year-quarter (in ascending order)
+
+
 # type x taxability shares logs
 purchases.sample[, D.ln_share_taxable_same3 := ln_share_taxable_same3 - shift(ln_share_taxable_same3, n=1, type="lag"),
                  by = .(product_module_code, household_code)]
@@ -490,7 +496,7 @@ outcomes_t <- c("D.ln_expenditure_taxable_same3", "D.ln_expenditure_taxable_diff
                 "D.ln_share_non_taxable_same3", "D.ln_share_non_taxable_diff3",
                 "D.ln_share_unknown_same3", "D.ln_share_unknown_diff3")
 
-FE_opts <- c("region_by_module_by_time", "module_by_time")
+FE_opts <- c("module_by_region_time", "module_by_time")
 
 
 formula_lags <- paste0("L", 1:8, ".D.ln_sales_tax", collapse = "+")
@@ -512,10 +518,10 @@ for (FE in FE_opts) {
     formula1 <- as.formula(paste0(
       Y, "~", formula_RHS, "|", FE
     ))
-    flog.info("Estimating with %s as outcome.", Y)
+    flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
     res1 <- felm(formula = formula1, data = purchases.sample,
                  weights = purchases.sample$projection_factor)
-    flog.info("Finished estimating with %s as outcome.", Y)
+    flog.info("Finished estimating with %s as outcome and  %s FE.", Y, FE)
     
     ## attach results
     flog.info("Writing results...")
