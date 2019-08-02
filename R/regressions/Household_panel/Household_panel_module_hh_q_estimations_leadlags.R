@@ -43,11 +43,11 @@ purchases.sample[, expenditures_non_taxable_diff3 := ifelse(taxability == 0, exp
 purchases.sample[, expenditures_unknown_diff3 := ifelse(taxability == 2, expenditures_diff3, NA)]
 
 ## shares
-purchases.sample[, share_taxable := expenditure_taxable/sum_total_exp_quarter]
-purchases.sample[, share_non_taxable := expenditure_non_taxable/sum_total_exp_quarter]
-purchases.sample[, share_unknown := expenditure_unknown/sum_total_exp_quarter]
-purchases.sample[, share_same3 := expenditure_same3/sum_total_exp_quarter]
-purchases.sample[, share_diff3 := expenditure_diff3/sum_total_exp_quarter]
+purchases.sample[, share_taxable := expenditures_taxable/sum_total_exp_quarter]
+purchases.sample[, share_non_taxable := expenditures_non_taxable/sum_total_exp_quarter]
+purchases.sample[, share_unknown := expenditures_unknown/sum_total_exp_quarter]
+purchases.sample[, share_same3 := expenditures_same3/sum_total_exp_quarter]
+purchases.sample[, share_diff3 := expenditures_diff3/sum_total_exp_quarter]
 
 purchases.sample[, share_taxable_same3 := expenditures_taxable_same3/sum_total_exp_quarter]
 purchases.sample[, share_taxable_diff3 := expenditures_taxable_diff3/sum_total_exp_quarter]
@@ -58,29 +58,29 @@ purchases.sample[, share_unknown_diff3 := expenditures_unknown_diff3/sum_total_e
 
 ## Logarithms of variables
 # type or taxability
-purchases.sample <- purchases.sample[, ln_expenditure_taxable := log(expenditure_taxable)]
+purchases.sample <- purchases.sample[, ln_expenditure_taxable := log(expenditures_taxable)]
 purchases.sample$ln_expenditure_taxable[is.infinite(purchases.sample$ln_expenditure_taxable)] <- NA
-purchases.sample <- purchases.sample[, ln_expenditure_non_taxable := log(expenditure_non_taxable)]
+purchases.sample <- purchases.sample[, ln_expenditure_non_taxable := log(expenditures_non_taxable)]
 purchases.sample$ln_expenditure_non_taxable[is.infinite(purchases.sample$ln_expenditure_non_taxable)] <- NA
-purchases.sample <- purchases.sample[, ln_expenditure_unknown := log(expenditure_unknown)]
+purchases.sample <- purchases.sample[, ln_expenditure_unknown := log(expenditures_unknown)]
 purchases.sample$ln_expenditure_unknown[is.infinite(purchases.sample$ln_expenditure_unknown)] <- NA
-purchases.sample <- purchases.sample[, ln_expenditure_same3 := log(expenditure_same3)]
+purchases.sample <- purchases.sample[, ln_expenditure_same3 := log(expenditures_same3)]
 purchases.sample$ln_expenditure_same3[is.infinite(purchases.sample$ln_expenditure_same3)] <- NA
-purchases.sample <- purchases.sample[, ln_expenditure_diff3 := log(expenditure_diff3)]
+purchases.sample <- purchases.sample[, ln_expenditure_diff3 := log(expenditures_diff3)]
 purchases.sample$ln_expenditure_diff3[is.infinite(purchases.sample$ln_expenditure_diff3)] <- NA
 
 # type x taxability
-purchases.sample <- purchases.sample[, ln_expenditure_taxable_same3 := log(expenditure_taxable_same3)]
+purchases.sample <- purchases.sample[, ln_expenditure_taxable_same3 := log(expenditures_taxable_same3)]
 purchases.sample$ln_expenditure_taxable_same3[is.infinite(purchases.sample$ln_expenditure_taxable_same3)] <- NA
-purchases.sample <- purchases.sample[, ln_expenditure_taxable_diff3 := log(expenditure_taxable_diff3 )]
+purchases.sample <- purchases.sample[, ln_expenditure_taxable_diff3 := log(expenditures_taxable_diff3 )]
 purchases.sample$ln_expenditure_taxable_diff3[is.infinite(purchases.sample$ln_expenditure_taxable_diff3)] <- NA
-purchases.sample <- purchases.sample[, ln_expenditure_non_taxable_same3 := log(expenditure_non_taxable_same3)]
+purchases.sample <- purchases.sample[, ln_expenditure_non_taxable_same3 := log(expenditures_non_taxable_same3)]
 purchases.sample$ln_expenditure_non_taxable_same3[is.infinite(purchases.sample$ln_expenditure_non_taxable_same3)] <- NA
-purchases.sample <- purchases.sample[, ln_expenditure_non_taxable_diff3 := log(expenditure_non_taxable_diff3)]
+purchases.sample <- purchases.sample[, ln_expenditure_non_taxable_diff3 := log(expenditures_non_taxable_diff3)]
 purchases.sample$ln_expenditure_non_taxable_diff3[is.infinite(purchases.sample$ln_expenditure_non_taxable_diff3)] <- NA
 purchases.sample <- purchases.sample[, ln_expenditure_unknown_same3 := log(expenditures_unknown_same3)]
 purchases.sample$ln_expenditure_unknown_same3[is.infinite(purchases.sample$ln_expenditure_unknown_same3)] <- NA
-purchases.sample <- purchases.sample[, ln_expenditure_unknown_diff3 := log(expenditure_unknown_diff3)]
+purchases.sample <- purchases.sample[, ln_expenditure_unknown_diff3 := log(expenditures_unknown_diff3)]
 purchases.sample$ln_expenditure_unknown_diff3[is.infinite(purchases.sample$ln_expenditure_unknown_diff3)] <- NA
 
 # shares type or taxability
