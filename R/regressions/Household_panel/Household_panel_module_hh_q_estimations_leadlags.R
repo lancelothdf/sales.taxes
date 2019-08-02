@@ -56,6 +56,9 @@ purchases.sample[, share_non_taxable_diff3 := expenditures_non_taxable_diff3/sum
 purchases.sample[, share_unknown_same3 := expenditures_unknown_same3/sum_total_exp_quarter]
 purchases.sample[, share_unknown_diff3 := expenditures_unknown_diff3/sum_total_exp_quarter]
 
+# Delete variables for efficiency
+purchases.sample <- purchases.sample[, -c("taxability", "expenditures_diff3", "expenditures", "expenditures_same3")]
+
 ## Logarithms of variables
 # type or taxability
 purchases.sample <- purchases.sample[, ln_expenditure_taxable := log(expenditures_taxable)]
@@ -68,6 +71,10 @@ purchases.sample <- purchases.sample[, ln_expenditure_same3 := log(expenditures_
 purchases.sample$ln_expenditure_same3[is.infinite(purchases.sample$ln_expenditure_same3)] <- NA
 purchases.sample <- purchases.sample[, ln_expenditure_diff3 := log(expenditures_diff3)]
 purchases.sample$ln_expenditure_diff3[is.infinite(purchases.sample$ln_expenditure_diff3)] <- NA
+
+# Delete variables for efficiency
+purchases.sample <- purchases.sample[, -c("expenditures_non_taxable", "expenditures_taxable", "expenditures_unknown", "expenditures_same3",
+                      "expenditures_diff3")]
 
 # type x taxability
 purchases.sample <- purchases.sample[, ln_expenditure_taxable_same3 := log(expenditures_taxable_same3)]
@@ -83,6 +90,10 @@ purchases.sample$ln_expenditure_unknown_same3[is.infinite(purchases.sample$ln_ex
 purchases.sample <- purchases.sample[, ln_expenditure_unknown_diff3 := log(expenditures_unknown_diff3)]
 purchases.sample$ln_expenditure_unknown_diff3[is.infinite(purchases.sample$ln_expenditure_unknown_diff3)] <- NA
 
+# Delete variables for efficiency
+purchases.sample <- purchases.sample[, -c("expenditures_taxable_same3", "expenditures_taxable_diff3", "expenditures_non_taxable_same3", 
+                      "expenditures_non_taxable_diff3", "expenditures_unknown_same3", "expenditures_unknown_diff3")]
+
 # shares type or taxability
 purchases.sample <- purchases.sample[, ln_share_taxable := log(share_taxable)]
 purchases.sample$ln_share_taxable[is.infinite(purchases.sample$ln_share_taxable)] <- NA
@@ -94,6 +105,10 @@ purchases.sample <- purchases.sample[, ln_share_same3 := log(share_same3)]
 purchases.sample$ln_share_same3[is.infinite(purchases.sample$ln_share_same3)] <- NA
 purchases.sample <- purchases.sample[, ln_share_diff3 := log(share_diff3)]
 purchases.sample$ln_share_diff3[is.infinite(purchases.sample$ln_share_diff3)] <- NA
+
+# Delete variables for efficiency
+purchases.sample <- purchases.sample[, -c("share_taxable", "share_taxable", "share_unknown", "share_same3",
+                      "share_diff3")]
 
 
 # shares type x taxability
@@ -109,6 +124,11 @@ purchases.sample <- purchases.sample[, ln_share_unknown_same3 := log(share_unkno
 purchases.sample$ln_share_unknown_same3[is.infinite(purchases.sample$ln_share_unknown_same3)] <- NA
 purchases.sample <- purchases.sample[, ln_share_unknown_diff3 := log(share_unknown_diff3)]
 purchases.sample$ln_share_unknown_diff3[is.infinite(purchases.sample$ln_share_unknown_diff3)] <- NA
+
+# Delete variables for efficiency
+purchases.sample <- purchases.sample[, -c("share_taxable_same3", "share_taxable_diff3", "share_non_taxable_same3", 
+                      "share_non_taxable_diff3", "share_unknown_same3", "share_unknown_diff3")]
+
 
 # Time
 purchases.sample[, cal_time := 12 * year + quarter]
@@ -146,6 +166,13 @@ purchases.sample[, D.ln_expenditure_diff3 := ln_expenditure_diff3 - shift(ln_exp
 purchases.sample[, D.ln_expenditure_same3 := ln_expenditure_same3 - shift(ln_expenditure_same3, n=1, type="lag"),
                  by = .(product_module_code, household_code)]
 
+# Delete variables for efficiency
+purchases.sample <- purchases.sample[, -c("ln_expenditure_taxable", "ln_expenditure_non_taxable", 
+                                          "ln_expenditure_unknown", "ln_expenditure_diff3", 
+                                          "ln_expenditure_same3")]
+
+
+
 # type or taxability shares logs
 purchases.sample[, D.ln_share_taxable := ln_share_taxable - shift(ln_share_taxable, n=1, type="lag"),
                  by = .(product_module_code, household_code)]
@@ -157,6 +184,11 @@ purchases.sample[, D.ln_share_diff3 := ln_share_diff3 - shift(ln_share_diff3, n=
                  by = .(product_module_code, household_code)]
 purchases.sample[, D.ln_share_same3 := ln_share_same3 - shift(ln_share_same3, n=1, type="lag"),
                  by = .(product_module_code, household_code)]
+
+purchases.sample <- purchases.sample[, -c("ln_share_taxable", "ln_share_non_taxable", 
+                                          "ln_share_unknown", "ln_share_diff3", 
+                                          "ln_share_same3")]
+
 
 # type x taxability logs
 purchases.sample[, D.ln_expenditure_taxable_same3 := ln_expenditure_taxable_same3 - shift(ln_expenditure_taxable_same3, n=1, type="lag"),
@@ -172,6 +204,10 @@ purchases.sample[, D.ln_expenditure_unknown_same3 := ln_expenditure_unknown_same
 purchases.sample[, D.ln_expenditure_unknown_diff3 := ln_expenditure_unknown_diff3 - shift(ln_expenditure_unknown_diff3, n=1, type="lag"),
                  by = .(product_module_code, household_code)]
 
+purchases.sample <- purchases.sample[, -c("ln_expenditure_taxable_same3", "ln_expenditure_taxable_diff3", 
+                                          "ln_expenditure_non_taxable_same3", "ln_expenditure_non_taxable_diff3", 
+                                          "ln_expenditure_unknown_same3", "ln_expenditure_unknown_diff3")]
+
 # type x taxability shares logs
 purchases.sample[, D.ln_share_taxable_same3 := ln_share_taxable_same3 - shift(ln_share_taxable_same3, n=1, type="lag"),
                  by = .(product_module_code, household_code)]
@@ -186,6 +222,9 @@ purchases.sample[, D.ln_share_unknown_same3 := ln_share_unknown_same3 - shift(ln
 purchases.sample[, D.ln_share_unknown_diff3 := ln_share_unknown_diff3 - shift(ln_share_unknown_diff3, n=1, type="lag"),
                  by = .(product_module_code, household_code)]
 
+purchases.sample <- purchases.sample[, -c("ln_share_taxable_same3", "ln_share_taxable_diff3", 
+                                          "ln_share_non_taxable_same3", "ln_share_non_taxable_diff3", 
+                                          "ln_share_unknown_same3", "ln_share_unknown_diff3")]
 
 ## generate lags and leads of ln_sales_tax
 for (lag.val in 1:8) {
