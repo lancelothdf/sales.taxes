@@ -38,7 +38,6 @@ household.quarter <- household.quarter[order(household_code, cal_time),] ##Sort 
 
 household.quarter[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
                  by = .(household_code)]
-household.quarter <- household.quarter[, -(ln_sales_tax)]
 
 ## generate lags and leads of ln_sales_tax
 for (lag.val in 1:8) {
