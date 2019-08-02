@@ -17,6 +17,37 @@ setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 
                                         ####### Type or Taxability ########
 
+## Use previously build data set HH x Quarter to build sales tax lags and merge them on new data HH x module x quarter 
+household.quarter <- fread("cleaning/consumer_panel_q_hh_2006-2016.csv")
+household.quarter <- household.quarter[, .(ln_sales_tax, household_code, year, quarter)]
+
+# impute tax rates prior to 2008 and after 2014
+household.quarter[, ln_sales_tax := ifelse(year < 2008, ln_sales_tax[year == 2008 & quarter == 1], ln_sales_tax),
+                 by = .(household_code)]
+household.quarter[, ln_sales_tax := ifelse(year > 2014, ln_sales_tax[year == 2014 & quarter == 4], ln_sales_tax),
+                 by = .(household_code)]
+
+# Time
+purchases.sample[, cal_time := 12 * year + quarter]
+
+## take first differences of outcomes
+setkey(household.quarter, household_code, year, quarter)
+household.quarter <- household.quarter[order(household_code, cal_time),] ##Sort on hh by year-quarter (in ascending order)
+
+household.quarter[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
+                 by = .(household_code)]
+household.quarter <- household.quarter[, -(ln_sales_tax)]
+
+## generate lags and leads of ln_sales_tax
+for (lag.val in 1:8) {
+  lag.X <- paste0("L", lag.val, ".D.ln_sales_tax")
+  household.quarter[, (lag.X) := shift(D.ln_sales_tax, n=lag.val, type="lag"),
+                   by = .(household_code)]
+  
+  lead.X <- paste0("F", lag.val, ".D.ln_sales_tax")
+  household.quarter[, (lead.X) := shift(D.ln_sales_tax, n=lag.val, type="lead"),
+                   by = .(household_code)]
+}
 
 ## Open Data
 purchases.full <- fread("cleaning/consumer_panel_q_hh_mod_2006-2016.csv")
@@ -84,9 +115,6 @@ purchases.sample <- purchases.sample[, -c("share_taxable", "share_taxable", "sha
                       "share_diff3")]
 
 
-
-
-
 # Time
 purchases.sample[, cal_time := 12 * year + quarter]
 
@@ -97,19 +125,10 @@ purchases.sample[, module_by_time := .GRP, by = .(product_module_code, cal_time)
 purchases.sample[, module_by_region_time := .GRP, by = .(product_module_code, region_code, cal_time)]
 
 
-# impute tax rates prior to 2008 and after 2014
-purchases.sample[, ln_sales_tax := ifelse(year < 2008, ln_sales_tax[year == 2008 & quarter == 1], ln_sales_tax),
-       by = .(household_code)]
-purchases.sample[, ln_sales_tax := ifelse(year > 2014, ln_sales_tax[year == 2014 & quarter == 4], ln_sales_tax),
-       by = .(household_code)]
-
-## take first differences of outcomes and treatment
+## take first differences of outcomes
 setkey(purchases.sample, household_code, product_module_code, year, quarter)
 purchases.sample <- purchases.sample[order(household_code, product_module_code, cal_time),] ##Sort on hh by year-quarter (in ascending order)
 
-# tax
-purchases.sample[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
-       by = .(household_code)]
 
 # type or taxability logs
 purchases.sample[, D.ln_expenditure_taxable := ln_expenditure_taxable - shift(ln_expenditure_taxable, n=1, type="lag"),
@@ -147,18 +166,12 @@ purchases.sample <- purchases.sample[, -c("ln_share_taxable", "ln_share_non_taxa
                                           "ln_share_same3")]
 
 
+# Merge sales taxes and lags
+purchases.sample <- merge(purchases.sample, household.quarter,
+  by = c("household_code", "year", "quarter"),
+  all.x = T
+)
 
-
-## generate lags and leads of ln_sales_tax
-for (lag.val in 1:8) {
-  lag.X <- paste0("L", lag.val, ".D.ln_sales_tax")
-  purchases.sample[, (lag.X) := shift(D.ln_sales_tax, n=lag.val, type="lag"),
-         by = .(household_code)]
-  
-  lead.X <- paste0("F", lag.val, ".D.ln_sales_tax")
-  purchases.sample[, (lead.X) := shift(D.ln_sales_tax, n=lag.val, type="lead"),
-         by = .(household_code)]
-}
 # Restrict data to interest window
 purchases.sample <- purchases.sample[between(year, 2008, 2014)]
 purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & quarter >= 2)] ## First quarter of 2008, the difference was imputed not real data - so we drop it
@@ -206,7 +219,7 @@ for (FE in FE_opts) {
     res1.dt[, spec := FE]
     res1.dt[, Rsq := summary(res1)$r.squared]
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-    res1.dt[, N.obs := nrow(purchases.sample[!is.na((Y))])]
+    res1.dt[, N.obs := nrow(purchases.sample[!is.na(get(Y))])]
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
     
@@ -241,7 +254,7 @@ for (FE in FE_opts) {
       spec = FE,
       Rsq = summary(res1)$r.squared,
       adj.Rsq = summary(res1)$adj.r.squared)
-      N.obs = nrow(purchases.sample[!is.na((Y))])
+      N.obs = nrow(purchases.sample[!is.na(get(Y))])
     LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
     
@@ -315,7 +328,7 @@ for (FE in FE_opts) {
       spec = FE,
       Rsq = summary(res1)$r.squared,
       adj.Rsq = summary(res1)$adj.r.squared)
-      N.obs = nrow(purchases.sample[!is.na((Y))])
+      N.obs = nrow(purchases.sample[!is.na(get(Y))])
     LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
     
@@ -415,19 +428,9 @@ purchases.sample[, module_by_time := .GRP, by = .(product_module_code, cal_time)
 purchases.sample[, module_by_region_time := .GRP, by = .(product_module_code, region_code, cal_time)]
 
 
-# impute tax rates prior to 2008 and after 2014
-purchases.sample[, ln_sales_tax := ifelse(year < 2008, ln_sales_tax[year == 2008 & quarter == 1], ln_sales_tax),
-                 by = .(household_code)]
-purchases.sample[, ln_sales_tax := ifelse(year > 2014, ln_sales_tax[year == 2014 & quarter == 4], ln_sales_tax),
-                 by = .(household_code)]
-
-## take first differences of outcomes and treatment
+## take first differences of outcomes
 setkey(purchases.sample, household_code, product_module_code, year, quarter)
 purchases.sample <- purchases.sample[order(household_code, product_module_code, cal_time),] ##Sort on hh by year-quarter (in ascending order)
-
-# tax
-purchases.sample[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
-                 by = .(household_code)]
 
 # type x taxability logs
 purchases.sample[, D.ln_expenditure_taxable_same3 := ln_expenditure_taxable_same3 - shift(ln_expenditure_taxable_same3, n=1, type="lag"),
@@ -465,16 +468,12 @@ purchases.sample <- purchases.sample[, -c("ln_share_taxable_same3", "ln_share_ta
                                           "ln_share_non_taxable_same3", "ln_share_non_taxable_diff3", 
                                           "ln_share_unknown_same3", "ln_share_unknown_diff3")]
 
-## generate lags and leads of ln_sales_tax
-for (lag.val in 1:8) {
-  lag.X <- paste0("L", lag.val, ".D.ln_sales_tax")
-  purchases.sample[, (lag.X) := shift(D.ln_sales_tax, n=lag.val, type="lag"),
-                   by = .(household_code)]
-  
-  lead.X <- paste0("F", lag.val, ".D.ln_sales_tax")
-  purchases.sample[, (lead.X) := shift(D.ln_sales_tax, n=lag.val, type="lead"),
-                   by = .(household_code)]
-}
+# Merge sales taxes and lags
+purchases.sample <- merge(purchases.sample, household.quarter,
+                          by = c("household_code", "year", "quarter"),
+                          all.x = T
+)
+
 # Restrict data to interest window
 purchases.sample <- purchases.sample[between(year, 2008, 2014)]
 purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & quarter >= 2)] ## First quarter of 2008, the difference was imputed not real data - so we drop it
@@ -524,7 +523,7 @@ for (FE in FE_opts) {
     res1.dt[, spec := FE]
     res1.dt[, Rsq := summary(res1)$r.squared]
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-    res1.dt[, N.obs := nrow(purchases.sample[!is.na((Y))])]
+    res1.dt[, N.obs := nrow(purchases.sample[!is.na(get(Y))])]
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
     
@@ -559,7 +558,7 @@ for (FE in FE_opts) {
       spec = FE,
       Rsq = summary(res1)$r.squared,
       adj.Rsq = summary(res1)$adj.r.squared)
-    N.obs = nrow(purchases.sample[!is.na((Y))])
+    N.obs = nrow(purchases.sample[!is.na(get(Y))])
     LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
     
@@ -633,7 +632,7 @@ for (FE in FE_opts) {
       spec = FE,
       Rsq = summary(res1)$r.squared,
       adj.Rsq = summary(res1)$adj.r.squared)
-    N.obs = nrow(purchases.sample[!is.na((Y))])
+    N.obs = nrow(purchases.sample[!is.na(get(Y))])
     LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
     
