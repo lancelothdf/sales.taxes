@@ -123,10 +123,10 @@ for (Y in c(outcomes, outcomes_t)) {
     formula1 <- as.formula(paste0(
       Y, "~ ln_sales_tax | ", FE, "+ household_code | 0 | household_code"
     ))
-    flog.info("Estimating with %s as outcome", Y)
+    flog.info("Estimating with %s as outcome and %s FE", Y, FE)
     res1 <- felm(formula = formula1, data = purchases.sample,
                  weights = purchases.sample$projection_factor)
-    flog.info("Finished estimating with %s as outcome.", Y)
+    flog.info("Finished estimating with %s as outcomeand %s FE.", Y, FE)
     
     ## attach results
     flog.info("Writing results...")
