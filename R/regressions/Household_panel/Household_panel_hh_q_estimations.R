@@ -135,7 +135,7 @@ for (Y in c(outcomes, outcomes_t)) {
     res1.dt[, spec := FE]
     res1.dt[, Rsq := summary(res1)$r.squared]
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-    res1.dt[, N_obs := sum(!is.na(purchases.sample$get(Y)))]
+    res1.dt[, N.obs := nrow(purchases.sample[!is.na(get(Y))])]
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
 
