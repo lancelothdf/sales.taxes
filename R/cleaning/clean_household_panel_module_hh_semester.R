@@ -19,7 +19,7 @@ for (yr in 2006:2016) {
 
   annual.path <- paste0("cleaning/purchases_q_", yr, ".csv")
   purchase.yr <- fread(annual.path)
-  purchase.yr[ semester := ceiling(quarter/2)]
+  purchase.yr[, semester := ceiling(quarter/2)]
   purchase.yr <- purchase.yr[, list(
     total_expenditures = sum(total_expenditures),
     projection_factor = mean(projection_factor, na.rm = T),
