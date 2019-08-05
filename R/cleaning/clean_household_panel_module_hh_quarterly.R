@@ -152,8 +152,8 @@ purchases.full <- dcast(purchases.full, household_code + product_module_code + t
                           value.var = "total_expenditures")
 
 setnames(purchases.full,
-         old = c("FALSE", "TRUE"),
-         new = c("expenditures_diff3", "expenditures_same3"))
+         old = c("FALSE", "TRUE", "NA"),
+         new = c("expenditures_diff3", "expenditures_same3", "expenditures_unkn3"))
 
 ## merge on tax rates
 all_goods_pi_path <- "../../monthly_taxes_county_5zip_2008_2014.csv"
@@ -175,6 +175,6 @@ purchases.full <- merge(
 
 ## Create interest variables
 purchases.full <- purchases.full[, ln_sales_tax := log1p(sales_tax)]
-purchases.full <- purchases.full[, expenditures := expenditures_diff3 + expenditures_same3]
+purchases.full <- purchases.full[, expenditures := expenditures_diff3 + expenditures_same3 + expenditures_unkn3]
 
 fwrite(purchases.full, "cleaning/consumer_panel_q_hh_mod_2006-2016.csv")
