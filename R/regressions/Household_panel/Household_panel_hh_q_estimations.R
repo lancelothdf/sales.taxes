@@ -39,6 +39,10 @@ purchases.sample <- purchases.sample[, ln_expenditure_non_taxable := log(expendi
 purchases.sample$ln_expenditure_non_taxable[is.infinite(purchases.sample$ln_expenditure_non_taxable)] <- NA
 purchases.sample <- purchases.sample[, ln_expenditure_unknown := log(expenditure_unknown)]
 purchases.sample$ln_expenditure_unknown[is.infinite(purchases.sample$ln_expenditure_unknown)] <- NA
+purchases.sample <- purchases.sample[, ln_expenditure_same3 := log(expenditure_same3)]
+purchases.sample$ln_expenditure_same3[is.infinite(purchases.sample$ln_expenditure_same3)] <- NA
+purchases.sample <- purchases.sample[, ln_expenditure_diff3 := log(expenditure_diff3)]
+purchases.sample$ln_expenditure_diff3[is.infinite(purchases.sample$ln_expenditure_diff3)] <- NA
 
 ## Shares
 # type or taxability
