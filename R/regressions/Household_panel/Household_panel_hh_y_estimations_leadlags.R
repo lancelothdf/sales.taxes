@@ -14,7 +14,7 @@ library(DescTools)
 setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 
 ## Open Data
-purchases.full <- fread("cleaning/consumer_panel_s_hh_2006-2016.csv")
+purchases.full <- fread("cleaning/consumer_panel_y_hh_2006-2016.csv")
 
 purchases.full$time <- factor(purchases.full$year)
 
