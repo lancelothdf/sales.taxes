@@ -72,12 +72,12 @@ purchases.full <- dcast(purchases.full, household_code + taxability + fips_count
                           value.var = "total_expenditures")
 
 setnames(purchases.full,
-         old = c("FALSE", "TRUE"),
+         old = c("FALSE", "TRUE", "NA"),
          new = c("expenditures_diff3", "expenditures_same3"))
 ## reshape to get a hh data
 purchases.full <- dcast(purchases.full, household_code + fips_county_code + fips_state_code + zip_code + semester
                         + year + projection_factor + projection_factor_magnet + sum_total_exp_semester + region_code +
-                          household_income ~ taxability,  fun=sum, value.var = c("expenditures_diff3","expenditures_same3"))
+                          household_income ~ taxability,  fun=sum, value.var = c("expenditures_diff3","expenditures_same3", "expenditures_unkn3"))
 
 ## merge on tax rates
 all_goods_pi_path <- "../../monthly_taxes_county_5zip_2008_2014.csv"
@@ -99,9 +99,9 @@ purchases.full <- merge(
 
 ## Create interest variables
 purchases.full <- purchases.full[, ln_sales_tax := log1p(sales_tax)]
-purchases.full <- purchases.full[, expenditure_taxable := expenditures_diff3_1 + expenditures_same3_1]
-purchases.full <- purchases.full[, expenditure_non_taxable := expenditures_diff3_0 + expenditures_same3_0]
-purchases.full <- purchases.full[, expenditure_unknown := expenditures_diff3_2 + expenditures_same3_2]
+purchases.full <- purchases.full[, expenditure_taxable := expenditures_diff3_1 + expenditures_same3_1 + expenditures_unkn3_1]
+purchases.full <- purchases.full[, expenditure_non_taxable := expenditures_diff3_0 + expenditures_same3_0 + expenditures_unkn3_0]
+purchases.full <- purchases.full[, expenditure_unknown := expenditures_diff3_2 + expenditures_same3_2 + expenditures_unkn3_2]
 purchases.full <- purchases.full[, expenditure_same3 := expenditures_same3_0 + expenditures_same3_1 + expenditures_same3_2]
 purchases.full <- purchases.full[, expenditure_diff3 := expenditures_diff3_0 + expenditures_diff3_1 + expenditures_diff3_2]
 
