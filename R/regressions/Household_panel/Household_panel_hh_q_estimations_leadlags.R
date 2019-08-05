@@ -303,7 +303,7 @@ for (FE in FE_opts) {
     
     #cumul.lead2.est is just equal to minus the change between -2 and -1
     cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_sales_tax", "Estimate"]
-    cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Std. Error"]
+    cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Cluster s.e."]
     cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Pr(>|t|)"]
     
     ##LEADS
@@ -330,7 +330,7 @@ for (FE in FE_opts) {
     ##LAGS
     ## On Impact --> Effect = coefficient on D.ln_sales_tax
     cumul.lag0.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
-    cumul.lag0.se <- coef(summary(res1))[ "D.ln_sales_tax", "Std. Error"]
+    cumul.lag0.se <- coef(summary(res1))[ "D.ln_sales_tax", "Cluster s.e."]
     cumul.lag0.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
     
     for(j in 1:8) {
