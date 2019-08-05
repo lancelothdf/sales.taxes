@@ -317,7 +317,8 @@ LRdiff_res <- data.table(NULL)
     covv.mat <- sandwich%*%B.clu
     covv.mat <- covv.mat%*%sandwich
 
-    output.temp <- paste(output.covv.mat, "_", FE_opts, ".csv", sep = "")
+
+    output.temp <- paste(output.covv.mat, "_", FE, ".csv", sep = "")
     fwrite(covv.mat, output.temp)
     }
 
@@ -332,6 +333,10 @@ LRdiff_res$N_counties <- uniqueN(all_pi, by = c("fips_state", "fips_county"))
 LRdiff_res$N_years <- uniqueN(all_pi, by = c("year")) # should be 6 (we lose one because we difference)
 LRdiff_res$N_county_modules <- uniqueN(all_pi, by = c("fips_state", "fips_county",
                                                            "product_module_code"))
+LRdiff_res$N_state_modules <- length(unique(all_pi$module_by_state))
+LRdiff_res$N_module_time <- length(unique(all_pi$module_by_time))
+LRdiff_res$N_module_region_time <- length(unique(all_pi$region_by_module_by_time))
+LRdiff_res$N_module_division_time <- length(unique(all_pi$division_by_module_by_time))
 
 fwrite(LRdiff_res, output.results.file)
 
