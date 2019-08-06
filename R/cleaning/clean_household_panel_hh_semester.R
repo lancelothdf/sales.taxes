@@ -73,7 +73,7 @@ purchases.full <- dcast(purchases.full, household_code + taxability + fips_count
 
 setnames(purchases.full,
          old = c("FALSE", "TRUE", "NA"),
-         new = c("expenditures_diff3", "expenditures_same3"))
+         new = c("expenditures_diff3", "expenditures_same3", "expenditures_unkn3"))
 ## reshape to get a hh data
 purchases.full <- dcast(purchases.full, household_code + fips_county_code + fips_state_code + zip_code + semester
                         + year + projection_factor + projection_factor_magnet + sum_total_exp_semester + region_code +
