@@ -34,18 +34,8 @@ border.counties <- fread(border.path)
 border.counties[ , fips_state := floor(fips_county/1000)]
 border.counties[, fips_county := fips_county - fips_state*1000]
 
-#Only keep counties that are in the Household panel
-border.counties <- merge(list.counties, border.counties,by = c("fips_state", "fips_county"), all.x = T)
-
-#Only keep pairs for which both counties are in the data
-setDT(border.counties)
-keep_counties <- border.counties[, list(n = .N), by = .(bordindx)]
-keep_counties <- keep_counties[n == 2]
 
 setkey(border.counties, bordindx)
-setkey(keep_counties, bordindx)
-
-border.counties <- border.counties[keep_counties]
 border.counties <- border.counties[, c("fips_state", "fips_county", "bordindx")]
 
 # Identify county pairs from different states
@@ -53,6 +43,9 @@ border.counties <- border.counties[, list( different := fips_state - mean(fips_s
 border.counties <- border.counties[ different != 0 ]
 border.counties <- border.counties[, .(fips_state, fips_county)]
 border.counties <- unique(border.counties, by=c("fips_state", "fips_county"))
+
+#Only keep counties that are in the Household panel
+border.counties <- merge(list.counties, border.counties, by = c("fips_state", "fips_county"), all.x = T)
 
 # Merge purchases.nomagnet with the identified counties
 purchases.sample <- merge(purchases.nomagnet, purchases.borderhh, by = c("fips_state", "fips_county", "id"))
