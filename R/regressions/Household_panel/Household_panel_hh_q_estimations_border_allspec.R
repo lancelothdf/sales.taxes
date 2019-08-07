@@ -48,7 +48,7 @@ border.counties <- unique(border.counties, by=c("fips_state", "fips_county"))
 border.counties <- merge(list.counties, border.counties, by = c("fips_state", "fips_county"), all.x = T)
 
 # Merge purchases.nomagnet with the identified counties
-purchases.sample <- merge(purchases.nomagnet, purchases.borderhh, by = c("fips_state", "fips_county", "id"))
+purchases.sample <- merge(border.counties, purchases.nomagnet, by = c("fips_state", "fips_county"), all.x = T)
 
 ## Preparing data set for estimations ----------
 # Generate some region by time and time FE
