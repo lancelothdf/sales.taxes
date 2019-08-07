@@ -46,7 +46,7 @@ border.counties <- unique(border.counties, by=c("fips_state", "fips_county"))
 
 #Only keep counties that are in the Household panel
 border.counties <- merge(list.counties, border.counties, by = c("fips_state", "fips_county"), all.x = T)
-border.counties[, border := 1]
+border.counties[, border = 1]
 # Merge purchases.nomagnet with the identified counties
 purchases.sample <- merge(purchases.nomagnet, border.counties, by = c("fips_state", "fips_county"), all.x = T)
 
