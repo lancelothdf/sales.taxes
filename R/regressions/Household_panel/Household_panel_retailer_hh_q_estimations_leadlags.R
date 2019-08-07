@@ -27,18 +27,18 @@ purchases.sample <- purchases.full[!is.na(projection_factor)]
 
 ## Shares
 # taxability
-purchases.sample[, share_taxable := expenditure_taxable/sum_total_exp]
-purchases.sample[, share_non_taxable := expenditure_non_taxable/sum_total_exp]
-purchases.sample[, share_unknown := expenditure_unknown/sum_total_exp]
+purchases.sample[, share_taxable := expenditures_taxable/sum_total_exp]
+purchases.sample[, share_non_taxable := expenditures_non_taxable/sum_total_exp]
+purchases.sample[, share_unknown := expenditures_unknown/sum_total_exp]
 
 
 ## Logarithms of variables
 # taxability
-purchases.sample <- purchases.sample[, ln_expenditure_taxable := log(expenditure_taxable)]
+purchases.sample <- purchases.sample[, ln_expenditure_taxable := log(expenditures_taxable)]
 purchases.sample$ln_expenditure_taxable[is.infinite(purchases.sample$ln_expenditure_taxable)] <- NA
-purchases.sample <- purchases.sample[, ln_expenditure_non_taxable := log(expenditure_non_taxable)]
+purchases.sample <- purchases.sample[, ln_expenditure_non_taxable := log(expenditures_non_taxable)]
 purchases.sample$ln_expenditure_non_taxable[is.infinite(purchases.sample$ln_expenditure_non_taxable)] <- NA
-purchases.sample <- purchases.sample[, ln_expenditure_unknown := log(expenditure_unknown)]
+purchases.sample <- purchases.sample[, ln_expenditure_unknown := log(expenditures_unknown)]
 purchases.sample$ln_expenditure_unknown[is.infinite(purchases.sample$ln_expenditure_unknown)] <- NA
 
 # shares taxability
