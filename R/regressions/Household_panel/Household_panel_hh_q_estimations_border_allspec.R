@@ -46,10 +46,13 @@ border.counties <- unique(border.counties, by=c("fips_state", "fips_county"))
 
 #Only keep counties that are in the Household panel
 border.counties <- merge(list.counties, border.counties, by = c("fips_state", "fips_county"), all.x = T)
-
+border.counties[, border := 1]
 # Merge purchases.nomagnet with the identified counties
-purchases.sample <- merge(border.counties, purchases.nomagnet, by = c("fips_state", "fips_county"), all.x = T)
+purchases.sample <- merge(purchases.nomagnet, border.counties, by = c("fips_state", "fips_county"), all.x = T)
 
+# Keep households at border
+nrows(purchases.sample[border == 1])
+purchases.sample <- purchases.sample[border == 1]
 ## Preparing data set for estimations ----------
 # Generate some region by time and time FE
 purchases.sample[, time := .GRP, by = .(year, quarter)]
