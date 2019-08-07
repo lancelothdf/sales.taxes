@@ -272,9 +272,10 @@ for (FE in FE_opts) {
     flog.info("Writing results...")
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := Y]
+    res1.dt[, spec := FE]
     res1.dt[, Rsq := summary(res1)$r.squared]
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-    res1.dt[, N.obs := nrow(purchases.sample[!is.na((Y))])]
+    res1.dt[, N.obs := nrow(purchases.sample[!is.na(get(Y))])]
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
     
@@ -306,9 +307,10 @@ for (FE in FE_opts) {
       `Cluster s.e.` = c(lead.test.se, lag.test.se, total.test.se),
       `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
       outcome = Y,
+      spec = FE, 
       Rsq = summary(res1)$r.squared,
       adj.Rsq = summary(res1)$adj.r.squared)
-      N.obs = nrow(purchases.sample[!is.na((Y))])
+      N.obs = nrow(purchases.sample[!is.na(get(Y))])
     LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
     
@@ -397,9 +399,10 @@ for (FE in FE_opts) {
                      cumul.lag9.pval, cumul.lag10.pval, cumul.lag11.pval, cumul.lag12.pval, cumul.lag13.pval, cumul.lag14.pval, cumul.lag15.pval, cumul.lag16.pval, 
                      cumul.lag17.pval, cumul.lag18.pval, cumul.lag19.pval, cumul.lag20.pval, cumul.lag21.pval, cumul.lag22.pval, cumul.lag23.pval, cumul.lag24.pval),
       outcome = Y,
+      spec = FE,
       Rsq = summary(res1)$r.squared,
       adj.Rsq = summary(res1)$adj.r.squared)
-      N.obs = nrow(purchases.sample[!is.na((Y))])
+      N.obs = nrow(purchases.sample[!is.na(get(Y))])
     LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
   
