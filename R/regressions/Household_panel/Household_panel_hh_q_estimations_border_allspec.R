@@ -51,7 +51,7 @@ border.counties[, border := 1L]
 purchases.sample <- merge(purchases.nomagnet, border.counties, by = c("fips_state", "fips_county"), all.x = T)
 
 # Keep households at border
-nrows(purchases.sample[border == 1])
+nrow(purchases.sample[border == 1])
 purchases.sample <- purchases.sample[border == 1]
 ## Preparing data set for estimations ----------
 # Generate some region by time and time FE
