@@ -18,9 +18,6 @@ setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 border.path <- "../../border_counties.csv"
 purchases.full <- fread("cleaning/consumer_panel_q_hh_2006-2016.csv")
 
-purchases.full$time <- factor(with(purchases.full, interaction(year, month)))
-
-
 ## Constraining Data set for estimations ------------ 
 # Drop "magnet" households: 
 purchases.full[, sum(is.na(projection_factor))]
