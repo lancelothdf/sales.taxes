@@ -39,7 +39,7 @@ setkey(border.counties, bordindx)
 border.counties <- border.counties[, c("fips_state", "fips_county", "bordindx")]
 
 # Identify county pairs from different states
-border.counties <- border.counties[, list( different = (fips_state - mean(fips_state))), by = bordindx]
+border.counties <- border.counties[, different := (fips_state - mean(fips_state)), by = bordindx]
 border.counties <- border.counties[ different != 0 ]
 border.counties <- border.counties[, .(fips_state, fips_county)]
 border.counties <- unique(border.counties, by=c("fips_state", "fips_county"))
