@@ -28,7 +28,7 @@ purchases.nomagnet <- purchases.full[!is.na(projection_factor)]
 # Minor change to merge
 setnames(purchases.nomagnet, old = c("fips_state_code", "fips_county_code"), new = c("fips_state", "fips_county"))
 
-list.counties <- data.frame(unique(purchases.nomagnet[,c('fips_state','fips_county')]))
+list.counties <- data.table(unique(purchases.nomagnet[,c('fips_state','fips_county')]))
 border.counties <- fread(border.path)
 
 border.counties[ , fips_state := floor(fips_county/1000)]
