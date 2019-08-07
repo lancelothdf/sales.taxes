@@ -93,7 +93,7 @@ for (yr in 2006:2016) {
                              Fips_State_Cd, Fips_County_Cd, Panelist_ZipCd, Region_Cd)]
   setnames(panelists,
            old = c("Household_Cd", "Panel_Year", "Projection_Factor", "Fips_State_Cd", "Fips_County_Cd",
-                   "Projection_Factor_Magnet", "Household_Income", "Panelist_ZipCd"),
+                   "Projection_Factor_Magnet", "Household_Income", "Panelist_ZipCd", "Region_Cd"),
            new = c("household_code", "year", "projection_factor", "hh_fips_state_code", "hh_fips_county_code",
                    "projection_factor_magnet", "household_income", "hh_zip_code", "hh_region_code"))
   flog.info("Merging panelists data to purchases for %s", yr)
