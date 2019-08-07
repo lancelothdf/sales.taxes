@@ -100,10 +100,10 @@ for (yr in 2006:2016) {
   purchases <- merge(purchases, panelists, by = c("household_code", "year"), all.x = T)
   
   ## Compute total expense in that quarter (across stores and modules)
-  purchases.full[, sum_total_exp := sum(total_expenditures),
+  purchases[, sum_total_exp := sum(total_expenditures),
                  by = .(household_code, year, quarter)] 
   ## Keep purchases made in retailer data stores
-  purchases.full[!is.na(channel_code)]
+  purchases[!is.na(channel_code)]
   
   ## save the final dataset
   flog.info("Saving cleaned dataset for panel year %s", yr)
