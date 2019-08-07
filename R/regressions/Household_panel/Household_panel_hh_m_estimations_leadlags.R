@@ -22,7 +22,7 @@ purchases.full$time <- factor(with(purchases.full, interaction(year, month)))
 # Drop "magnet" households: 
 purchases.full[, sum(is.na(projection_factor))]
 # 2016154 obs
-purchases.nomagnet <- purchases.full[!is.na(projection_factor)]
+purchases.sample <- purchases.full[!is.na(projection_factor)]
 
 
 ## Create Necessary variables -----------------------
