@@ -43,8 +43,7 @@ purchases.sample <- purchases.sample[, ln_quantities_taxable := log(quantities_t
 purchases.sample$ln_quantities_taxable[is.infinite(purchases.sample$ln_quantities_taxable)] <- NA
 purchases.sample <- purchases.sample[, ln_quantities_non_taxable := log(quantities_non_taxable)]
 purchases.sample$ln_quantities_non_taxable[is.infinite(purchases.sample$ln_quantities_non_taxable)] <- NA
-purchases.sample <- purchases.sample[, ln_quantities_unknown := log(quantities_unknown)]
-purchases.sample$ln_quantities_unknown[is.infinite(purchases.sample$ln_quantities_unknown)] <- NA
+
 
 ## Shares
 # taxability
@@ -70,7 +69,7 @@ output.results.file <- "../../../../../home/slacouture/HMS/HH_retailer_quarter_t
 
 outcomes <- c("ln_expenditure_taxable", "ln_expenditure_non_taxable", "ln_expenditure_unknown",
               "ln_share_taxable", "ln_share_non_taxable", "ln_share_unknown",
-              "ln_quantities_taxable", "ln_quantities_non_taxable", "ln_quantities_unknown")
+              "ln_quantities_taxable", "ln_quantities_non_taxable")
 
 FE_opts <- c("region_by_time", "time")
 

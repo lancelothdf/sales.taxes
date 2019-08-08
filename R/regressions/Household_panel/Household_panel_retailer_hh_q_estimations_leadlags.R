@@ -54,8 +54,7 @@ purchases.sample <- purchases.sample[, ln_quantities_taxable := log(quantities_t
 purchases.sample$ln_quantities_taxable[is.infinite(purchases.sample$ln_quantities_taxable)] <- NA
 purchases.sample <- purchases.sample[, ln_quantities_non_taxable := log(quantities_non_taxable)]
 purchases.sample$ln_quantities_non_taxable[is.infinite(purchases.sample$ln_quantities_non_taxable)] <- NA
-purchases.sample <- purchases.sample[, ln_quantities_unknown := log(quantities_unknown)]
-purchases.sample$ln_quantities_unknown[is.infinite(purchases.sample$ln_quantities_unknown)] <- NA
+
 
 
 # Time
@@ -100,8 +99,7 @@ purchases.sample[, D.ln_quantities_taxable := ln_quantities_taxable - shift(ln_q
                  by = .(household_code)]
 purchases.sample[, D.ln_quantities_non_taxable := ln_quantities_non_taxable - shift(ln_quantities_non_taxable, n=1, type="lag"),
                  by = .(household_code)]
-purchases.sample[, D.ln_quantities_unknown := ln_quantities_unknown - shift(ln_quantities_unknown, n=1, type="lag"),
-                 by = .(household_code)]
+
 
 
 ## generate lags and leads of ln_sales_tax
@@ -125,7 +123,7 @@ output.results.file <- "../../../../../home/slacouture/HMS/HH_retailer_quarter_d
 
 outcomes <- c("D.ln_expenditure_taxable", "D.ln_expenditure_non_taxable", "D.ln_expenditure_unknown",
               "D.ln_share_taxable", "D.ln_share_non_taxable", "D.ln_share_unknown",
-              "D.ln_quantities_taxable", "D.ln_quantities_non_taxable", "D.ln_quantities_unknown")
+              "D.ln_quantities_taxable", "D.ln_quantities_non_taxable")
 
 
 FE_opts <- c("region_by_time", "time")
@@ -146,8 +144,7 @@ total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 descriptives <- describe(purchases.sample[, .(D.ln_expenditure_taxable, D.ln_expenditure_non_taxable,
                                               D.ln_expenditure_unknown, D.ln_share_taxable,
                                               D.ln_share_non_taxable, D.ln_share_unknown,
-                                              D.ln_quantities_taxable, D.ln_quantities_non_taxable, 
-                                              D.ln_quantities_unknown)])
+                                              D.ln_quantities_taxable, D.ln_quantities_non_taxable)])
 des.est.out  <- data.table(descriptives, keep.rownames=T)
 fwrite(des.est.out, output.decriptives.file)
 
