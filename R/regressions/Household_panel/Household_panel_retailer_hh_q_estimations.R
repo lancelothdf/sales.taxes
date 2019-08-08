@@ -14,7 +14,7 @@ library(ggplot2)
 setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 
 ## Open Data
-purchases.full <- fread("cleaning/consumer_panel_retailer_q_hh_2006-2016.csv")
+purchases.full <- fread("cleaning/consumer_panel_retailer_nc_q_hh_2006-2016.csv")
 
 ## Constraining Data set for estimations ------------ 
 # Drop "magnet" households: 
@@ -30,6 +30,7 @@ purchases.sample <- purchases.nomagnet[!is.na(sales_tax)]
 
 ## creating interest outcomes -------
 
+# log expenditures
 purchases.sample <- purchases.sample[, ln_expenditure_taxable := log(expenditures_taxable)]
 purchases.sample$ln_expenditure_taxable[is.infinite(purchases.sample$ln_expenditure_taxable)] <- NA
 purchases.sample <- purchases.sample[, ln_expenditure_non_taxable := log(expenditures_non_taxable)]
@@ -37,14 +38,21 @@ purchases.sample$ln_expenditure_non_taxable[is.infinite(purchases.sample$ln_expe
 purchases.sample <- purchases.sample[, ln_expenditure_unknown := log(expenditures_unknown)]
 purchases.sample$ln_expenditure_unknown[is.infinite(purchases.sample$ln_expenditure_unknown)] <- NA
 
+# log quantities
+purchases.sample <- purchases.sample[, ln_quantities_taxable := log(quantities_taxable)]
+purchases.sample$ln_quantities_taxable[is.infinite(purchases.sample$ln_quantities_taxable)] <- NA
+purchases.sample <- purchases.sample[, ln_quantities_non_taxable := log(quantities_non_taxable)]
+purchases.sample$ln_quantities_non_taxable[is.infinite(purchases.sample$ln_quantities_non_taxable)] <- NA
+purchases.sample <- purchases.sample[, ln_quantities_unknown := log(quantities_unknown)]
+purchases.sample$ln_quantities_unknown[is.infinite(purchases.sample$ln_quantities_unknown)] <- NA
 
 ## Shares
-# type or taxability
+# taxability
 purchases.sample[, share_taxable := expenditures_taxable/sum_total_exp]
 purchases.sample[, share_non_taxable := expenditures_non_taxable/sum_total_exp]
 purchases.sample[, share_unknown := expenditures_unknown/sum_total_exp]
 
-# shares type or taxability
+# shares logs
 purchases.sample <- purchases.sample[, ln_share_taxable := log(share_taxable)]
 purchases.sample$ln_share_taxable[is.infinite(purchases.sample$ln_share_taxable)] <- NA
 purchases.sample <- purchases.sample[, ln_share_non_taxable := log(share_non_taxable)]
@@ -61,7 +69,8 @@ purchases.sample[, time := .GRP, by = .(year, quarter)]
 output.results.file <- "../../../../../home/slacouture/HMS/HH_retailer_quarter_twowayFE.csv"
 
 outcomes <- c("ln_expenditure_taxable", "ln_expenditure_non_taxable", "ln_expenditure_unknown",
-              "ln_share_taxable", "ln_share_non_taxable", "ln_share_unknown")
+              "ln_share_taxable", "ln_share_non_taxable", "ln_share_unknown",
+              "ln_quantities_taxable", "ln_quantities_non_taxable", "ln_quantities_unknown")
 
 FE_opts <- c("region_by_time", "time")
 
