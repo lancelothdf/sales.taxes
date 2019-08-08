@@ -173,7 +173,7 @@ purchases.full[, quantities := total_expenditures/pricei]
 ## Collapse by household X store X taxability of module x quarter
 purchases.full <- purchases.full[, list(
   total_expenditures = sum(total_expenditures),
-  quantities = sum(quantities)
+  quantities = sum(quantities, na.rm=T)
 ), by = .(household_code, taxability, fips_county, fips_state,
           hh_fips_county_code, hh_fips_state_code, hh_zip_code, hh_region_code,
           store_code_uc, quarter, year, sum_total_exp, projection_factor, sum_total_exp_retailer,
