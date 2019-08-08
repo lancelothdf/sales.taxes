@@ -156,9 +156,24 @@ purchases.full <- merge(
 # Assign unknown to purchases out of best selling module (taxability only identified for best selling)
 purchases.full$taxability[is.na(purchases.full$taxability)] <- 2
 
+## merge on price indices (before taxes)
+all_goods_pi_path <- "../../all_nielsen_data_2006_2016_quarterly.csv"
+all_pi <- fread(all_goods_pi_path)
+all_pi <- all_pi[, .(store_code_uc, product_module_code,
+                     year, quarter, pricei)]
+
+purchases.full <- merge(
+  purchases.full, all_pi,
+  by = c("store_code_uc", "product_module_code", "year", "quarter"),
+  all.x = T
+)
+## compute quantities using price index (before taxes)
+purchases.full[, quantities := total_expenditures/pricei]
+
 ## Collapse by household X store X taxability of module x quarter
 purchases.full <- purchases.full[, list(
-  total_expenditures = sum(total_expenditures)
+  total_expenditures = sum(total_expenditures),
+  quantities = sum(quantities)
 ), by = .(household_code, taxability, fips_county, fips_state,
           hh_fips_county_code, hh_fips_state_code, hh_zip_code, hh_region_code,
           store_code_uc, quarter, year, sum_total_exp, projection_factor, sum_total_exp_retailer,
@@ -172,13 +187,15 @@ purchases.full <- dcast(purchases.full, household_code + fips_county + fips_stat
                           hh_fips_county_code + hh_fips_state_code + hh_zip_code + hh_region_code +
                           quarter + year + projection_factor + projection_factor_magnet + sum_total_exp +
                           sum_total_exp_retailer + household_income ~ taxability, fun=sum,
-                        value.var = "total_expenditures")
+                          value.var = c("total_expenditures","quantities"))
 setnames(purchases.full,
-         old = c("0", "1", "2"),
-         new = c("expenditures_non_taxable", "expenditures_taxable", "expenditures_unknown"))
+         old = c("total_expenditures_0", "total_expenditures_1", "total_expenditures_2",
+                 "quantities_0", "quantities_1", "quantities_2"),
+         new = c("expenditures_non_taxable", "expenditures_taxable", "expenditures_unknown",
+                 "quantities_non_taxable", "quantities_taxable", "quantities_unknown"))
 
 
-## merge on tax rates by store
+## merge on tax rates by store location 
 taxes_path <- "../../county_monthly_tax_rates_2008_2014.csv"
 taxes <- fread(taxes_path)
 taxes <- taxes[, .(sales_tax, year, month, fips_county, fips_state )]
@@ -198,7 +215,10 @@ purchases.full <- merge(purchases.full, taxes,
 purchases.full <- purchases.full[, list(
   expenditures_non_taxable = sum(expenditures_non_taxable),
   expenditures_taxable = sum(expenditures_taxable),
-  expenditures_unknown = sum(expenditures_unknown),
+  expenditures_unknown = sum(expenditures_unknown),  
+  quantities_non_taxable = sum(quantities_non_taxable),
+  quantities_taxable = sum(quantities_taxable),
+  quantities_unknown = sum(quantities_unknown),
   sales_tax = weighted.mean(sales_tax, sum_total_exp_retailer, na.rm = T)
 ), by = .(household_code,
           hh_fips_county_code, hh_fips_state_code, hh_zip_code, hh_region_code,
