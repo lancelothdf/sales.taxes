@@ -218,7 +218,6 @@ purchases.full <- purchases.full[, list(
   expenditures_unknown = sum(expenditures_unknown),  
   quantities_non_taxable = sum(quantities_non_taxable),
   quantities_taxable = sum(quantities_taxable),
-  quantities_unknown = sum(quantities_unknown),
   sales_tax = weighted.mean(sales_tax, sum_total_exp_retailer, na.rm = T)
 ), by = .(household_code,
           hh_fips_county_code, hh_fips_state_code, hh_zip_code, hh_region_code,
