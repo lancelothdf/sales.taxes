@@ -179,9 +179,9 @@ purchases.full <- purchases.full[, list(
           store_code_uc, quarter, year, sum_total_exp, projection_factor, sum_total_exp_retailer,
           projection_factor_magnet, household_income) ]
 
-fwrite(purchases.full, "cleaning/consumer_panel_retailer_q_hh_2006-2016.csv")
+fwrite(purchases.full, "cleaning/consumer_panel_retailer_nc_q_hh_2006-2016.csv")
 
-purchases <- fread("cleaning/consumer_panel_retailer_q_hh_2006-2016.csv")
+purchases <- fread("cleaning/consumer_panel_retailer_nc_q_hh_2006-2016.csv")
 ## Reshape to get a household x store x quarter data set
 purchases.full <- dcast(purchases.full, household_code + fips_county + fips_state + store_code_uc +
                           hh_fips_county_code + hh_fips_state_code + hh_zip_code + hh_region_code +
