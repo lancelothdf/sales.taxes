@@ -209,4 +209,4 @@ purchases.full <- purchases.full[, list(
 purchases.full <- purchases.full[, ln_sales_tax := log1p(sales_tax)]
 
 
-fwrite(purchases.full, "cleaning/consumer_panel_retailer_q_hh_2006-2016.csv")
+fwrite(purchases.full, "cleaning/consumer_panel_retailer_nc_q_hh_2006-2016.csv")
