@@ -1,8 +1,8 @@
 #' Author: John Bonney & Santiago Lacouture
 #'
 #' Clean the Nielsen household panel data to create a data set on the
-#' consumer-module-quarter level. Match sales tax to HH by their location. 
-#' Divide consumption by taxability of product
+#' consumer-group-quarter level. Match sales tax to HH by their location. 
+#' Divide consumption by taxability of product and by location of store (same 3 digit or not)
 
 library(data.table)
 library(futile.logger)
@@ -122,6 +122,7 @@ for (yr in 2006:2016) {
 purchases.full[, sum_total_exp_quarter := sum(total_expenditures),
                by = .(household_code, year, quarter)]
 
+
 ## Identify taxability of module: import
 taxability_panel <- fread("/project2/igaarder/Data/taxability_state_panel.csv")
 taxability_panel <- taxability_panel[, .(product_module_code, product_group_code,
@@ -145,8 +146,8 @@ purchases.full <- merge(
 purchases.full$taxability[is.na(purchases.full$taxability)] <- 2
 
 
-## reshape to get a hh X module of module data
-purchases.full <- dcast(purchases.full, household_code + product_module_code + taxability + fips_county_code + fips_state_code +
+## reshape to get a hh X module data
+purchases.full <- dcast(purchases.full, household_code + product_group_code + taxability + fips_county_code + fips_state_code +
                           zip_code + quarter + year + projection_factor + projection_factor_magnet + region_code +
                           sum_total_exp_quarter + household_income + taxability ~ same_3zip_store, fun=sum,
                           value.var = "total_expenditures")
@@ -154,6 +155,26 @@ purchases.full <- dcast(purchases.full, household_code + product_module_code + t
 setnames(purchases.full,
          old = c("FALSE", "TRUE", "NA"),
          new = c("expenditures_diff3", "expenditures_same3", "expenditures_unkn3"))
+
+## Collapse to the group:
+# Taxability as the mode within the group
+# Expenditures as the sum
+# ad-hoc mode function
+mode <- function(x) {
+  x <- x[!is.na(x)]
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+purchases.full <- purchases.full[, list(
+  expenditures_diff3 = sum(expenditures_diff3),
+  expenditures_same3 = sum(expenditures_same3),
+  expenditures_unkn3 = sum(expenditures_unkn3),
+  taxability = mode(taxability)
+), by = .(household_code, fips_county_code, fips_state, product_group_code,
+          zip_code, region_code, quarter, year, sum_total_exp_quarter, projection_factor,
+          projection_factor_magnet, household_income) ]
+
 
 ## merge on tax rates
 all_goods_pi_path <- "../../monthly_taxes_county_5zip_2008_2014.csv"
@@ -177,4 +198,4 @@ purchases.full <- merge(
 purchases.full <- purchases.full[, ln_sales_tax := log1p(sales_tax)]
 purchases.full <- purchases.full[, expenditures := expenditures_diff3 + expenditures_same3 + expenditures_unkn3]
 
-fwrite(purchases.full, "cleaning/consumer_panel_q_hh_mod_2006-2016.csv")
+fwrite(purchases.full, "cleaning/consumer_panel_q_hh_group_2006-2016.csv")
