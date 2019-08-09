@@ -1,5 +1,5 @@
 ## Sales taxes Project. Household Panel
-# Running distributed lag regression in differences on the new panel (household aggregate x month)
+# Running distributed lag regression in differences on the new panel (household aggregate x quarter)
 # Author: John Bonney & Santiago Lacouture
 
 library(data.table)
@@ -55,6 +55,9 @@ purchases.sample <- purchases.sample[, ln_expenditure_same3 := log(expenditure_s
 purchases.sample$ln_expenditure_same3[is.infinite(purchases.sample$ln_expenditure_same3)] <- NA
 purchases.sample <- purchases.sample[, ln_expenditure_diff3 := log(expenditure_diff3)]
 purchases.sample$ln_expenditure_diff3[is.infinite(purchases.sample$ln_expenditure_diff3)] <- NA
+
+purchases.sample <- purchases.sample[, ln_total_expenditure := log(sum_total_exp_quarter)]
+purchases.sample$ln_total_expenditure[is.infinite(purchases.sample$ln_total_expenditure)] <- NA
 
 # type x taxability
 purchases.sample <- purchases.sample[, ln_expenditure_taxable_same3 := log(expenditures_same3_1)]
@@ -118,6 +121,9 @@ purchases.sample <- purchases.sample[order(household_code, cal_time),] ##Sort on
 # tax
 purchases.sample[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
        by = .(household_code)]
+
+purchases.sample[, D.ln_total_expenditure := ln_total_expenditure - shift(ln_total_expenditure, n=1, type="lag"),
+                 by = .(household_code)]
 
 # type or taxability logs
 purchases.sample[, D.ln_expenditure_taxable := ln_expenditure_taxable - shift(ln_expenditure_taxable, n=1, type="lag"),
@@ -194,8 +200,9 @@ output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_quarter_leadsl
 output.results.file <- "../../../../../home/slacouture/HMS/HH_quarter_leadslags_cumulative.csv"
 
 outcomes <- c("D.ln_expenditure_taxable", "D.ln_expenditure_non_taxable", "D.ln_expenditure_unknown",
-              "D.ln_expenditure_diff3", "D.ln_expenditure_same3", "D.ln_share_taxable",
-              "D.ln_share_non_taxable", "D.ln_share_unknown", "D.ln_share_same3", "D.ln_share_diff3")
+              "D.ln_expenditure_diff3", "D.ln_expenditure_same3", "D.ln_share_taxable", 
+              "D.ln_share_non_taxable", "D.ln_share_unknown", "D.ln_share_same3", "D.ln_share_diff3",
+              "D.ln_total_expenditure")
 outcomes_t <- c("D.ln_expenditure_taxable_same3", "D.ln_expenditure_taxable_diff3", 
               "D.ln_expenditure_non_taxable_same3", "D.ln_expenditure_non_taxable_diff3",
               "D.ln_expenditure_unknown_same3", "D.ln_expenditure_unknown_diff3", 
@@ -222,7 +229,7 @@ descriptives <- describe(purchases.sample[, .(D.ln_expenditure_taxable, D.ln_exp
                                               D.ln_expenditure_unknown, D.ln_expenditure_diff3, 
                                               D.ln_expenditure_same3, D.ln_share_taxable,
                                               D.ln_share_non_taxable, D.ln_share_unknown, 
-                                              D.ln_share_same3, D.ln_share_diff3,
+                                              D.ln_share_same3, D.ln_share_diff3, D.ln_total_expenditure,
                                               D.ln_expenditure_taxable_same3, D.ln_expenditure_taxable_diff3,
                                               D.ln_expenditure_non_taxable_same3, D.ln_expenditure_non_taxable_diff3,
                                               D.ln_expenditure_unknown_same3, D.ln_expenditure_unknown_diff3, 

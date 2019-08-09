@@ -35,7 +35,7 @@ taxability_panel <- taxability_panel[, list(taxability = mode(taxability)) ,
 # Collapse taxability to the quarter as rounding the mean
 taxability_panel[, quarter := ceiling(month / 3)]
 taxability_panel <- taxability_panel[, list(taxability = round(mean(taxability))) ,
-                                     by =.(product_module_code, product_group_code,
+                                     by =.(product_group_code,
                                            fips_state, quarter, year)]
 
 #merge 

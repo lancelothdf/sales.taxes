@@ -44,6 +44,10 @@ purchases.sample$ln_expenditure_same3[is.infinite(purchases.sample$ln_expenditur
 purchases.sample <- purchases.sample[, ln_expenditure_diff3 := log(expenditure_diff3)]
 purchases.sample$ln_expenditure_diff3[is.infinite(purchases.sample$ln_expenditure_diff3)] <- NA
 
+purchases.sample <- purchases.sample[, ln_total_expenditure := log(sum_total_exp_quarter)]
+purchases.sample$ln_total_expenditure[is.infinite(purchases.sample$ln_total_expenditure)] <- NA
+
+
 ## Shares
 # type or taxability
 purchases.sample[, share_taxable := expenditure_taxable/sum_total_exp_quarter]
@@ -110,7 +114,8 @@ output.results.file <- "../../../../../home/slacouture/HMS/HH_quarter_basic.csv"
 
 outcomes <- c("ln_expenditure_taxable", "ln_expenditure_non_taxable", "ln_expenditure_unknown",
               "ln_expenditure_diff3", "ln_expenditure_same3", "ln_share_taxable",
-              "ln_share_non_taxable", "ln_share_unknown", "ln_share_same3", "ln_share_diff3")
+              "ln_share_non_taxable", "ln_share_unknown", "ln_share_same3", "ln_share_diff3",
+              "ln_total_expenditure")
 outcomes_t <- c("ln_expenditure_taxable_same3", "ln_expenditure_taxable_diff3", 
                 "ln_expenditure_non_taxable_same3", "ln_expenditure_non_taxable_diff3",
                 "ln_expenditure_unknown_same3", "ln_expenditure_unknown_diff3", 
