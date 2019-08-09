@@ -50,7 +50,7 @@ purchases.sample[, group_by_time := .GRP, by = .(product_group_code, year, quart
 
 output.results.file <- "../../../../../home/slacouture/HMS/HH_retailer_group_quarter_twowayFE.csv"
 
-outcomes <- c("ln_expenditure", "ln_share")
+outcomes <- c("ln_expenditures", "ln_share")
 
 FE_opts <- c("region_by_group_by_time", "group_by_time")
 

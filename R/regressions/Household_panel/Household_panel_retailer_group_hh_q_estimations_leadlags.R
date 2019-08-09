@@ -83,7 +83,7 @@ purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & quarter >= 
 output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_retailer_group_quarter_leadslags_describe.csv"
 output.results.file <- "../../../../../home/slacouture/HMS/HH_retailer_group_quarter_distributed_lags.csv"
 
-outcomes <- c("D.ln_expenditure", "D.ln_share")
+outcomes <- c("D.ln_expenditures", "D.ln_share")
 
 FE_opts <- c("region_by_group_by_time", "group_by_time")
 
@@ -100,7 +100,7 @@ total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 
 ## Run basic descriptives  ------
 
-descriptives <- describe(purchases.sample[, .(D.ln_expenditure, D.ln_share, D.ln_sales_tax)])
+descriptives <- describe(purchases.sample[, .(D.ln_expenditures, D.ln_share, D.ln_sales_tax)])
 des.est.out  <- data.table(descriptives, keep.rownames=T)
 fwrite(des.est.out, output.decriptives.file)
 
