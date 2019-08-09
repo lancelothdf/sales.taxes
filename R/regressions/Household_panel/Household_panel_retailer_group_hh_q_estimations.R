@@ -44,6 +44,7 @@ purchases.sample$ln_share[is.infinite(purchases.sample$ln_share)] <- NA
 # FE
 purchases.sample[, region_by_group_by_time := .GRP, by = .(hh_region_code, product_group_code, year, quarter)]
 purchases.sample[, group_by_time := .GRP, by = .(product_group_code, year, quarter)]
+purchases.sample[, household_by_group := .GRP, by = .(product_group_code, household_code)]
 
 
 ## Estimations: Expenditure on type of module --------
@@ -59,7 +60,7 @@ LRdiff_res <- data.table(NULL)
 for (Y in outcomes) {
   for (FE in FE_opts) {
     formula1 <- as.formula(paste0(
-      Y, "~ ln_sales_tax | ", FE, "+ household_code | 0 | household_code"
+      Y, "~ ln_sales_tax | ", FE, "+ household_by_group | 0 | household_code"
     ))
     flog.info("Estimating with %s as outcome and %s FE", Y, FE)
     res1 <- felm(formula = formula1, data = purchases.sample,
