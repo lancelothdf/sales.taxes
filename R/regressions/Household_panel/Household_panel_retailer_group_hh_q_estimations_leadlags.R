@@ -43,10 +43,9 @@ setnames(taxability_panel, old = c("fips_state"), new = c("hh_fips_state_code"))
 
 purchases.full <- merge(
   purchases.full, taxability_panel,
-  by = c("hh_fips_state_code", "product_module_code", "product_group_code", "year", "quarter"),
+  by = c("hh_fips_state_code", "product_group_code", "year", "quarter"),
   all.x = T
 )
-
 
 ## Constraining Data set for estimations ------------ 
 # Keep only "projection no-magnet" households: 
