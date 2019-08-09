@@ -186,7 +186,7 @@ purchases.full[, sales_weight_store_group := (total_expenditures/sum(total_expen
                by = .(product_group_code, store_code_uc, household_code, quarter, year)]
 purchases.full <- purchases.full[, list(
   total_expenditures = sum(total_expenditures),
-  sales_tax = weighted.mean(ln_sales_tax, sales_weight_store_group)
+  sales_tax = weighted.mean(sales_tax, sales_weight_store_group)
 ), by = .(household_code, fips_county, fips_state, product_group_code,
           hh_fips_county_code, hh_fips_state_code, hh_zip_code, hh_region_code,
           store_code_uc, quarter, year, sum_total_exp, projection_factor, sum_total_exp_store,
@@ -200,7 +200,7 @@ purchases.full[, sales_weight_group := (total_expenditures/sum(total_expenditure
                by = .(product_group_code, household_code, quarter, year)]
 purchases.full <- purchases.full[, list(
   total_expenditures = sum(total_expenditures),
-  sales_tax = weighted.mean(ln_sales_tax, sales_weight_group)
+  sales_tax = weighted.mean(sales_tax, sales_weight_group)
 ), by = .(household_code, product_group_code, hh_fips_county_code, hh_fips_state_code, hh_zip_code, hh_region_code,
           quarter, year, sum_total_exp, projection_factor, projection_factor_magnet, household_income) ]
 
