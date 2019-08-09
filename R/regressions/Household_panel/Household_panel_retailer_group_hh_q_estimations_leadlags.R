@@ -15,6 +15,37 @@ setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 
 ## Open Data
 purchases.full <- fread("cleaning/consumer_panel_retailer_group_q_hh_2006-2016.csv")
+## extract taxability panel and merge to group x household location
+
+taxability_panel <- fread("/project2/igaarder/Data/taxability_state_panel.csv")
+taxability_panel <- taxability_panel[, .(product_module_code, product_group_code,
+                                         fips_state, taxability, month, year)]
+# Collapse taxability to the group as the mode within the group
+# ad-hoc mode function
+mode <- function(x) {
+  x <- x[!is.na(x)]
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+# collapse
+taxability_panel <- taxability_panel[, list(taxability = mode(taxability)) ,
+                                     by =.(product_group_code,
+                                           fips_state, month, year)]
+
+# Collapse taxability to the quarter as rounding the mean
+taxability_panel[, quarter := ceiling(month / 3)]
+taxability_panel <- taxability_panel[, list(taxability = round(mean(taxability))) ,
+                                     by =.(product_module_code, product_group_code,
+                                           fips_state, quarter, year)]
+
+#merge 
+setnames(taxability_panel, old = c("fips_state"), new = c("hh_fips_state_code"))
+
+purchases.full <- merge(
+  purchases.full, taxability_panel,
+  by = c("hh_fips_state_code", "product_module_code", "product_group_code", "year", "quarter"),
+  all.x = T
+)
 
 
 ## Constraining Data set for estimations ------------ 
@@ -32,9 +63,17 @@ purchases.sample[, share_expenditures := total_expenditures/sum_total_exp]
 # Expenditures
 purchases.sample <- purchases.sample[, ln_expenditures := log(total_expenditures)]
 purchases.sample$ln_expenditures[is.infinite(purchases.sample$ln_expenditures)] <- NA
+
+purchases.sample[, ln_expenditures_taxable := ifelse(taxability == 1, ln_expenditures, NA)]
+purchases.sample[, ln_expenditures_non_taxable := ifelse(taxability == 0, ln_expenditures, NA)]
+
 # Share
 purchases.sample <- purchases.sample[, ln_share := log(share_expenditures)]
 purchases.sample$ln_share[is.infinite(purchases.sample$ln_share)] <- NA
+
+purchases.sample[, ln_share_taxable := ifelse(taxability == 1, ln_share, NA)]
+purchases.sample[, ln_share_non_taxable := ifelse(taxability == 0, ln_share, NA)]
+
 
 # Time
 purchases.sample[, cal_time := 4 * year + quarter]
@@ -59,9 +98,19 @@ purchases.sample[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, typ
 # expenditure
 purchases.sample[, D.ln_expenditures := ln_expenditures - shift(ln_expenditures, n=1, type="lag"),
                  by = .(household_code, product_group_code)]
+purchases.sample[, D.ln_expenditures_taxable := ln_expenditures_taxable - shift(ln_expenditures_taxable, n=1, type="lag"),
+                 by = .(household_code, product_group_code)]
+purchases.sample[, D.ln_expenditures_non_taxable := ln_expenditures_non_taxable - shift(ln_expenditures_non_taxable, n=1, type="lag"),
+                 by = .(household_code, product_group_code)]
+
 # share
 purchases.sample[, D.ln_share := ln_share - shift(ln_share, n=1, type="lag"),
        by = .(household_code, product_group_code)]
+purchases.sample[, D.ln_share_taxable := ln_share_taxable - shift(ln_share_taxable, n=1, type="lag"),
+                 by = .(household_code, product_group_code)]
+purchases.sample[, D.ln_share_non_taxable := ln_share_non_taxable - shift(ln_share_non_taxable, n=1, type="lag"),
+                 by = .(household_code, product_group_code)]
+
 
 
 ## generate lags and leads of ln_sales_tax
@@ -83,7 +132,8 @@ purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & quarter >= 
 output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_retailer_group_quarter_leadslags_describe.csv"
 output.results.file <- "../../../../../home/slacouture/HMS/HH_retailer_group_quarter_distributed_lags.csv"
 
-outcomes <- c("D.ln_expenditures", "D.ln_share")
+outcomes <- c("D.ln_expenditures", "D.ln_expenditures_taxable",  "D.ln_expenditures_non_taxable",
+              "D.ln_share", "D.ln_share_taxable",  "D.ln_share_non_taxable")
 
 FE_opts <- c("region_by_group_by_time", "group_by_time")
 
@@ -100,7 +150,8 @@ total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 
 ## Run basic descriptives  ------
 
-descriptives <- describe(purchases.sample[, .(D.ln_expenditures, D.ln_share, D.ln_sales_tax)])
+descriptives <- describe(purchases.sample[, .(D.ln_expenditures, D.ln_expenditures_taxable, D.ln_expenditures_non_taxable,
+                                              D.ln_share, D.ln_share_taxable, D.ln_share_non_taxable, D.ln_sales_tax)])
 des.est.out  <- data.table(descriptives, keep.rownames=T)
 fwrite(des.est.out, output.decriptives.file)
 
