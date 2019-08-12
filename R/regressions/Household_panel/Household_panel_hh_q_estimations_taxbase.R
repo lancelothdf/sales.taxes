@@ -119,9 +119,9 @@ purchases.sample[, region_by_time := .GRP, by = .(region_code, year, quarter)]
 purchases.sample[, time := .GRP, by = .(year, quarter)]
 
 
-## Estimations: Expenditure on type of module --------
+## Estimations: Expenditures. Divide by type of state (large tax base) --------
 
-output.results.file <- "../../../../../home/slacouture/HMS/HH_quarter_basic_bytaxbase.csv"
+output.results.file <- "../../../../../home/slacouture/HMS/HH_quarter_basic_taxbase.csv"
 
 outcomes <- c("ln_expenditure_taxable", "ln_expenditure_non_taxable", "ln_expenditure_unknown",
               "ln_expenditure_diff3", "ln_expenditure_same3", "ln_share_taxable",
@@ -166,9 +166,59 @@ for (group in above_or_below) {
     }
   }
 }
-
-
-## summary values --------------------------------------------------------------
 LRdiff_res$N_years <- uniqueN(purchases.sample, by = c("year"))
+fwrite(LRdiff_res, output.results.file)
 
+
+
+
+## Estimations: Expenditures. Divide by type of consumer --------
+purchases.sample[, taxable_consumer := (share_taxable >= state_sh_expenditure_taxable)]
+
+output.results.file <- "../../../../../home/slacouture/HMS/HH_quarter_basic_taxableconsumer.csv"
+
+outcomes <- c("ln_expenditure_taxable", "ln_expenditure_non_taxable", "ln_expenditure_unknown",
+              "ln_expenditure_diff3", "ln_expenditure_same3", "ln_share_taxable",
+              "ln_share_non_taxable", "ln_share_unknown", "ln_share_same3", "ln_share_diff3",
+              "ln_total_expenditure")
+outcomes_t <- c("ln_expenditure_taxable_same3", "ln_expenditure_taxable_diff3", 
+                "ln_expenditure_non_taxable_same3", "ln_expenditure_non_taxable_diff3",
+                "ln_expenditure_unknown_same3", "ln_expenditure_unknown_diff3", 
+                "ln_share_taxable_same3", "ln_share_taxable_diff3", 
+                "ln_share_non_taxable_same3", "ln_share_non_taxable_diff3",
+                "ln_share_unknown_same3", "ln_share_unknown_diff3")
+
+FE_opts <- c("region_by_time", "time")
+above_or_below <- c(TRUE, FALSE)
+
+LRdiff_res <- data.table(NULL)
+for (group in above_or_below) {
+  estimation.sample <- purchases.sample[taxable_consumer == group]
+  for (Y in c(outcomes, outcomes_t)) {
+    for (FE in FE_opts) {
+      formula1 <- as.formula(paste0(
+        Y, "~ ln_sales_tax | ", FE, "+ household_code | 0 | household_code"
+      ))
+      flog.info("Estimating with %s as outcome and %s FE", Y, FE)
+      res1 <- felm(formula = formula1, data = estimation.sample,
+                   weights = estimation.sample$projection_factor)
+      flog.info("Finished estimating with %s as outcomeand %s FE.", Y, FE)
+      
+      ## attach results
+      flog.info("Writing results...")
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, outcome := Y]
+      res1.dt[, spec := FE]
+      res1.dt[, taxable_consumer := group]
+      res1.dt[, Rsq := summary(res1)$r.squared]
+      res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
+      res1.dt[, N.obs := nrow(estimation.sample[!is.na(get(Y))])]
+      res1.dt[, N_hholds := length(unique(estimation.sample$household_code))]
+      LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+      fwrite(LRdiff_res, output.results.file)
+      
+    }
+  }
+}
+LRdiff_res$N_years <- uniqueN(purchases.sample, by = c("year"))
 fwrite(LRdiff_res, output.results.file)
