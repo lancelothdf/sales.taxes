@@ -61,8 +61,8 @@ purchases.sample[, household_by_group := .GRP, by = .(product_group_code, househ
 
 output.results.file <- "../../../../../home/slacouture/HMS/HH_group_quarter_twowayFE.csv"
 
-outcomes <- c("D.ln_expenditures", "D.ln_expenditures_taxable", "D.ln_expenditures_non_taxable", "D.ln_expenditures_unknown",
-              "D.ln_share", "D.ln_share_taxable",  "D.ln_share_non_taxable", "D.ln_share_unknown")
+outcomes <- c("ln_expenditures", "ln_expenditures_taxable", "ln_expenditures_non_taxable", "ln_expenditures_unknown",
+              "ln_share", "ln_share_taxable",  "ln_share_non_taxable", "ln_share_unknown")
 
 FE_opts <- c("region_by_group_by_time", "group_by_time")
 
