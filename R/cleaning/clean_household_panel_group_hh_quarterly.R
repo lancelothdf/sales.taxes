@@ -171,7 +171,7 @@ purchases.full <- purchases.full[, list(
   expenditures_same3 = sum(expenditures_same3),
   expenditures_unkn3 = sum(expenditures_unkn3),
   taxability = mode(taxability)
-), by = .(household_code, fips_county_code, fips_state, product_group_code,
+), by = .(household_code, fips_county_code, fips_state_code, product_group_code,
           zip_code, region_code, quarter, year, sum_total_exp_quarter, projection_factor,
           projection_factor_magnet, household_income) ]
 
