@@ -48,7 +48,7 @@ purchases.sample[, ln_share_unknown := ifelse(taxability == 2, ln_share, NA)]
 purchases.sample[, cal_time := 4 * year + quarter]
 
 # FE
-purchases.sample[, region_by_group_by_time := .GRP, by = .(hh_region_code, product_group_code, year, quarter)]
+purchases.sample[, region_by_group_by_time := .GRP, by = .(region_code, product_group_code, year, quarter)]
 purchases.sample[, group_by_time := .GRP, by = .(product_group_code, year, quarter)]
 
 # impute tax rates prior to 2008 and after 2014
