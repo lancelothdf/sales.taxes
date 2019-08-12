@@ -156,27 +156,8 @@ setnames(purchases.full,
          old = c("FALSE", "TRUE", "NA"),
          new = c("expenditures_diff3", "expenditures_same3", "expenditures_unkn3"))
 
-## Collapse to the group:
-# Taxability as the mode within the group
-# Expenditures as the sum
-# ad-hoc mode function
-mode <- function(x) {
-  x <- x[!is.na(x)]
-  ux <- unique(x)
-  ux[which.max(tabulate(match(x, ux)))]
-}
 
-purchases.full <- purchases.full[, list(
-  expenditures_diff3 = sum(expenditures_diff3),
-  expenditures_same3 = sum(expenditures_same3),
-  expenditures_unkn3 = sum(expenditures_unkn3),
-  taxability = mode(taxability)
-), by = .(household_code, fips_county_code, fips_state_code, product_group_code,
-          zip_code, region_code, quarter, year, sum_total_exp_quarter, projection_factor,
-          projection_factor_magnet, household_income) ]
-
-
-## merge on tax rates
+## merge on tax rates at household
 all_goods_pi_path <- "../../monthly_taxes_county_5zip_2008_2014.csv"
 all_pi <- fread(all_goods_pi_path)
 all_pi <- all_pi[, .(sales_tax, year, month, fips_county, fips_state, zip_code )]
@@ -193,6 +174,35 @@ purchases.full <- merge(
   by = c("fips_county_code", "fips_state_code", "zip_code", "year", "quarter"),
   all.x = T
 )
+
+# Asign tax rate to exempt items
+purchases.full$sales_tax[purchases.full$taxability == 0] <- 0
+
+## Collapse to the group:
+# Taxability as the mode within the group
+# Expenditures as the sum
+# Tax as a weighted mean 
+# ad-hoc mode function
+mode <- function(x) {
+  x <- x[!is.na(x)]
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+# Building weights for tax: sales within group
+purchases.full[, sales_weight := sum(expenditures_diff3 + expenditures_same3 + expenditures_unkn3)
+               , by =.(quarter, year, product_group_code, product_module_code)]
+purchases.full[, sales_weight := mean(sales_weight) , by =.(product_group_code, product_module_code)]
+purchases.full[, sales_weight := sales_weight/sum(sales_weight) , by =.(product_group_code)]
+purchases.full <- purchases.full[, list(
+  expenditures_diff3 = sum(expenditures_diff3),
+  expenditures_same3 = sum(expenditures_same3),
+  expenditures_unkn3 = sum(expenditures_unkn3),
+  taxability = mode(taxability),
+  sales_tax = weighted.mean(sales_tax,sales_weight)
+), by = .(household_code, fips_county_code, fips_state_code, product_group_code,
+          zip_code, region_code, quarter, year, sum_total_exp_quarter, projection_factor,
+          projection_factor_magnet, household_income) ]
+
 
 ## Create interest variables
 purchases.full <- purchases.full[, ln_sales_tax := log1p(sales_tax)]
