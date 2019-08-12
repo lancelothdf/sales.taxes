@@ -24,23 +24,26 @@ purchases.full$time <- factor(with(purchases.full, interaction(year, quarter)))
 # Drop "magnet" households: 
 purchases.full[, sum(is.na(projection_factor))]
 # 2016154 obs
-purchases.nomagnet <- purchases.full[!is.na(projection_factor)]
+purchases.sample <- purchases.full[!is.na(projection_factor)]
 
-# Drop households without sales tax data
-purchases.full[, sum(is.na(sales_tax))]
-# More than 70%: 181247984 obs
-purchases.sample <- purchases.nomagnet[!is.na(sales_tax)]
 
 ## Identify type of state
-# compute the household share of expenditure on taxable goods by state.  
+# compute the household share of expenditure on taxable goods by state for each quarter.  
 purchases.sample[, state_sh_expenditure_taxable := sum(expenditure_taxable)/(sum(sum_total_exp_quarter)),
                  by = .(fips_state_code, quarter, year)]
+# Now compute the average across quarters. 
+purchases.sample[, state_sh_expenditure_taxable := mean(state_sh_expenditure_taxable, na.rm = T),
+                 by = .(fips_state_code)]
 # take the median and divide states by above versus below median.  
 state.tax.base <- purchases.sample[, list(state_sh_expenditure_taxable = mean(state_sh_expenditure_taxable)), 
                                    by = fips_state_code]
 median <- median(state.tax.base$state_sh_expenditure_taxable)
 purchases.sample[, large_tax_base := (state_sh_expenditure_taxable >= median)]
 
+
+# Drop households without sales tax data
+
+purchases.sample <- purchases.sample[!is.na(sales_tax)]
 
 ## creating interest outcomes -------
 
@@ -173,7 +176,11 @@ fwrite(LRdiff_res, output.results.file)
 
 
 ## Estimations: Expenditures. Divide by type of consumer --------
-purchases.sample[, taxable_consumer := (share_taxable >= state_sh_expenditure_taxable)]
+# Create taxable consumer: compute its average share of consumption on taxable across time
+purchases.sample[, mean_share_taxable := mean(share_taxable, na.rm = T), by = .(household_code)]
+# Compare to state average share
+purchases.sample[, taxable_consumer := (mean_share_taxable >= state_sh_expenditure_taxable)]
+
 
 output.results.file <- "../../../../../home/slacouture/HMS/HH_quarter_basic_taxableconsumer.csv"
 

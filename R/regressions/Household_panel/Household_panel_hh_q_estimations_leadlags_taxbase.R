@@ -26,9 +26,12 @@ purchases.full[, sum(is.na(projection_factor))]
 purchases.sample <- purchases.full[!is.na(projection_factor)]
 
 ## Identify type of state
-# compute the household share of expenditure on taxable goods by state.  
+# compute the household share of expenditure on taxable goods by state for each quarter.  
 purchases.sample[, state_sh_expenditure_taxable := sum(expenditure_taxable)/(sum(sum_total_exp_quarter)),
                  by = .(fips_state_code, quarter, year)]
+# Now compute the average across quarters. 
+purchases.sample[, state_sh_expenditure_taxable := mean(state_sh_expenditure_taxable, na.rm = T),
+                 by = .(fips_state_code)]
 # take the median and divide states by above versus below median.  
 state.tax.base <- purchases.sample[, list(state_sh_expenditure_taxable = mean(state_sh_expenditure_taxable)), 
                                    by = fips_state_code]
@@ -416,8 +419,10 @@ LRdiff_res$N_years <- uniqueN(purchases.sample, by = c("year"))
 fwrite(LRdiff_res, output.results.file)
 
 ## Estimation dividing household type (large tax base) ----------
-
-purchases.sample[, taxable_consumer := (share_taxable >= state_sh_expenditure_taxable)]
+# Create taxable consumer: compute its average share of consumption on taxable across time
+purchases.sample[, mean_share_taxable := mean(share_taxable, na.rm = T), by = .(household_code)]
+# Compare to state average share
+purchases.sample[, taxable_consumer := (mean_share_taxable >= state_sh_expenditure_taxable)]
 
 output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_quarter_leadslags_describe_taxableconsumer.csv"
 output.results.file <- "../../../../../home/slacouture/HMS/HH_quarter_leadslags_cumulative_taxableconsumer.csv"
