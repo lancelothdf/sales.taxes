@@ -149,7 +149,7 @@ purchases.full$taxability[is.na(purchases.full$taxability)] <- 2
 ## reshape to get a hh X module data
 purchases.full <- dcast(purchases.full, household_code + product_group_code + taxability + fips_county_code + fips_state_code +
                           zip_code + quarter + year + projection_factor + projection_factor_magnet + region_code +
-                          sum_total_exp_quarter + household_income + taxability ~ same_3zip_store, fun=sum,
+                          sum_total_exp_quarter + household_income + product_module_code ~ same_3zip_store, fun=sum,
                           value.var = "total_expenditures")
 
 setnames(purchases.full,
