@@ -146,6 +146,8 @@ purchases.full <- merge(
 )
 # Assign unknown to purchases out of best selling module (taxability only identified for best selling)
 purchases.full$taxability[is.na(purchases.full$taxability)] <- 2
+### Keep only products for which we know the tax rate
+purchases.full <- purchases.full[taxability != 2]
 
 ## reshape to get a hh X module data
 purchases.full <- dcast(purchases.full, household_code + product_group_code + taxability + fips_county_code + fips_state_code +
