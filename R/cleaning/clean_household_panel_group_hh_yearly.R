@@ -175,7 +175,7 @@ purchases.full <- merge(
 )
 
 # Asign tax rate to exempt items and compute new sales tax
-purchases.full$sales_tax[purchases.full$taxability == 0] <- 0
+purchases.full$sales_tax[purchases.full$taxability == 0 & !is.na(purchases.full$sales_tax)] <- 0
 
 
 ## Collapse to the group:
