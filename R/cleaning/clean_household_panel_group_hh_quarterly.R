@@ -179,7 +179,6 @@ purchases.full <- merge(
 
 # Asign tax rate to exempt items and compute new sales tax
 purchases.full$state_tax[purchases.full$taxability == 0] <- 0
-purchases.full[, sales_tax := state_tax + county_tax + city_tax]
 
 ## Collapse to the group:
 # Taxability as the mode within the group
