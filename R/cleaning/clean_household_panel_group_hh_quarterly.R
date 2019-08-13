@@ -126,8 +126,7 @@ purchases.full[, sum_total_exp_quarter := sum(total_expenditures),
 
 ## Identify taxability of module: import
 taxability_panel <- fread("/project2/igaarder/Data/taxability_state_panel.csv")
-taxability_panel <- taxability_panel[, .(product_module_code, product_group_code,
-                                         fips_state, taxability, month, year)]
+
 setnames(taxability_panel,
          old = c("fips_state"),
          new = c("fips_state_code"))
