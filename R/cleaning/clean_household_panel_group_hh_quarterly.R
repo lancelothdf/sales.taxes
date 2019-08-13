@@ -166,9 +166,7 @@ setnames(all_pi,
          new = c("fips_state_code", "fips_county_code"))
 # Collapse rates to the quarter as the mean 
 all_pi[, quarter := ceiling(month / 3)]
-all_pi <- all_pi[, list(state_tax = mean(state_tax),
-                        county_tax = mean(county_tax),
-                        city_tax = mean(city_tax)) , 
+all_pi <- all_pi[, list(sales_tax = mean(sales_tax)) , 
                                      by =.(zip_code, fips_county_code,
                                            fips_state_code, quarter, year)]
 purchases.full <- merge(
@@ -178,7 +176,7 @@ purchases.full <- merge(
 )
 
 # Asign tax rate to exempt items and compute new sales tax
-purchases.full$state_tax[purchases.full$taxability == 0] <- 0
+purchases.full$sales_tax[purchases.full$taxability == 0 & !is.na(purchases.full$sales_tax)] <- 0
 
 ## Collapse to the group:
 # Taxability as the mode within the group
