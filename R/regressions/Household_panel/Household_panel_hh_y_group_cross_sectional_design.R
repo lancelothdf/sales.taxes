@@ -73,7 +73,6 @@ for (Y in outcomes) {
   flog.info("Writing results...")
   res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
   res1.dt[, outcome := Y]
-  res1.dt[, spec := FE]
   res1.dt[, Rsq := summary(res1)$r.squared]
   res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
   res1.dt[, N.obs := nrow(purchases.sample[!is.na(get(Y))])]
