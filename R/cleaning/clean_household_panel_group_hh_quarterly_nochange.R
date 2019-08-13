@@ -1,8 +1,9 @@
 #' Author: John Bonney & Santiago Lacouture
 #'
 #' Clean the Nielsen household panel data to create a data set on the
-#' consumer-group-quarter level. Match sales tax to HH by their location. 
+#' consumer-group-quarter level. Match sales tax to HH and product by their location. 
 #' Divide consumption by taxability of product and by location of store (same 3 digit or not)
+#' In this panel, products that change taxability status are dropped
 
 library(data.table)
 library(futile.logger)
@@ -208,4 +209,4 @@ purchases.full <- purchases.full[, list(
 purchases.full <- purchases.full[, ln_sales_tax := log1p(sales_tax)]
 purchases.full <- purchases.full[, expenditures := expenditures_diff3 + expenditures_same3 + expenditures_unkn3]
 
-fwrite(purchases.full, "cleaning/consumer_panel_q_hh_group_2006-2016.csv")
+fwrite(purchases.full, "cleaning/consumer_panel_q_hh_group_2006-2016_nc.csv")
