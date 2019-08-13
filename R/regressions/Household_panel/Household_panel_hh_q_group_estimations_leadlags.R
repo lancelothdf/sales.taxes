@@ -1,5 +1,5 @@
 ## Sales taxes Project. Household Panel
-# Running distributed lag regression in differences on the new panel (household x group x quarter) on retailer purchases
+# Running distributed lag regression in differences on the new panel (household x group x quarter) on all purchases (for which taxability is identified)
 # Author: John Bonney & Santiago Lacouture
 
 library(data.table)
@@ -34,7 +34,6 @@ purchases.sample$ln_expenditures[is.infinite(purchases.sample$ln_expenditures)] 
 
 purchases.sample[, ln_expenditures_taxable := ifelse(taxability == 1, ln_expenditures, NA)]
 purchases.sample[, ln_expenditures_non_taxable := ifelse(taxability == 0, ln_expenditures, NA)]
-purchases.sample[, ln_expenditures_unknown := ifelse(taxability == 2, ln_expenditures, NA)]
 
 # Share
 purchases.sample <- purchases.sample[, ln_share := log(share_expenditures)]
@@ -42,7 +41,6 @@ purchases.sample$ln_share[is.infinite(purchases.sample$ln_share)] <- NA
 
 purchases.sample[, ln_share_taxable := ifelse(taxability == 1, ln_share, NA)]
 purchases.sample[, ln_share_non_taxable := ifelse(taxability == 0, ln_share, NA)]
-purchases.sample[, ln_share_unknown := ifelse(taxability == 2, ln_share, NA)]
 
 # Time
 purchases.sample[, cal_time := 4 * year + quarter]
@@ -104,8 +102,8 @@ purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & quarter >= 
 output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_group_quarter_leadslags_describe.csv"
 output.results.file <- "../../../../../home/slacouture/HMS/HH_group_quarter_distributed_lags.csv"
 
-outcomes <- c("D.ln_expenditures", "D.ln_expenditures_taxable", "D.ln_expenditures_non_taxable", "D.ln_expenditures_unknown",
-              "D.ln_share", "D.ln_share_taxable",  "D.ln_share_non_taxable", "D.ln_share_unknown")
+outcomes <- c("D.ln_expenditures", "D.ln_expenditures_taxable", "D.ln_expenditures_non_taxable",
+              "D.ln_share", "D.ln_share_taxable",  "D.ln_share_non_taxable")
 
 FE_opts <- c("region_by_group_by_time", "group_by_time")
 
@@ -123,9 +121,9 @@ total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 ## Run basic descriptives  ------
 
 descriptives <- describe(purchases.sample[, .(D.ln_expenditures, D.ln_expenditures_taxable, 
-                                              D.ln_expenditures_non_taxable, D.ln_expenditures_unknown,
+                                              D.ln_expenditures_non_taxable,
                                               D.ln_share, D.ln_share_taxable, D.ln_share_non_taxable, 
-                                              D.ln_share_unknown, D.ln_sales_tax)])
+                                              D.ln_sales_tax)])
 des.est.out  <- data.table(descriptives, keep.rownames=T)
 fwrite(des.est.out, output.decriptives.file)
 
