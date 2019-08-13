@@ -131,9 +131,10 @@ taxability_panel <- taxability_panel[, .(product_module_code, product_group_code
 setnames(taxability_panel,
          old = c("fips_state"),
          new = c("fips_state_code"))
-# Collapse taxability to the quarter as rounding the mean 
+# Collapse taxability to the quarter as rounding the mean and reduced rate as the mean
 taxability_panel[, quarter := ceiling(month / 3)]
-taxability_panel <- taxability_panel[, list(taxability = round(mean(taxability))) , 
+taxability_panel <- taxability_panel[, list(taxability = round(mean(taxability)),
+                                            reduced_rate = mean(reduced_rate, na.rm = T)) , 
                                      by =.(product_module_code, product_group_code,
                                            fips_state_code, quarter, year)]
 
@@ -150,7 +151,7 @@ purchases.full <- purchases.full[taxability != 2]
 
 ## reshape to get a hh X module data
 purchases.full <- dcast(purchases.full, household_code + product_group_code + taxability + fips_county_code + fips_state_code +
-                          zip_code + quarter + year + projection_factor + projection_factor_magnet + region_code +
+                          zip_code + quarter + year + projection_factor + projection_factor_magnet + region_code + reduced_rate +
                           sum_total_exp_quarter + household_income + product_module_code ~ same_3zip_store, fun=sum,
                           value.var = "total_expenditures")
 
@@ -176,8 +177,11 @@ purchases.full <- merge(
   all.x = T
 )
 
-# Asign tax rate to exempt items and compute new sales tax
+# Impute tax rate to exempt items and to reduced rate items
 purchases.full$sales_tax[purchases.full$taxability == 0 & !is.na(purchases.full$sales_tax)] <- 0
+purchases.full[, sales_tax:= ifelse(!is.na(purchases.full$reduced_rate) & !is.na(purchases.full$sales_tax),
+                                    reduced_rate, sales_tax)]
+
 
 ## Collapse to the group:
 # Taxability as the mode within the group
