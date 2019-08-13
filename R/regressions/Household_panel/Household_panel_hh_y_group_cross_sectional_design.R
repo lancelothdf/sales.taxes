@@ -39,7 +39,6 @@ purchases.sample$ln_expenditures[is.infinite(purchases.sample$ln_expenditures)] 
 
 purchases.sample[, ln_expenditures_taxable := ifelse(taxability == 1, ln_expenditures, NA)]
 purchases.sample[, ln_expenditures_non_taxable := ifelse(taxability == 0, ln_expenditures, NA)]
-purchases.sample[, ln_expenditures_unknown := ifelse(taxability == 2, ln_expenditures, NA)]
 
 # Share
 purchases.sample <- purchases.sample[, ln_share := log(share_expenditures)]
@@ -47,7 +46,6 @@ purchases.sample$ln_share[is.infinite(purchases.sample$ln_share)] <- NA
 
 purchases.sample[, ln_share_taxable := ifelse(taxability == 1, ln_share, NA)]
 purchases.sample[, ln_share_non_taxable := ifelse(taxability == 0, ln_share, NA)]
-purchases.sample[, ln_share_unknown := ifelse(taxability == 2, ln_share, NA)]
 
 # FE
 purchases.sample[, group_by_time := .GRP, by = .(product_group_code, year)]
@@ -58,8 +56,8 @@ purchases.sample[, household_by_time := .GRP, by = .(year, household_code)]
 
 output.results.file <- "../../../../../home/slacouture/HMS/HH_group_year_cross_sectonal_design.csv"
 
-outcomes <- c("ln_expenditures", "ln_expenditures_taxable", "ln_expenditures_non_taxable", "ln_expenditures_unknown",
-              "ln_share", "ln_share_taxable",  "ln_share_non_taxable", "ln_share_unknown")
+outcomes <- c("ln_expenditures", "ln_expenditures_taxable", "ln_expenditures_non_taxable", 
+              "ln_share", "ln_share_taxable",  "ln_share_non_taxable")
 
 LRdiff_res <- data.table(NULL)
 for (Y in outcomes) {

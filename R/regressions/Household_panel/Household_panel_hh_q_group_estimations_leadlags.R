@@ -69,8 +69,6 @@ purchases.sample[, D.ln_expenditures_taxable := ln_expenditures_taxable - shift(
                  by = .(household_code, product_group_code)]
 purchases.sample[, D.ln_expenditures_non_taxable := ln_expenditures_non_taxable - shift(ln_expenditures_non_taxable, n=1, type="lag"),
                  by = .(household_code, product_group_code)]
-purchases.sample[, D.ln_expenditures_unknown := ln_expenditures_unknown - shift(ln_expenditures_unknown, n=1, type="lag"),
-                 by = .(household_code, product_group_code)]
 
 # share
 purchases.sample[, D.ln_share := ln_share - shift(ln_share, n=1, type="lag"),
@@ -79,8 +77,7 @@ purchases.sample[, D.ln_share_taxable := ln_share_taxable - shift(ln_share_taxab
                  by = .(household_code, product_group_code)]
 purchases.sample[, D.ln_share_non_taxable := ln_share_non_taxable - shift(ln_share_non_taxable, n=1, type="lag"),
                  by = .(household_code, product_group_code)]
-purchases.sample[, D.ln_share_unknown := ln_share_unknown - shift(ln_share_unknown, n=1, type="lag"),
-                 by = .(household_code, product_group_code)]
+
 
 
 ## generate lags and leads of ln_sales_tax
