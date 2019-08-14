@@ -25,24 +25,6 @@ purchases.sample <- purchases.full[!is.na(projection_factor)]
 
 ## Create Necessary variables -----------------------
 
-## Share
-purchases.sample[, share_expenditures := expenditures/sum_total_exp_quarter]
-
-## Logarithms
-# Expenditures
-purchases.sample <- purchases.sample[, ln_expenditures := log(expenditures)]
-purchases.sample$ln_expenditures[is.infinite(purchases.sample$ln_expenditures)] <- NA
-
-purchases.sample[, ln_expenditures_taxable := ifelse(taxability == 1, ln_expenditures, NA)]
-purchases.sample[, ln_expenditures_non_taxable := ifelse(taxability == 0, ln_expenditures, NA)]
-
-# Share
-purchases.sample <- purchases.sample[, ln_share := log(share_expenditures)]
-purchases.sample$ln_share[is.infinite(purchases.sample$ln_share)] <- NA
-
-purchases.sample[, ln_share_taxable := ifelse(taxability == 1, ln_share, NA)]
-purchases.sample[, ln_share_non_taxable := ifelse(taxability == 0, ln_share, NA)]
-
 # Time
 purchases.sample[, cal_time := 4 * year + quarter]
 

@@ -126,6 +126,70 @@ purchases.full[, sum_total_exp_quarter := sum(total_expenditures),
                by = .(household_code, year, quarter)]
 
 
+## Keep only best selling modules
+best_selling_modules <- fread("/project2/igaarder/Data/best_selling_modules.csv")
+keep_modules <- unique(best_selling_modules[, .(Module)][[1]])
+purchases.full <- purchases.full[product_module_code %in% keep_modules]
+rm(keep_modules)
+rm(best_selling_modules)
+
+
+## reshape to get a hh X module data
+purchases.full <- dcast(purchases.full, household_code + product_group_code + fips_county_code + fips_state_code +
+                          zip_code + quarter + year + projection_factor + projection_factor_magnet + region_code +
+                          sum_total_exp_quarter + household_income + product_module_code ~ same_3zip_store, fun=sum,
+                          value.var = "total_expenditures")
+
+setnames(purchases.full,
+         old = c("FALSE", "TRUE", "NA"),
+         new = c("expenditures_diff3", "expenditures_same3", "expenditures_unkn3"))
+
+#### Balance the panel: Key step for proper estimation
+flog.info("Building skeleton")
+
+# Collapse to hh x module that appeared at least once
+possible.purchases <- purchases.full[, list(N_obs = .N), by = .(household_code, product_module_code, product_group_code)]
+possible.purchases <- possible.purchases[N_obs > 0]
+possible.purchases[N_obs > 0]
+# Expand by quarter (old fashioned: CJ does not work in this case because of dimensionality)
+possible.purchases.q <- data.table(NULL)
+for (i in 1:4) {
+  possible.purchases.t <- possible.purchases[ , quarter := i ]
+  possible.purchases.q <- rbind(possible.purchases.q, possible.purchases.t)
+  
+}
+# remove used data for space
+rm(possible.purchases.q)
+# Expand by year
+possible.purchases.full <- data.table(NULL)
+for (i in 2006:2016) {
+  possible.purchases.t <- possible.purchases.q[ , year := i ]
+  possible.purchases.full <- rbind(possible.purchases.full, possible.purchases.t)
+}
+rm(possible.purchases.q)
+# merge
+flog.info("Merging to balance panel")
+purchases.full <- merge(purchases.full, possible.purchases.full, by = c("household_code", "product_module_code","product_group_code", "quarter", "year"), all.y = T)
+rm(possible.purchases.full)
+# assign purchases of 0 to those modules
+purchases.full[, expenditures_diff3 := ifelse(!is.na(purchases.full$expenditures_diff3),
+                                    0, expenditures_diff3)]
+purchases.full[, expenditures_same3 := ifelse(!is.na(purchases.full$expenditures_same3),
+                                             0, expenditures_same3)]
+purchases.full[, expenditures_unkn3 := ifelse(!is.na(purchases.full$expenditures_unkn3),
+                                             0, expenditures_unkn3)]
+# retrieve household data
+household.cols <- c("fips_county_code", "fips_state_code", "zip_code", "projection_factor", 
+                 "projection_factor_magnet", "region_code", "household_income")
+for (Y in household.cols) {
+  purchases.full <- purchases.full[, get(Y) := mean(get(Y), na.rm = T), by = .(household_code)]
+}
+# retrieve total purchases
+purchases.full[, sum_total_exp_quarter := mean(sum_total_exp_quarter, na.rm = T),
+               by = .(household_code, year, quarter)]
+
+
+
 ## Identify taxability of module: import
 taxability_panel <- fread("/project2/igaarder/Data/taxability_state_panel.csv")
 
@@ -147,18 +211,8 @@ purchases.full <- merge(
 )
 # Assign unknown to purchases out of best selling module (taxability only identified for best selling)
 purchases.full$taxability[is.na(purchases.full$taxability)] <- 2
-### Keep only products for which we know the tax rate
+# Keep only products for which we know the tax rate
 purchases.full <- purchases.full[taxability != 2]
-
-## reshape to get a hh X module data
-purchases.full <- dcast(purchases.full, household_code + product_group_code + taxability + fips_county_code + fips_state_code +
-                          zip_code + quarter + year + projection_factor + projection_factor_magnet + region_code + reduced_rate +
-                          sum_total_exp_quarter + household_income + product_module_code ~ same_3zip_store, fun=sum,
-                          value.var = "total_expenditures")
-
-setnames(purchases.full,
-         old = c("FALSE", "TRUE", "NA"),
-         new = c("expenditures_diff3", "expenditures_same3", "expenditures_unkn3"))
 
 
 ## merge on tax rates at household
@@ -214,5 +268,23 @@ purchases.full <- purchases.full[, list(
 
 ## Create interest variables
 purchases.full <- purchases.full[, expenditures := expenditures_diff3 + expenditures_same3 + expenditures_unkn3]
+
+## Share
+purchases.sample[, share_expenditures := expenditures/sum_total_exp_quarter]
+
+## Logarithms
+# Expenditures
+purchases.sample <- purchases.sample[, ln_expenditures := log(expenditures)]
+purchases.sample$ln_expenditures[is.infinite(purchases.sample$ln_expenditures)] <- NA
+
+purchases.sample[, ln_expenditures_taxable := ifelse(taxability == 1, ln_expenditures, NA)]
+purchases.sample[, ln_expenditures_non_taxable := ifelse(taxability == 0, ln_expenditures, NA)]
+
+# Share
+purchases.sample <- purchases.sample[, ln_share := log(share_expenditures)]
+purchases.sample$ln_share[is.infinite(purchases.sample$ln_share)] <- NA
+
+purchases.sample[, ln_share_taxable := ifelse(taxability == 1, ln_share, NA)]
+purchases.sample[, ln_share_non_taxable := ifelse(taxability == 0, ln_share, NA)]
 
 fwrite(purchases.full, "cleaning/consumer_panel_q_hh_group_2006-2016.csv")
