@@ -163,6 +163,47 @@ setnames(purchases.full,
 purchases.full <- dcast(purchases.full, household_code + fips_county_code + fips_state_code + zip_code + quarter
                         + year + projection_factor + projection_factor_magnet + sum_total_exp_quarter + region_code +
                           household_income ~ taxability,  fun=sum, value.var = c("expenditures_diff3","expenditures_same3", "expenditures_unkn3"))
+## Balance panel for proper estimations
+#### Balance the panel: Key step for proper estimation
+flog.info("Building skeleton")
+
+# Collapse to hh that appeared at least once
+possible.purchases <- purchases.full[, list(N_obs = .N), by = .(household_code)]
+possible.purchases <- possible.purchases[N_obs > 0]
+possible.purchases[N_obs > 0]
+# Expand by quarter (old fashioned: CJ does not work in this case because of dimensionality)
+possible.purchases.q <- data.table(NULL)
+for (i in 1:4) {
+  possible.purchases.t <- possible.purchases[ , quarter := i ]
+  possible.purchases.q <- rbind(possible.purchases.q, possible.purchases.t)
+  
+}
+# remove used data for space
+rm(possible.purchases.q)
+# Expand by year
+possible.purchases.full <- data.table(NULL)
+for (i in 2006:2016) {
+  possible.purchases.t <- possible.purchases.q[ , year := i ]
+  possible.purchases.full <- rbind(possible.purchases.full, possible.purchases.t)
+}
+rm(possible.purchases.q)
+# merge
+flog.info("Merging to balance panel")
+purchases.full <- merge(purchases.full, possible.purchases.full, by = c("household_code", "quarter", "year"), all.y = T)
+rm(possible.purchases.full)
+# assign purchases of 0 to those moments
+expenditure.cols <- c("expenditures_diff3_0", "expenditures_diff3_1", "expenditures_diff3_2", 
+                    "expenditures_same3_0", "expenditures_same3_1", "expenditures_same3_2", 
+                    "expenditures_unkn3_0", "expenditures_unkn3_1", "expenditures_unkn3_2")
+for (Y in expenditure.cols) {
+  purchases.full <- purchases.full[, get(Y) := ifelse(!is.na(purchases.full$get(Y)),
+                                                      0, get(Y))]
+}
+
+# retrieve total purchases
+purchases.full[, sum_total_exp_quarter := mean(sum_total_exp_quarter, na.rm = T),
+               by = .(household_code, year, quarter)]
+
 
 ## merge on tax rates
 all_goods_pi_path <- "../../monthly_taxes_county_5zip_2008_2014.csv"
