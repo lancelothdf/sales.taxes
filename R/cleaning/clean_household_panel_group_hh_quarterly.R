@@ -159,7 +159,7 @@ for (i in 1:4) {
   
 }
 # remove used data for space
-rm(possible.purchases.q)
+rm(possible.purchases)
 # Expand by year
 possible.purchases.full <- data.table(NULL)
 for (i in 2006:2016) {
