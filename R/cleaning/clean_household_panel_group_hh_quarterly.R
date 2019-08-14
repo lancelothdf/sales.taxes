@@ -105,19 +105,21 @@ for (yr in 2006:2016) {
   annual.path <- paste0("cleaning/purchases_q_", yr, ".csv")
   purchase.yr <- fread(annual.path)
 
-  purchase.yr <- purchase.yr[, list(
-    total_expenditures = sum(total_expenditures),
-    projection_factor = mean(projection_factor, na.rm = T),
-    projection_factor_magnet = mean(projection_factor_magnet, na.rm = T),
-    household_income = mean(household_income, na.rm = T)
-  ), by = .(household_code, product_module_code, product_group_code,
-            same_3zip_store, fips_county_code, fips_state_code, zip_code, region_code,
-            quarter, year)  ]
   ## attach
   flog.info("Appending %s data to master file", yr)
   purchases.full <- rbind(purchases.full, purchase.yr)
 
 }
+
+## Collapse to the quarter (there can be doubles)
+purchases.full <- purchases.full[, list(
+  total_expenditures = sum(total_expenditures),
+  projection_factor = mean(projection_factor, na.rm = T),
+  projection_factor_magnet = mean(projection_factor_magnet, na.rm = T),
+  household_income = mean(household_income, na.rm = T)
+), by = .(household_code, product_module_code, product_group_code,
+          same_3zip_store, fips_county_code, fips_state_code, zip_code, region_code,
+          quarter, year)  ]
 
 ## Calculate total expenditure per consumer in each quarter (across stores and modules)
 purchases.full[, sum_total_exp_quarter := sum(total_expenditures),
@@ -181,6 +183,8 @@ purchases.full$sales_tax[purchases.full$taxability == 0 & !is.na(purchases.full$
 purchases.full[, sales_tax:= ifelse(!is.na(purchases.full$reduced_rate) & !is.na(purchases.full$sales_tax),
                                     reduced_rate, sales_tax)]
 
+# computing the log tax before collapsing
+purchases.full <- purchases.full[, ln_sales_tax := log1p(sales_tax)]
 
 ## Collapse to the group:
 # Taxability as the mode within the group
@@ -202,14 +206,13 @@ purchases.full <- purchases.full[, list(
   expenditures_same3 = sum(expenditures_same3),
   expenditures_unkn3 = sum(expenditures_unkn3),
   taxability = mode(taxability),
-  sales_tax = weighted.mean(sales_tax,sales_weight)
+  ln_sales_tax = weighted.mean(ln_sales_tax,sales_weight)
 ), by = .(household_code, fips_county_code, fips_state_code, product_group_code,
           zip_code, region_code, quarter, year, sum_total_exp_quarter, projection_factor,
           projection_factor_magnet, household_income) ]
 
 
 ## Create interest variables
-purchases.full <- purchases.full[, ln_sales_tax := log1p(sales_tax)]
 purchases.full <- purchases.full[, expenditures := expenditures_diff3 + expenditures_same3 + expenditures_unkn3]
 
 fwrite(purchases.full, "cleaning/consumer_panel_q_hh_group_2006-2016.csv")
