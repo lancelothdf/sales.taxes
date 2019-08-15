@@ -196,8 +196,8 @@ expenditure.cols <- c("expenditures_diff3_0", "expenditures_diff3_1", "expenditu
                     "expenditures_same3_0", "expenditures_same3_1", "expenditures_same3_2", 
                     "expenditures_unkn3_0", "expenditures_unkn3_1", "expenditures_unkn3_2")
 for (Y in expenditure.cols) {
-  purchases.full <- purchases.full[, get(Y) := ifelse(!is.na(get(Y)),
-                                                      0, get(Y))]
+  purchases.full <- purchases.full[, get(Y) := ifelse(is.na(purchases.full$get(Y)),
+                                                      0, purchases.full$get(Y))]
 }
 
 # retrieve total purchases

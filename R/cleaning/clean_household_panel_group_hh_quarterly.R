@@ -177,17 +177,17 @@ purchases.full <- data.table(purchases.full, key = c("household_code", "product_
 purchases.full <- merge(possible.purchases.full, purchases.full, all.x = T)
 rm(possible.purchases.full)
 # assign purchases of 0 to those modules
-purchases.full[, expenditures_diff3 := ifelse(!is.na(purchases.full$expenditures_diff3),
+purchases.full[, expenditures_diff3 := ifelse(is.na(expenditures_diff3),
                                     0, expenditures_diff3)]
-purchases.full[, expenditures_same3 := ifelse(!is.na(purchases.full$expenditures_same3),
+purchases.full[, expenditures_same3 := ifelse(is.na(expenditures_same3),
                                              0, expenditures_same3)]
-purchases.full[, expenditures_unkn3 := ifelse(!is.na(purchases.full$expenditures_unkn3),
+purchases.full[, expenditures_unkn3 := ifelse(is.na(expenditures_unkn3),
                                              0, expenditures_unkn3)]
 # retrieve household data
 household.cols <- c("fips_county_code", "fips_state_code", "zip_code", "projection_factor", 
                  "projection_factor_magnet", "region_code", "household_income")
 for (Y in household.cols) {
-  purchases.full <- purchases.full[, get(Y) := mean(get(Y), na.rm = T), by = .(household_code)]
+  purchases.full <- purchases.full[, get(Y) := mean(purchases.full$get(Y), na.rm = T), by = .(household_code)]
 }
 # retrieve total purchases
 purchases.full[, sum_total_exp_quarter := mean(sum_total_exp_quarter, na.rm = T),
