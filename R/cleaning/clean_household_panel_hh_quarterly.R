@@ -187,6 +187,9 @@ rm(possible.purchases.q)
 # merge
 flog.info("Merging to balance panel")
 purchases.full <- merge(purchases.full, possible.purchases.full, by = c("household_code", "quarter", "year"), all.y = T)
+# Check:
+nrow(purchases.full)
+nrow(possible.purchases.full)
 rm(possible.purchases.full)
 
 # assign purchases of 0 to those moments
