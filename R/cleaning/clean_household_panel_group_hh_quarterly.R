@@ -186,7 +186,7 @@ purchases.full[, expenditures_unkn3 := ifelse(is.na(expenditures_unkn3),
 # retrieve household data
 household.cols <- c("fips_county_code", "fips_state_code", "zip_code", "projection_factor", 
                  "projection_factor_magnet", "region_code", "household_income")
-purchases.full[, (household.cols) := lapply(.SD, mean, na.rm = T), by = .(household_code, quarter, year) , .SDcols = household.cols] 
+purchases.full[, (household.cols) := lapply(.SD, mean, na.rm = T), by = .(household_code, year) , .SDcols = household.cols] 
 
 
 # retrieve total purchases
