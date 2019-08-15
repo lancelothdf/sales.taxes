@@ -114,10 +114,14 @@ purchases.full <- purchases.full[, list(
   total_expenditures = sum(total_expenditures),
   projection_factor = mean(projection_factor, na.rm = T),
   projection_factor_magnet = mean(projection_factor_magnet, na.rm = T),
-  household_income = mean(household_income, na.rm = T)
+  household_income = mean(household_income, na.rm = T),
+  fips_county_code = mean(fips_county_code, na.rm = T),
+  fips_state_code = mean(fips_state_code, na.rm = T),
+  zip_code = mean(zip_code, na.rm = T),
+  region_code = mean(region_code, na.rm = T)
 ), by = .(household_code, product_module_code, product_group_code,
-          same_3zip_store, fips_county_code, fips_state_code, zip_code, region_code,
-          quarter, year)  ]
+          same_3zip_store, quarter, year) ]
+
 ## Calculate total expenditure per consumer in each quarter (across stores and modules)
 purchases.full[, sum_total_exp_quarter := sum(total_expenditures),
                by = .(household_code, year, quarter)]
