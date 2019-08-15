@@ -162,7 +162,7 @@ setnames(purchases.full,
 ## reshape to get a hh data
 purchases.full <- dcast(purchases.full, household_code + fips_county_code + fips_state_code + zip_code + quarter
                         + year + projection_factor + projection_factor_magnet + sum_total_exp_quarter + region_code +
-                          household_income ~ taxability,  fun=sum, value.var = c("expenditures_diff3","expenditures_same3", "expenditures_unkn3"))
+                          household_income ~ taxability,  fun=sum, value.var = c("expenditures_diff3", "expenditures_same3", "expenditures_unkn3"))
 ## Balance panel for proper estimations
 #### Balance the panel: Key step for proper estimation
 flog.info("Building skeleton")
@@ -196,7 +196,7 @@ expenditure.cols <- c("expenditures_diff3_0", "expenditures_diff3_1", "expenditu
                     "expenditures_same3_0", "expenditures_same3_1", "expenditures_same3_2", 
                     "expenditures_unkn3_0", "expenditures_unkn3_1", "expenditures_unkn3_2")
 for (Y in expenditure.cols) {
-  purchases.full <- purchases.full[, get(Y) := ifelse(!is.na(purchases.full$get(Y)),
+  purchases.full <- purchases.full[, get(Y) := ifelse(!is.na(get(Y)),
                                                       0, get(Y))]
 }
 
