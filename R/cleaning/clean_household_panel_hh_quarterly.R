@@ -109,18 +109,12 @@ for (yr in 2006:2016) {
   purchases.full <- rbind(purchases.full, purchase.yr)
 
 }
-## Collapse to the quarter (there can be doubles)
-purchases.full <- purchases.full[, list(
-  total_expenditures = sum(total_expenditures),
-  projection_factor = mean(projection_factor, na.rm = T),
-  projection_factor_magnet = mean(projection_factor_magnet, na.rm = T),
-  household_income = mean(household_income, na.rm = T),
-  fips_county_code = mean(fips_county_code, na.rm = T),
-  fips_state_code = mean(fips_state_code, na.rm = T),
-  zip_code = mean(zip_code, na.rm = T),
-  region_code = mean(region_code, na.rm = T)
-), by = .(household_code, product_module_code, product_group_code,
-          same_3zip_store, quarter, year) ]
+## Retrieve household info for purchases in the last quarter of previous year but same panel_year
+household.cols <- c("fips_county_code", "fips_state_code", "zip_code", "projection_factor", 
+                    "projection_factor_magnet", "region_code", "household_income")
+purchases.full[, (household.cols) := lapply(.SD, as.numeric), 
+               .SDcols = household.cols][,(household.cols) := lapply(.SD, mean, na.rm = T),
+                                         by = .(household_code, year), .SDcols = household.cols] 
 
 ## Calculate total expenditure per consumer in each quarter (across stores and modules)
 purchases.full[, sum_total_exp_quarter := sum(total_expenditures),
