@@ -169,7 +169,12 @@ for (i in 2006:2016) {
 rm(possible.purchases.q)
 # merge
 flog.info("Merging to balance panel")
-purchases.full <- merge(purchases.full, possible.purchases.full, by = c("household_code", "product_module_code","product_group_code", "quarter", "year"), all.y = T)
+# minor changes for efficiency
+possible.purchases.full <- data.table(possible.purchases.full, key = c("household_code", "product_module_code","product_group_code", "quarter", "year"))
+purchases.full <- data.table(purchases.full, key = c("household_code", "product_module_code","product_group_code", "quarter", "year"))
+
+
+purchases.full <- merge(possible.purchases.full, purchases.full, all.x = T)
 rm(possible.purchases.full)
 # assign purchases of 0 to those modules
 purchases.full[, expenditures_diff3 := ifelse(!is.na(purchases.full$expenditures_diff3),
