@@ -110,6 +110,7 @@ for (yr in 2006:2016) {
   purchases.full <- rbind(purchases.full, purchase.yr)
 
 }
+rm(purchase.yr)
 ## Retrieve household info for purchases in the last quarter of previous year but same panel_year
 household.cols <- c("fips_county_code", "fips_state_code", "zip_code", "projection_factor", 
                     "projection_factor_magnet", "region_code", "household_income")
@@ -170,6 +171,8 @@ for (i in 2006:2016) {
   possible.purchases.full <- rbind(possible.purchases.full, possible.purchases.t)
 }
 rm(possible.purchases.q)
+rm(possible.purchases.t)
+
 # merge
 flog.info("Merging to balance panel")
 # minor changes for efficiency
@@ -219,8 +222,10 @@ purchases.full <- merge(
   by = c("fips_state_code", "product_module_code", "product_group_code", "year", "quarter"),
   all.x = T
 )
+rm(taxability_panel)
 # Assign unknown to purchases out of best selling module (taxability only identified for best selling)
-purchases.full$taxability[is.na(purchases.full$taxability)] <- 2
+purchases.full[, taxability:= ifelse(is.na(taxability), 2, taxability)]
+
 # Keep only products for which we know the tax rate
 purchases.full <- purchases.full[taxability != 2]
 
@@ -241,11 +246,10 @@ purchases.full <- merge(
   by = c("fips_county_code", "fips_state_code", "zip_code", "year", "quarter"),
   all.x = T
 )
-
+rm(all_pi)
 # Impute tax rate to exempt items and to reduced rate items
-purchases.full$sales_tax[purchases.full$taxability == 0 & !is.na(purchases.full$sales_tax)] <- 0
-purchases.full[, sales_tax:= ifelse(!is.na(purchases.full$reduced_rate) & !is.na(purchases.full$sales_tax),
-                                    reduced_rate, sales_tax)]
+purchases.full[, sales_tax:= ifelse(taxability == 0 & !is.na(sales_tax), 0, sales_tax)]
+purchases.full[, sales_tax:= ifelse(!is.na(reduced_rate) & !is.na(sales_tax), reduced_rate, sales_tax)]
 
 # computing the log tax before collapsing
 purchases.full <- purchases.full[, ln_sales_tax := log1p(sales_tax)]
