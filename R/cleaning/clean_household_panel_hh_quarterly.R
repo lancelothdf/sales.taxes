@@ -191,14 +191,12 @@ rm(possible.purchases.q)
 flog.info("Merging to balance panel")
 purchases.full <- merge(purchases.full, possible.purchases.full, by = c("household_code", "quarter", "year"), all.y = T)
 rm(possible.purchases.full)
+names(purchases.full)
 # assign purchases of 0 to those moments
 expenditure.cols <- c("expenditures_diff3_0", "expenditures_diff3_1", "expenditures_diff3_2", 
                     "expenditures_same3_0", "expenditures_same3_1", "expenditures_same3_2", 
                     "expenditures_unkn3_0", "expenditures_unkn3_1", "expenditures_unkn3_2")
-for (Y in expenditure.cols) {
-  purchases.full <- purchases.full[, get(Y) := ifelse(is.na(purchases.full$get(Y)),
-                                                      0, purchases.full$get(Y))]
-}
+purchases.full[, (expenditure.cols) := replace(.SD, is.na(.SD) , 0), .SDcols = expenditure.cols]
 
 # retrieve total purchases
 purchases.full[, sum_total_exp_quarter := mean(sum_total_exp_quarter, na.rm = T),
