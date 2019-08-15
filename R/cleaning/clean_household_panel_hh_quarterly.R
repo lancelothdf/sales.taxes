@@ -104,20 +104,20 @@ for (yr in 2006:2016) {
   annual.path <- paste0("cleaning/purchases_q_", yr, ".csv")
   purchase.yr <- fread(annual.path)
 
-  purchase.yr <- purchase.yr[, list(
-    total_expenditures = sum(total_expenditures),
-    projection_factor = mean(projection_factor, na.rm = T),
-    projection_factor_magnet = mean(projection_factor_magnet, na.rm = T),
-    household_income = mean(household_income, na.rm = T)
-  ), by = .(household_code, product_module_code, product_group_code, region_code,
-            same_3zip_store, fips_county_code, fips_state_code, zip_code,
-            quarter, year)  ]
   ## attach
   flog.info("Appending %s data to master file", yr)
   purchases.full <- rbind(purchases.full, purchase.yr)
 
 }
-
+## Collapse to the quarter (there can be doubles)
+purchases.full <- purchases.full[, list(
+  total_expenditures = sum(total_expenditures),
+  projection_factor = mean(projection_factor, na.rm = T),
+  projection_factor_magnet = mean(projection_factor_magnet, na.rm = T),
+  household_income = mean(household_income, na.rm = T)
+), by = .(household_code, product_module_code, product_group_code,
+          same_3zip_store, fips_county_code, fips_state_code, zip_code, region_code,
+          quarter, year)  ]
 ## Calculate total expenditure per consumer in each quarter (across stores and modules)
 purchases.full[, sum_total_exp_quarter := sum(total_expenditures),
                by = .(household_code, year, quarter)]
@@ -170,7 +170,6 @@ flog.info("Building skeleton")
 # Collapse to hh that appeared at least once
 possible.purchases <- purchases.full[, list(N_obs = .N), by = .(household_code)]
 possible.purchases <- possible.purchases[N_obs > 0]
-possible.purchases[N_obs > 0]
 # Expand by quarter (old fashioned: CJ does not work in this case because of dimensionality)
 possible.purchases.q <- data.table(NULL)
 for (i in 1:4) {

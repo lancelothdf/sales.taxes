@@ -150,7 +150,6 @@ flog.info("Building skeleton")
 # Collapse to hh x module that appeared at least once
 possible.purchases <- purchases.full[, list(N_obs = .N), by = .(household_code, product_module_code, product_group_code)]
 possible.purchases <- possible.purchases[N_obs > 0]
-possible.purchases[N_obs > 0]
 # Expand by quarter (old fashioned: CJ does not work in this case because of dimensionality)
 possible.purchases.q <- data.table(NULL)
 for (i in 1:4) {
