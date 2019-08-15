@@ -21,7 +21,6 @@ purchases.full$time <- factor(with(purchases.full, interaction(year, quarter)))
 
 ## Constraining Data set for estimations ------------ 
 # Keep only "projection no-magnet" households: 
-purchases.full[, sum(is.na(projection_factor))]
 purchases.sample <- purchases.full[!is.na(projection_factor)]
 
 
@@ -225,7 +224,7 @@ total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 
 ## Run basic descriptives  ------
 
-descriptives <- describe(purchases.sample[, .(D.ln_expenditure_taxable, D.ln_expenditure_non_taxable,
+descriptives <- describe(purchases.sample[, .(D.ln_sales_tax, D.ln_expenditure_taxable, D.ln_expenditure_non_taxable,
                                               D.ln_expenditure_unknown, D.ln_expenditure_diff3, 
                                               D.ln_expenditure_same3, D.ln_share_taxable,
                                               D.ln_share_non_taxable, D.ln_share_unknown, 
@@ -297,8 +296,8 @@ for (FE in FE_opts) {
       outcome = Y,
       spec = FE,
       Rsq = summary(res1)$r.squared,
-      adj.Rsq = summary(res1)$adj.r.squared)
-      N.obs = nrow(purchases.sample[!is.na(get(Y))])
+      adj.Rsq = summary(res1)$adj.r.squared,
+      N.obs = nrow(purchases.sample[!is.na(get(Y))]))
     LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
     
@@ -373,8 +372,8 @@ for (FE in FE_opts) {
       outcome = Y,
       spec = FE,
       Rsq = summary(res1)$r.squared,
-      adj.Rsq = summary(res1)$adj.r.squared)
-      N.obs = nrow(purchases.sample[!is.na(get(Y))])
+      adj.Rsq = summary(res1)$adj.r.squared,
+      N.obs = nrow(purchases.sample[!is.na(get(Y))]))
     LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
   }

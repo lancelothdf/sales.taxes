@@ -191,7 +191,7 @@ rm(possible.purchases.q)
 flog.info("Merging to balance panel")
 purchases.full <- merge(purchases.full, possible.purchases.full, by = c("household_code", "quarter", "year"), all.y = T)
 rm(possible.purchases.full)
-names(purchases.full)
+
 # assign purchases of 0 to those moments
 expenditure.cols <- c("expenditures_diff3_0", "expenditures_diff3_1", "expenditures_diff3_2", 
                     "expenditures_same3_0", "expenditures_same3_1", "expenditures_same3_2", 
