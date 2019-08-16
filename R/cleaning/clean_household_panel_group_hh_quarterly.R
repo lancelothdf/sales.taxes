@@ -179,7 +179,7 @@ flog.info("Merging to balance panel")
 possible.purchases.full <- data.table(possible.purchases.full, key = c("household_code", "product_module_code","product_group_code", "quarter", "year"))
 purchases.full <- data.table(purchases.full, key = c("household_code", "product_module_code","product_group_code", "quarter", "year"))
 
-
+# merge
 purchases.full <- merge(possible.purchases.full, purchases.full, all.x = T)
 rm(possible.purchases.full)
 # assign purchases of 0 to those modules
@@ -216,11 +216,12 @@ taxability_panel <- taxability_panel[, list(taxability = round(mean(taxability))
                                      by =.(product_module_code, product_group_code,
                                            fips_state_code, quarter, year)]
 
+# minor definitions for efficiency
+taxability_panel <- data.table(taxability_panel, key = c("fips_state_code", "product_module_code", "product_group_code", "year", "quarter"))
+purchases.full <- data.table(purchases.full, key = c("fips_state_code", "product_module_code", "product_group_code", "year", "quarter"))
 
 purchases.full <- merge(
-  purchases.full, taxability_panel,
-  by = c("fips_state_code", "product_module_code", "product_group_code", "year", "quarter"),
-  all.x = T
+  purchases.full, taxability_panel, all.x = T
 )
 rm(taxability_panel)
 
@@ -239,10 +240,12 @@ all_pi[, quarter := ceiling(month / 3)]
 all_pi <- all_pi[, list(sales_tax = mean(sales_tax)) , 
                                      by =.(zip_code, fips_county_code,
                                            fips_state_code, quarter, year)]
+# minor definitions for efficiency
+all_pi <- data.table(all_pi, key = c("fips_county_code", "fips_state_code", "zip_code", "year", "quarter"))
+purchases.full <- data.table(purchases.full, key = c("fips_county_code", "fips_state_code", "zip_code", "year", "quarter"))
+
 purchases.full <- merge(
-  purchases.full, all_pi,
-  by = c("fips_county_code", "fips_state_code", "zip_code", "year", "quarter"),
-  all.x = T
+  purchases.full, all_pi, all.x = T
 )
 rm(all_pi)
 # Impute tax rate to exempt items and to reduced rate items
