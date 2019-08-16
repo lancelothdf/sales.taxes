@@ -19,19 +19,6 @@ purchases.sample <- fread("cleaning/consumer_panel_q_hh_2006-2016.csv")
 
 purchases.sample$time <- factor(with(purchases.sample, interaction(year, quarter)))
 
-## Identify type of state
-# compute the household share of expenditure on taxable goods by state for each quarter.  
-purchases.sample[, state_sh_expenditure_taxable := sum(expenditure_taxable)/(sum(sum_total_exp_quarter)),
-                 by = .(fips_state_code, quarter, year)]
-# Now compute the average across quarters. 
-purchases.sample[, state_sh_expenditure_taxable := mean(state_sh_expenditure_taxable, na.rm = T),
-                 by = .(fips_state_code)]
-# take the median and divide states by above versus below median.  
-state.tax.base <- purchases.sample[, list(state_sh_expenditure_taxable = mean(state_sh_expenditure_taxable)), 
-                                   by = fips_state_code]
-median <- median(state.tax.base$state_sh_expenditure_taxable)
-purchases.sample[, large_tax_base := (state_sh_expenditure_taxable >= median)]
-
 ## Create Necessary variables -----------------------
 
 ## Shares
@@ -203,6 +190,19 @@ purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & quarter >= 
 
 # Drop observations without weights at the end
 purchases.sample <- purchases.sample[!is.na(projection_factor)]
+
+## Identify type of state for heterogeneity
+# compute the household share of expenditure on taxable goods by state for each quarter.  
+purchases.sample[, state_sh_expenditure_taxable := sum(expenditure_taxable)/(sum(sum_total_exp_quarter)),
+                 by = .(fips_state_code, quarter, year)]
+# Now compute the average across quarters. 
+purchases.sample[, state_sh_expenditure_taxable := mean(state_sh_expenditure_taxable, na.rm = T),
+                 by = .(fips_state_code)]
+# take the median and divide states by above versus below median.  
+state.tax.base <- purchases.sample[, list(state_sh_expenditure_taxable = mean(state_sh_expenditure_taxable, na.rm = T)), 
+                                   by = fips_state_code]
+median <- median(state.tax.base$state_sh_expenditure_taxable)
+purchases.sample[, large_tax_base := (state_sh_expenditure_taxable >= median)]
 
 
 ## Estimation Set up --------
