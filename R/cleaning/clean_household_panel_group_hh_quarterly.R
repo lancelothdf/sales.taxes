@@ -223,11 +223,9 @@ purchases.full <- merge(
   all.x = T
 )
 rm(taxability_panel)
-# Assign unknown to purchases out of best selling module (taxability only identified for best selling)
-purchases.full[, taxability:= ifelse(is.na(taxability), 2, taxability)]
 
 # Keep only products for which we know the tax rate
-purchases.full <- purchases.full[taxability != 2]
+purchases.full <- purchases.full[taxability != 2 & !is.na(taxability)]
 
 
 ## merge on tax rates at household
