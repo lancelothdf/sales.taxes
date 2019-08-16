@@ -197,7 +197,12 @@ expenditure.cols <- c("expenditures_diff3_0", "expenditures_diff3_1", "expenditu
                     "expenditures_same3_0", "expenditures_same3_1", "expenditures_same3_2", 
                     "expenditures_unkn3_0", "expenditures_unkn3_1", "expenditures_unkn3_2")
 purchases.full[, (expenditure.cols) := replace(.SD, is.na(.SD) , 0), .SDcols = expenditure.cols]
-
+# retrieve household data
+household.cols <- c("fips_county_code", "fips_state_code", "zip_code", "projection_factor", 
+                    "projection_factor_magnet", "region_code", "household_income")
+purchases.full[, (household.cols) := lapply(.SD, as.numeric), 
+               .SDcols = household.cols][,(household.cols) := lapply(.SD, mean, na.rm = T),
+                                         by = .(household_code, year), .SDcols = household.cols] 
 # retrieve total purchases
 purchases.full[, sum_total_exp_quarter := mean(sum_total_exp_quarter, na.rm = T),
                by = .(household_code, year, quarter)]
