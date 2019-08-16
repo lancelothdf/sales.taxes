@@ -161,6 +161,9 @@ setnames(purchases.full,
 purchases.full <- dcast(purchases.full, household_code + fips_county_code + fips_state_code + zip_code + quarter
                         + year + projection_factor + projection_factor_magnet + sum_total_exp_quarter + region_code +
                           household_income ~ taxability,  fun=sum, value.var = c("expenditures_diff3", "expenditures_same3", "expenditures_unkn3"))
+## Keep households that project the national data (projection factor)
+purchases.full <- purchases.full[!is.na(projection_factor)]
+
 ## Balance panel for proper estimations
 #### Balance the panel: Key step for proper estimation
 flog.info("Building skeleton")

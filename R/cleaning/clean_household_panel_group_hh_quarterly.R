@@ -130,6 +130,8 @@ purchases.full <- purchases.full[, list(
 purchases.full[, sum_total_exp_quarter := sum(total_expenditures),
                by = .(household_code, year, quarter)]
 
+## Keep households that project the national data (projection factor)
+purchases.full <- purchases.full[!is.na(projection_factor)]
 
 ## Keep only best selling modules
 best_selling_modules <- fread("/project2/igaarder/Data/best_selling_modules.csv")

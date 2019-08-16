@@ -14,15 +14,9 @@ library(DescTools)
 setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 
 ## Open Data
-purchases.full <- fread("cleaning/consumer_panel_q_hh_2006-2016.csv")
+purchases.sample <- fread("cleaning/consumer_panel_q_hh_2006-2016.csv")
 
-purchases.full$time <- factor(with(purchases.full, interaction(year, quarter)))
-
-
-## Constraining Data set for estimations ------------ 
-# Keep only "projection no-magnet" households: 
-purchases.sample <- purchases.full[!is.na(projection_factor)]
-
+purchases.sample$time <- factor(with(purchases.full, interaction(year, quarter)))
 
 ## Create Necessary variables -----------------------
 
