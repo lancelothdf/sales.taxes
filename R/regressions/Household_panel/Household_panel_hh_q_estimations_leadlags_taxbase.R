@@ -201,6 +201,9 @@ for (lag.val in 1:8) {
 purchases.sample <- purchases.sample[between(year, 2008, 2014)]
 purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & quarter >= 2)] ## First quarter of 2008, the difference was imputed not real data - so we drop it
 
+# Drop observations without weights at the end
+purchases.sample <- purchases.sample[!is.na(projection_factor)]
+
 
 ## Estimation Set up --------
 
