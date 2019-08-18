@@ -14,33 +14,8 @@ library(DescTools)
 setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 
 ## Open Data
-purchases.full <- fread("cleaning/consumer_panel_q_hh_group_2006-2016.csv")
+purchases.sample <- fread("cleaning/consumer_panel_q_hh_group_2006-2016.csv")
 
-## Constraining Data set for estimations ------------ 
-# Keep only "projection no-magnet" households: 
-purchases.full[, sum(is.na(projection_factor))]
-purchases.sample <- purchases.full[!is.na(projection_factor)]
-
-
-## Create Necessary variables -----------------------
-
-## Share
-purchases.sample[, share_expenditures := expenditures/sum_total_exp_quarter]
-
-## Logarithms
-# Expenditures
-purchases.sample <- purchases.sample[, ln_expenditures := log(expenditures)]
-purchases.sample$ln_expenditures[is.infinite(purchases.sample$ln_expenditures)] <- NA
-
-purchases.sample[, ln_expenditures_taxable := ifelse(taxability == 1, ln_expenditures, NA)]
-purchases.sample[, ln_expenditures_non_taxable := ifelse(taxability == 0, ln_expenditures, NA)]
-
-# Share
-purchases.sample <- purchases.sample[, ln_share := log(share_expenditures)]
-purchases.sample$ln_share[is.infinite(purchases.sample$ln_share)] <- NA
-
-purchases.sample[, ln_share_taxable := ifelse(taxability == 1, ln_share, NA)]
-purchases.sample[, ln_share_non_taxable := ifelse(taxability == 0, ln_share, NA)]
 
 # Time
 purchases.sample[, cal_time := 4 * year + quarter]
@@ -51,16 +26,16 @@ purchases.sample[, group_by_time := .GRP, by = .(product_group_code, year, quart
 
 # impute tax rates prior to 2008 and after 2014
 purchases.sample[, ln_sales_tax := ifelse(year < 2008, ln_sales_tax[year == 2008 & quarter == 1], ln_sales_tax),
-       by = .(household_code, product_group_code)]
+                 by = .(household_code, product_group_code)]
 purchases.sample[, ln_sales_tax := ifelse(year > 2014, ln_sales_tax[year == 2014 & quarter == 4], ln_sales_tax),
-       by = .(household_code, product_group_code)]
+                 by = .(household_code, product_group_code)]
 
 ## take first differences of outcomes and treatment
 purchases.sample <- purchases.sample[order(household_code, product_group_code, cal_time),] ##Sort on hh by year-quarter (in ascending order)
 
 # tax
 purchases.sample[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
-       by = .(household_code, product_group_code)]
+                 by = .(household_code, product_group_code)]
 
 # expenditure
 purchases.sample[, D.ln_expenditures := ln_expenditures - shift(ln_expenditures, n=1, type="lag"),
@@ -72,7 +47,7 @@ purchases.sample[, D.ln_expenditures_non_taxable := ln_expenditures_non_taxable 
 
 # share
 purchases.sample[, D.ln_share := ln_share - shift(ln_share, n=1, type="lag"),
-       by = .(household_code, product_group_code)]
+                 by = .(household_code, product_group_code)]
 purchases.sample[, D.ln_share_taxable := ln_share_taxable - shift(ln_share_taxable, n=1, type="lag"),
                  by = .(household_code, product_group_code)]
 purchases.sample[, D.ln_share_non_taxable := ln_share_non_taxable - shift(ln_share_non_taxable, n=1, type="lag"),
@@ -84,15 +59,18 @@ purchases.sample[, D.ln_share_non_taxable := ln_share_non_taxable - shift(ln_sha
 for (lag.val in 1:8) {
   lag.X <- paste0("L", lag.val, ".D.ln_sales_tax")
   purchases.sample[, (lag.X) := shift(D.ln_sales_tax, n=lag.val, type="lag"),
-         by = .(household_code, product_group_code)]
+                   by = .(household_code, product_group_code)]
   
   lead.X <- paste0("F", lag.val, ".D.ln_sales_tax")
   purchases.sample[, (lead.X) := shift(D.ln_sales_tax, n=lag.val, type="lead"),
-         by = .(household_code, product_group_code)]
+                   by = .(household_code, product_group_code)]
 }
 # Restrict data to interest window
 purchases.sample <- purchases.sample[between(year, 2008, 2014)]
 purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & quarter >= 2)] ## First quarter of 2008, the difference was imputed not real data - so we drop it
+
+# Drop observations without weights at the end
+purchases.sample <- purchases.sample[!is.na(projection_factor)]
 
 
 ## Estimation Set up --------
