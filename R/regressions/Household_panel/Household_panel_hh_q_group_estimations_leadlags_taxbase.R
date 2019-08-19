@@ -115,17 +115,9 @@ total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 des.est.out <- data.table(NULL)
 for (group in above_or_below) {
   descriptives <- describe(purchases.sample[large_tax_base == group,
-                                            .(D.ln_expenditure_taxable, D.ln_expenditure_non_taxable,
-                                              D.ln_expenditure_unknown, D.ln_expenditure_diff3, 
-                                              D.ln_expenditure_same3, D.ln_share_taxable,
-                                              D.ln_share_non_taxable, D.ln_share_unknown, 
-                                              D.ln_share_same3, D.ln_share_diff3, D.ln_total_expenditure,
-                                              D.ln_expenditure_taxable_same3, D.ln_expenditure_taxable_diff3,
-                                              D.ln_expenditure_non_taxable_same3, D.ln_expenditure_non_taxable_diff3,
-                                              D.ln_expenditure_unknown_same3, D.ln_expenditure_unknown_diff3, 
-                                              D.ln_share_taxable_same3, D.ln_share_taxable_diff3, 
-                                              D.ln_share_non_taxable_same3, D.ln_share_non_taxable_diff3,
-                                              D.ln_share_unknown_same3, D.ln_share_unknown_diff3)])
+                                            .(D.ln_expenditures, D.ln_expenditures_taxable, 
+                                              D.ln_expenditures_non_taxable, D.ln_sales_tax,
+                                              D.ln_share, D.ln_share_taxable,  D.ln_share_non_taxable)])
   descriptives$large_tax_base <- group
   descriptives  <- data.table(descriptives, keep.rownames=T)
   des.est.out  <- rbind(des.est.out, descriptives, fill = T)
@@ -306,18 +298,10 @@ output.results.file <- "../../../../../home/slacouture/HMS/HH_group_quarter_dist
 
 des.est.out <- data.table(NULL)
 for (group in above_or_below) {
-  descriptives <- describe(purchases.sample[taxable_consumer == group,
-                                            .(D.ln_expenditure_taxable, D.ln_expenditure_non_taxable,
-                                              D.ln_expenditure_unknown, D.ln_expenditure_diff3, 
-                                              D.ln_expenditure_same3, D.ln_share_taxable,
-                                              D.ln_share_non_taxable, D.ln_share_unknown, 
-                                              D.ln_share_same3, D.ln_share_diff3, D.ln_total_expenditure,
-                                              D.ln_expenditure_taxable_same3, D.ln_expenditure_taxable_diff3,
-                                              D.ln_expenditure_non_taxable_same3, D.ln_expenditure_non_taxable_diff3,
-                                              D.ln_expenditure_unknown_same3, D.ln_expenditure_unknown_diff3, 
-                                              D.ln_share_taxable_same3, D.ln_share_taxable_diff3, 
-                                              D.ln_share_non_taxable_same3, D.ln_share_non_taxable_diff3,
-                                              D.ln_share_unknown_same3, D.ln_share_unknown_diff3)])
+  descriptives <- describe(purchases.sample[large_tax_base == group,
+                                            .(D.ln_expenditures, D.ln_expenditures_taxable, 
+                                              D.ln_expenditures_non_taxable, D.ln_sales_tax,
+                                              D.ln_share, D.ln_share_taxable,  D.ln_share_non_taxable)])
   descriptives$large_tax_base <- group
   descriptives  <- data.table(descriptives, keep.rownames=T)
   des.est.out  <- rbind(des.est.out, descriptives, fill = T)
