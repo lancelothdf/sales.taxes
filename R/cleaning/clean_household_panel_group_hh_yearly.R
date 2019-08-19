@@ -232,7 +232,7 @@ purchases.full <- purchases.full[, list(
 purchases.full <- purchases.full[, expenditures := expenditures_diff3 + expenditures_same3 + expenditures_unkn3]
 
 ## Share
-purchases.full[, share_expenditures := expenditures/sum_total_exp_quarter]
+purchases.full[, share_expenditures := expenditures/sum_total_exp]
 
 ## Logarithms
 # Expenditures

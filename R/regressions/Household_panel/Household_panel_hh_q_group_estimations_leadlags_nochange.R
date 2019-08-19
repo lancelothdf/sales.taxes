@@ -1,7 +1,7 @@
 ## Sales taxes Project. Household Panel
 # Running distributed lag regression in differences on the new panel (household x group x quarter) on all purchases (for which taxability is identified)
+# Modules where taxability chagnes are dropped
 # Author: John Bonney & Santiago Lacouture
-# in this version we use the panel in which items that changed taxability status were dropped
 
 library(data.table)
 library(lfe)
@@ -17,7 +17,6 @@ setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 ## Open Data
 purchases.sample <- fread("cleaning/consumer_panel_q_hh_group_2006-2016_nc.csv")
 
-## Create Necessary variables -----------------------
 
 # Time
 purchases.sample[, cal_time := 4 * year + quarter]
@@ -28,16 +27,16 @@ purchases.sample[, group_by_time := .GRP, by = .(product_group_code, year, quart
 
 # impute tax rates prior to 2008 and after 2014
 purchases.sample[, ln_sales_tax := ifelse(year < 2008, ln_sales_tax[year == 2008 & quarter == 1], ln_sales_tax),
-       by = .(household_code, product_group_code)]
+                 by = .(household_code, product_group_code)]
 purchases.sample[, ln_sales_tax := ifelse(year > 2014, ln_sales_tax[year == 2014 & quarter == 4], ln_sales_tax),
-       by = .(household_code, product_group_code)]
+                 by = .(household_code, product_group_code)]
 
 ## take first differences of outcomes and treatment
 purchases.sample <- purchases.sample[order(household_code, product_group_code, cal_time),] ##Sort on hh by year-quarter (in ascending order)
 
 # tax
 purchases.sample[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
-       by = .(household_code, product_group_code)]
+                 by = .(household_code, product_group_code)]
 
 # expenditure
 purchases.sample[, D.ln_expenditures := ln_expenditures - shift(ln_expenditures, n=1, type="lag"),
@@ -49,7 +48,7 @@ purchases.sample[, D.ln_expenditures_non_taxable := ln_expenditures_non_taxable 
 
 # share
 purchases.sample[, D.ln_share := ln_share - shift(ln_share, n=1, type="lag"),
-       by = .(household_code, product_group_code)]
+                 by = .(household_code, product_group_code)]
 purchases.sample[, D.ln_share_taxable := ln_share_taxable - shift(ln_share_taxable, n=1, type="lag"),
                  by = .(household_code, product_group_code)]
 purchases.sample[, D.ln_share_non_taxable := ln_share_non_taxable - shift(ln_share_non_taxable, n=1, type="lag"),
@@ -61,11 +60,11 @@ purchases.sample[, D.ln_share_non_taxable := ln_share_non_taxable - shift(ln_sha
 for (lag.val in 1:8) {
   lag.X <- paste0("L", lag.val, ".D.ln_sales_tax")
   purchases.sample[, (lag.X) := shift(D.ln_sales_tax, n=lag.val, type="lag"),
-         by = .(household_code, product_group_code)]
+                   by = .(household_code, product_group_code)]
   
   lead.X <- paste0("F", lag.val, ".D.ln_sales_tax")
   purchases.sample[, (lead.X) := shift(D.ln_sales_tax, n=lag.val, type="lead"),
-         by = .(household_code, product_group_code)]
+                   by = .(household_code, product_group_code)]
 }
 # Restrict data to interest window
 purchases.sample <- purchases.sample[between(year, 2008, 2014)]
