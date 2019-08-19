@@ -103,27 +103,53 @@ for (yr in 2006:2016) {
 
   annual.path <- paste0("cleaning/purchases_q_", yr, ".csv")
   purchase.yr <- fread(annual.path)
-  purchase.yr[, N := 1]
-  purchase.yr <- purchase.yr[, list(
-    total_expenditures = sum(total_expenditures),
-    N = sum(N),
-    projection_factor = mean(projection_factor, na.rm = T),
-    projection_factor_magnet = mean(projection_factor_magnet, na.rm = T),
-    household_income = mean(household_income, na.rm = T)
-  ), by = .(household_code, product_module_code, product_group_code,
-            same_3zip_store, fips_county_code, fips_state_code, zip_code, region_code,
-            year)  ]
-  # keep only observations observed during the full year (note there could be observations observed 5 times)
-  purchase.yr <- purchase.yr[N>=4]
+
   ## attach
   flog.info("Appending %s data to master file", yr)
   purchases.full <- rbind(purchases.full, purchase.yr)
 
 }
+## Retrieve household info for purchases in the last quarter of previous year but same panel_year
+household.cols <- c("fips_county_code", "fips_state_code", "zip_code", "projection_factor", 
+                    "projection_factor_magnet", "region_code", "household_income")
+purchases.full[, (household.cols) := lapply(.SD, as.numeric), 
+               .SDcols = household.cols][,(household.cols) := lapply(.SD, mean, na.rm = T),
+                                         by = .(household_code, year), .SDcols = household.cols] 
+# Collapse to the year
+purchases.full[, N := 1]
+purchases.full <- purchases.full[, list(
+  total_expenditures = sum(total_expenditures),
+  N = sum(N)
+), by = .(household_code, product_module_code, product_group_code, projection_factor, projection_factor_magnet,
+          household_income, fips_county_code, fips_state_code, zip_code, same_3zip_store, 
+          region_code, year) ]
+# keep only observations observed during the full year (note there could be observations observed 5 times)
+purchases.full <- purchases.full[N>=4]
 
 ## Calculate total expenditure per consumer in each year (across stores and modules)
 purchases.full[, sum_total_exp := sum(total_expenditures),
                by = .(household_code, year)]
+
+## Keep households that project the national data (projection factor)
+purchases.full <- purchases.full[!is.na(projection_factor)]
+
+## Keep only best selling modules
+best_selling_modules <- fread("/project2/igaarder/Data/best_selling_modules.csv")
+keep_modules <- unique(best_selling_modules[, .(Module)][[1]])
+purchases.full <- purchases.full[product_module_code %in% keep_modules]
+rm(keep_modules)
+rm(best_selling_modules)
+
+## reshape to get a hh X module data
+purchases.full <- dcast(purchases.full, household_code + product_group_code + fips_county_code + fips_state_code +
+                          zip_code + year + projection_factor + projection_factor_magnet + region_code + sum_total_exp +
+                          household_income + product_module_code ~ same_3zip_store, fun=sum,
+                         value.var = "total_expenditures")
+setnames(purchases.full,
+         old = c("FALSE", "TRUE", "NA"),
+         new = c("expenditures_diff3", "expenditures_same3", "expenditures_unkn3"))
+
+## There is no need to balance panel here for cross-sectional design
 
 
 ## Identify taxability of module: import
@@ -137,26 +163,17 @@ taxability_panel <- taxability_panel[, list(taxability = round(mean(taxability))
                                             reduced_rate = mean(reduced_rate, na.rm = T)) ,  
                                      by =.(product_module_code, product_group_code, fips_state_code, year)]
 
+# minor definitions for efficiency
+taxability_panel <- data.table(taxability_panel, key = c("fips_state_code", "product_module_code", "product_group_code", "year"))
+purchases.full <- data.table(purchases.full, key = c("fips_state_code", "product_module_code", "product_group_code", "year"))
 
 purchases.full <- merge(
-  purchases.full, taxability_panel,
-  by = c("fips_state_code", "product_module_code", "product_group_code", "year"),
-  all.x = T
+  purchases.full, taxability_panel, all.x = T
 )
-# Assign unknown to purchases out of best selling module (taxability only identified for best selling)
-purchases.full$taxability[is.na(purchases.full$taxability)] <- 2
-### Keep only products for which we know the tax rate
-purchases.full <- purchases.full[taxability != 2]
+rm(taxability_panel)
 
-## reshape to get a hh X module data
-purchases.full <- dcast(purchases.full, household_code + product_group_code + taxability + fips_county_code + fips_state_code +
-                          zip_code + year + projection_factor + projection_factor_magnet + region_code + reduced_rate +
-                          sum_total_exp + household_income + product_module_code ~ same_3zip_store, fun=sum,
-                          value.var = "total_expenditures")
-
-setnames(purchases.full,
-         old = c("FALSE", "TRUE", "NA"),
-         new = c("expenditures_diff3", "expenditures_same3", "expenditures_unkn3"))
+# Keep only products for which we know the tax rate
+purchases.full <- purchases.full[taxability != 2 & !is.na(taxability)]
 
 
 ## merge on tax rates at household
@@ -169,16 +186,21 @@ setnames(all_pi,
 all_pi <- all_pi[, list(sales_tax = mean(sales_tax)) , 
                                      by =.(zip_code, fips_county_code,
                                            fips_state_code, year)]
+# minor definitions for efficiency
+all_pi <- data.table(all_pi, key = c("fips_county_code", "fips_state_code", "zip_code", "year"))
+purchases.full <- data.table(purchases.full, key = c("fips_county_code", "fips_state_code", "zip_code", "year"))
+
 purchases.full <- merge(
-  purchases.full, all_pi,
-  by = c("fips_county_code", "fips_state_code", "zip_code", "year"),
-  all.x = T
+  purchases.full, all_pi, all.x = T
 )
+rm(all_pi)
 
 # Impute tax rate to exempt items and to reduced rate items
-purchases.full$sales_tax[purchases.full$taxability == 0 & !is.na(purchases.full$sales_tax)] <- 0
-purchases.full[, sales_tax:= ifelse(!is.na(purchases.full$reduced_rate) & !is.na(purchases.full$sales_tax),
-                                    reduced_rate, sales_tax)]
+purchases.full[, sales_tax:= ifelse(taxability == 0 & !is.na(sales_tax), 0, sales_tax)]
+purchases.full[, sales_tax:= ifelse(!is.na(reduced_rate) & !is.na(sales_tax), reduced_rate, sales_tax)]
+
+# computing the log tax before collapsing
+purchases.full <- purchases.full[, ln_sales_tax := log1p(sales_tax)]
 
 
 ## Collapse to the group:
@@ -201,14 +223,30 @@ purchases.full <- purchases.full[, list(
   expenditures_same3 = sum(expenditures_same3),
   expenditures_unkn3 = sum(expenditures_unkn3),
   taxability = mode(taxability),
-  sales_tax = weighted.mean(sales_tax,sales_weight)
+  ln_sales_tax = weighted.mean(ln_sales_tax, sales_weight)
 ), by = .(household_code, fips_county_code, fips_state_code, product_group_code,
           zip_code, region_code, year, sum_total_exp, projection_factor,
           projection_factor_magnet, household_income) ]
 
-
 ## Create interest variables
-purchases.full <- purchases.full[, ln_sales_tax := log1p(sales_tax)]
 purchases.full <- purchases.full[, expenditures := expenditures_diff3 + expenditures_same3 + expenditures_unkn3]
+
+## Share
+purchases.full[, share_expenditures := expenditures/sum_total_exp_quarter]
+
+## Logarithms
+# Expenditures
+purchases.full <- purchases.full[, ln_expenditures := log(expenditures)]
+purchases.full$ln_expenditures[is.infinite(purchases.full$ln_expenditures)] <- NA
+
+purchases.full[, ln_expenditures_taxable := ifelse(taxability == 1, ln_expenditures, NA)]
+purchases.full[, ln_expenditures_non_taxable := ifelse(taxability == 0, ln_expenditures, NA)]
+
+# Share
+purchases.full <- purchases.full[, ln_share := log(share_expenditures)]
+purchases.full$ln_share[is.infinite(purchases.full$ln_share)] <- NA
+
+purchases.full[, ln_share_taxable := ifelse(taxability == 1, ln_share, NA)]
+purchases.full[, ln_share_non_taxable := ifelse(taxability == 0, ln_share, NA)]
 
 fwrite(purchases.full, "cleaning/consumer_panel_y_hh_group_2006-2016.csv")
