@@ -22,8 +22,8 @@ purchases.full[, sum(is.na(projection_factor))]
 purchases.nomagnet <- purchases.full[!is.na(projection_factor)]
 
 # Drop households without sales tax data
-purchases.full[, sum(is.na(sales_tax))]
-purchases.sample <- purchases.nomagnet[!is.na(sales_tax)]
+purchases.full[, sum(is.na(ln_sales_tax))]
+purchases.sample <- purchases.nomagnet[!is.na(ln_sales_tax)]
 
 # FE
 purchases.sample[, group_by_time := .GRP, by = .(product_group_code, year)]
