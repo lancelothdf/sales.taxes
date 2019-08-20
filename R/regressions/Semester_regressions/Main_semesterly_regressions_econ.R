@@ -97,7 +97,7 @@ wage.data <- wage.data[year >= 2006 & year <= 2016,]
 wage.data <- wage.data[, semester := ceiling(quarter/2)]
 wage.data <- wage.data[, list(total_mean_wage = weighted.mean(total_mean_wage, w = total_employment)), by = .(year, semester, fips_state, fips_county)]
 wage.data[, ln_wage := log(total_mean_wage)]
-wage.data <- wage.data[, ("fips_state", "fips_county", "year", "semester", "ln_wage")]
+wage.data <- wage.data[, c("fips_state", "fips_county", "year", "semester", "ln_wage")]
 
 ##
 zillow_dt <- merge(zillow_dt, wage.data, by = c("fips_state", "fips_county", "year", "semester"), all.x = T)
