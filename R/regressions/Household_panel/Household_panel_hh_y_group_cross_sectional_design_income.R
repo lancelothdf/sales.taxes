@@ -27,9 +27,15 @@ purchases.full[, sum(is.na(ln_sales_tax))]
 purchases.sample <- purchases.nomagnet[!is.na(ln_sales_tax)]
 
 # FE
-purchases.sample[, income_group_by_time := .GRP, by = .(household_income, product_group_code, year)]
+purchases.sample[, income_by_group_by_time := .GRP, by = .(household_income, product_group_code, year)]
 purchases.sample[, household_by_time := .GRP, by = .(year, household_code)]
 
+### Drop observations for which the sales tax rate is imputed
+purchases.sample <- purchases.sample[year >= 2008 & year <= 2014]
+purchases.sample$year <- factor(purchases.sample$year) ##Convert the indicator for year to a factor variable (needed for interaction in the regression between ln_sales_tax and dummy for year)
+
+cohort.weights <- rep(1, 7) ##Construct weights to average across cohorts/years.  Start with equal weights
+cohort.weights <- cohort.weights/sum(cohort.weights)
 
 ## Estimations: Expenditure on type of module --------
 
@@ -41,7 +47,7 @@ outcomes <- c("ln_expenditures", "ln_expenditures_taxable", "ln_expenditures_non
 LRdiff_res <- data.table(NULL)
 for (Y in outcomes) {
   formula1 <- as.formula(paste0(
-    Y, "~ ln_sales_tax | household_by_time + group_by_time | 0 | household_code"
+    Y, "~ ln_sales_tax:year | household_by_time + income_by_group_by_time | 0 | household_code"
   ))
   flog.info("Estimating with %s as outcome", Y)
   res1 <- felm(formula = formula1, data = purchases.sample,
@@ -60,6 +66,31 @@ for (Y in outcomes) {
   LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
   fwrite(LRdiff_res, output.results.file)
 
+  ### Take linear combinations of coefficients and attach results (this is the coefficient of interest)
+  lc.lr0 <- paste0(cohort.weights[1], "*ln_sales_tax:year2008 + ", cohort.weights[2], "*ln_sales_tax:year2009 + ", cohort.weights[3], "*ln_sales_tax:year2010 + ", cohort.weights[4], "*ln_sales_tax:year2011 + ", cohort.weights[5], "*ln_sales_tax:year2012 + ", cohort.weights[6], "*ln_sales_tax:year2013 + ", cohort.weights[7], "*ln_sales_tax:year2014", sep = "")
+  lc.formula0 <- paste0(lc.lr0, " = 0", sep = "")
+  lc.test0 <- glht(res1, linfct = c(lc.formula0))
+  
+  # Calculate the p-value
+  pval <- 2*(1 - pnorm(abs(coef(summary(lc.test0))[[1]]/sqrt(vcov(summary(lc.test0)))[[1]])))
+  
+  
+  lp.dt <- data.table(
+    rn = "avg.ln_sales_tax",
+    Estimate = coef(summary(lc.test0))[[1]],
+    `Cluster s.e.` = sqrt(vcov(summary(lc.test0)))[[1]],
+    `Pr(>|t|)` = pval,
+    outcome = Y,
+    Rsq = summary(res1)$r.squared,
+    adj.Rsq = summary(res1)$adj.r.squared,
+    N.obs = nrow(purchases.sample[!is.na(get(Y))]),
+    N_hholds = uniqueN(purchases.sample[!is.na(get(Y))], by = c("household_code")),
+    N_groups = uniqueN(purchases.sample[!is.na(get(Y))], by = c("product_group_code"))
+    )
+  LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T) ## Merge results to LRdiff_res
+  fwrite(LRdiff_res, output.results.file) ## Write resulting file to a csv file
+  
+  
 }
 
 
