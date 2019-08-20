@@ -77,10 +77,13 @@ purchases.sample <- purchases.sample[!is.na(projection_factor)]
 # compute the household share of expenditure on taxable goods by state for each quarter. 
 purchases.sample[, expenditure_taxable := ifelse(taxability == 1, ln_expenditures, NA)]
 
-st.taxable.expenditure <- purchases.sample[, list(state_sh_expenditure_taxable = sum(expenditure_taxable, na.rm = T)/(sum(sum_total_exp_quarter, na.rm = T))), 
-                                           by = .(fips_state_code, quarter, year)]
+st.taxable.expenditure <- purchases.sample[, list(expenditure_taxable = sum(expenditure_taxable, na.rm = T),
+                                                  sum_total_exp_quarter = mean(sum_total_exp_quarter, na.rm = T)), 
+                                           by = .(fips_state_code, household_code, quarter, year)]
+st.taxable.expenditure <- st.taxable.expenditure[, list(state_sh_expenditure_taxable = sum(expenditure_taxable, na.rm = T)/sum(sum_total_exp_quarter, na.rm = T)), 
+                                                 by = .(fips_state_code, quarter, year)]
 st.taxable.expenditure <- st.taxable.expenditure[, list(state_sh_expenditure_taxable = mean(state_sh_expenditure_taxable, na.rm = T)), 
-                                                 by = .(fips_state_code)]
+                                                                                                                          by = .(fips_state_code)]
 purchases.sample <- merge(purchases.sample, st.taxable.expenditure, by = "fips_state_code", all.x =T)
 
 # take the median and divide states by above versus below median.  
