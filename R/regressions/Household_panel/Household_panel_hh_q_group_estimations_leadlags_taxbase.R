@@ -284,9 +284,12 @@ fwrite(LRdiff_res, output.results.file)
 ## Estimation dividing household type (large taxable consumption) ----------
 ## Estimation Set up -------
 # Create taxable consumer: compute its average share of consumption on taxable across time
-purchases.sample[, share_taxable := sum(expenditure_taxable, na.rm = T)/sum_total_exp_quarter 
-                 , by = .(household_code, quarter, year)]
-purchases.sample[, mean_share_taxable := mean(share_taxable, na.rm = T), by = .(household_code)]
+hh.taxable.expenditure <- purchases.sample[, list(share_taxable = sum(expenditure_taxable, na.rm = T)/sum_total_exp_quarter), 
+                                           by = .(household_code, quarter, year)]
+hh.taxable.expenditure <- hh.taxable.expenditure[, list(mean_share_taxable = mean(share_taxable, na.rm = T)), 
+                                                 by = .(household_code)]
+purchases.sample <- merge(purchases.sample, hh.taxable.expenditure, by = "household_code", all.x =T)[, large_tax_base := (state_sh_expenditure_taxable >= median)]
+
 # Compare to state average share
 purchases.sample[, taxable_consumer := (mean_share_taxable >= state_sh_expenditure_taxable)]
 
@@ -298,11 +301,11 @@ output.results.file <- "../../../../../home/slacouture/HMS/HH_group_quarter_dist
 
 des.est.out <- data.table(NULL)
 for (group in above_or_below) {
-  descriptives <- describe(purchases.sample[large_tax_base == group,
+  descriptives <- describe(purchases.sample[taxable_consumer == group,
                                             .(D.ln_expenditures, D.ln_expenditures_taxable, 
                                               D.ln_expenditures_non_taxable, D.ln_sales_tax,
                                               D.ln_share, D.ln_share_taxable,  D.ln_share_non_taxable)])
-  descriptives$large_tax_base <- group
+  descriptives$taxable_consumer <- group
   descriptives  <- data.table(descriptives, keep.rownames=T)
   des.est.out  <- rbind(des.est.out, descriptives, fill = T)
   fwrite(des.est.out, output.decriptives.file)
