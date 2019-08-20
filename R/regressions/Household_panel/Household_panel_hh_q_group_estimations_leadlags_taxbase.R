@@ -129,7 +129,7 @@ LRdiff_res <- data.table(NULL)
 for (group in above_or_below) {
   estimation.sample <- purchases.sample[large_tax_base == group]
   for (FE in FE_opts) {
-    for (Y in c(outcomes, outcomes_t)) {
+    for (Y in outcomes) {
       
       ## Raw outcomes
       formula1 <- as.formula(paste0(
@@ -314,7 +314,7 @@ LRdiff_res <- data.table(NULL)
 for (group in above_or_below) {
   estimation.sample <- purchases.sample[taxable_consumer == group]
   for (FE in FE_opts) {
-    for (Y in c(outcomes, outcomes_t)) {
+    for (Y in outcomes) {
       
       ## Raw outcomes
       formula1 <- as.formula(paste0(
