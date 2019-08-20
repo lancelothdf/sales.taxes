@@ -77,15 +77,14 @@ purchases.sample <- purchases.sample[!is.na(projection_factor)]
 # compute the household share of expenditure on taxable goods by state for each quarter. 
 purchases.sample[, expenditure_taxable := ifelse(taxability == 1, ln_expenditures, NA)]
 
-purchases.sample[, state_sh_expenditure_taxable := sum(expenditure_taxable, na.rm = T)/(sum(sum_total_exp_quarter, na.rm = T)),
-                 by = .(fips_state_code, quarter, year)]
-# Now compute the average across quarters. 
-purchases.sample[, state_sh_expenditure_taxable := mean(state_sh_expenditure_taxable, na.rm = T),
-                 by = .(fips_state_code)]
+st.taxable.expenditure <- purchases.sample[, list(state_sh_expenditure_taxable = sum(expenditure_taxable, na.rm = T)/(sum(sum_total_exp_quarter, na.rm = T))), 
+                                           by = .(fips_state_code, quarter, year)]
+st.taxable.expenditure <- st.taxable.expenditure[, list(state_sh_expenditure_taxable = mean(state_sh_expenditure_taxable, na.rm = T)), 
+                                                 by = .(fips_state_code)]
+purchases.sample <- merge(purchases.sample, st.taxable.expenditure, by = "fips_state_code", all.x =T)
+
 # take the median and divide states by above versus below median.  
-state.tax.base <- purchases.sample[, list(state_sh_expenditure_taxable = mean(state_sh_expenditure_taxable, na.rm = T)), 
-                                   by = fips_state_code]
-median <- median(state.tax.base$state_sh_expenditure_taxable)
+median <- median(st.taxable.expenditure$state_sh_expenditure_taxable)
 purchases.sample[, large_tax_base := (state_sh_expenditure_taxable >= median)]
 
 
@@ -288,7 +287,7 @@ hh.taxable.expenditure <- purchases.sample[, list(share_taxable = sum(expenditur
                                            by = .(household_code, quarter, year)]
 hh.taxable.expenditure <- hh.taxable.expenditure[, list(mean_share_taxable = mean(share_taxable, na.rm = T)), 
                                                  by = .(household_code)]
-purchases.sample <- merge(purchases.sample, hh.taxable.expenditure, by = "household_code", all.x =T)[, large_tax_base := (state_sh_expenditure_taxable >= median)]
+purchases.sample <- merge(purchases.sample, hh.taxable.expenditure, by = "household_code", all.x =T)
 
 # Compare to state average share
 purchases.sample[, taxable_consumer := (mean_share_taxable >= state_sh_expenditure_taxable)]
