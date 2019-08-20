@@ -39,7 +39,7 @@ cohort.weights <- cohort.weights/sum(cohort.weights)
 
 ## Estimations: Expenditure on type of module --------
 
-output.results.file <- "../../../../../home/slacouture/HMS/HH_group_year_cross_sectonal_design.csv"
+output.results.file <- "../../../../../home/slacouture/HMS/HH_group_year_cross_sectonal_design_income.csv"
 
 outcomes <- c("ln_expenditures", "ln_expenditures_taxable", "ln_expenditures_non_taxable", 
               "ln_share", "ln_share_taxable",  "ln_share_non_taxable")
