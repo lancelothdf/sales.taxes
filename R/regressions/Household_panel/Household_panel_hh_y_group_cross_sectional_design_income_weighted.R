@@ -26,6 +26,15 @@ purchases.nomagnet <- purchases.full[!is.na(projection_factor)]
 purchases.full[, sum(is.na(ln_sales_tax))]
 purchases.sample <- purchases.nomagnet[!is.na(ln_sales_tax)]
 
+
+# Compute sales weight: by year, how large are purchases in each group in this sample?
+purchases.sample[, sales.weight := sum(expenditures, na.rm = T), by = .(product_group_code, year)]
+purchases.sample[, sales.weight := sales.weight / sum(sales.weight, na.rm = T), by = .(year)]
+
+# Build new weight as the prdocut of both household and group weights
+purchases.sample[, projection_factor := projection_factor*sales.weight]
+
+
 # FE
 purchases.sample[, income_by_group_by_time := .GRP, by = .(household_income, product_group_code, year)]
 purchases.sample[, household_by_time := .GRP, by = .(year, household_code)]
@@ -34,16 +43,6 @@ purchases.sample[, household_by_time := .GRP, by = .(year, household_code)]
 purchases.sample <- purchases.sample[year >= 2008 & year <= 2014]
 purchases.sample$year <- factor(purchases.sample$year) ##Convert the indicator for year to a factor variable (needed for interaction in the regression between ln_sales_tax and dummy for year)
 
-### Drop observations for which the sales tax rate is imputed
-purchases.sample <- purchases.sample[year >= 2008 & year <= 2014]
-purchases.sample$year <- factor(purchases.sample$year) ##Convert the indicator for year to a factor variable (needed for interaction in the regression between ln_sales_tax and dummy for year)
-
-# Compute sales weight: by year, how large are purchases in each group in this sample?
-purchases.sample[, sales.weight := sum(expenditures, na.rm = T), by = .(product_group_code, year)]
-purchases.sample[, sales.weight := sales.weight / sum(sales.weight, na.rm = T), by = .(year)]
-
-# Build new weight as the prdocut of both household and group weights
-purchases.sample[, projection_factor := projection_factor*sales.weight]
 
 # Drop observations without weights at the end
 purchases.sample <- purchases.sample[!is.na(projection_factor)]
