@@ -14,7 +14,7 @@ library(ggplot2)
 setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 
 ## Open Data
-purchases.full <- fread("cleaning/consumer_panel_y_hh_group_2006-2016.csv")
+purchases.sample <- fread("cleaning/consumer_panel_y_hh_group_2006-2016.csv")
 
 ## Constraining Data set for estimations ------------ 
 
