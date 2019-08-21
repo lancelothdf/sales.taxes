@@ -94,9 +94,9 @@ for (group in above_or_below) {
     res1.dt[, large_tax_base := group]
     res1.dt[, Rsq := summary(res1)$r.squared]
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-    res1.dt[, N.obs := nrow(purchases.sample[!is.na(get(Y))])]
-    res1.dt[, N_hholds := uniqueN(purchases.sample[!is.na(get(Y))], by = c("household_code"))]
-    res1.dt[, N_groups := uniqueN(purchases.sample[!is.na(get(Y))], by = c("product_group_code"))]
+    res1.dt[, N.obs := nrow(estimation.sample[!is.na(get(Y))])]
+    res1.dt[, N_hholds := uniqueN(estimation.sample[!is.na(get(Y))], by = c("household_code"))]
+    res1.dt[, N_groups := uniqueN(estimation.sample[!is.na(get(Y))], by = c("product_group_code"))]
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
     
@@ -118,9 +118,9 @@ for (group in above_or_below) {
       large_tax_base = group,
       Rsq = summary(res1)$r.squared,
       adj.Rsq = summary(res1)$adj.r.squared,
-      N.obs = nrow(purchases.sample[!is.na(get(Y))]),
-      N_hholds = uniqueN(purchases.sample[!is.na(get(Y))], by = c("household_code")),
-      N_groups = uniqueN(purchases.sample[!is.na(get(Y))], by = c("product_group_code"))
+      N.obs = nrow(estimation.sample[!is.na(get(Y))]),
+      N_hholds = uniqueN(estimation.sample[!is.na(get(Y))], by = c("household_code")),
+      N_groups = uniqueN(estimation.sample[!is.na(get(Y))], by = c("product_group_code"))
     )
     LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T) ## Merge results to LRdiff_res
     fwrite(LRdiff_res, output.results.file) ## Write resulting file to a csv file
@@ -160,9 +160,9 @@ for (group in above_or_below) {
     res1.dt[, taxable_consumer := group]
     res1.dt[, Rsq := summary(res1)$r.squared]
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-    res1.dt[, N.obs := nrow(purchases.sample[!is.na(get(Y))])]
-    res1.dt[, N_hholds := uniqueN(purchases.sample[!is.na(get(Y))], by = c("household_code"))]
-    res1.dt[, N_groups := uniqueN(purchases.sample[!is.na(get(Y))], by = c("product_group_code"))]
+    res1.dt[, N.obs := nrow(estimation.sample[!is.na(get(Y))])]
+    res1.dt[, N_hholds := uniqueN(estimation.sample[!is.na(get(Y))], by = c("household_code"))]
+    res1.dt[, N_groups := uniqueN(estimation.sample[!is.na(get(Y))], by = c("product_group_code"))]
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
     
@@ -184,9 +184,9 @@ for (group in above_or_below) {
       taxable_consumer = group,
       Rsq = summary(res1)$r.squared,
       adj.Rsq = summary(res1)$adj.r.squared,
-      N.obs = nrow(purchases.sample[!is.na(get(Y))]),
-      N_hholds = uniqueN(purchases.sample[!is.na(get(Y))], by = c("household_code")),
-      N_groups = uniqueN(purchases.sample[!is.na(get(Y))], by = c("product_group_code"))
+      N.obs = nrow(estimation.sample[!is.na(get(Y))]),
+      N_hholds = uniqueN(estimation.sample[!is.na(get(Y))], by = c("household_code")),
+      N_groups = uniqueN(estimation.sample[!is.na(get(Y))], by = c("product_group_code"))
     )
     LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T) ## Merge results to LRdiff_res
     fwrite(LRdiff_res, output.results.file) ## Write resulting file to a csv file
