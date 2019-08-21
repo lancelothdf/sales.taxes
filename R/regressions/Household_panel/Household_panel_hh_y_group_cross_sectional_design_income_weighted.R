@@ -15,9 +15,16 @@ library(ggplot2)
 setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 
 ## Open Data
-purchases.sample <- fread("cleaning/consumer_panel_y_hh_group_2006-2016.csv")
+purchases.full <- fread("cleaning/consumer_panel_y_hh_group_2006-2016.csv")
 
 ## Constraining Data set for estimations ------------ 
+# Drop "magnet" households: 
+purchases.full[, sum(is.na(projection_factor))]
+purchases.nomagnet <- purchases.full[!is.na(projection_factor)]
+
+# Drop households without sales tax data
+purchases.full[, sum(is.na(ln_sales_tax))]
+purchases.sample <- purchases.nomagnet[!is.na(ln_sales_tax)]
 
 # FE
 purchases.sample[, income_by_group_by_time := .GRP, by = .(household_income, product_group_code, year)]
