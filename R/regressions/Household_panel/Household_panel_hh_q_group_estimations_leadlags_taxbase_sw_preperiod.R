@@ -82,7 +82,7 @@ hh.taxable.expenditure <- purchases.sample[year < 2008 , list(share_taxable = su
 purchases.sample <- merge(purchases.sample, hh.taxable.expenditure, by = "household_code", all.x =T)
 
 # Compare to state average share
-purchases.sample[, taxable_consumer := (mean_share_taxable >= state_sh_expenditure_taxable)]
+purchases.sample[, taxable_consumer := (share_taxable >= state_sh_expenditure_taxable)]
 
 # take the median and divide states by above versus below median.  
 median <- median(st.taxable.expenditure$state_sh_expenditure_taxable)
