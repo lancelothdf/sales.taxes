@@ -1,6 +1,6 @@
 ## Sales taxes Project. Household Panel
 # Running distributed lag regression in differences on the new panel (household x group x quarter) on all 
-# purchases (for which taxability is identified). In this version we use a sales weight
+# purchases (for which taxability is identified). In this version we use a sales weight and include controls for income
 # Author: John Bonney & Santiago Lacouture
 
 library(data.table)
