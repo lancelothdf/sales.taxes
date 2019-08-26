@@ -43,6 +43,8 @@ purchases.sample <- purchases.sample[order(household_code, product_group_code, c
 purchases.sample[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
                  by = .(household_code, product_group_code)]
 
+purchases.sample[, D.ln_statutory_sales_tax := ln_staturtory_sales_tax - shift(ln_staturtory_sales_tax, n=1, type="lag"),
+                 by = .(household_code, product_group_code)]
 # expenditure
 purchases.sample[, D.ln_expenditures := ln_expenditures - shift(ln_expenditures, n=1, type="lag"),
                  by = .(household_code, product_group_code)]
