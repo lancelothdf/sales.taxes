@@ -106,8 +106,7 @@ purchases.sample <- purchases.sample[!is.na(projection_factor)]
 output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_group_quarter_leadslags_describe.csv"
 output.results.file <- "../../../../../home/slacouture/HMS/HH_group_quarter_distributed_lags_weighted.csv"
 
-outcomes <- c("D.ln_expenditures", "D.ln_expenditures_taxable", "D.ln_expenditures_non_taxable",
-              "D.ln_share", "D.ln_share_taxable",  "D.ln_share_non_taxable")
+outcomes <- c("D.ln_expenditures", "D.ln_share")
 
 FE_opts <- c("region_by_group_by_time", "group_by_time")
 
@@ -283,11 +282,11 @@ LRdiff_res$N_years <- uniqueN(purchases.sample, by = c("year"))
 
 fwrite(LRdiff_res, output.results.file)
 
-## Estimation Set up --------
+## Estimation Set up on statutory --------
 output.results.file <- "../../../../../home/slacouture/HMS/HH_group_quarter_distributed_lags_weighted_statutory.csv"
 
-outcomes <- c("D.ln_expenditures", "D.ln_expenditures_taxable", "D.ln_expenditures_non_taxable",
-              "D.ln_share", "D.ln_share_taxable",  "D.ln_share_non_taxable")
+outcomes <- c("D.ln_expenditures_taxable", "D.ln_expenditures_non_taxable",
+              "D.ln_share_taxable",  "D.ln_share_non_taxable")
 
 FE_opts <- c("region_by_group_by_time", "group_by_time")
 
