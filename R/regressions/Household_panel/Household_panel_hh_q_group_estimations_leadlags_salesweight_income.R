@@ -76,7 +76,7 @@ for (lag.val in 1:8) {
 
 for (lag.val in 1:8) {
   lag.X <- paste0("L", lag.val, ".D.ln_statutory_sales_tax")
-  purchases.sample[, (lag.X) := shift(D.ln_sales_tax, n=lag.val, type="lag"),
+  purchases.sample[, (lag.X) := shift(D.ln_statutory_sales_tax, n=lag.val, type="lag"),
                    by = .(household_code, product_group_code)]
   
   lead.X <- paste0("F", lag.val, ".D.ln_statutory_sales_tax")
@@ -102,7 +102,8 @@ purchases.sample <- purchases.sample[!is.na(projection_factor)]
 
 ########### Estimation interacting income FE --------
 output.results.file <- "../../../../../home/slacouture/HMS/HH_group_quarter_distributed_lags_weighted_timesincomeFE.csv"
-outcomes <- c("D.ln_expenditures", "D.ln_share")
+outcomes <- c("D.ln_expenditures", "D.ln_share", "D.ln_expenditures_taxable", "D.ln_expenditures_non_taxable",
+              "D.ln_share_taxable",  "D.ln_share_non_taxable")
 
 purchases.sample[, income_by_region_by_group_by_time := .GRP, by = .(household_income, region_code, product_group_code, year, quarter)]
 purchases.sample[, income_by_group_by_time := .GRP, by = .(household_income, product_group_code, year, quarter)]
@@ -276,9 +277,6 @@ fwrite(LRdiff_res, output.results.file)
 ## Set up on statutory --------
 output.results.file <- "../../../../../home/slacouture/HMS/HH_group_quarter_distributed_lags_weighted_statutory_timesincomeFE.csv"
 
-outcomes <- c("D.ln_expenditures_taxable", "D.ln_expenditures_non_taxable",
-              "D.ln_share_taxable",  "D.ln_share_non_taxable")
-
 FE_opts <- c("income_by_region_by_group_by_time", "income_by_group_by_time")
 
 formula_lags <- paste0("L", 1:8, ".D.ln_statutory_sales_tax", collapse = "+")
@@ -450,7 +448,6 @@ fwrite(LRdiff_res, output.results.file)
 ########### Estimation adding simple income bin FE --------
 output.results.file <- "../../../../../home/slacouture/HMS/HH_group_quarter_distributed_lags_weighted_plusincomeFE.csv"
 
-outcomes <- c("D.ln_expenditures", "D.ln_share")
 
 FE_opts <- c("region_by_group_by_time", "group_by_time")
 
@@ -622,8 +619,6 @@ fwrite(LRdiff_res, output.results.file)
 ## Set up on statutory --------
 output.results.file <- "../../../../../home/slacouture/HMS/HH_group_quarter_distributed_lags_weighted_statutory_plusincomeFE.csv"
 
-outcomes <- c("D.ln_expenditures_taxable", "D.ln_expenditures_non_taxable",
-              "D.ln_share_taxable",  "D.ln_share_non_taxable")
 
 FE_opts <- c("region_by_group_by_time", "group_by_time")
 

@@ -78,7 +78,7 @@ for (lag.val in 1:8) {
 
 for (lag.val in 1:8) {
   lag.X <- paste0("L", lag.val, ".D.ln_statutory_sales_tax")
-  purchases.sample[, (lag.X) := shift(D.ln_sales_tax, n=lag.val, type="lag"),
+  purchases.sample[, (lag.X) := shift(D.ln_statutory_sales_tax, n=lag.val, type="lag"),
                    by = .(household_code, product_group_code)]
   
   lead.X <- paste0("F", lag.val, ".D.ln_statutory_sales_tax")
