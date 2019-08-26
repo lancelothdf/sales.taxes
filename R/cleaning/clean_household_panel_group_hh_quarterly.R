@@ -250,12 +250,16 @@ purchases.full <- merge(
   purchases.full, all_pi, all.x = T
 )
 rm(all_pi)
+# Create "statutory" sales tax rate
+purchases.full[, staturtory_sales_tax := sales_tax]
+
 # Impute tax rate to exempt items and to reduced rate items
 purchases.full[, sales_tax:= ifelse(taxability == 0 & !is.na(sales_tax), 0, sales_tax)]
 purchases.full[, sales_tax:= ifelse(!is.na(reduced_rate) & !is.na(sales_tax), reduced_rate, sales_tax)]
 
 # computing the log tax before collapsing
 purchases.full <- purchases.full[, ln_sales_tax := log1p(sales_tax)]
+purchases.full <- purchases.full[, ln_staturtory_sales_tax := log1p(staturtory_sales_tax)]
 
 ## Collapse to the group:
 # Taxability as the mode within the group
@@ -277,7 +281,8 @@ purchases.full <- purchases.full[, list(
   expenditures_same3 = sum(expenditures_same3),
   expenditures_unkn3 = sum(expenditures_unkn3),
   taxability = mode(taxability),
-  ln_sales_tax = weighted.mean(ln_sales_tax,sales_weight)
+  ln_sales_tax = weighted.mean(ln_sales_tax,sales_weight),
+  ln_staturtory_sales_tax = mean(ln_staturtory_sales_tax)
 ), by = .(household_code, fips_county_code, fips_state_code, product_group_code,
           zip_code, region_code, quarter, year, sum_total_exp_quarter, projection_factor,
           projection_factor_magnet, household_income) ]
