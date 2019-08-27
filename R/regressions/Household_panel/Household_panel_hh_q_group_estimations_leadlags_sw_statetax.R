@@ -19,6 +19,8 @@ setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 purchases.sample <- fread("cleaning/consumer_panel_q_hh_group_2006-2016.csv")
 
 ## Merge "statutory" state tax rate
+all_goods_pi_path <- "../../monthly_taxes_county_5zip_2008_2014.csv"
+all_pi <- fread(all_goods_pi_path)
 all_pi[, quarter := ceiling(month / 3)]
 all_pi <- all_pi[, list(state_tax = mean(state_tax)) , 
                  by =.(zip_code, fips_county_code,
