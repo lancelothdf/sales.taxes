@@ -30,7 +30,7 @@ all_pi <- all_pi[, list(state_tax = mean(state_tax)) ,
                        fips_state_code, quarter, year)]
 # minor definitions for efficiency
 all_pi <- data.table(all_pi, key = c("fips_county_code", "fips_state_code", "zip_code", "year", "quarter"))
-purchases.full <- data.table(purchases.full, key = c("fips_county_code", "fips_state_code", "zip_code", "year", "quarter"))
+purchases.sample <- data.table(purchases.sample, key = c("fips_county_code", "fips_state_code", "zip_code", "year", "quarter"))
 
 purchases.sample <- merge(
   purchases.sample, all_pi, all.x = T
