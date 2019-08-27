@@ -150,8 +150,8 @@ for (group in above_or_below) {
         Y, "~", formula_RHS, "|", FE, "| 0 | household_code"
       ))
       flog.info("Estimating with %s as outcome and %s FE.", Y, FE)
-      res1 <- felm(formula = formula1, data = purchases.sample,
-                   weights = purchases.sample$projection_factor)
+      res1 <- felm(formula = formula1, data = estimation.sample,
+                   weights = estimation.sample$projection_factor)
       flog.info("Finished estimating with %s as outcome and %s FE.", Y, FE)
       
       
@@ -163,9 +163,9 @@ for (group in above_or_below) {
       res1.dt[, large_tax_base := group]
       res1.dt[, Rsq := summary(res1)$r.squared]
       res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-      res1.dt[, N.obs := nrow(purchases.sample[!is.na(get(Y))])]
-      res1.dt[, N_hholds := uniqueN(purchases.sample[!is.na(get(Y))], by = c("household_code"))]
-      res1.dt[, N_groups := uniqueN(purchases.sample[!is.na(get(Y))], by = c("product_group_code"))]
+      res1.dt[, N.obs := nrow(estimation.sample[!is.na(get(Y))])]
+      res1.dt[, N_hholds := uniqueN(estimation.sample[!is.na(get(Y))], by = c("household_code"))]
+      res1.dt[, N_groups := uniqueN(estimation.sample[!is.na(get(Y))], by = c("product_group_code"))]
       LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
       fwrite(LRdiff_res, output.results.file)
       
@@ -201,9 +201,9 @@ for (group in above_or_below) {
         large_tax_base = group,
         Rsq = summary(res1)$r.squared,
         adj.Rsq = summary(res1)$adj.r.squared,
-        N.obs = nrow(purchases.sample[!is.na(get(Y))]),
-        N_hholds = uniqueN(purchases.sample[!is.na(get(Y))], by = c("household_code")),
-        N_groups = uniqueN(purchases.sample[!is.na(get(Y))], by = c("product_group_code"))
+        N.obs = nrow(estimation.sample[!is.na(get(Y))]),
+        N_hholds = uniqueN(estimation.sample[!is.na(get(Y))], by = c("household_code")),
+        N_groups = uniqueN(estimation.sample[!is.na(get(Y))], by = c("product_group_code"))
       )
       LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
       fwrite(LRdiff_res, output.results.file)
@@ -281,9 +281,9 @@ for (group in above_or_below) {
         large_tax_base = group,
         Rsq = summary(res1)$r.squared,
         adj.Rsq = summary(res1)$adj.r.squared,
-        N.obs = nrow(purchases.sample[!is.na(get(Y))]),
-        N_hholds = uniqueN(purchases.sample[!is.na(get(Y))], by = c("household_code")),
-        N_groups = uniqueN(purchases.sample[!is.na(get(Y))], by = c("product_group_code"))
+        N.obs = nrow(estimation.sample[!is.na(get(Y))]),
+        N_hholds = uniqueN(estimation.sample[!is.na(get(Y))], by = c("household_code")),
+        N_groups = uniqueN(estimation.sample[!is.na(get(Y))], by = c("product_group_code"))
       )
       LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
       fwrite(LRdiff_res, output.results.file)
@@ -335,8 +335,8 @@ for (group in above_or_below) {
         Y, "~", formula_RHS, "|", FE, "| 0 | household_code"
       ))
       flog.info("Estimating with %s as outcome and %s FE.", Y, FE)
-      res1 <- felm(formula = formula1, data = purchases.sample,
-                   weights = purchases.sample$projection_factor)
+      res1 <- felm(formula = formula1, data = estimation.sample,
+                   weights = estimation.sample$projection_factor)
       flog.info("Finished estimating with %s as outcome and %s FE.", Y, FE)
       
       
@@ -348,9 +348,9 @@ for (group in above_or_below) {
       res1.dt[, taxable_consumer := group]
       res1.dt[, Rsq := summary(res1)$r.squared]
       res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-      res1.dt[, N.obs := nrow(purchases.sample[!is.na(get(Y))])]
-      res1.dt[, N_hholds := uniqueN(purchases.sample[!is.na(get(Y))], by = c("household_code"))]
-      res1.dt[, N_groups := uniqueN(purchases.sample[!is.na(get(Y))], by = c("product_group_code"))]
+      res1.dt[, N.obs := nrow(estimation.sample[!is.na(get(Y))])]
+      res1.dt[, N_hholds := uniqueN(estimation.sample[!is.na(get(Y))], by = c("household_code"))]
+      res1.dt[, N_groups := uniqueN(estimation.sample[!is.na(get(Y))], by = c("product_group_code"))]
       LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
       fwrite(LRdiff_res, output.results.file)
       
@@ -386,9 +386,9 @@ for (group in above_or_below) {
         taxable_consumer = group,
         Rsq = summary(res1)$r.squared,
         adj.Rsq = summary(res1)$adj.r.squared,
-        N.obs = nrow(purchases.sample[!is.na(get(Y))]),
-        N_hholds = uniqueN(purchases.sample[!is.na(get(Y))], by = c("household_code")),
-        N_groups = uniqueN(purchases.sample[!is.na(get(Y))], by = c("product_group_code"))
+        N.obs = nrow(estimation.sample[!is.na(get(Y))]),
+        N_hholds = uniqueN(estimation.sample[!is.na(get(Y))], by = c("household_code")),
+        N_groups = uniqueN(estimation.sample[!is.na(get(Y))], by = c("product_group_code"))
       )
       LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
       fwrite(LRdiff_res, output.results.file)
@@ -466,9 +466,9 @@ for (group in above_or_below) {
         taxable_consumer = group,
         Rsq = summary(res1)$r.squared,
         adj.Rsq = summary(res1)$adj.r.squared,
-        N.obs = nrow(purchases.sample[!is.na(get(Y))]),
-        N_hholds = uniqueN(purchases.sample[!is.na(get(Y))], by = c("household_code")),
-        N_groups = uniqueN(purchases.sample[!is.na(get(Y))], by = c("product_group_code"))
+        N.obs = nrow(estimation.sample[!is.na(get(Y))]),
+        N_hholds = uniqueN(estimation.sample[!is.na(get(Y))], by = c("household_code")),
+        N_groups = uniqueN(estimation.sample[!is.na(get(Y))], by = c("product_group_code"))
       )
       LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
       fwrite(LRdiff_res, output.results.file)
@@ -476,7 +476,7 @@ for (group in above_or_below) {
   }
 }
 
-LRdiff_res$N_years <- uniqueN(purchases.sample, by = c("year"))
+LRdiff_res$N_years <- uniqueN(estimation.sample, by = c("year"))
 fwrite(LRdiff_res, output.results.file)
 
 
