@@ -26,7 +26,7 @@ purchases.sample <- purchases.sample[, calc_time := (year - 2008)*4 + quarter  ]
 # Compute the number of occurences of each household x group and the number of possible occurences
 balance.check <- purchases.sample[expenditures != 0 & !is.na(projection_factor), ] # zeroes are not occurences and use estimation sample
 balance.check <- balance.check[, list( first = calc_time[1L], last = calc_time[.N], occur = .N),
-                                   by = .(household_code, product_group)]
+                                   by = .(household_code, product_group_code)]
 
 balance.check <- balance.check[, pos_occur := last - first]
 balance.check <- balance.check[, prop_occur := occur/pos_occur]
@@ -52,9 +52,9 @@ for (Y in outcomes) {
 
 ## Produce a transition matrix
 # Identify first and last occurence and drop evrything outside it
-transition.matrix <- merge(purchases.sample, balance.check, by = c("household_code", "product_group"), all.x = T)
+transition.matrix <- merge(purchases.sample, balance.check, by = c("household_code", "product_group_code"), all.x = T)
 transition.matrix <- transition.matrix[calc_time >= first & calc_time <= last, 
-                                       c("expenditures", "calc_time", "household_code", "group")]
+                                       c("expenditures", "calc_time", "household_code", "product_group_code")]
 # Identify purchases as 1 or 0
 transition.matrix <- transition.matrix[, t := ifelse(expenditures >0, 1, 0)]
 # Identify lead value of purchase
