@@ -28,8 +28,7 @@ purchases.sample <- purchases.sample[, calc_time := (year - 2008)*4 + quarter  ]
 
 # Compute the number of occurences of each household x group and the number of possible occurences
 balance.check <- purchases.sample[sum_total_exp_quarter != 0 & !is.na(projection_factor), ] # zeroes are not occurences and use estimation sample
-balance.check <- balance.check[order(household_code, calc_time),] # order
-balance.check <- balance.check[, list( first = calc_time[1L], last = calc_time[.N], occur = .N),
+balance.check <- balance.check[, list( first = min(calc_time), last = max(calc_time), occur = .N),
                                    by = .(household_code)]
 
 balance.check <- balance.check[, pos_occur := last - first]
@@ -69,14 +68,13 @@ transition.matrix <- transition.matrix[, t_1 := shift(t, n=1, type="lead")]
 transition.matrix <- transition.matrix[!is.na(t_1), ]
 # Count by type of transition
 transition.matrix <- transition.matrix[, list( N = .N), by = .(t, t_1) ]
-fwrite(transition.matrix, "../../../../../home/slacouture/HMS/Balance/Transition_matrix.csv")
+fwrite(transition.matrix, "../../../../../home/slacouture/HMS/Balance/Transition_matrix_hh.csv")
 
 
 ### Repeat but looking at expenditures on taxable --------
 # Compute the number of occurences of each household x group and the number of possible occurences
 balance.check <- purchases.sample[expenditure_taxable != 0 & !is.na(projection_factor), ] # zeroes are not occurences and use estimation sample
-balance.check <- balance.check[order(household_code, calc_time),] # order
-balance.check <- balance.check[, list( first = calc_time[1L], last = calc_time[.N], occur = .N),
+balance.check <- balance.check[, list( first = min(calc_time), last = max(calc_time), occur = .N),
                                by = .(household_code)]
 
 balance.check <- balance.check[, pos_occur := last - first]
@@ -124,8 +122,7 @@ fwrite(transition.matrix, "../../../../../home/slacouture/HMS/Balance/Transition
 ### Repeat but looking at expenditures on non taxable --------
 # Compute the number of occurences of each household x group and the number of possible occurences
 balance.check <- purchases.sample[expenditure_non_taxable != 0 & !is.na(projection_factor), ] # zeroes are not occurences and use estimation sample
-balance.check <- balance.check[order(household_code, calc_time),] # order
-balance.check <- balance.check[, list( first = calc_time[1L], last = calc_time[.N], occur = .N),
+balance.check <- balance.check[, list( first = min(calc_time), last = max(calc_time), occur = .N),
                                by = .(household_code)]
 
 balance.check <- balance.check[, pos_occur := last - first]
