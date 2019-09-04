@@ -61,7 +61,7 @@ transition.matrix <- transition.matrix[calc_time >= first & calc_time <= last,
 # Identify purchases as 1 or 0
 transition.matrix <- transition.matrix[, t := ifelse(sum_total_exp_quarter >0, 1, 0)]
 # Identify lead value of purchase
-transition.matrix <- transition.matrix[order(household_code, cal_time),] ##Sort on hh by year-quarter (in ascending order)
+transition.matrix <- transition.matrix[order(household_code, calc_time),] ##Sort on hh by year-quarter (in ascending order)
 transition.matrix <- transition.matrix[, t_1 := shift(t, n=1, type="lead")]
 # Drop last occurence 
 transition.matrix <- transition.matrix[!is.na(t_1), ]
@@ -107,7 +107,7 @@ transition.matrix <- transition.matrix[calc_time >= first & calc_time <= last,
 # Identify purchases as 1 or 0
 transition.matrix <- transition.matrix[, t := ifelse(expenditure_taxable >0, 1, 0)]
 # Identify lead value of purchase
-transition.matrix <- transition.matrix[order(household_code, cal_time),] ##Sort on hh by year-quarter (in ascending order)
+transition.matrix <- transition.matrix[order(household_code, calc_time),] ##Sort on hh by year-quarter (in ascending order)
 transition.matrix <- transition.matrix[, t_1 := shift(t, n=1, type="lead")]
 # Drop last occurence 
 transition.matrix <- transition.matrix[!is.na(t_1), ]
@@ -154,7 +154,7 @@ transition.matrix <- transition.matrix[calc_time >= first & calc_time <= last,
 # Identify purchases as 1 or 0
 transition.matrix <- transition.matrix[, t := ifelse(expenditure_non_taxable >0, 1, 0)]
 # Identify lead value of purchase
-transition.matrix <- transition.matrix[order(household_code, cal_time),] ##Sort on hh by year-quarter (in ascending order)
+transition.matrix <- transition.matrix[order(household_code, calc_time),] ##Sort on hh by year-quarter (in ascending order)
 transition.matrix <- transition.matrix[, t_1 := shift(t, n=1, type="lead")]
 # Drop last occurence 
 transition.matrix <- transition.matrix[!is.na(t_1), ]
