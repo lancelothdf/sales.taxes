@@ -25,6 +25,7 @@ purchases.sample <- purchases.sample[, calc_time := (year - 2008)*4 + quarter  ]
 
 # Compute the number of occurences of each household x group and the number of possible occurences
 balance.check <- purchases.sample[expenditures != 0 & !is.na(projection_factor), ] # zeroes are not occurences and use estimation sample
+balance.check <- balance.check[order(household_code, product_group_code, calc_time),] # order
 balance.check <- balance.check[, list( first = calc_time[1L], last = calc_time[.N], occur = .N),
                                    by = .(household_code, product_group_code)]
 
