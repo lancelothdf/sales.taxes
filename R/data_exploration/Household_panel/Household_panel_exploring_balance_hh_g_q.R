@@ -28,8 +28,7 @@ balance.check <- purchases.sample[expenditures != 0 & !is.na(projection_factor),
 balance.check <- balance.check[, list( first = min(calc_time), last = max(calc_time), occur = .N),
                                by = .(household_code)]
 
-balance.check <- balance.check[, pos_occur := last - first]
-balance.check <- balance.check[ pos_occur > 0, ] # Drop those never observed in the period
+balance.check <- balance.check[, pos_occur := last - first + 1]
 balance.check <- balance.check[, prop_occur := occur/pos_occur]
 
 ## Run some descriptives on this

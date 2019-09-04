@@ -20,6 +20,8 @@ purchases.sample <- fread("cleaning/consumer_panel_q_hh_2006-2016.csv")
 
 # Restrict yo interest years
 purchases.sample <- purchases.sample[ year <= 2014 & year >= 2008, ]
+# Check data is not duplicated as it seems
+
 
 # Create the calculated time (quarters from 2008)
 purchases.sample <- purchases.sample[, calc_time := (year - 2008)*4 + quarter  ]
@@ -31,8 +33,7 @@ balance.check <- purchases.sample[sum_total_exp_quarter != 0 & !is.na(projection
 balance.check <- balance.check[, list( first = min(calc_time), last = max(calc_time), occur = .N),
                                    by = .(household_code)]
 
-balance.check <- balance.check[, pos_occur := last - first]
-balance.check <- balance.check[ pos_occur > 0, ] # Drop those never observed in the period
+balance.check <- balance.check[, pos_occur := last - first + 1]
 balance.check <- balance.check[, prop_occur := occur/pos_occur]
 
 ## Run some descriptives on this
@@ -77,8 +78,7 @@ balance.check <- purchases.sample[expenditure_taxable != 0 & !is.na(projection_f
 balance.check <- balance.check[, list( first = min(calc_time), last = max(calc_time), occur = .N),
                                by = .(household_code)]
 
-balance.check <- balance.check[, pos_occur := last - first]
-balance.check <- balance.check[ pos_occur > 0, ] # Drop those never observed in the period
+balance.check <- balance.check[, pos_occur := last - first + 1]
 balance.check <- balance.check[, prop_occur := occur/pos_occur]
 
 ## Run some descriptives on this
@@ -125,8 +125,7 @@ balance.check <- purchases.sample[expenditure_non_taxable != 0 & !is.na(projecti
 balance.check <- balance.check[, list( first = min(calc_time), last = max(calc_time), occur = .N),
                                by = .(household_code)]
 
-balance.check <- balance.check[, pos_occur := last - first]
-balance.check <- balance.check[ pos_occur > 0, ] # Drop those never observed in the period
+balance.check <- balance.check[, pos_occur := last - first + 1]
 balance.check <- balance.check[, prop_occur := occur/pos_occur]
 
 ## Run some descriptives on this
