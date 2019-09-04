@@ -33,6 +33,7 @@ balance.check <- balance.check[, list( first = calc_time[1L], last = calc_time[.
                                    by = .(household_code)]
 
 balance.check <- balance.check[, pos_occur := last - first]
+balance.check <- balance.check[ pos_occur > 0, ] # Drop those never observed in the period
 balance.check <- balance.check[, prop_occur := occur/pos_occur]
 
 ## Run some descriptives on this
@@ -58,7 +59,7 @@ for (Y in outcomes) {
 # Identify first and last occurence and drop evrything outside it
 transition.matrix <- merge(purchases.sample, balance.check, by = c("household_code"), all.x = T)
 transition.matrix <- transition.matrix[calc_time >= first & calc_time <= last, 
-                                       c("expenditures", "calc_time", "household_code")]
+                                       c("sum_total_exp_quarter", "calc_time", "household_code")]
 # Identify purchases as 1 or 0
 transition.matrix <- transition.matrix[, t := ifelse(sum_total_exp_quarter >0, 1, 0)]
 # Identify lead value of purchase
@@ -79,6 +80,7 @@ balance.check <- balance.check[, list( first = calc_time[1L], last = calc_time[.
                                by = .(household_code)]
 
 balance.check <- balance.check[, pos_occur := last - first]
+balance.check <- balance.check[ pos_occur > 0, ] # Drop those never observed in the period
 balance.check <- balance.check[, prop_occur := occur/pos_occur]
 
 ## Run some descriptives on this
@@ -105,7 +107,7 @@ for (Y in outcomes) {
 # Identify first and last occurence and drop evrything outside it
 transition.matrix <- merge(purchases.sample, balance.check, by = c("household_code"), all.x = T)
 transition.matrix <- transition.matrix[calc_time >= first & calc_time <= last, 
-                                       c("expenditures", "calc_time", "household_code")]
+                                       c("expenditure_taxable", "calc_time", "household_code")]
 # Identify purchases as 1 or 0
 transition.matrix <- transition.matrix[, t := ifelse(expenditure_taxable >0, 1, 0)]
 # Identify lead value of purchase
@@ -127,6 +129,7 @@ balance.check <- balance.check[, list( first = calc_time[1L], last = calc_time[.
                                by = .(household_code)]
 
 balance.check <- balance.check[, pos_occur := last - first]
+balance.check <- balance.check[ pos_occur > 0, ] # Drop those never observed in the period
 balance.check <- balance.check[, prop_occur := occur/pos_occur]
 
 ## Run some descriptives on this
@@ -153,7 +156,7 @@ for (Y in outcomes) {
 # Identify first and last occurence and drop everything outside it
 transition.matrix <- merge(purchases.sample, balance.check, by = c("household_code"), all.x = T)
 transition.matrix <- transition.matrix[calc_time >= first & calc_time <= last, 
-                                       c("expenditures", "calc_time", "household_code")]
+                                       c("expenditure_non_taxable", "calc_time", "household_code")]
 # Identify purchases as 1 or 0
 transition.matrix <- transition.matrix[, t := ifelse(expenditure_non_taxable >0, 1, 0)]
 # Identify lead value of purchase

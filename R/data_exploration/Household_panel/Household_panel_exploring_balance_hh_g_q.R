@@ -30,6 +30,7 @@ balance.check <- balance.check[, list( first = calc_time[1L], last = calc_time[.
                                    by = .(household_code, product_group_code)]
 
 balance.check <- balance.check[, pos_occur := last - first]
+balance.check <- balance.check[ pos_occur > 0, ] # Drop those never observed in the period
 balance.check <- balance.check[, prop_occur := occur/pos_occur]
 
 ## Run some descriptives on this
