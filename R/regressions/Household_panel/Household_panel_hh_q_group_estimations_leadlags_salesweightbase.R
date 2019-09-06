@@ -93,7 +93,7 @@ purchases.sample <- purchases.sample[between(year, 2008, 2014)]
 purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & quarter >= 2)] ## First quarter of 2008, the difference was imputed not real data - so we drop it
 
 # Compute sales weight: by quarter, how large are purchases in each group in this sample?
-base.weights <- purchases.sample[year == 2008 & quarter ==1, sales.weight := sum(expenditures, na.rm = T), by = .(product_group_code)]
+base.weights <- purchases.sample[year == 2008 & quarter ==1, list(sales.weight := sum(expenditures, na.rm = T)), by = .(product_group_code)]
 base.weights[, sales.weight := sales.weight / sum(sales.weight, na.rm = T)]
 
 purchases.sample <- merge(purchases.sample, base.weights, by = "product_group_code")
