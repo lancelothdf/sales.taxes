@@ -13,16 +13,7 @@ library(ggplot2)
 setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 
 ## Open Data
-purchases.full <- fread("cleaning/consumer_panel_m_hh_2006-2016.csv")
-
-purchases.full$time <- factor(with(purchases.full, interaction(year, month)))
-
-
-## Constraining Data set for estimations ------------ 
-# Drop "magnet" households: 
-purchases.full[, sum(is.na(projection_factor))]
-# 2016154 obs
-purchases.sample <- purchases.full[!is.na(projection_factor)]
+purchases.sample <- fread("cleaning/consumer_panel_m_hh_2006-2016.csv")
 
 
 ## Create Necessary variables -----------------------
@@ -56,6 +47,9 @@ purchases.sample$ln_expenditure_same3[is.infinite(purchases.sample$ln_expenditur
 purchases.sample <- purchases.sample[, ln_expenditure_diff3 := log(expenditure_diff3)]
 purchases.sample$ln_expenditure_diff3[is.infinite(purchases.sample$ln_expenditure_diff3)] <- NA
 
+
+purchases.sample <- purchases.sample[, ln_total_expenditure := log(sum_total_exp_quarter)]
+purchases.sample$ln_total_expenditure[is.infinite(purchases.sample$ln_total_expenditure)] <- NA
 # type x taxability
 purchases.sample <- purchases.sample[, ln_expenditure_taxable_same3 := log(expenditures_same3_1)]
 purchases.sample$ln_expenditure_taxable_same3[is.infinite(purchases.sample$ln_expenditure_taxable_same3)] <- NA
@@ -117,6 +111,9 @@ purchases.sample <- purchases.sample[order(household_code, cal_time),] ##Sort on
 # tax
 purchases.sample[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
        by = .(household_code)]
+
+purchases.sample[, D.ln_total_expenditure := ln_total_expenditure - shift(ln_total_expenditure, n=1, type="lag"),
+                 by = .(household_code)]
 
 # type or taxability logs
 purchases.sample[, D.ln_expenditure_taxable := ln_expenditure_taxable - shift(ln_expenditure_taxable, n=1, type="lag"),
@@ -209,14 +206,17 @@ for (lag.val in 1:24) {
 purchases.sample <- purchases.sample[between(year, 2008, 2014)]
 purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & month >= 2)] ## First month of 2008, the difference was imputed not real data - so we drop it
 
+# Drop observations without weights at the end
+purchases.sample <- purchases.sample[!is.na(projection_factor)]
 
 ## Estimations: Expenditure on type of module --------
 output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_month_leadslags_describe.csv"
 output.results.file <- "../../../../../home/slacouture/HMS/HH_month_leadslags_cumulative.csv"
 
 outcomes <- c("D.ln_expenditure_taxable", "D.ln_expenditure_non_taxable", "D.ln_expenditure_unknown",
-              "D.ln_expenditure_diff3", "D.ln_expenditure_same3", "D.ln_share_taxable",
-              "D.ln_share_non_taxable", "D.ln_share_unknown", "D.ln_share_same3", "D.ln_share_diff3")
+              "D.ln_expenditure_diff3", "D.ln_expenditure_same3", "D.ln_share_taxable", 
+              "D.ln_share_non_taxable", "D.ln_share_unknown", "D.ln_share_same3", "D.ln_share_diff3",
+              "D.ln_total_expenditure")
 outcomes_t <- c("D.ln_expenditure_taxable_same3", "D.ln_expenditure_taxable_diff3", 
                 "D.ln_expenditure_non_taxable_same3", "D.ln_expenditure_non_taxable_diff3",
                 "D.ln_expenditure_unknown_same3", "D.ln_expenditure_unknown_diff3", 
@@ -224,7 +224,8 @@ outcomes_t <- c("D.ln_expenditure_taxable_same3", "D.ln_expenditure_taxable_diff
                 "D.ln_share_non_taxable_same3", "D.ln_share_non_taxable_diff3",
                 "D.ln_share_unknown_same3", "D.ln_share_unknown_diff3")
 
-FE_opts <- c("region_by_time", "time")
+# Time, Region by time, and those adding household
+FE_opts <- c("region_by_time", "time", "region_by_time + household_code", "time + household_code")
 
 formula_lags <- paste0("L", 1:24, ".D.ln_sales_tax", collapse = "+")
 formula_leads <- paste0("F", 1:24, ".D.ln_sales_tax", collapse = "+")
@@ -409,11 +410,393 @@ for (FE in FE_opts) {
   }
 }
 
-
-## summary values --------------------------------------------------------------
 LRdiff_res$N_hholds <- length(unique(purchases.sample$household_code))
 LRdiff_res$N_counties <- uniqueN(purchases.sample, by = c("fips_state_code", "fips_county_code"))
 LRdiff_res$N_years <- uniqueN(purchases.sample, by = c("year"))
 
 fwrite(LRdiff_res, output.results.file)
 
+
+#### Try different subsamples to disentangle a bit about data balance ----------------
+
+### Keep households that stay at least 4 years in the panel ------------
+purchases.sample <- purchases.sample[, first := min(cal_time), by = .(household_code)]
+purchases.sample <- purchases.sample[, last := max(cal_time), by = .(household_code)]
+
+purchases.long <- purchases.sample[last > first + 47, ]
+
+
+output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_month_leadslags_describe_4years.csv"
+output.results.file <- "../../../../../home/slacouture/HMS/HH_month_leadslags_cumulative_4years.csv"
+
+
+## Run basic descriptives  ------
+
+descriptives <- describe(purchases.long[, .(D.ln_sales_tax, D.ln_expenditure_taxable, D.ln_expenditure_non_taxable,
+                                            D.ln_expenditure_unknown, D.ln_expenditure_diff3, 
+                                            D.ln_expenditure_same3, D.ln_share_taxable,
+                                            D.ln_share_non_taxable, D.ln_share_unknown, 
+                                            D.ln_share_same3, D.ln_share_diff3, D.ln_total_expenditure,
+                                            D.ln_expenditure_taxable_same3, D.ln_expenditure_taxable_diff3,
+                                            D.ln_expenditure_non_taxable_same3, D.ln_expenditure_non_taxable_diff3,
+                                            D.ln_expenditure_unknown_same3, D.ln_expenditure_unknown_diff3, 
+                                            D.ln_share_taxable_same3, D.ln_share_taxable_diff3, 
+                                            D.ln_share_non_taxable_same3, D.ln_share_non_taxable_diff3,
+                                            D.ln_share_unknown_same3, D.ln_share_unknown_diff3)])
+des.est.out  <- data.table(descriptives, keep.rownames=T)
+fwrite(des.est.out, output.decriptives.file)
+
+## Run Estimations ------
+
+LRdiff_res <- data.table(NULL)
+for (FE in FE_opts) {
+  for (Y in c(outcomes, outcomes_t)) {
+    
+    ## Raw outcomes
+    formula1 <- as.formula(paste0(
+      Y, "~", formula_RHS, "|", FE, "| 0 | household_code"
+    ))
+    flog.info("Estimating with %s as outcome and %s FE.", Y, FE)
+    res1 <- felm(formula = formula1, data = purchases.long,
+                 weights = purchases.long$projection_factor)
+    flog.info("Finished estimating with %s as outcome and %s FE.", Y, FE)
+    
+    
+    ## attach results
+    flog.info("Writing results...")
+    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+    res1.dt[, outcome := Y]
+    res1.dt[, spec := FE]
+    res1.dt[, Rsq := summary(res1)$r.squared]
+    res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
+    res1.dt[, N.obs := nrow(purchases.long[!is.na(get(Y))])]
+    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)
+    
+    ## sum leads
+    flog.info("Summing leads...")
+    lead.test <- glht(res1, linfct = lead.lp.restr)
+    lead.test.est <- coef(summary(lead.test))[[1]]
+    lead.test.se <- sqrt(vcov(summary(lead.test)))[[1]]
+    lead.test.pval <- 2*(1 - pnorm(abs(lead.test.est/lead.test.se)))
+    
+    ## sum lags
+    flog.info("Summing lags...")
+    lag.test <- glht(res1, linfct = lag.lp.restr)
+    lag.test.est <- coef(summary(lag.test))[[1]]
+    lag.test.se <- sqrt(vcov(summary(lag.test)))[[1]]
+    lag.test.pval <- 2*(1 - pnorm(abs(lag.test.est/lag.test.se)))
+    
+    ## sum all
+    flog.info("Summing all...")
+    total.test <- glht(res1, linfct = total.lp.restr)
+    total.test.est <- coef(summary(total.test))[[1]]
+    total.test.se <- sqrt(vcov(summary(total.test)))[[1]]
+    total.test.pval <- 2*(1 - pnorm(abs(total.test.est/total.test.se)))
+    
+    ## linear hypothesis results
+    lp.dt <- data.table(
+      rn = c("Pre.D.ln_sales_tax", "Post.D.ln_sales_tax", "All.D.ln_sales_tax"),
+      Estimate = c(lead.test.est, lag.test.est, total.test.est),
+      `Cluster s.e.` = c(lead.test.se, lag.test.se, total.test.se),
+      `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
+      outcome = Y,
+      spec = FE, 
+      Rsq = summary(res1)$r.squared,
+      adj.Rsq = summary(res1)$adj.r.squared)
+    N.obs = nrow(purchases.long[!is.na(get(Y))])
+    LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)
+    
+    
+    ##### Add the cumulative effect at each lead/lag (relative to -1)
+    cumul.lead1.est <- 0
+    cumul.lead1.se <- NA
+    cumul.lead1.pval <- NA
+    
+    #cumul.lead2.est is just equal to minus the change between -2 and -1
+    cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_sales_tax", "Estimate"]
+    cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Cluster s.e."]
+    cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Pr(>|t|)"]
+    
+    ##LEADS
+    for(j in 3:25) {
+      
+      ## Create a name for estimate, se and pval of each lead
+      cumul.test.est.name <- paste("cumul.lead", j, ".est", sep = "")
+      cumul.test.se.name <- paste("cumul.lead", j, ".se", sep = "")
+      cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
+      
+      ## Create the formula to compute cumulative estimate at each lead/lag
+      cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_sales_tax"), collapse = " - "))
+      cumul.test.form <- paste(cumul.test.form, " = 0")
+      
+      ## Compute estimate and store in variables names
+      cumul.test <- glht(res1, linfct = cumul.test.form)
+      
+      assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
+      assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
+      assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
+    }
+    
+    
+    ##LAGS
+    ## On Impact --> Effect = coefficient on D.ln_sales_tax
+    cumul.lag0.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
+    cumul.lag0.se <- coef(summary(res1))[ "D.ln_sales_tax", "Cluster s.e."]
+    cumul.lag0.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
+    
+    for(j in 1:24) {
+      
+      ## Create a name for estimate, se and pval of each lead
+      cumul.test.est.name <- paste("cumul.lag", j, ".est", sep = "")
+      cumul.test.se.name <- paste("cumul.lag", j, ".se", sep = "")
+      cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
+      
+      ## Create the formula to compute cumulative estimate at each lead/lag
+      cumul.test.form <- paste("D.ln_sales_tax + ", paste(paste0("L", 1:j, ".D.ln_sales_tax"), collapse = " + "), sep = "")
+      cumul.test.form <- paste(cumul.test.form, " = 0")
+      
+      ## Compute estimate and store in variables names
+      cumul.test <- glht(res1, linfct = cumul.test.form)
+      
+      assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
+      assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
+      assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
+    }
+    
+    
+    ## linear hypothesis results
+    lp.dt <- data.table(
+      rn = c("cumul.lead24.D.ln_sales_tax", "cumul.lead23.D.ln_sales_tax", "cumul.lead22.D.ln_sales_tax", "cumul.lead21.D.ln_sales_tax", "cumul.lead20.D.ln_sales_tax", "cumul.lead19.D.ln_sales_tax", "cumul.lead18.D.ln_sales_tax", "cumul.lead17.D.ln_sales_tax", 
+             "cumul.lead16.D.ln_sales_tax", "cumul.lead15.D.ln_sales_tax", "cumul.lead14.D.ln_sales_tax", "cumul.lead13.D.ln_sales_tax", "cumul.lead12.D.ln_sales_tax", "cumul.lead11.D.ln_sales_tax", "cumul.lead10.D.ln_sales_tax", "cumul.lead9.D.ln_sales_tax", 
+             "cumul.lead8.D.ln_sales_tax", "cumul.lead7.D.ln_sales_tax", "cumul.lead6.D.ln_sales_tax", "cumul.lead5.D.ln_sales_tax", "cumul.lead4.D.ln_sales_tax", "cumul.lead3.D.ln_sales_tax", "cumul.lead2.D.ln_sales_tax", "cumul.lead1.D.ln_sales_tax", 
+             "cumul.lag0.D.ln_sales_tax", "cumul.lag1.D.ln_sales_tax", "cumul.lag2.D.ln_sales_tax", "cumul.lag3.D.ln_sales_tax", "cumul.lag4.D.ln_sales_tax", "cumul.lag5.D.ln_sales_tax", "cumul.lag6.D.ln_sales_tax", "cumul.lag7.D.ln_sales_tax", "cumul.lag8.D.ln_sales_tax",
+             "cumul.lag9.D.ln_sales_tax", "cumul.lag10.D.ln_sales_tax", "cumul.lag11.D.ln_sales_tax", "cumul.lag12.D.ln_sales_tax", "cumul.lag13.D.ln_sales_tax", "cumul.lag14.D.ln_sales_tax", "cumul.lag15.D.ln_sales_tax", "cumul.lag16.D.ln_sales_tax",
+             "cumul.lag17.D.ln_sales_tax", "cumul.lag18.D.ln_sales_tax", "cumul.lag19.D.ln_sales_tax", "cumul.lag20.D.ln_sales_tax", "cumul.lag21.D.ln_sales_tax", "cumul.lag22.D.ln_sales_tax", "cumul.lag23.D.ln_sales_tax", "cumul.lag24.D.ln_sales_tax"),
+      Estimate = c(cumul.lead24.est, cumul.lead23.est, cumul.lead22.est, cumul.lead21.est, cumul.lead20.est, cumul.lead19.est, cumul.lead18.est, cumul.lead17.est,
+                   cumul.lead16.est, cumul.lead15.est, cumul.lead14.est, cumul.lead13.est, cumul.lead12.est, cumul.lead11.est, cumul.lead10.est, cumul.lead9.est,
+                   cumul.lead8.est, cumul.lead7.est, cumul.lead6.est, cumul.lead5.est, cumul.lead4.est, cumul.lead3.est, cumul.lead2.est, cumul.lead1.est, 
+                   cumul.lag0.est, cumul.lag1.est, cumul.lag2.est, cumul.lag3.est, cumul.lag4.est, cumul.lag5.est, cumul.lag6.est, cumul.lag7.est, cumul.lag8.est,
+                   cumul.lag9.est, cumul.lag10.est, cumul.lag11.est, cumul.lag12.est, cumul.lag13.est, cumul.lag14.est, cumul.lag15.est, cumul.lag16.est, 
+                   cumul.lag17.est, cumul.lag18.est, cumul.lag19.est, cumul.lag20.est, cumul.lag21.est, cumul.lag22.est, cumul.lag23.est, cumul.lag24.est),
+      `Cluster s.e.` = c(cumul.lead24.se, cumul.lead23.se, cumul.lead22.se, cumul.lead21.se, cumul.lead20.se, cumul.lead19.se, cumul.lead18.se, cumul.lead17.se,
+                         cumul.lead16.se, cumul.lead15.se, cumul.lead14.se, cumul.lead13.se, cumul.lead12.se, cumul.lead11.se, cumul.lead10.se, cumul.lead9.se,
+                         cumul.lead8.se, cumul.lead7.se, cumul.lead6.se, cumul.lead5.se, cumul.lead4.se, cumul.lead3.se, cumul.lead2.se, cumul.lead1.se, 
+                         cumul.lag0.se, cumul.lag1.se, cumul.lag2.se, cumul.lag3.se, cumul.lag4.se, cumul.lag5.se, cumul.lag6.se, cumul.lag7.se, cumul.lag8.se,
+                         cumul.lag9.se, cumul.lag10.se, cumul.lag11.se, cumul.lag12.se, cumul.lag13.se, cumul.lag14.se, cumul.lag15.se, cumul.lag16.se, 
+                         cumul.lag17.se, cumul.lag18.se, cumul.lag19.se, cumul.lag20.se, cumul.lag21.se, cumul.lag22.se, cumul.lag23.se, cumul.lag24.se),
+      `Pr(>|t|)` = c(cumul.lead24.pval, cumul.lead23.pval, cumul.lead22.pval, cumul.lead21.pval, cumul.lead20.pval, cumul.lead19.pval, cumul.lead18.pval, cumul.lead17.pval,
+                     cumul.lead16.pval, cumul.lead15.pval, cumul.lead14.pval, cumul.lead13.pval, cumul.lead12.pval, cumul.lead11.pval, cumul.lead10.pval, cumul.lead9.pval,
+                     cumul.lead8.pval, cumul.lead7.pval, cumul.lead6.pval, cumul.lead5.pval, cumul.lead4.pval, cumul.lead3.pval, cumul.lead2.pval, cumul.lead1.pval, 
+                     cumul.lag0.pval, cumul.lag1.pval, cumul.lag2.pval, cumul.lag3.pval, cumul.lag4.pval, cumul.lag5.pval, cumul.lag6.pval, cumul.lag7.pval, cumul.lag8.pval,
+                     cumul.lag9.pval, cumul.lag10.pval, cumul.lag11.pval, cumul.lag12.pval, cumul.lag13.pval, cumul.lag14.pval, cumul.lag15.pval, cumul.lag16.pval, 
+                     cumul.lag17.pval, cumul.lag18.pval, cumul.lag19.pval, cumul.lag20.pval, cumul.lag21.pval, cumul.lag22.pval, cumul.lag23.pval, cumul.lag24.pval),
+      outcome = Y,
+      spec = FE,
+      Rsq = summary(res1)$r.squared,
+      adj.Rsq = summary(res1)$adj.r.squared)
+    N.obs = nrow(purchases.long[!is.na(get(Y))])
+    LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)
+    
+  }
+}
+
+LRdiff_res$N_hholds <- length(unique(purchases.long$household_code))
+LRdiff_res$N_counties <- uniqueN(purchases.long, by = c("fips_state_code", "fips_county_code"))
+LRdiff_res$N_years <- uniqueN(purchases.long, by = c("year"))
+
+fwrite(LRdiff_res, output.results.file)
+
+
+
+
+### Keep households that don't move ------------
+purchases.nonmovers <- purchases.sample[, av_zip_code := mean(zip_code), by = .(household_code)]
+purchases.nonmovers <- purchases.nonmovers[av_zip_code == zip_code]
+
+
+output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_month_leadslags_describe_nonmovers.csv"
+output.results.file <- "../../../../../home/slacouture/HMS/HH_month_leadslags_cumulative_nonmovers.csv"
+
+## Run basic descriptives  ------
+
+descriptives <- describe(purchases.nonmovers[, .(D.ln_sales_tax, D.ln_expenditure_taxable, D.ln_expenditure_non_taxable,
+                                                 D.ln_expenditure_unknown, D.ln_expenditure_diff3, 
+                                                 D.ln_expenditure_same3, D.ln_share_taxable,
+                                                 D.ln_share_non_taxable, D.ln_share_unknown, 
+                                                 D.ln_share_same3, D.ln_share_diff3, D.ln_total_expenditure,
+                                                 D.ln_expenditure_taxable_same3, D.ln_expenditure_taxable_diff3,
+                                                 D.ln_expenditure_non_taxable_same3, D.ln_expenditure_non_taxable_diff3,
+                                                 D.ln_expenditure_unknown_same3, D.ln_expenditure_unknown_diff3, 
+                                                 D.ln_share_taxable_same3, D.ln_share_taxable_diff3, 
+                                                 D.ln_share_non_taxable_same3, D.ln_share_non_taxable_diff3,
+                                                 D.ln_share_unknown_same3, D.ln_share_unknown_diff3)])
+des.est.out  <- data.table(descriptives, keep.rownames=T)
+fwrite(des.est.out, output.decriptives.file)
+
+
+
+## Run Estimations ------
+
+LRdiff_res <- data.table(NULL)
+for (FE in FE_opts) {
+  for (Y in c(outcomes, outcomes_t)) {
+    
+    ## Raw outcomes
+    formula1 <- as.formula(paste0(
+      Y, "~", formula_RHS, "|", FE, "| 0 | household_code"
+    ))
+    flog.info("Estimating with %s as outcome and %s FE.", Y, FE)
+    res1 <- felm(formula = formula1, data = purchases.nonmovers,
+                 weights = purchases.nonmovers$projection_factor)
+    flog.info("Finished estimating with %s as outcome and %s FE.", Y, FE)
+    
+    
+    ## attach results
+    flog.info("Writing results...")
+    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+    res1.dt[, outcome := Y]
+    res1.dt[, spec := FE]
+    res1.dt[, Rsq := summary(res1)$r.squared]
+    res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
+    res1.dt[, N.obs := nrow(purchases.nonmovers[!is.na(get(Y))])]
+    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)
+    
+    ## sum leads
+    flog.info("Summing leads...")
+    lead.test <- glht(res1, linfct = lead.lp.restr)
+    lead.test.est <- coef(summary(lead.test))[[1]]
+    lead.test.se <- sqrt(vcov(summary(lead.test)))[[1]]
+    lead.test.pval <- 2*(1 - pnorm(abs(lead.test.est/lead.test.se)))
+    
+    ## sum lags
+    flog.info("Summing lags...")
+    lag.test <- glht(res1, linfct = lag.lp.restr)
+    lag.test.est <- coef(summary(lag.test))[[1]]
+    lag.test.se <- sqrt(vcov(summary(lag.test)))[[1]]
+    lag.test.pval <- 2*(1 - pnorm(abs(lag.test.est/lag.test.se)))
+    
+    ## sum all
+    flog.info("Summing all...")
+    total.test <- glht(res1, linfct = total.lp.restr)
+    total.test.est <- coef(summary(total.test))[[1]]
+    total.test.se <- sqrt(vcov(summary(total.test)))[[1]]
+    total.test.pval <- 2*(1 - pnorm(abs(total.test.est/total.test.se)))
+    
+    ## linear hypothesis results
+    lp.dt <- data.table(
+      rn = c("Pre.D.ln_sales_tax", "Post.D.ln_sales_tax", "All.D.ln_sales_tax"),
+      Estimate = c(lead.test.est, lag.test.est, total.test.est),
+      `Cluster s.e.` = c(lead.test.se, lag.test.se, total.test.se),
+      `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
+      outcome = Y,
+      spec = FE, 
+      Rsq = summary(res1)$r.squared,
+      adj.Rsq = summary(res1)$adj.r.squared)
+    N.obs = nrow(purchases.nonmovers[!is.na(get(Y))])
+    LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)
+    
+    
+    ##### Add the cumulative effect at each lead/lag (relative to -1)
+    cumul.lead1.est <- 0
+    cumul.lead1.se <- NA
+    cumul.lead1.pval <- NA
+    
+    #cumul.lead2.est is just equal to minus the change between -2 and -1
+    cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_sales_tax", "Estimate"]
+    cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Cluster s.e."]
+    cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Pr(>|t|)"]
+    
+    ##LEADS
+    for(j in 3:25) {
+      
+      ## Create a name for estimate, se and pval of each lead
+      cumul.test.est.name <- paste("cumul.lead", j, ".est", sep = "")
+      cumul.test.se.name <- paste("cumul.lead", j, ".se", sep = "")
+      cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
+      
+      ## Create the formula to compute cumulative estimate at each lead/lag
+      cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_sales_tax"), collapse = " - "))
+      cumul.test.form <- paste(cumul.test.form, " = 0")
+      
+      ## Compute estimate and store in variables names
+      cumul.test <- glht(res1, linfct = cumul.test.form)
+      
+      assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
+      assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
+      assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
+    }
+    
+    
+    ##LAGS
+    ## On Impact --> Effect = coefficient on D.ln_sales_tax
+    cumul.lag0.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
+    cumul.lag0.se <- coef(summary(res1))[ "D.ln_sales_tax", "Cluster s.e."]
+    cumul.lag0.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
+    
+    for(j in 1:24) {
+      
+      ## Create a name for estimate, se and pval of each lead
+      cumul.test.est.name <- paste("cumul.lag", j, ".est", sep = "")
+      cumul.test.se.name <- paste("cumul.lag", j, ".se", sep = "")
+      cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
+      
+      ## Create the formula to compute cumulative estimate at each lead/lag
+      cumul.test.form <- paste("D.ln_sales_tax + ", paste(paste0("L", 1:j, ".D.ln_sales_tax"), collapse = " + "), sep = "")
+      cumul.test.form <- paste(cumul.test.form, " = 0")
+      
+      ## Compute estimate and store in variables names
+      cumul.test <- glht(res1, linfct = cumul.test.form)
+      
+      assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
+      assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
+      assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
+    }
+    
+    
+    ## linear hypothesis results
+    lp.dt <- data.table(
+      rn = c("cumul.lead24.D.ln_sales_tax", "cumul.lead23.D.ln_sales_tax", "cumul.lead22.D.ln_sales_tax", "cumul.lead21.D.ln_sales_tax", "cumul.lead20.D.ln_sales_tax", "cumul.lead19.D.ln_sales_tax", "cumul.lead18.D.ln_sales_tax", "cumul.lead17.D.ln_sales_tax", 
+             "cumul.lead16.D.ln_sales_tax", "cumul.lead15.D.ln_sales_tax", "cumul.lead14.D.ln_sales_tax", "cumul.lead13.D.ln_sales_tax", "cumul.lead12.D.ln_sales_tax", "cumul.lead11.D.ln_sales_tax", "cumul.lead10.D.ln_sales_tax", "cumul.lead9.D.ln_sales_tax", 
+             "cumul.lead8.D.ln_sales_tax", "cumul.lead7.D.ln_sales_tax", "cumul.lead6.D.ln_sales_tax", "cumul.lead5.D.ln_sales_tax", "cumul.lead4.D.ln_sales_tax", "cumul.lead3.D.ln_sales_tax", "cumul.lead2.D.ln_sales_tax", "cumul.lead1.D.ln_sales_tax", 
+             "cumul.lag0.D.ln_sales_tax", "cumul.lag1.D.ln_sales_tax", "cumul.lag2.D.ln_sales_tax", "cumul.lag3.D.ln_sales_tax", "cumul.lag4.D.ln_sales_tax", "cumul.lag5.D.ln_sales_tax", "cumul.lag6.D.ln_sales_tax", "cumul.lag7.D.ln_sales_tax", "cumul.lag8.D.ln_sales_tax",
+             "cumul.lag9.D.ln_sales_tax", "cumul.lag10.D.ln_sales_tax", "cumul.lag11.D.ln_sales_tax", "cumul.lag12.D.ln_sales_tax", "cumul.lag13.D.ln_sales_tax", "cumul.lag14.D.ln_sales_tax", "cumul.lag15.D.ln_sales_tax", "cumul.lag16.D.ln_sales_tax",
+             "cumul.lag17.D.ln_sales_tax", "cumul.lag18.D.ln_sales_tax", "cumul.lag19.D.ln_sales_tax", "cumul.lag20.D.ln_sales_tax", "cumul.lag21.D.ln_sales_tax", "cumul.lag22.D.ln_sales_tax", "cumul.lag23.D.ln_sales_tax", "cumul.lag24.D.ln_sales_tax"),
+      Estimate = c(cumul.lead24.est, cumul.lead23.est, cumul.lead22.est, cumul.lead21.est, cumul.lead20.est, cumul.lead19.est, cumul.lead18.est, cumul.lead17.est,
+                   cumul.lead16.est, cumul.lead15.est, cumul.lead14.est, cumul.lead13.est, cumul.lead12.est, cumul.lead11.est, cumul.lead10.est, cumul.lead9.est,
+                   cumul.lead8.est, cumul.lead7.est, cumul.lead6.est, cumul.lead5.est, cumul.lead4.est, cumul.lead3.est, cumul.lead2.est, cumul.lead1.est, 
+                   cumul.lag0.est, cumul.lag1.est, cumul.lag2.est, cumul.lag3.est, cumul.lag4.est, cumul.lag5.est, cumul.lag6.est, cumul.lag7.est, cumul.lag8.est,
+                   cumul.lag9.est, cumul.lag10.est, cumul.lag11.est, cumul.lag12.est, cumul.lag13.est, cumul.lag14.est, cumul.lag15.est, cumul.lag16.est, 
+                   cumul.lag17.est, cumul.lag18.est, cumul.lag19.est, cumul.lag20.est, cumul.lag21.est, cumul.lag22.est, cumul.lag23.est, cumul.lag24.est),
+      `Cluster s.e.` = c(cumul.lead24.se, cumul.lead23.se, cumul.lead22.se, cumul.lead21.se, cumul.lead20.se, cumul.lead19.se, cumul.lead18.se, cumul.lead17.se,
+                         cumul.lead16.se, cumul.lead15.se, cumul.lead14.se, cumul.lead13.se, cumul.lead12.se, cumul.lead11.se, cumul.lead10.se, cumul.lead9.se,
+                         cumul.lead8.se, cumul.lead7.se, cumul.lead6.se, cumul.lead5.se, cumul.lead4.se, cumul.lead3.se, cumul.lead2.se, cumul.lead1.se, 
+                         cumul.lag0.se, cumul.lag1.se, cumul.lag2.se, cumul.lag3.se, cumul.lag4.se, cumul.lag5.se, cumul.lag6.se, cumul.lag7.se, cumul.lag8.se,
+                         cumul.lag9.se, cumul.lag10.se, cumul.lag11.se, cumul.lag12.se, cumul.lag13.se, cumul.lag14.se, cumul.lag15.se, cumul.lag16.se, 
+                         cumul.lag17.se, cumul.lag18.se, cumul.lag19.se, cumul.lag20.se, cumul.lag21.se, cumul.lag22.se, cumul.lag23.se, cumul.lag24.se),
+      `Pr(>|t|)` = c(cumul.lead24.pval, cumul.lead23.pval, cumul.lead22.pval, cumul.lead21.pval, cumul.lead20.pval, cumul.lead19.pval, cumul.lead18.pval, cumul.lead17.pval,
+                     cumul.lead16.pval, cumul.lead15.pval, cumul.lead14.pval, cumul.lead13.pval, cumul.lead12.pval, cumul.lead11.pval, cumul.lead10.pval, cumul.lead9.pval,
+                     cumul.lead8.pval, cumul.lead7.pval, cumul.lead6.pval, cumul.lead5.pval, cumul.lead4.pval, cumul.lead3.pval, cumul.lead2.pval, cumul.lead1.pval, 
+                     cumul.lag0.pval, cumul.lag1.pval, cumul.lag2.pval, cumul.lag3.pval, cumul.lag4.pval, cumul.lag5.pval, cumul.lag6.pval, cumul.lag7.pval, cumul.lag8.pval,
+                     cumul.lag9.pval, cumul.lag10.pval, cumul.lag11.pval, cumul.lag12.pval, cumul.lag13.pval, cumul.lag14.pval, cumul.lag15.pval, cumul.lag16.pval, 
+                     cumul.lag17.pval, cumul.lag18.pval, cumul.lag19.pval, cumul.lag20.pval, cumul.lag21.pval, cumul.lag22.pval, cumul.lag23.pval, cumul.lag24.pval),
+      outcome = Y,
+      spec = FE,
+      Rsq = summary(res1)$r.squared,
+      adj.Rsq = summary(res1)$adj.r.squared)
+    N.obs = nrow(purchases.nonmovers[!is.na(get(Y))])
+    LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)
+    
+  }
+}
+
+LRdiff_res$N_hholds <- length(unique(purchases.nonmovers$household_code))
+LRdiff_res$N_counties <- uniqueN(purchases.nonmovers, by = c("fips_state_code", "fips_county_code"))
+LRdiff_res$N_years <- uniqueN(purchases.nonmovers, by = c("year"))
+
+fwrite(LRdiff_res, output.results.file)
