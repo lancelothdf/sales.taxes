@@ -99,23 +99,22 @@ for (yr in 2006:2016) {
 ## collapse expenditures to the monthly level and link all these annual files
 purchases.full <- data.table(NULL)
 for (yr in 2006:2016) {
-
+  
   annual.path <- paste0("cleaning/purchases_m_", yr, ".csv")
   purchase.yr <- fread(annual.path)
-
-  purchase.yr <- purchase.yr[, list(
-    total_expenditures = sum(total_expenditures),
-    projection_factor = mean(projection_factor, na.rm = T),
-    projection_factor_magnet = mean(projection_factor_magnet, na.rm = T),
-    household_income = mean(household_income, na.rm = T)
-  ), by = .(household_code, product_module_code, product_group_code, region_code,
-            same_3zip_store, fips_county_code, fips_state_code, zip_code,
-            month, year)  ]
+  
   ## attach
   flog.info("Appending %s data to master file", yr)
   purchases.full <- rbind(purchases.full, purchase.yr)
-
+  
 }
+
+## Retrieve household info for purchases in the last month of previous year but same panel_year
+household.cols <- c("fips_county_code", "fips_state_code", "zip_code", "projection_factor", 
+                    "projection_factor_magnet", "region_code", "household_income")
+purchases.full[, (household.cols) := lapply(.SD, as.numeric), 
+               .SDcols = household.cols][,(household.cols) := lapply(.SD, mean, na.rm = T),
+                                         by = .(household_code, year), .SDcols = household.cols] 
 
 ## Calculate total expenditure per consumer in each month (across stores and modules)
 purchases.full[, sum_total_exp_month := sum(total_expenditures),
@@ -143,6 +142,7 @@ purchases.full <- purchases.full[, list(
           ), by = .(household_code, taxability, fips_county_code, fips_state_code, zip_code,
                     same_3zip_store, month, year, sum_total_exp_month, projection_factor,
                     projection_factor_magnet, household_income, region_code) ]
+
 ## reshape to get a hh X taxability of module data
 purchases.full <- dcast(purchases.full, household_code + taxability + fips_county_code + fips_state_code +
                           zip_code + month + year + projection_factor + projection_factor_magnet + region_code +
@@ -156,6 +156,53 @@ setnames(purchases.full,
 purchases.full <- dcast(purchases.full, household_code + fips_county_code + fips_state_code + zip_code + month
                         + year + projection_factor + projection_factor_magnet + sum_total_exp_month + region_code +
                           household_income ~ taxability,  fun=sum, value.var = c("expenditures_diff3","expenditures_same3", "expenditures_unkn3"))
+
+## Balance panel for proper estimations
+#### Balance the panel: Key step for proper estimation
+flog.info("Building skeleton")
+
+# Collapse to hh that appeared at least once
+possible.purchases <- purchases.full[, list(N_obs = .N), by = .(household_code)]
+possible.purchases <- possible.purchases[N_obs > 0]
+# Expand by quarter (old fashioned: CJ does not work in this case because of dimensionality)
+possible.purchases.q <- data.table(NULL)
+for (i in 1:12) {
+  possible.purchases.t <- possible.purchases[ , month := i ]
+  possible.purchases.q <- rbind(possible.purchases.q, possible.purchases.t)
+  
+}
+# remove used data for space
+rm(possible.purchases)
+# Expand by year
+possible.purchases.full <- data.table(NULL)
+for (i in 2006:2016) {
+  possible.purchases.t <- possible.purchases.q[ , year := i ]
+  possible.purchases.full <- rbind(possible.purchases.full, possible.purchases.t)
+}
+rm(possible.purchases.q)
+# merge
+flog.info("Merging to balance panel")
+purchases.full <- merge(purchases.full, possible.purchases.full, by = c("household_code", "month", "year"), all.y = T)
+# Check:
+nrow(purchases.full)
+nrow(possible.purchases.full)
+rm(possible.purchases.full)
+
+# assign purchases of 0 to those moments
+expenditure.cols <- c("expenditures_diff3_0", "expenditures_diff3_1", "expenditures_diff3_2", 
+                      "expenditures_same3_0", "expenditures_same3_1", "expenditures_same3_2", 
+                      "expenditures_unkn3_0", "expenditures_unkn3_1", "expenditures_unkn3_2")
+purchases.full[, (expenditure.cols) := replace(.SD, is.na(.SD) , 0), .SDcols = expenditure.cols]
+# retrieve household data
+household.cols <- c("fips_county_code", "fips_state_code", "zip_code", "projection_factor", 
+                    "projection_factor_magnet", "region_code", "household_income")
+purchases.full[, (household.cols) := lapply(.SD, as.numeric), 
+               .SDcols = household.cols][,(household.cols) := lapply(.SD, mean, na.rm = T),
+                                         by = .(household_code, year), .SDcols = household.cols] 
+# retrieve total purchases
+purchases.full[, sum_total_exp_quarter := mean(sum_total_exp_quarter, na.rm = T),
+               by = .(household_code, year, quarter)]
+
 
 ## merge on tax rates
 all_goods_pi_path <- "../../monthly_taxes_county_5zip_2008_2014.csv"
