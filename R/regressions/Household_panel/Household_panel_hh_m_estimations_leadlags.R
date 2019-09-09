@@ -97,6 +97,7 @@ purchases.sample$ln_share_unknown_diff3[is.infinite(purchases.sample$ln_share_un
 purchases.sample[, cal_time := 12 * year + month]
 # time x region
 purchases.sample[, region_by_time := .GRP, by = .(region_code, year, month)]
+purchases.sample[, time := .GRP, by = .(year, month)]
 
 # impute tax rates prior to 2008 and after 2014
 purchases.sample[, ln_sales_tax := ifelse(year < 2008, ln_sales_tax[year == 2008 & month == 1], ln_sales_tax),
