@@ -99,7 +99,7 @@ base.weights[, sales.weight := sales.weight / sum(sales.weight, na.rm = T)]
 purchases.sample <- merge(purchases.sample, base.weights, by = "product_group_code")
 
 # Build new weight as the prodcut of both household and group weights
-purchases.sample[, projection_factor := as.real(projection_factor)]
+purchases.sample[, projection_factor := as.double(projection_factor)]
 purchases.sample[, projection_factor := projection_factor*base.weights]
 
 # Drop observations without weights at the end
