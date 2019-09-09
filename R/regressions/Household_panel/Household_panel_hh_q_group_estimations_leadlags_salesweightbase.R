@@ -93,7 +93,7 @@ purchases.sample <- purchases.sample[between(year, 2008, 2014)]
 purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & quarter >= 2)] ## First quarter of 2008, the difference was imputed not real data - so we drop it
 
 # Compute sales weight: by quarter, how large are purchases in each group in this sample?
-base.weights <- purchases.sample[year == 2008 & quarter ==1, list(sales.weight := sum(expenditures, na.rm = T)), by = .(product_group_code)]
+base.weights <- purchases.sample[year == 2008 & quarter ==1, list(sales.weight = sum(expenditures, na.rm = T)), by = .(product_group_code)]
 base.weights[, sales.weight := sales.weight / sum(sales.weight, na.rm = T)]
 
 purchases.sample <- merge(purchases.sample, base.weights, by = "product_group_code")
@@ -106,7 +106,6 @@ purchases.sample <- purchases.sample[!is.na(projection_factor)]
 
 
 ## Estimation Set up --------
-output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_group_quarter_leadslags_describe.csv"
 output.results.file <- "../../../../../home/slacouture/HMS/HH_group_quarter_distributed_lags_weightedbase.csv"
 
 outcomes <- c("D.ln_expenditures", "D.ln_share", "D.ln_expenditures_taxable", "D.ln_expenditures_non_taxable",
@@ -124,15 +123,6 @@ lag.vars <- paste(paste0("L", 8:1, ".D.ln_sales_tax"), collapse = " + ")
 lead.lp.restr <- paste(lead.vars, "= 0")
 lag.lp.restr <- paste(lag.vars, "+ D.ln_sales_tax = 0")
 total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
-
-## Run basic descriptives  ------
-
-descriptives <- describe(purchases.sample[, .(D.ln_expenditures, D.ln_expenditures_taxable,
-                                              D.ln_expenditures_non_taxable,
-                                              D.ln_share, D.ln_share_taxable, D.ln_share_non_taxable,
-                                              D.ln_sales_tax, D.ln_statutory_sales_tax)])
-des.est.out  <- data.table(descriptives, keep.rownames=T)
-fwrite(des.est.out, output.decriptives.file)
 
 ## Run Estimations ------
 
