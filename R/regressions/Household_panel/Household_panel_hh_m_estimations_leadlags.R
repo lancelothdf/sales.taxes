@@ -48,7 +48,7 @@ purchases.sample <- purchases.sample[, ln_expenditure_diff3 := log(expenditure_d
 purchases.sample$ln_expenditure_diff3[is.infinite(purchases.sample$ln_expenditure_diff3)] <- NA
 
 
-purchases.sample <- purchases.sample[, ln_total_expenditure := log(sum_total_exp_quarter)]
+purchases.sample <- purchases.sample[, ln_total_expenditure := log(sum_total_exp_month)]
 purchases.sample$ln_total_expenditure[is.infinite(purchases.sample$ln_total_expenditure)] <- NA
 # type x taxability
 purchases.sample <- purchases.sample[, ln_expenditure_taxable_same3 := log(expenditures_same3_1)]
