@@ -388,7 +388,7 @@ fwrite(LRdiff_res, output.results.file)
 purchases.sample <- purchases.sample[, first := min(cal_time), by = .(household_code)]
 purchases.sample <- purchases.sample[, last := max(cal_time), by = .(household_code)]
 
-purchases.long <- purchases.sample[last > first + 47, ]
+purchases.long <- purchases.sample[last > first + 13, ]
 
 
 output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_quarter_leadslags_describe_4years.csv"
