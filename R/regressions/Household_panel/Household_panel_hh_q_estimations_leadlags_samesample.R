@@ -1,6 +1,8 @@
 ## Sales taxes Project. Household Panel
-# Running distributed lag regression in differences on the new panel (household aggregate x quarter)
-# Author: John Bonney & Santiago Lacouture
+# Running distributed lag regression in differences on the old panel (household x quarter) on all 
+# purchases. I try to run it on the "same sample" we actually use in the new version (household x group x quarter).
+# I try this on the statutory and effective tax rates designs.
+# Author: Santiago Lacouture
 
 library(data.table)
 library(lfe)
@@ -13,8 +15,118 @@ library(DescTools)
 
 setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 
-## Open Data
+## Open Data at the household x group x quarter
+purchases.sample <- fread("cleaning/consumer_panel_q_hh_group_2006-2016.csv")
+
+# Time
+purchases.sample[, cal_time := 4 * year + quarter]
+
+# FE
+purchases.sample[, region_by_group_by_time := .GRP, by = .(region_code, product_group_code, year, quarter)]
+purchases.sample[, group_by_time := .GRP, by = .(product_group_code, year, quarter)]
+
+# impute tax rates prior to 2008 and after 2014. Also for statutory
+purchases.sample[, ln_sales_tax := ifelse(year < 2008, ln_sales_tax[year == 2008 & quarter == 1], ln_sales_tax),
+                 by = .(household_code, product_group_code)]
+purchases.sample[, ln_sales_tax := ifelse(year > 2014, ln_sales_tax[year == 2014 & quarter == 4], ln_sales_tax),
+                 by = .(household_code, product_group_code)]
+
+purchases.sample[, ln_staturtory_sales_tax := ifelse(year < 2008, ln_staturtory_sales_tax[year == 2008 & quarter == 1], ln_staturtory_sales_tax),
+                 by = .(household_code, product_group_code)]
+purchases.sample[, ln_staturtory_sales_tax := ifelse(year > 2014, ln_staturtory_sales_tax[year == 2014 & quarter == 4], ln_staturtory_sales_tax),
+                 by = .(household_code, product_group_code)]
+
+## take first differences of outcomes and treatment
+purchases.sample <- purchases.sample[order(household_code, product_group_code, cal_time),] ##Sort on hh by year-quarter (in ascending order)
+
+# tax
+purchases.sample[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
+                 by = .(household_code, product_group_code)]
+
+purchases.sample[, D.ln_statutory_sales_tax := ln_staturtory_sales_tax - shift(ln_staturtory_sales_tax, n=1, type="lag"),
+                 by = .(household_code, product_group_code)]
+
+
+# expenditure
+purchases.sample[, D.ln_expenditures := ln_expenditures - shift(ln_expenditures, n=1, type="lag"),
+                 by = .(household_code, product_group_code)]
+purchases.sample[, D.ln_expenditures_taxable := ln_expenditures_taxable - shift(ln_expenditures_taxable, n=1, type="lag"),
+                 by = .(household_code, product_group_code)]
+purchases.sample[, D.ln_expenditures_non_taxable := ln_expenditures_non_taxable - shift(ln_expenditures_non_taxable, n=1, type="lag"),
+                 by = .(household_code, product_group_code)]
+
+## generate lags and leads of ln_sales_tax and ln_statutory_sales_tax
+for (lag.val in 1:8) {
+  lag.X <- paste0("L", lag.val, ".D.ln_sales_tax")
+  purchases.sample[, (lag.X) := shift(D.ln_sales_tax, n=lag.val, type="lag"),
+                   by = .(household_code, product_group_code)]
+
+  lead.X <- paste0("F", lag.val, ".D.ln_sales_tax")
+  purchases.sample[, (lead.X) := shift(D.ln_sales_tax, n=lag.val, type="lead"),
+                   by = .(household_code, product_group_code)]
+}
+
+for (lag.val in 1:8) {
+  lag.X <- paste0("L", lag.val, ".D.ln_statutory_sales_tax")
+  purchases.sample[, (lag.X) := shift(D.ln_statutory_sales_tax, n=lag.val, type="lag"),
+                   by = .(household_code, product_group_code)]
+  
+  lead.X <- paste0("F", lag.val, ".D.ln_statutory_sales_tax")
+  purchases.sample[, (lead.X) := shift(D.ln_statutory_sales_tax, n=lag.val, type="lead"),
+                   by = .(household_code, product_group_code)]
+}
+
+
+# Restrict data to interest window
+purchases.sample <- purchases.sample[between(year, 2008, 2014)]
+purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & quarter >= 2)] ## First quarter of 2008, the difference was imputed not real data - so we drop it
+
+# Drop observations without weight
+purchases.sample <- purchases.sample[!is.na(projection_factor)]
+
+### Identify estimation sample
+## Identfy useful observations
+# Effective tax rate design
+sample.effective <- purchases.sample[!is.na(D.ln_sales_tax) & !is.na(D.ln_expenditures)]
+for (y in 1:8) {
+  # Non missing lags
+  var <- paste0("L", y, ".D.ln_sales_tax")
+  sample.effective <- sample.effective[!is.na(get(var))]
+  
+  # Non missing leads
+  var <- paste0("F", y, ".D.ln_sales_tax")
+  sample.effective <- sample.effective[!is.na(get(var))] 
+}
+sample.effective <- sample.effective[, list(N = .N), by = .(household_code, quarter, year)]
+sample.effective <- sample.effective[ N > 0]
+
+# Statutory tax rate
+sample.statutory <- purchases.sample[!is.na(D.ln_statutory_sales_tax)]
+for (y in 1:8) {
+  # Non missing lags
+  var <- paste0("L", y, ".D.ln_statutory_sales_tax")
+  sample.statutory <- sample.statutory[!is.na(get(var))]
+  
+  # Non missing leads
+  var <- paste0("F", y, ".D.ln_statutory_sales_tax")
+  sample.statutory <- sample.statutory[!is.na(get(var))] 
+}
+# Statutory tax rate: taxable
+sample.statutory.taxable <- sample.statutory[!is.na(D.ln_expenditures_taxable)]
+sample.statutory.taxable <- sample.statutory.taxable[, list(N = .N), by = .(household_code, quarter, year)]
+sample.statutory.taxable <- sample.statutory.taxable[ N > 0]
+
+# Statutory tax rate: non taxable
+sample.statutory.nontaxable <- sample.statutory[!is.na(D.ln_expenditures_non_taxable)]
+sample.statutory.nontaxable <- sample.statutory.nontaxable[, list(N = .N), by = .(household_code, quarter, year)]
+sample.statutory.nontaxable <- sample.statutory.nontaxable[ N > 0]
+
+
+
+#################### Open Household level Data #################### 
 purchases.sample <- fread("cleaning/consumer_panel_q_hh_2006-2016.csv")
+
+
 
 ## Create Necessary variables -----------------------
 
@@ -26,13 +138,6 @@ purchases.sample[, share_unknown := expenditure_unknown/sum_total_exp_quarter]
 purchases.sample[, share_same3 := expenditure_same3/sum_total_exp_quarter]
 purchases.sample[, share_diff3 := expenditure_diff3/sum_total_exp_quarter]
 
-# type x taxability
-purchases.sample[, share_taxable_same3 := expenditures_same3_1/sum_total_exp_quarter]
-purchases.sample[, share_taxable_diff3 := expenditures_diff3_1/sum_total_exp_quarter]
-purchases.sample[, share_non_taxable_same3 := expenditures_same3_0/sum_total_exp_quarter]
-purchases.sample[, share_non_taxable_diff3 := expenditures_diff3_0/sum_total_exp_quarter]
-purchases.sample[, share_unknown_same3 := expenditures_same3_2/sum_total_exp_quarter]
-purchases.sample[, share_unknown_diff3 := expenditures_diff3_2/sum_total_exp_quarter]
 
 ## Logarithms of variables
 # type or taxability
@@ -50,20 +155,6 @@ purchases.sample$ln_expenditure_diff3[is.infinite(purchases.sample$ln_expenditur
 purchases.sample <- purchases.sample[, ln_total_expenditure := log(sum_total_exp_quarter)]
 purchases.sample$ln_total_expenditure[is.infinite(purchases.sample$ln_total_expenditure)] <- NA
 
-# type x taxability
-purchases.sample <- purchases.sample[, ln_expenditure_taxable_same3 := log(expenditures_same3_1)]
-purchases.sample$ln_expenditure_taxable_same3[is.infinite(purchases.sample$ln_expenditure_taxable_same3)] <- NA
-purchases.sample <- purchases.sample[, ln_expenditure_taxable_diff3 := log(expenditures_diff3_1)]
-purchases.sample$ln_expenditure_taxable_diff3[is.infinite(purchases.sample$ln_expenditure_taxable_diff3)] <- NA
-purchases.sample <- purchases.sample[, ln_expenditure_non_taxable_same3 := log(expenditures_same3_0)]
-purchases.sample$ln_expenditure_non_taxable_same3[is.infinite(purchases.sample$ln_expenditure_non_taxable_same3)] <- NA
-purchases.sample <- purchases.sample[, ln_expenditure_non_taxable_diff3 := log(expenditures_diff3_0)]
-purchases.sample$ln_expenditure_non_taxable_diff3[is.infinite(purchases.sample$ln_expenditure_non_taxable_diff3)] <- NA
-purchases.sample <- purchases.sample[, ln_expenditure_unknown_same3 := log(expenditures_same3_2)]
-purchases.sample$ln_expenditure_unknown_same3[is.infinite(purchases.sample$ln_expenditure_unknown_same3)] <- NA
-purchases.sample <- purchases.sample[, ln_expenditure_unknown_diff3 := log(expenditures_diff3_2)]
-purchases.sample$ln_expenditure_unknown_diff3[is.infinite(purchases.sample$ln_expenditure_unknown_diff3)] <- NA
-
 
 # shares type or taxability
 purchases.sample <- purchases.sample[, ln_share_taxable := log(share_taxable)]
@@ -77,22 +168,6 @@ purchases.sample$ln_share_same3[is.infinite(purchases.sample$ln_share_same3)] <-
 purchases.sample <- purchases.sample[, ln_share_diff3 := log(share_diff3)]
 purchases.sample$ln_share_diff3[is.infinite(purchases.sample$ln_share_diff3)] <- NA
 
-
-# shares type x taxability
-purchases.sample <- purchases.sample[, ln_share_taxable_same3 := log(share_taxable_same3)]
-purchases.sample$ln_share_taxable_same3[is.infinite(purchases.sample$ln_share_taxable_same3)] <- NA
-purchases.sample <- purchases.sample[, ln_share_taxable_diff3 := log(share_taxable_diff3)]
-purchases.sample$ln_share_taxable_diff3[is.infinite(purchases.sample$ln_share_taxable_diff3)] <- NA
-purchases.sample <- purchases.sample[, ln_share_non_taxable_same3 := log(share_non_taxable_same3)]
-purchases.sample$ln_share_non_taxable_same3[is.infinite(purchases.sample$ln_share_non_taxable_same3)] <- NA
-purchases.sample <- purchases.sample[, ln_share_non_taxable_diff3 := log(share_non_taxable_diff3)]
-purchases.sample$ln_share_non_taxable_diff3[is.infinite(purchases.sample$ln_share_non_taxable_diff3)] <- NA
-purchases.sample <- purchases.sample[, ln_share_unknown_same3 := log(share_unknown_same3)]
-purchases.sample$ln_share_unknown_same3[is.infinite(purchases.sample$ln_share_unknown_same3)] <- NA
-purchases.sample <- purchases.sample[, ln_share_unknown_diff3 := log(share_unknown_diff3)]
-purchases.sample$ln_share_unknown_diff3[is.infinite(purchases.sample$ln_share_unknown_diff3)] <- NA
-
-
 # Time
 purchases.sample[, cal_time := 4 * year + quarter]
 
@@ -102,9 +177,9 @@ purchases.sample[, time := .GRP, by = .(year, quarter)]
 
 # impute tax rates prior to 2008 and after 2014
 purchases.sample[, ln_sales_tax := ifelse(year < 2008, ln_sales_tax[year == 2008 & quarter == 1], ln_sales_tax),
-       by = .(household_code)]
+                 by = .(household_code)]
 purchases.sample[, ln_sales_tax := ifelse(year > 2014, ln_sales_tax[year == 2014 & quarter == 4], ln_sales_tax),
-       by = .(household_code)]
+                 by = .(household_code)]
 
 ## take first differences of outcomes and treatment
 setkey(purchases.sample, household_code, year, quarter)
@@ -112,7 +187,7 @@ purchases.sample <- purchases.sample[order(household_code, cal_time),] ##Sort on
 
 # tax
 purchases.sample[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
-       by = .(household_code)]
+                 by = .(household_code)]
 
 purchases.sample[, D.ln_total_expenditure := ln_total_expenditure - shift(ln_total_expenditure, n=1, type="lag"),
                  by = .(household_code)]
@@ -121,7 +196,7 @@ purchases.sample[, D.ln_total_expenditure := ln_total_expenditure - shift(ln_tot
 purchases.sample[, D.ln_expenditure_taxable := ln_expenditure_taxable - shift(ln_expenditure_taxable, n=1, type="lag"),
                  by = .(household_code)]
 purchases.sample[, D.ln_expenditure_non_taxable := ln_expenditure_non_taxable - shift(ln_expenditure_non_taxable, n=1, type="lag"),
-       by = .(household_code)]
+                 by = .(household_code)]
 purchases.sample[, D.ln_expenditure_unknown := ln_expenditure_unknown - shift(ln_expenditure_unknown, n=1, type="lag"),
                  by = .(household_code)]
 purchases.sample[, D.ln_expenditure_diff3 := ln_expenditure_diff3 - shift(ln_expenditure_diff3, n=1, type="lag"),
@@ -176,11 +251,11 @@ purchases.sample[, D.ln_share_unknown_diff3 := ln_share_unknown_diff3 - shift(ln
 for (lag.val in 1:8) {
   lag.X <- paste0("L", lag.val, ".D.ln_sales_tax")
   purchases.sample[, (lag.X) := shift(D.ln_sales_tax, n=lag.val, type="lag"),
-         by = .(household_code)]
+                   by = .(household_code)]
   
   lead.X <- paste0("F", lag.val, ".D.ln_sales_tax")
   purchases.sample[, (lead.X) := shift(D.ln_sales_tax, n=lag.val, type="lead"),
-         by = .(household_code)]
+                   by = .(household_code)]
 }
 # Restrict data to interest window
 purchases.sample <- purchases.sample[between(year, 2008, 2014)]
@@ -189,23 +264,14 @@ purchases.sample <- purchases.sample[ year >= 2009 | (year == 2008 & quarter >= 
 # Drop observations without weights at the end
 purchases.sample <- purchases.sample[!is.na(projection_factor)]
 
-## Estimation Set up --------
-output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_quarter_leadslags_describe.csv"
-output.results.file <- "../../../../../home/slacouture/HMS/HH_quarter_leadslags_cumulative.csv"
-
+##### Run estimations on different subsamples using the previously defined samples --------------------------
 outcomes <- c("D.ln_expenditure_taxable", "D.ln_expenditure_non_taxable", "D.ln_expenditure_unknown",
               "D.ln_expenditure_diff3", "D.ln_expenditure_same3", "D.ln_share_taxable", 
               "D.ln_share_non_taxable", "D.ln_share_unknown", "D.ln_share_same3", "D.ln_share_diff3",
               "D.ln_total_expenditure")
-outcomes_t <- c("D.ln_expenditure_taxable_same3", "D.ln_expenditure_taxable_diff3", 
-              "D.ln_expenditure_non_taxable_same3", "D.ln_expenditure_non_taxable_diff3",
-              "D.ln_expenditure_unknown_same3", "D.ln_expenditure_unknown_diff3", 
-              "D.ln_share_taxable_same3", "D.ln_share_taxable_diff3", 
-              "D.ln_share_non_taxable_same3", "D.ln_share_non_taxable_diff3",
-              "D.ln_share_unknown_same3", "D.ln_share_unknown_diff3")
 
 # Time, Region by time, and those adding household
-FE_opts <- c("region_by_time", "time", "region_by_time + household_code", "time + household_code")
+FE_opts <- c("region_by_time", "time")
 
 formula_lags <- paste0("L", 1:8, ".D.ln_sales_tax", collapse = "+")
 formula_leads <- paste0("F", 1:8, ".D.ln_sales_tax", collapse = "+")
@@ -218,36 +284,42 @@ lead.lp.restr <- paste(lead.vars, "= 0")
 lag.lp.restr <- paste(lag.vars, "+ D.ln_sales_tax = 0")
 total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 
-## Run basic descriptives  ------
 
-descriptives <- describe(purchases.sample[, .(D.ln_sales_tax, D.ln_expenditure_taxable, D.ln_expenditure_non_taxable,
+### Effective rate -----------
+
+estimation.sample <- merge(purchases.sample, sample.effective, by = c("household_code", "quarter", "year"))
+estimation.sample <- estimation.sample[!is.na(N)]
+
+
+output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_quarter_distributed_lags_describe_effective.csv"
+output.results.file <- "../../../../../home/slacouture/HMS/HH_quarter_distributed_lags_cumulative_effective.csv"
+
+
+
+## Run basic descriptives
+
+descriptives <- describe(estimation.sample[, .(D.ln_sales_tax, D.ln_expenditure_taxable, D.ln_expenditure_non_taxable,
                                               D.ln_expenditure_unknown, D.ln_expenditure_diff3, 
                                               D.ln_expenditure_same3, D.ln_share_taxable,
                                               D.ln_share_non_taxable, D.ln_share_unknown, 
-                                              D.ln_share_same3, D.ln_share_diff3, D.ln_total_expenditure,
-                                              D.ln_expenditure_taxable_same3, D.ln_expenditure_taxable_diff3,
-                                              D.ln_expenditure_non_taxable_same3, D.ln_expenditure_non_taxable_diff3,
-                                              D.ln_expenditure_unknown_same3, D.ln_expenditure_unknown_diff3, 
-                                              D.ln_share_taxable_same3, D.ln_share_taxable_diff3, 
-                                              D.ln_share_non_taxable_same3, D.ln_share_non_taxable_diff3,
-                                              D.ln_share_unknown_same3, D.ln_share_unknown_diff3)])
+                                              D.ln_share_same3, D.ln_share_diff3, D.ln_total_expenditure)])
 des.est.out  <- data.table(descriptives, keep.rownames=T)
 fwrite(des.est.out, output.decriptives.file)
 
 
-## Run Estimations ------
+## Run Estimations
 
 LRdiff_res <- data.table(NULL)
 for (FE in FE_opts) {
-  for (Y in c(outcomes, outcomes_t)) {
-  
+  for (Y in outcomes) {
+    
     ## Raw outcomes
     formula1 <- as.formula(paste0(
       Y, "~", formula_RHS, "|", FE, "| 0 | household_code"
     ))
     flog.info("Estimating with %s as outcome and %s FE.", Y, FE)
-    res1 <- felm(formula = formula1, data = purchases.sample,
-                 weights = purchases.sample$projection_factor)
+    res1 <- felm(formula = formula1, data = estimation.sample,
+                 weights = estimation.sample$projection_factor)
     flog.info("Finished estimating with %s as outcome and %s FE.", Y, FE)
     
     
@@ -258,7 +330,7 @@ for (FE in FE_opts) {
     res1.dt[, spec := FE]
     res1.dt[, Rsq := summary(res1)$r.squared]
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-    res1.dt[, N.obs := nrow(purchases.sample[!is.na(get(Y))])]
+    res1.dt[, N.obs := nrow(estimation.sample[!is.na(get(Y))])]
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
     
@@ -362,7 +434,7 @@ for (FE in FE_opts) {
       Estimate = c(cumul.lead8.est, cumul.lead7.est, cumul.lead6.est, cumul.lead5.est, cumul.lead4.est, cumul.lead3.est, cumul.lead2.est, cumul.lead1.est, 
                    cumul.lag0.est, cumul.lag1.est, cumul.lag2.est, cumul.lag3.est, cumul.lag4.est, cumul.lag5.est, cumul.lag6.est, cumul.lag7.est, cumul.lag8.est),
       `Cluster s.e.` = c(cumul.lead8.se, cumul.lead7.se, cumul.lead6.se, cumul.lead5.se, cumul.lead4.se, cumul.lead3.se, cumul.lead2.se, cumul.lead1.se, 
-                       cumul.lag0.se, cumul.lag1.se, cumul.lag2.se, cumul.lag3.se, cumul.lag4.se, cumul.lag5.se, cumul.lag6.se, cumul.lag7.se, cumul.lag8.se),
+                         cumul.lag0.se, cumul.lag1.se, cumul.lag2.se, cumul.lag3.se, cumul.lag4.se, cumul.lag5.se, cumul.lag6.se, cumul.lag7.se, cumul.lag8.se),
       `Pr(>|t|)` = c(cumul.lead8.pval, cumul.lead7.pval, cumul.lead6.pval, cumul.lead5.pval, cumul.lead4.pval, cumul.lead3.pval, cumul.lead2.pval, cumul.lead1.pval, 
                      cumul.lag0.pval, cumul.lag1.pval, cumul.lag2.pval, cumul.lag3.pval, cumul.lag4.pval, cumul.lag5.pval, cumul.lag6.pval, cumul.lag7.pval, cumul.lag8.pval),
       outcome = Y,
@@ -382,48 +454,40 @@ LRdiff_res$N_years <- uniqueN(purchases.sample, by = c("year"))
 fwrite(LRdiff_res, output.results.file)
 
 
-#### Try different subsamples to disentangle a bit about data balance ----------------
+### Statutory rate - Taxable -----------
 
-### Keep households that stay at least 4 years in the panel ------------
-purchases.sample <- purchases.sample[, first := min(cal_time), by = .(household_code)]
-purchases.sample <- purchases.sample[, last := max(cal_time), by = .(household_code)]
-
-purchases.long <- purchases.sample[last > first + 47, ]
+estimation.sample <- merge(purchases.sample, sample.statutory.taxable, by = c("household_code", "quarter", "year"))
+estimation.sample <- estimation.sample[!is.na(N)]
 
 
-output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_quarter_leadslags_describe_4years.csv"
-output.results.file <- "../../../../../home/slacouture/HMS/HH_quarter_leadslags_cumulative_4years.csv"
+output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_quarter_distributed_lags_describe_statutaxa.csv"
+output.results.file <- "../../../../../home/slacouture/HMS/HH_quarter_distributed_lags_cumulative_statutaxa.csv"
 
-## Run basic descriptives  ------
 
-descriptives <- describe(purchases.long[, .(D.ln_sales_tax, D.ln_expenditure_taxable, D.ln_expenditure_non_taxable,
-                                              D.ln_expenditure_unknown, D.ln_expenditure_diff3, 
-                                              D.ln_expenditure_same3, D.ln_share_taxable,
-                                              D.ln_share_non_taxable, D.ln_share_unknown, 
-                                              D.ln_share_same3, D.ln_share_diff3, D.ln_total_expenditure,
-                                              D.ln_expenditure_taxable_same3, D.ln_expenditure_taxable_diff3,
-                                              D.ln_expenditure_non_taxable_same3, D.ln_expenditure_non_taxable_diff3,
-                                              D.ln_expenditure_unknown_same3, D.ln_expenditure_unknown_diff3, 
-                                              D.ln_share_taxable_same3, D.ln_share_taxable_diff3, 
-                                              D.ln_share_non_taxable_same3, D.ln_share_non_taxable_diff3,
-                                              D.ln_share_unknown_same3, D.ln_share_unknown_diff3)])
+## Run basic descriptives
+
+descriptives <- describe(estimation.sample[, .(D.ln_sales_tax, D.ln_expenditure_taxable, D.ln_expenditure_non_taxable,
+                                               D.ln_expenditure_unknown, D.ln_expenditure_diff3, 
+                                               D.ln_expenditure_same3, D.ln_share_taxable,
+                                               D.ln_share_non_taxable, D.ln_share_unknown, 
+                                               D.ln_share_same3, D.ln_share_diff3, D.ln_total_expenditure)])
 des.est.out  <- data.table(descriptives, keep.rownames=T)
 fwrite(des.est.out, output.decriptives.file)
 
 
-## Run Estimations ------
+## Run Estimations
 
 LRdiff_res <- data.table(NULL)
 for (FE in FE_opts) {
-  for (Y in c(outcomes, outcomes_t)) {
+  for (Y in outcomes) {
     
     ## Raw outcomes
     formula1 <- as.formula(paste0(
       Y, "~", formula_RHS, "|", FE, "| 0 | household_code"
     ))
     flog.info("Estimating with %s as outcome and %s FE.", Y, FE)
-    res1 <- felm(formula = formula1, data = purchases.long,
-                 weights = purchases.long$projection_factor)
+    res1 <- felm(formula = formula1, data = estimation.sample,
+                 weights = estimation.sample$projection_factor)
     flog.info("Finished estimating with %s as outcome and %s FE.", Y, FE)
     
     
@@ -434,7 +498,7 @@ for (FE in FE_opts) {
     res1.dt[, spec := FE]
     res1.dt[, Rsq := summary(res1)$r.squared]
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-    res1.dt[, N.obs := nrow(purchases.long[!is.na(get(Y))])]
+    res1.dt[, N.obs := nrow(estimation.sample[!is.na(get(Y))])]
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
     
@@ -469,7 +533,7 @@ for (FE in FE_opts) {
       spec = FE,
       Rsq = summary(res1)$r.squared,
       adj.Rsq = summary(res1)$adj.r.squared,
-      N.obs = nrow(purchases.long[!is.na(get(Y))]))
+      N.obs = nrow(purchases.sample[!is.na(get(Y))]))
     LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
     
@@ -545,58 +609,53 @@ for (FE in FE_opts) {
       spec = FE,
       Rsq = summary(res1)$r.squared,
       adj.Rsq = summary(res1)$adj.r.squared,
-      N.obs = nrow(purchases.long[!is.na(get(Y))]))
+      N.obs = nrow(purchases.sample[!is.na(get(Y))]))
     LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
   }
 }
 
-LRdiff_res$N_hholds <- length(unique(purchases.long$household_code))
-LRdiff_res$N_counties <- uniqueN(purchases.long, by = c("fips_state_code", "fips_county_code"))
-LRdiff_res$N_years <- uniqueN(purchases.long, by = c("year"))
+LRdiff_res$N_hholds <- length(unique(purchases.sample$household_code))
+LRdiff_res$N_counties <- uniqueN(purchases.sample, by = c("fips_state_code", "fips_county_code"))
+LRdiff_res$N_years <- uniqueN(purchases.sample, by = c("year"))
 
 fwrite(LRdiff_res, output.results.file)
 
 
+### Statutory rate - Non Taxable -----------
 
-### Keep households that don't move ------------
-purchases.nonmovers <- purchases.sample[, av_zip_code := mean(zip_code), by = .(household_code)]
-purchases.nonmovers <- purchases.nonmovers[av_zip_code == zip_code]
+estimation.sample <- merge(purchases.sample, sample.statutory.nontaxable, by = c("household_code", "quarter", "year"))
+estimation.sample <- estimation.sample[!is.na(N)]
 
 
-output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_quarter_leadslags_describe_nonmovers.csv"
-output.results.file <- "../../../../../home/slacouture/HMS/HH_quarter_leadslags_cumulative_nonmovers.csv"
+output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_quarter_distributed_lags_describe_statutaxex.csv"
+output.results.file <- "../../../../../home/slacouture/HMS/HH_quarter_distributed_lags_cumulative_statutaxex.csv"
 
-## Run basic descriptives  ------
 
-descriptives <- describe(purchases.nonmovers[, .(D.ln_sales_tax, D.ln_expenditure_taxable, D.ln_expenditure_non_taxable,
-                                            D.ln_expenditure_unknown, D.ln_expenditure_diff3, 
-                                            D.ln_expenditure_same3, D.ln_share_taxable,
-                                            D.ln_share_non_taxable, D.ln_share_unknown, 
-                                            D.ln_share_same3, D.ln_share_diff3, D.ln_total_expenditure,
-                                            D.ln_expenditure_taxable_same3, D.ln_expenditure_taxable_diff3,
-                                            D.ln_expenditure_non_taxable_same3, D.ln_expenditure_non_taxable_diff3,
-                                            D.ln_expenditure_unknown_same3, D.ln_expenditure_unknown_diff3, 
-                                            D.ln_share_taxable_same3, D.ln_share_taxable_diff3, 
-                                            D.ln_share_non_taxable_same3, D.ln_share_non_taxable_diff3,
-                                            D.ln_share_unknown_same3, D.ln_share_unknown_diff3)])
+## Run basic descriptives
+
+descriptives <- describe(estimation.sample[, .(D.ln_sales_tax, D.ln_expenditure_taxable, D.ln_expenditure_non_taxable,
+                                               D.ln_expenditure_unknown, D.ln_expenditure_diff3, 
+                                               D.ln_expenditure_same3, D.ln_share_taxable,
+                                               D.ln_share_non_taxable, D.ln_share_unknown, 
+                                               D.ln_share_same3, D.ln_share_diff3, D.ln_total_expenditure)])
 des.est.out  <- data.table(descriptives, keep.rownames=T)
 fwrite(des.est.out, output.decriptives.file)
 
 
-## Run Estimations ------
+## Run Estimations
 
 LRdiff_res <- data.table(NULL)
 for (FE in FE_opts) {
-  for (Y in c(outcomes, outcomes_t)) {
+  for (Y in outcomes) {
     
     ## Raw outcomes
     formula1 <- as.formula(paste0(
       Y, "~", formula_RHS, "|", FE, "| 0 | household_code"
     ))
     flog.info("Estimating with %s as outcome and %s FE.", Y, FE)
-    res1 <- felm(formula = formula1, data = purchases.nonmovers,
-                 weights = purchases.nonmovers$projection_factor)
+    res1 <- felm(formula = formula1, data = estimation.sample,
+                 weights = estimation.sample$projection_factor)
     flog.info("Finished estimating with %s as outcome and %s FE.", Y, FE)
     
     
@@ -607,7 +666,7 @@ for (FE in FE_opts) {
     res1.dt[, spec := FE]
     res1.dt[, Rsq := summary(res1)$r.squared]
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-    res1.dt[, N.obs := nrow(purchases.nonmovers[!is.na(get(Y))])]
+    res1.dt[, N.obs := nrow(estimation.sample[!is.na(get(Y))])]
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
     
@@ -642,7 +701,7 @@ for (FE in FE_opts) {
       spec = FE,
       Rsq = summary(res1)$r.squared,
       adj.Rsq = summary(res1)$adj.r.squared,
-      N.obs = nrow(purchases.nonmovers[!is.na(get(Y))]))
+      N.obs = nrow(purchases.sample[!is.na(get(Y))]))
     LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
     
@@ -718,21 +777,17 @@ for (FE in FE_opts) {
       spec = FE,
       Rsq = summary(res1)$r.squared,
       adj.Rsq = summary(res1)$adj.r.squared,
-      N.obs = nrow(purchases.nonmovers[!is.na(get(Y))]))
+      N.obs = nrow(purchases.sample[!is.na(get(Y))]))
     LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
   }
 }
 
-LRdiff_res$N_hholds <- length(unique(purchases.nonmovers$household_code))
-LRdiff_res$N_counties <- uniqueN(purchases.nonmovers, by = c("fips_state_code", "fips_county_code"))
-LRdiff_res$N_years <- uniqueN(purchases.nonmovers, by = c("year"))
+LRdiff_res$N_hholds <- length(unique(purchases.sample$household_code))
+LRdiff_res$N_counties <- uniqueN(purchases.sample, by = c("fips_state_code", "fips_county_code"))
+LRdiff_res$N_years <- uniqueN(purchases.sample, by = c("year"))
 
 fwrite(LRdiff_res, output.results.file)
-
-
-
-
 
 
 
