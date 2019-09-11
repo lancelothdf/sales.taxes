@@ -165,7 +165,7 @@ for (yr in 2008:2014) {
   # Create binary treatment. Drop first counties without tax data
   year.covariates <- year.covariates[!is.na(ln_sales_tax), ]
   year.covariates <- year.covariates[, high.tax.rate := (ln_sales_tax >= median(ln_sales_tax)) ]
-  year.data <- year.data[, taxable :=ifelse(ln_sales_tax == 1, 0, 1)][, -c("ln_sales_tax")]
+  year.data <- year.data[, taxable :=ifelse(ln_sales_tax == 0, FALSE, TRUE)][, -c("ln_sales_tax")]
   
   ### Selection of covariates. Algorithm suggested by Imbens (2015) -----
   # Basic regression
