@@ -373,7 +373,7 @@ for (yr in 2008:2014) {
   
   #### Algorithm 1: Nearest Neighbord
   nn.crosswalk <- merge(nn.crosswalk, year.data, by = c("fips_state", "fips_county"), all.x = T)
-  head(nn.crosswalk)
+  flog.info(head(nn.crosswalk))
   # Create Interaction term
   nn.crosswalk <- nn.crosswalk[, high.tax.rate_taxable := high.tax.rate*taxable]
   
