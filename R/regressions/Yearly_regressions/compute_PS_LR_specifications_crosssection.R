@@ -132,8 +132,8 @@ covariates <- merge(covariates, unemp.data, by = c("year", "fips_county", "fips_
 
 tax.data <- fread(tax.path)
 tax.data <- tax.data[, list(sales_tax = mean(sales_tax, na.rm = T)), by = .(year, fips_state, fips_county)]
-tax.data <- tax.data[, ln_sales_tax := log(sales_tax)]
-
+tax.data <- tax.data[, ln_sales_tax := log1p(sales_tax)]
+head(tax.data)
 head(covariates)
 covariates <- merge(covariates, tax.data, by = c("year", "fips_county", "fips_state"), all.x = T)
 head(covariates)
@@ -143,7 +143,7 @@ head(covariates)
 rm(nhgis2000, nhgis2010, census.regions, qcew, zillow_dt, zillow_state_dt, unemp.data, tax.data)
 
 ## Final data
-covariates <- covariates[!is.na(ln_sales_tax) ]
+covariates <- covariates[!is.na(ln_sales_tax), ]
 
 
 ###### Propensity Score set up -----------------------------
