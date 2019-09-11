@@ -142,14 +142,11 @@ covariates <- as.data.table(covariates)
 ###### Propensity Score set up -----------------------------
 
 # Vector of "must be in" variables
-Xb <- c("pct_pop_urban", "housing_ownership_share", "median_income", "pct_pop_no_college",  "pct_pop_bachelors",
-        "pct_pop_over_65", "pct_pop_under_25", "pct_pop_black", "ln_unemp", "ln_home_price")
+Xb <- c("ln_unemp", "ln_home_price")
 
 # Vector of potential variables
-Xa_pot <- c("food_and_drugstores_empshare", "retail_empshare", "realestate_empshare", "public_admin_empshare", 
-            "manufacturing_empshare", "finance_insurance_empshare", "construction_empshare", "ln_mean_retail_wage", 
-            "ln_mean_wage", "nr_employment", "total_establishments", "retail_establishments", "nr_establishments",
-            "total_employment", "retail_employment")
+Xa_pot <- c("pct_pop_urban", "housing_ownership_share", "median_income", "pct_pop_no_college", "pct_pop_bachelors",
+            "pct_pop_over_65", "pct_pop_under_25", "pct_pop_black", "ln_mean_wage")
 
 # Vector of outcomes to run cross-sectional design
 outcomes <- c("ln_cpricei2", "ln_quantity2", "pct_pop_urban", "housing_ownership_share", "median_income", "pct_pop_no_college", "pct_pop_bachelors", "pct_pop_over_65", "pct_pop_under_25", "pct_pop_black", "ln_unemp", "ln_home_price")
