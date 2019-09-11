@@ -133,17 +133,9 @@ covariates <- merge(covariates, unemp.data, by = c("year", "fips_county", "fips_
 tax.data <- fread(tax.path)
 tax.data <- tax.data[, list(sales_tax = mean(sales_tax, na.rm = T)), by = .(year, fips_state, fips_county)]
 tax.data <- tax.data[, ln_sales_tax := log1p(sales_tax)]
-head(tax.data)
-head(covariates)
+
 covariates <- merge(covariates, tax.data, by = c("year", "fips_county", "fips_state"), all.x = T)
-head(covariates)
 
-
-# Release some space
-rm(nhgis2000, nhgis2010, census.regions, qcew, zillow_dt, zillow_state_dt, unemp.data, tax.data)
-
-## Final data
-covariates <- covariates[!is.na(ln_sales_tax), ]
 
 
 ###### Propensity Score set up -----------------------------
@@ -171,9 +163,11 @@ for (yr in 2008:2014) {
   # Keep year of interest
   year.covariates <- covariates[ year == yr, ]
   year.data <- yearly_data[ year == yr, ]
-  
-  # Create binary treatment
-  year.covariates <- year.covariates[, high.tax.rate := (ln_sales_tax >= median(ln_sales_tax, na.rm = T)) ]
+  #Check data
+  head(year.covariates)
+  # Create binary treatment. Drop first counties without tax data
+  year.covariates <- year.covariates[!is.na(ln_sales_tax), ]
+  year.covariates <- year.covariates[, high.tax.rate := (ln_sales_tax >= median(ln_sales_tax)) ]
   year.data <- year.data[, taxable :=ifelse(ln_sales_tax == 1, 0, 1)][, -c("ln_sales_tax")]
   
   ### Selection of covariates. Algorithm suggested by Imbens (2015) -----
