@@ -358,6 +358,7 @@ for (yr in 2008:2014) {
     # Merge all tests
     test.dt <- cbind(priortest.dt, nn.test.dt, knn.test.dt, calip.test.dt, weight.test.dt)
     
+    flog.info("Balance chceck for %s done", X)
     # Append to other outcomes
     test.year <- rbind(test.year, test.dt, fill = T)
   }
