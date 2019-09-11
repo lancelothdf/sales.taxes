@@ -372,10 +372,11 @@ for (yr in 2008:2014) {
   #### Estimate cross-sectional design for each algorithm -------
   
   #### Algorithm 1: Nearest Neighbord
-  nn.crosswalk <- merge(nn.crosswalk, year.data, by = c("fips_state", "fips_county"), all.x = T)
-  flog.info(head(nn.crosswalk))
+  nn.crosswalk <- merge(nn.crosswalk, year.data, by = c("fips_state", "fips_county"))
   # Create Interaction term
   nn.crosswalk <- nn.crosswalk[, high.tax.rate_taxable := high.tax.rate*taxable]
+  # Make sure there are no 0 weights
+  nn.crosswalk <- nn.crosswalk[!is.na(base.sales) & !is.na(curr.sales)]
   
   flog.info("Running estimates under algorithm 1 for year %s", yr)
   for(Y in outcomes) {
@@ -432,12 +433,14 @@ for (yr in 2008:2014) {
   
   
   #### Algorithm 2: k-Nearest Neighbord
-  knn.crosswalk <- merge(knn.crosswalk, year.data, by = c("fips_state", "fips_county"), all.x = T)
+  knn.crosswalk <- merge(knn.crosswalk, year.data, by = c("fips_state", "fips_county"))
   # Create Interaction term
   knn.crosswalk <- knn.crosswalk[, high.tax.rate_taxable := high.tax.rate*taxable]
   # Create new weights
   knn.crosswalk <- knn.crosswalk[, base.sales := base.sales*w]
   knn.crosswalk <- knn.crosswalk[, curr.sales := curr.sales*w]
+  # Make sure there are no 0 weights
+  knn.crosswalk <- knn.crosswalk[!is.na(base.sales) & !is.na(curr.sales)]
   
   for(Y in outcomes) {
     
@@ -493,12 +496,14 @@ for (yr in 2008:2014) {
   
   
   #### Algorithm 3: Caliper
-  calip.crosswalk <- merge(calip.crosswalk, year.data, by = c("fips_state", "fips_county"), all.x = T)
+  calip.crosswalk <- merge(calip.crosswalk, year.data, by = c("fips_state", "fips_county"))
   # Create Interaction term
   calip.crosswalk <- calip.crosswalk[, high.tax.rate_taxable := high.tax.rate*taxable]
   # Create new weights
   calip.crosswalk <- calip.crosswalk[, base.sales := base.sales*w]
   calip.crosswalk <- calip.crosswalk[, curr.sales := curr.sales*w]
+  # Make sure there are no 0 weights
+  calip.crosswalk <- calip.crosswalk[!is.na(base.sales) & !is.na(curr.sales)]
   
   for(Y in outcomes) {
     
@@ -554,13 +559,16 @@ for (yr in 2008:2014) {
   
   
   #### Algorithm 4: Weighted estimation
-  weighted.crosswalk <- merge(weighted.crosswalk, year.data, by = c("fips_state", "fips_county"), all.x = T)
+  weighted.crosswalk <- merge(weighted.crosswalk, year.data, by = c("fips_state", "fips_county"))
   # Create Interaction term
   weighted.crosswalk <- weighted.crosswalk[, high.tax.rate_taxable := high.tax.rate*taxable]
   # Create new weights
   weighted.crosswalk <- weighted.crosswalk[, base.sales := base.sales*w]
   weighted.crosswalk <- weighted.crosswalk[, curr.sales := curr.sales*w]
   
+  # Make sure there are no 0 weights
+  weighted.crosswalk <- weighted.crosswalk[!is.na(base.sales) & !is.na(curr.sales)]
+
   for(Y in outcomes) {
     
     
