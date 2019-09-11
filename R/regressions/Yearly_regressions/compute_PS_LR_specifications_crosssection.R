@@ -138,11 +138,6 @@ covariates <- merge(covariates, tax.data, by = c("year", "fips_county", "fips_st
 # Release some space
 rm(nhgis2000, nhgis2010, census.regions, qcew, zillow_dt, zillow_state_dt, unemp.data, tax.data)
 
-### Identify counties that we won't use to drop them
-usefull.counties <- yearly_data[, list(N = .N), by = .(year, fips_state, fips_county)]
-covariates <- merge(covariates, usefull.counties, by = c("year", "fips_county", "fips_state"), all.x = T)
-covariates <- covariates[!is.na(N),]
-
 ## Final data
 covariates <- covariates[!is.na(ln_sales_tax) ]
 
