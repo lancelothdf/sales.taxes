@@ -27,7 +27,7 @@ covariates.nhgis.path <- "Data/covariates/nhgis_county_clean.csv"
 covariates.qcew.path <- "Data/covariates/qcew_clean.csv"
 census.regions.path <- "Data/covariates/census_regions.csv"
 
-tax.path <- "Data/county_monthly_tax_rates.csv"
+tax.path <- "Data/county_monthly_tax_rates_2008_2014.csv"
 
 zillow_path <- "Data/covariates/zillow_long_by_county_clean.csv"
 zillow_state_path <- "Data/covariates/zillow_long_by_state_clean.csv"
