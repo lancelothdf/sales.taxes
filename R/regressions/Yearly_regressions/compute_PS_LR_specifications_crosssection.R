@@ -376,7 +376,7 @@ for (yr in 2008:2014) {
   # Create Interaction term
   nn.crosswalk <- nn.crosswalk[, high.tax.rate_taxable := high.tax.rate*taxable]
   # Make sure there are no 0 weights
-  nn.crosswalk <- nn.crosswalk[!is.na(base.sales) & !is.na(curr.sales)]
+  nn.crosswalk <- nn.crosswalk[!is.na(base.sales)]
   
   flog.info("Running estimates under algorithm 1 for year %s", yr)
   for(Y in outcomes) {
@@ -440,7 +440,7 @@ for (yr in 2008:2014) {
   knn.crosswalk <- knn.crosswalk[, base.sales := base.sales*w]
   knn.crosswalk <- knn.crosswalk[, curr.sales := curr.sales*w]
   # Make sure there are no 0 weights
-  knn.crosswalk <- knn.crosswalk[!is.na(base.sales) & !is.na(curr.sales)]
+  knn.crosswalk <- knn.crosswalk[!is.na(base.sales)]
   
   for(Y in outcomes) {
     
