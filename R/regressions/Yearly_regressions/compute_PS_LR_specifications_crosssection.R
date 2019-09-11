@@ -329,12 +329,14 @@ for (yr in 2008:2014) {
   test.year <- data.table(NULL)
   for (X in Xfinal) {
     
+    # Rowname
+    outcome <-data.table(X)
+    setnames(priortest.dt, old = c("X"), new = c("outcome"))
     # Prior balance
     test.out <- lm(get(X) ~ high.tax.rate, data = year.covariates)
     priortest.dt <- data.table(coef(summary(test.out)))[2,][, -c("t value")]
     setnames(priortest.dt, old = c("Estimate", "Std. Error", "Pr(>|t|)"),
              new = c("prior.est", "prior.std.err", "prior.pval"))
-    priortest.dt[, outcome := X]
     # Adjusted nn balance
     nn.test.out <- lm(get(X) ~ high.tax.rate, data = nn.crosswalk)
     nn.test.dt <- data.table(coef(summary(nn.test.out)))[2,][, -c("t value")]
@@ -356,7 +358,7 @@ for (yr in 2008:2014) {
     setnames(weight.test.dt, old = c("Estimate", "Std. Error", "Pr(>|t|)"),
              new = c("weight.est", "weight.std.err", "weight.pval"))
     # Merge all tests
-    test.dt <- cbind(priortest.dt, nn.test.dt, knn.test.dt, calip.test.dt, weight.test.dt)
+    test.dt <- cbind(outcome, priortest.dt, nn.test.dt, knn.test.dt, calip.test.dt, weight.test.dt)
     
     flog.info("Balance check for %s done", X)
     # Append to other outcomes
@@ -371,6 +373,7 @@ for (yr in 2008:2014) {
   
   #### Algorithm 1: Nearest Neighbord
   nn.crosswalk <- merge(nn.crosswalk, year.data, by = c("fips_state", "fips_county"), all.x = T)
+  head(nn.crosswalk)
   # Create Interaction term
   nn.crosswalk <- nn.crosswalk[, high.tax.rate_taxable := high.tax.rate*taxable]
   
