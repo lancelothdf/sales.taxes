@@ -77,7 +77,8 @@ qcew <- qcew[year >= 2008 & year <= 2014,]
 qcew <- qcew[, fips_state := as.numeric(substr(area_fips, 1, 2))]
 qcew <- qcew[, fips_county := as.numeric(substr(area_fips, 3, 5))]
 qcew <- qcew[, ln_mean_wage := log(total_mean_wage)]
-qcew <- qcew[, -c("total_mean_wage")]
+qcew <- qcew[, ln_mean_retail_wage := log(retail_mean_wage)]
+qcew <- qcew[, -c("total_mean_wage", "retail_mean_wage" )]
 covariates <- merge(covariates, qcew, by = c("year", "fips_county", "fips_state"), all.x = T)
 
 
@@ -146,8 +147,8 @@ Xb <- c("pct_pop_urban", "housing_ownership_share", "median_income", "pct_pop_no
 
 # Vector of potential variables
 Xa_pot <- c("food_and_drugstores_empshare", "retail_empshare", "realestate_empshare", "public_admin_empshare", 
-            "manufacturing_empshare", "finance_insurance_empshare", "construction_empshare", "retail_mean_wage", 
-            "total_mean_wage", "nr_employment", "total_establishments", "retail_establishments", "nr_establishments",
+            "manufacturing_empshare", "finance_insurance_empshare", "construction_empshare", "ln_mean_retail_wage", 
+            "ln_mean_wage", "nr_employment", "total_establishments", "retail_establishments", "nr_establishments",
             "total_employment", "retail_employment")
 
 # Vector of outcomes to run cross-sectional design
