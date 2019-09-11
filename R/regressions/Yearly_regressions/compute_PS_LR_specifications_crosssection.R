@@ -387,7 +387,7 @@ for (yr in 2008:2014) {
   for(Y in outcomes) {
     
     formula0 <- as.formula(paste0(
-      Y, " ~ high.tax.rate + taxable + high.tax.rate_taxable | module_code | 0 | state_by_module ", sep = ""
+      Y, " ~ high.tax.rate + taxable + high.tax.rate_taxable | product_module_code | 0 | state_by_module ", sep = ""
     ))
     
     ### Base weights
@@ -426,6 +426,15 @@ for (yr in 2008:2014) {
     fwrite(LRdiff_res, output.results.file)  ## Write results to a csv file 
     
   }
+  LRdiff_res$N_obs <- nrow(nn.crosswalk)
+  LRdiff_res$N_modules <- length(unique(nn.crosswalk$product_module_code))
+  LRdiff_res$N_stores <- length(unique(nn.crosswalk$store_code_uc))
+  LRdiff_res$N_counties <- uniqueN(nn.crosswalk, by = c("fips_state", "fips_county"))
+  LRdiff_res$N_years <- uniqueN(nn.crosswalk, by = c("year")) 
+  LRdiff_res$N_county_modules <- uniqueN(nn.crosswalk, by = c("fips_state", "fips_county",
+                                                               "product_module_code"))
+  LRdiff_res$N_store_modules <- uniqueN(nn.crosswalk, by = c("store_code_uc", "product_module_code"))
+  LRdiff_res$N_state_modules <- uniqueN(nn.crosswalk, by = c("fips_state", "product_module_code"))
   
   
   #### Algorithm 2: k-Nearest Neighbord
@@ -440,7 +449,7 @@ for (yr in 2008:2014) {
     
     
     formula0 <- as.formula(paste0(
-      Y, " ~ high.tax.rate + taxable + high.tax.rate_taxable | module_code | 0 | state_by_module ", sep = ""
+      Y, " ~ high.tax.rate + taxable + high.tax.rate_taxable | product_module_code | 0 | state_by_module ", sep = ""
     ))
     ### Base weights
     res0 <- felm(data = knn.crosswalk,
@@ -478,6 +487,16 @@ for (yr in 2008:2014) {
     fwrite(LRdiff_res, output.results.file)  ## Write results to a csv file 
     
   }
+  LRdiff_res$N_obs <- nrow(knn.crosswalk)
+  LRdiff_res$N_modules <- length(unique(knn.crosswalk$product_module_code))
+  LRdiff_res$N_stores <- length(unique(knn.crosswalk$store_code_uc))
+  LRdiff_res$N_counties <- uniqueN(knn.crosswalk, by = c("fips_state", "fips_county"))
+  LRdiff_res$N_years <- uniqueN(knn.crosswalk, by = c("year")) 
+  LRdiff_res$N_county_modules <- uniqueN(knn.crosswalk, by = c("fips_state", "fips_county",
+                                                                 "product_module_code"))
+  LRdiff_res$N_store_modules <- uniqueN(knn.crosswalk, by = c("store_code_uc", "product_module_code"))
+  LRdiff_res$N_state_modules <- uniqueN(knn.crosswalk, by = c("fips_state", "product_module_code"))
+  
   
   #### Algorithm 3: Caliper
   calip.crosswalk <- merge(calip.crosswalk, year.data, by = c("fips_state", "fips_county"))
@@ -491,7 +510,7 @@ for (yr in 2008:2014) {
     
     
     formula0 <- as.formula(paste0(
-      Y, " ~ high.tax.rate + taxable + high.tax.rate_taxable | module_code | 0 | state_by_module ", sep = ""
+      Y, " ~ high.tax.rate + taxable + high.tax.rate_taxable | product_module_code | 0 | state_by_module ", sep = ""
     ))
     ### Base weights
     res0 <- felm(data = calip.crosswalk,
@@ -529,6 +548,15 @@ for (yr in 2008:2014) {
     fwrite(LRdiff_res, output.results.file)  ## Write results to a csv file 
     
   }
+  LRdiff_res$N_obs <- nrow(calip.crosswalk)
+  LRdiff_res$N_modules <- length(unique(calip.crosswalk$product_module_code))
+  LRdiff_res$N_stores <- length(unique(calip.crosswalk$store_code_uc))
+  LRdiff_res$N_counties <- uniqueN(calip.crosswalk, by = c("fips_state", "fips_county"))
+  LRdiff_res$N_years <- uniqueN(calip.crosswalk, by = c("year")) 
+  LRdiff_res$N_county_modules <- uniqueN(calip.crosswalk, by = c("fips_state", "fips_county",
+                                                                    "product_module_code"))
+  LRdiff_res$N_store_modules <- uniqueN(calip.crosswalk, by = c("store_code_uc", "product_module_code"))
+  LRdiff_res$N_state_modules <- uniqueN(calip.crosswalk, by = c("fips_state", "product_module_code"))
   
   
   #### Algorithm 4: Weighted estimation
@@ -543,7 +571,7 @@ for (yr in 2008:2014) {
     
     
     formula0 <- as.formula(paste0(
-      Y, " ~ high.tax.rate + taxable + high.tax.rate_taxable | module_code | 0 | state_by_module ", sep = ""
+      Y, " ~ high.tax.rate + taxable + high.tax.rate_taxable | product_module_code | 0 | state_by_module ", sep = ""
     ))
     ### Base weights
     res0 <- felm(data = weighted.crosswalk,
@@ -581,8 +609,18 @@ for (yr in 2008:2014) {
     fwrite(LRdiff_res, output.results.file)  ## Write results to a csv file 
     
   }
+  LRdiff_res$N_obs <- nrow(weighted.crosswalk)
+  LRdiff_res$N_modules <- length(unique(weighted.crosswalk$product_module_code))
+  LRdiff_res$N_stores <- length(unique(weighted.crosswalk$store_code_uc))
+  LRdiff_res$N_counties <- uniqueN(weighted.crosswalk, by = c("fips_state", "fips_county"))
+  LRdiff_res$N_years <- uniqueN(weighted.crosswalk, by = c("year")) 
+  LRdiff_res$N_county_modules <- uniqueN(weighted.crosswalk, by = c("fips_state", "fips_county",
+                                                             "product_module_code"))
+  LRdiff_res$N_store_modules <- uniqueN(weighted.crosswalk, by = c("store_code_uc", "product_module_code"))
+  LRdiff_res$N_state_modules <- uniqueN(weighted.crosswalk, by = c("fips_state", "product_module_code"))
   
 }
+
 
 
 
