@@ -339,6 +339,7 @@ for (yr in 2008:2014) {
   flog.info("Checking balance for year %s", yr)
   test.year <- data.table(NULL)
   for (X in Xfinal) {
+    
     # Prior balance
     test.out <- lm(get(X) ~ high.tax.rate, data = year.covariates)
     priortest.dt <- data.table(coef(summary(test.out)))[2,][, -c("t value")]
@@ -582,42 +583,6 @@ for (yr in 2008:2014) {
   }
   
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ### Prepare the data
-## See LR_diff_diff_regression_sales_FE_specification.R -- the file output_yearly is prepared in that file
-
-
-### Drop observations for which the sales tax rate is imputed
-yearly_data <- yearly_data[year >= 2008 & year <= 2014]
-yearly_data$year <- factor(yearly_data$year) ##Convert the indicator for year to a factor variable (needed for interaction in the regression between ln_sales_tax and dummy for year)
-
-
-
-#### Finally merge covariates to yearly_data
-yearly_data <- merge(yearly_data, covariates, by = c("fips_state", "fips_county", "year"), all.x = T)
-
-
-
-
 
 
 
