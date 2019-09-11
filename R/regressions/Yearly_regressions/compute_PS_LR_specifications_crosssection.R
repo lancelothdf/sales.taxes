@@ -134,7 +134,9 @@ tax.data <- fread(tax.path)
 tax.data <- tax.data[, list(sales_tax = mean(sales_tax, na.rm = T)), by = .(year, fips_state, fips_county)]
 tax.data <- tax.data[, ln_sales_tax := log(sales_tax)]
 
+covariates
 covariates <- merge(covariates, tax.data, by = c("year", "fips_county", "fips_state"), all.x = T)
+
 # Release some space
 rm(nhgis2000, nhgis2010, census.regions, qcew, zillow_dt, zillow_state_dt, unemp.data, tax.data)
 
