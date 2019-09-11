@@ -39,7 +39,7 @@ output.results.file <- "Data/LRdiff_results_LRspec_crosssection_binarypscore.csv
 output.path <- "../../home/slacouture/PS"
 
 
-###### County covariates set up-----------------------------
+###### County covariates set up. I keep every possible covariate -----------------------------
 # Need to load yearly data to identify useful counties
 yearly_data <- fread(output_yearly)
 ## Time invariant covariates
@@ -47,7 +47,7 @@ list.counties <- data.table(unique(yearly_data[,c('fips_state','fips_county')]))
 
 #nhgis 2010 
 nhgis2010 <- fread(covariates.nhgis.path)
-nhgis2010 <- nhgis2010[year == 2010,] ## Keep the 2000 values
+nhgis2010 <- nhgis2010[year == 2010,] ## Keep the 2010 values
 nhgis2010 <- nhgis2010[, c("statefp", "countyfp", "pct_pop_over_65", "pct_pop_under_25", "pct_pop_black", "pct_pop_urban", "housing_ownership_share")]
 names(nhgis2010) <- c("fips_state", "fips_county", "pct_pop_over_65", "pct_pop_under_25", "pct_pop_black", "pct_pop_urban", "housing_ownership_share")
 covariates <- merge(list.counties, nhgis2010, by = c("fips_state", "fips_county"), all.x = T)
@@ -77,7 +77,7 @@ qcew <- qcew[year >= 2008 & year <= 2014,]
 qcew <- qcew[, fips_state := as.numeric(substr(area_fips, 1, 2))]
 qcew <- qcew[, fips_county := as.numeric(substr(area_fips, 3, 5))]
 qcew <- qcew[, ln_mean_wage := log(total_mean_wage)]
-qcew <- qcew[, c("fips_state", "fips_county", "year", "ln_mean_wage")]
+qcew <- qcew[, -c("total_mean_wage")]
 covariates <- merge(covariates, qcew, by = c("year", "fips_county", "fips_state"), all.x = T)
 
 
@@ -124,7 +124,7 @@ unemp.data <- unemp.data[, c("fips_state", "fips_county", "year", "month", "rate
 unemp.data <- unemp.data[, list(unemp = mean(rate)), by = .(year, fips_state, fips_county)]
 unemp.data <- unemp.data[year >= 2006 & year <= 2016,]
 unemp.data <- unemp.data[, ln_unemp := log(unemp)]
-unemp.data <- unemp.data[, c("year", "fips_state", "fips_county", "ln_unemp")]
+unemp.data <- unemp.data[, -c("rate", "unemp")]
 
 covariates <- merge(covariates, unemp.data, by = c("year", "fips_county", "fips_state"), all.x = T)
 
