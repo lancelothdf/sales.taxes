@@ -43,7 +43,7 @@ output.path <- "../../home/slacouture/PS"
 # Need to load yearly data to identify useful counties
 yearly_data <- fread(output_yearly)
 ## Time invariant covariates
-list.counties <- data.frame(unique(yearly_data[,c('fips_state','fips_county')]))
+list.counties <- data.table(unique(yearly_data[,c('fips_state','fips_county')]))
 
 #nhgis 2010 
 nhgis2010 <- fread(covariates.nhgis.path)
