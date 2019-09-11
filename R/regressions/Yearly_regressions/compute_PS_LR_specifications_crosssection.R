@@ -11,7 +11,6 @@ library(lfe)
 library(futile.logger)
 library(AER)
 library(multcomp)
-library(splitstackshape)
 
 
 # Set directory
