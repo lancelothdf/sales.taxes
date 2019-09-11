@@ -136,7 +136,7 @@ tax.data <- tax.data[, ln_sales_tax := log1p(sales_tax)]
 
 covariates <- merge(covariates, tax.data, by = c("year", "fips_county", "fips_state"), all.x = T)
 
-
+covariates <- as.data.table(covariates)
 
 ###### Propensity Score set up -----------------------------
 
@@ -161,10 +161,9 @@ for (yr in 2008:2014) {
   
   flog.info("Starting year %s", yr)
   # Keep year of interest
-  year.covariates <- covariates[ year == yr, ]
   year.data <- yearly_data[ year == yr, ]
+  year.covariates <- covariates[ year == yr, ]
   #Check data
-  head(year.covariates)
   # Create binary treatment. Drop first counties without tax data
   year.covariates <- year.covariates[!is.na(ln_sales_tax), ]
   year.covariates <- year.covariates[, high.tax.rate := (ln_sales_tax >= median(ln_sales_tax)) ]
