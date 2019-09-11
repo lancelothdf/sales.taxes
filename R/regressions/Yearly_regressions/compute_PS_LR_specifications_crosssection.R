@@ -331,7 +331,7 @@ for (yr in 2008:2014) {
     
     # Rowname
     outcome <-data.table(X)
-    setnames(priortest.dt, old = c("X"), new = c("outcome"))
+    setnames(outcome, old = c("X"), new = c("outcome"))
     # Prior balance
     test.out <- lm(get(X) ~ high.tax.rate, data = year.covariates)
     priortest.dt <- data.table(coef(summary(test.out)))[2,][, -c("t value")]
