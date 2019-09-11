@@ -40,7 +40,8 @@ output.path <- "../../home/slacouture/PS"
 
 
 ###### County covariates set up-----------------------------
-
+# Need to load yearly data to identify useful counties
+yearly_data <- fread(output_yearly)
 ## Time invariant covariates
 list.counties <- data.frame(unique(yearly_data[,c('fips_state','fips_county')]))
 
@@ -137,9 +138,8 @@ covariates <- merge(covariates, tax.data, by = c("year", "fips_county", "fips_st
 # Release some space
 rm(nhgis2000, nhgis2010, census.regions, qcew, zillow_dt, zillow_state_dt, unemp.data, tax.data)
 
-### Need to load yearly data created before to identify counties that we won't use to drop them
-yearly_data <- fread(output_yearly)
-usefull.counties[, list(N = .N), by = .(year, fips_state, fips_county)]
+### Identify counties that we won't use to drop them
+usefull.counties <- yearly_data[, list(N = .N), by = .(year, fips_state, fips_county)]
 covariates <- merge(covariates, usefull.counties, by = c("year", "fips_county", "fips_state"), all.x = T)
 covariates <- covariates[!is.na(N),]
 
