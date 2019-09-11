@@ -37,7 +37,7 @@ border.path <- "Data/border_counties.csv"
 
 ## Where to save results
 output.results.file <- "Data/LRdiff_results_LRspec_crosssection_binarypscore.csv"
-output.path <- "../../../../../home/slacouture/PS"
+output.path <- "../../home/slacouture/PS"
 
 
 ###### County covariates set up-----------------------------
