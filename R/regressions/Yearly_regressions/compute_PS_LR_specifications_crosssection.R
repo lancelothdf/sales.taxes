@@ -141,7 +141,7 @@ tax.data <- tax.data[, ln_sales_tax := log1p(sales_tax)]
 covariates <- merge(covariates, tax.data, by = c("year", "fips_county", "fips_state"), all.x = T)
 
 covariates <- as.data.table(covariates)
-year.data <- as.data.table(year.data)
+yearly_data <- as.data.table(yearly_data)
 
 ###### Propensity Score set up -----------------------------
 
