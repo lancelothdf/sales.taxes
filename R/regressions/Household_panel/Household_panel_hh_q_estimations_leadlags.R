@@ -1074,7 +1074,7 @@ fwrite(LRdiff_res, output.results.file)
 
 ### Keep households that don't move ------------
 
-output.decriptives.file <- "../../../../../home/slacouture/HMS/HH_quarter_distributed_lags_4ll_nonmovers.csv"
+output.results.file <- "../../../../../home/slacouture/HMS/HH_quarter_distributed_lags_4ll_nonmovers.csv"
 
 
 ## Run Estimations ------
