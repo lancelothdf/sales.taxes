@@ -141,6 +141,7 @@ tax.data <- tax.data[, ln_sales_tax := log1p(sales_tax)]
 covariates <- merge(covariates, tax.data, by = c("year", "fips_county", "fips_state"), all.x = T)
 
 covariates <- as.data.table(covariates)
+year.data <- as.data.table(year.data)
 
 ###### Propensity Score set up -----------------------------
 
@@ -377,6 +378,7 @@ for (yr in 2008:2014) {
   
   #### Algorithm 1: Nearest Neighbord
   nn.crosswalk <- merge(year.data, nn.crosswalk, by = c("fips_state", "fips_county"))
+  nn.crosswalk <- data.table(nn.crosswalk)
   # Create Interaction term
   nn.crosswalk <- nn.crosswalk[, high.tax.rate_taxable := high.tax.rate*taxable]
   # Make sure there are no 0 weights
