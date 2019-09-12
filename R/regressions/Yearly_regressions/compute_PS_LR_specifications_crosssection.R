@@ -385,7 +385,7 @@ for (yr in 2008:2014) {
   nn.crosswalk <- nn.crosswalk[, high.tax.rate_taxable := high.tax.rate*taxable]
   # Make sure there are no 0 weights
   nn.crosswalk <- nn.crosswalk[!is.na(base.sales)]
-  nn.crosswalk <- nn.crosswalk[curr.sales := sales]
+  nn.crosswalk <- nn.crosswalk[, curr.sales := sales]
   ## Describe to check everything is fine
   des.est.out <- data.table(colnames(nn.crosswalk))
   fwrite(des.est.out, output.decriptives.file)
