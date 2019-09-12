@@ -379,19 +379,20 @@ for (yr in 2008:2014) {
   #### Estimate cross-sectional design for each algorithm -------
   
   #### Algorithm 1: Nearest Neighbord
-  nn.crosswalk <- merge(year.data, nn.crosswalk, by = c("fips_state", "fips_county"))
+  nn.crosswalk <- merge(year.data, nn.crosswalk, by = c("fips_state", "fips_county", "year"))
   nn.crosswalk <- data.table(nn.crosswalk)
   # Create Interaction term
   nn.crosswalk <- nn.crosswalk[, high.tax.rate_taxable := high.tax.rate*taxable]
   # Make sure there are no 0 weights
   nn.crosswalk <- nn.crosswalk[!is.na(base.sales)]
+  nn.crosswalk <- nn.crosswalk[curr.sales := sales]
   ## Describe to check everything is fine
   des.est.out <- data.table(colnames(nn.crosswalk))
   fwrite(des.est.out, output.decriptives.file)
   descriptives <- describe(nn.crosswalk[, c("ln_cpricei2", "ln_quantity2", "pct_pop_urban", "housing_ownership_share", 
                                             "median_income", "pct_pop_no_college", "pct_pop_bachelors", "pct_pop_over_65",
                                             "pct_pop_under_25", "pct_pop_black", "ln_unemp", "ln_home_price", "base.sales",
-                                            "high.tax.rate", "taxable", "high.tax.rate_taxable")])
+                                            "curr.sales", "high.tax.rate", "taxable", "high.tax.rate_taxable")])
   des.est.out  <- data.table(descriptives, keep.rownames=T)
   fwrite(des.est.out, output.decriptives.file)
   
@@ -421,28 +422,27 @@ for (yr in 2008:2014) {
     
     
     ### Current weights
-    # res0 <- felm(data = nn.crosswalk,
-    #              formula = formula0,
-    #              weights = nn.crosswalk$curr.sales)
-    # 
-    # ## attach results
-    # flog.info("Writing results...")
-    # res1.dt <- data.table(coef(summary(res0)), keep.rownames=T)
-    # res1.dt[, outcome := Y]
-    # res1.dt[, Rsq := summary(res0)$r.squared]
-    # res1.dt[, adj.Rsq := summary(res0)$adj.r.squared]
-    # res1.dt[, specification := "NN"]
-    # res1.dt[, weight := "curr.sales"]
-    # res1.dt[, year := yr]
-    # LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-    # fwrite(LRdiff_res, output.results.file)  ## Write results to a csv file 
+    res0 <- felm(data = nn.crosswalk,
+                 formula = formula0,
+                 weights = nn.crosswalk$curr.sales)
+
+    ## attach results
+    flog.info("Writing results...")
+    res1.dt <- data.table(coef(summary(res0)), keep.rownames=T)
+    res1.dt[, outcome := Y]
+    res1.dt[, Rsq := summary(res0)$r.squared]
+    res1.dt[, adj.Rsq := summary(res0)$adj.r.squared]
+    res1.dt[, specification := "NN"]
+    res1.dt[, weight := "curr.sales"]
+    res1.dt[, year := yr]
+    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)  ## Write results to a csv file
     
   }
   LRdiff_res$N_obs <- nrow(nn.crosswalk)
   LRdiff_res$N_modules <- length(unique(nn.crosswalk$product_module_code))
   LRdiff_res$N_stores <- length(unique(nn.crosswalk$store_code_uc))
   LRdiff_res$N_counties <- uniqueN(nn.crosswalk, by = c("fips_state", "fips_county"))
-  LRdiff_res$N_years <- uniqueN(nn.crosswalk, by = c("year")) 
   LRdiff_res$N_county_modules <- uniqueN(nn.crosswalk, by = c("fips_state", "fips_county",
                                                                "product_module_code"))
   LRdiff_res$N_store_modules <- uniqueN(nn.crosswalk, by = c("store_code_uc", "product_module_code"))
@@ -450,12 +450,12 @@ for (yr in 2008:2014) {
   
   
   #### Algorithm 2: k-Nearest Neighbord
-  knn.crosswalk <- merge(year.data, knn.crosswalk, by = c("fips_state", "fips_county"))
+  knn.crosswalk <- merge(year.data, knn.crosswalk, by = c("fips_state", "fips_county", "year"))
   # Create Interaction term
   knn.crosswalk <- knn.crosswalk[, high.tax.rate_taxable := high.tax.rate*taxable]
   # Create new weights
   knn.crosswalk <- knn.crosswalk[, base.sales := base.sales*w]
-  # knn.crosswalk <- knn.crosswalk[, curr.sales := curr.sales*w]
+  knn.crosswalk <- knn.crosswalk[, curr.sales := sales*w]
   # Make sure there are no 0 weights
   knn.crosswalk <- knn.crosswalk[!is.na(base.sales)]
   
@@ -483,29 +483,28 @@ for (yr in 2008:2014) {
     fwrite(LRdiff_res, output.results.file)  ## Write results to a csv file 
     
     
-    # ### Current weights
-    # res0 <- felm(data = knn.crosswalk,
-    #              formula = formula0,
-    #              weights = knn.crosswalk$curr.sales)
-    # 
-    # ## attach results
-    # flog.info("Writing results...")
-    # res1.dt <- data.table(coef(summary(res0)), keep.rownames=T)
-    # res1.dt[, outcome := Y]
-    # res1.dt[, Rsq := summary(res0)$r.squared]
-    # res1.dt[, adj.Rsq := summary(res0)$adj.r.squared]
-    # res1.dt[, specification := "KNN"]
-    # res1.dt[, weight := "curr.sales"]
-    # res1.dt[, year := yr]
-    # LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-    # fwrite(LRdiff_res, output.results.file)  ## Write results to a csv file 
+    ### Current weights
+    res0 <- felm(data = knn.crosswalk,
+                 formula = formula0,
+                 weights = knn.crosswalk$curr.sales)
+
+    ## attach results
+    flog.info("Writing results...")
+    res1.dt <- data.table(coef(summary(res0)), keep.rownames=T)
+    res1.dt[, outcome := Y]
+    res1.dt[, Rsq := summary(res0)$r.squared]
+    res1.dt[, adj.Rsq := summary(res0)$adj.r.squared]
+    res1.dt[, specification := "KNN"]
+    res1.dt[, weight := "curr.sales"]
+    res1.dt[, year := yr]
+    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)  ## Write results to a csv file
     
   }
   LRdiff_res$N_obs <- nrow(knn.crosswalk)
   LRdiff_res$N_modules <- length(unique(knn.crosswalk$product_module_code))
   LRdiff_res$N_stores <- length(unique(knn.crosswalk$store_code_uc))
   LRdiff_res$N_counties <- uniqueN(knn.crosswalk, by = c("fips_state", "fips_county"))
-  LRdiff_res$N_years <- uniqueN(knn.crosswalk, by = c("year")) 
   LRdiff_res$N_county_modules <- uniqueN(knn.crosswalk, by = c("fips_state", "fips_county",
                                                                  "product_module_code"))
   LRdiff_res$N_store_modules <- uniqueN(knn.crosswalk, by = c("store_code_uc", "product_module_code"))
@@ -513,12 +512,12 @@ for (yr in 2008:2014) {
   
   
   #### Algorithm 3: Caliper
-  calip.crosswalk <- merge(year.data, calip.crosswalk, by = c("fips_state", "fips_county"))
+  calip.crosswalk <- merge(year.data, calip.crosswalk, by = c("fips_state", "fips_county", "year"))
   # Create Interaction term
   calip.crosswalk <- calip.crosswalk[, high.tax.rate_taxable := high.tax.rate*taxable]
   # Create new weights
   calip.crosswalk <- calip.crosswalk[, base.sales := base.sales*w]
-  # calip.crosswalk <- calip.crosswalk[, curr.sales := curr.sales*w]
+  calip.crosswalk <- calip.crosswalk[, curr.sales := sales*w]
   # Make sure there are no 0 weights
   calip.crosswalk <- calip.crosswalk[!is.na(base.sales) & !is.na(curr.sales)]
   
@@ -552,23 +551,22 @@ for (yr in 2008:2014) {
                  weights = calip.crosswalk$curr.sales)
     
     ## attach results
-    # flog.info("Writing results...")
-    # res1.dt <- data.table(coef(summary(res0)), keep.rownames=T)
-    # res1.dt[, outcome := Y]
-    # res1.dt[, Rsq := summary(res0)$r.squared]
-    # res1.dt[, adj.Rsq := summary(res0)$adj.r.squared]
-    # res1.dt[, specification := "Caliper"]
-    # res1.dt[, weight := "curr.sales"]
-    # res1.dt[, year := yr]
-    # LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-    # fwrite(LRdiff_res, output.results.file)  ## Write results to a csv file 
+    flog.info("Writing results...")
+    res1.dt <- data.table(coef(summary(res0)), keep.rownames=T)
+    res1.dt[, outcome := Y]
+    res1.dt[, Rsq := summary(res0)$r.squared]
+    res1.dt[, adj.Rsq := summary(res0)$adj.r.squared]
+    res1.dt[, specification := "Caliper"]
+    res1.dt[, weight := "curr.sales"]
+    res1.dt[, year := yr]
+    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)  ## Write results to a csv file
     
   }
   LRdiff_res$N_obs <- nrow(calip.crosswalk)
   LRdiff_res$N_modules <- length(unique(calip.crosswalk$product_module_code))
   LRdiff_res$N_stores <- length(unique(calip.crosswalk$store_code_uc))
   LRdiff_res$N_counties <- uniqueN(calip.crosswalk, by = c("fips_state", "fips_county"))
-  LRdiff_res$N_years <- uniqueN(calip.crosswalk, by = c("year")) 
   LRdiff_res$N_county_modules <- uniqueN(calip.crosswalk, by = c("fips_state", "fips_county",
                                                                     "product_module_code"))
   LRdiff_res$N_store_modules <- uniqueN(calip.crosswalk, by = c("store_code_uc", "product_module_code"))
@@ -576,12 +574,12 @@ for (yr in 2008:2014) {
   
   
   #### Algorithm 4: Weighted estimation
-  weighted.crosswalk <- merge(year.data, weighted.crosswalk, by = c("fips_state", "fips_county"))
+  weighted.crosswalk <- merge(year.data, weighted.crosswalk, by = c("fips_state", "fips_county", "year"))
   # Create Interaction term
   weighted.crosswalk <- weighted.crosswalk[, high.tax.rate_taxable := high.tax.rate*taxable]
   # Create new weights
   weighted.crosswalk <- weighted.crosswalk[, base.sales := base.sales*w]
-  # weighted.crosswalk <- weighted.crosswalk[, curr.sales := curr.sales*w]
+  weighted.crosswalk <- weighted.crosswalk[, curr.sales := sales*w]
   
   # Make sure there are no 0 weights
   weighted.crosswalk <- weighted.crosswalk[!is.na(base.sales) & !is.na(curr.sales)]
@@ -611,28 +609,27 @@ for (yr in 2008:2014) {
     
     
     ### Current weights
-    # res0 <- felm(data = weighted.crosswalk,
-    #              formula = formula0,
-    #              weights = weighted.crosswalk$curr.sales)
-    # 
-    # ## attach results
-    # flog.info("Writing results...")
-    # res1.dt <- data.table(coef(summary(res0)), keep.rownames=T)
-    # res1.dt[, outcome := Y]
-    # res1.dt[, Rsq := summary(res0)$r.squared]
-    # res1.dt[, adj.Rsq := summary(res0)$adj.r.squared]
-    # res1.dt[, specification := "Weighted"]
-    # res1.dt[, weight := "curr.sales"]
-    # res1.dt[, year := yr]
-    # LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-    # fwrite(LRdiff_res, output.results.file)  ## Write results to a csv file 
+    res0 <- felm(data = weighted.crosswalk,
+                 formula = formula0,
+                 weights = weighted.crosswalk$curr.sales)
+
+    ## attach results
+    flog.info("Writing results...")
+    res1.dt <- data.table(coef(summary(res0)), keep.rownames=T)
+    res1.dt[, outcome := Y]
+    res1.dt[, Rsq := summary(res0)$r.squared]
+    res1.dt[, adj.Rsq := summary(res0)$adj.r.squared]
+    res1.dt[, specification := "Weighted"]
+    res1.dt[, weight := "curr.sales"]
+    res1.dt[, year := yr]
+    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)  ## Write results to a csv file
     
   }
   LRdiff_res$N_obs <- nrow(weighted.crosswalk)
   LRdiff_res$N_modules <- length(unique(weighted.crosswalk$product_module_code))
   LRdiff_res$N_stores <- length(unique(weighted.crosswalk$store_code_uc))
   LRdiff_res$N_counties <- uniqueN(weighted.crosswalk, by = c("fips_state", "fips_county"))
-  LRdiff_res$N_years <- uniqueN(weighted.crosswalk, by = c("year")) 
   LRdiff_res$N_county_modules <- uniqueN(weighted.crosswalk, by = c("fips_state", "fips_county",
                                                              "product_module_code"))
   LRdiff_res$N_store_modules <- uniqueN(weighted.crosswalk, by = c("store_code_uc", "product_module_code"))
