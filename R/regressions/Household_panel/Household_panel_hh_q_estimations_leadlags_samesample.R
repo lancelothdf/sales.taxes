@@ -217,35 +217,6 @@ purchases.sample[, D.ln_share_same3 := ln_share_same3 - shift(ln_share_same3, n=
                  by = .(household_code)]
 
 
-# type x taxability logs
-purchases.sample[, D.ln_expenditure_taxable_same3 := ln_expenditure_taxable_same3 - shift(ln_expenditure_taxable_same3, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_expenditure_taxable_diff3 := ln_expenditure_taxable_diff3 - shift(ln_expenditure_taxable_diff3, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_expenditure_non_taxable_same3 := ln_expenditure_non_taxable_same3 - shift(ln_expenditure_non_taxable_same3, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_expenditure_non_taxable_diff3 := ln_expenditure_non_taxable_diff3 - shift(ln_expenditure_non_taxable_diff3, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_expenditure_unknown_same3 := ln_expenditure_unknown_same3 - shift(ln_expenditure_unknown_same3, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_expenditure_unknown_diff3 := ln_expenditure_unknown_diff3 - shift(ln_expenditure_unknown_diff3, n=1, type="lag"),
-                 by = .(household_code)]
-
-
-# type x taxability shares logs
-purchases.sample[, D.ln_share_taxable_same3 := ln_share_taxable_same3 - shift(ln_share_taxable_same3, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_share_taxable_diff3 := ln_share_taxable_diff3 - shift(ln_share_taxable_diff3, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_share_non_taxable_same3 := ln_share_non_taxable_same3 - shift(ln_share_non_taxable_same3, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_share_non_taxable_diff3 := ln_share_non_taxable_diff3 - shift(ln_share_non_taxable_diff3, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_share_unknown_same3 := ln_share_unknown_same3 - shift(ln_share_unknown_same3, n=1, type="lag"),
-                 by = .(household_code)]
-purchases.sample[, D.ln_share_unknown_diff3 := ln_share_unknown_diff3 - shift(ln_share_unknown_diff3, n=1, type="lag"),
-                 by = .(household_code)]
-
 
 ## generate lags and leads of ln_sales_tax
 for (lag.val in 1:8) {
