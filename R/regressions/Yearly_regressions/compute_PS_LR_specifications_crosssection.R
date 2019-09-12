@@ -35,6 +35,7 @@ unemp.path <- "Data/covariates/county_monthly_unemp_clean.csv"
 border.path <- "Data/border_counties.csv"
 
 ## Where to save results
+output.decriptives.file <- "../../home/slacouture/PS/describe_check.csv"
 output.results.file <- "../../home/slacouture/PS/PS_LRspec_crosssection_binarypscore.csv"
 output.path <- "../../home/slacouture/PS"
 
