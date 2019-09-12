@@ -384,7 +384,8 @@ for (yr in 2008:2014) {
   # Make sure there are no 0 weights
   nn.crosswalk <- nn.crosswalk[!is.na(base.sales)]
   ## Describe to check everything is fine
-  
+  des.est.out <- data.table(colnames(nn.crosswalk))
+  fwrite(des.est.out, output.decriptives.file)
   descriptives <- describe(nn.crosswalk[, c("ln_cpricei2", "ln_quantity2", "pct_pop_urban", "housing_ownership_share", 
                                             "median_income", "pct_pop_no_college", "pct_pop_bachelors", "pct_pop_over_65",
                                             "pct_pop_under_25", "pct_pop_black", "ln_unemp", "ln_home_price", "base.sales",
