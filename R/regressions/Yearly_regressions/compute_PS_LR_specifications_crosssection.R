@@ -149,7 +149,8 @@ Xa_pot <- c("pct_pop_urban", "housing_ownership_share", "median_income", "pct_po
             "pct_pop_over_65", "pct_pop_under_25", "pct_pop_black", "ln_mean_wage")
 
 # Vector of outcomes to run cross-sectional design
-outcomes <- c("ln_cpricei2", "ln_quantity2", "pct_pop_urban", "housing_ownership_share", "median_income", "pct_pop_no_college", "pct_pop_bachelors", "pct_pop_over_65", "pct_pop_under_25", "pct_pop_black", "ln_unemp", "ln_home_price")
+outcomes <- c("ln_cpricei2", "ln_quantity2", "pct_pop_urban", "housing_ownership_share", "median_income", "pct_pop_no_college",
+              "pct_pop_bachelors", "pct_pop_over_65", "pct_pop_under_25", "pct_pop_black", "ln_unemp", "ln_home_price")
 
 
 ###### Run Estimation ------------------------------------
@@ -377,6 +378,14 @@ for (yr in 2008:2014) {
   nn.crosswalk <- nn.crosswalk[, high.tax.rate_taxable := high.tax.rate*taxable]
   # Make sure there are no 0 weights
   nn.crosswalk <- nn.crosswalk[!is.na(base.sales)]
+  ## Describe to check everything is fine
+  
+  descriptives <- describe(nn.crosswalk[, c("ln_cpricei2", "ln_quantity2", "pct_pop_urban", "housing_ownership_share", 
+                                            "median_income", "pct_pop_no_college", "pct_pop_bachelors", "pct_pop_over_65",
+                                            "pct_pop_under_25", "pct_pop_black", "ln_unemp", "ln_home_price", "base.sales",
+                                            "curr.sales", "high.tax.rate", "taxable", "high.tax.rate_taxable")])
+  des.est.out  <- data.table(descriptives, keep.rownames=T)
+  fwrite(des.est.out, output.decriptives.file)
   
   flog.info("Running estimates under algorithm 1 for year %s", yr)
   for(Y in outcomes) {
