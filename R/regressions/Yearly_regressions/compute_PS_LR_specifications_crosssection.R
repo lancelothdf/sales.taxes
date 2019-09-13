@@ -179,7 +179,7 @@ for (yr in 2008:2014) {
   year.covariates <- year.covariates[, high.tax.rate := (ln_sales_tax >= median(ln_sales_tax)) ]
   year.data <- year.data[, taxable :=ifelse(ln_sales_tax == 0, FALSE, TRUE)][, -c("ln_sales_tax")]
   # Compute average difference in sales tax between groups to report afterwards
-  difference <- year.covariates[ high.tax.rate == T][, mean(ln_sales_tax)] - year.covariates[ high.tax.rate == F][, mean(ln_sales_tax)]
+  difference <- year.covariates[ high.tax.rate == T][, mean(exp(ln_sales_tax))] - year.covariates[ high.tax.rate == F][, mean(exp(ln_sales_tax))]
   
   ### Selection of covariates. Algorithm suggested by Imbens (2015) -----
   # Basic regression
@@ -189,7 +189,6 @@ for (yr in 2008:2014) {
                       data = year.covariates, maxit = 10000)
   curr.likelihood <- basic.select$deviance
   reference <- nrow(year.covariates)
-  
   
   # Selection of linear covariates to add (C_lin = 1 and logit)
   C_lin <- 1 # Threshold value
@@ -423,6 +422,79 @@ for (yr in 2008:2014) {
   fwrite(test.year, test.year.outfile)
   
   #### Estimate cross-sectional design for each algorithm -------
+  flog.info("Running estimates under for year %s", yr)
+  
+  
+  #### No-matching coefficients
+  year.covariates <- merge(year.data, year.covariates, by = c("fips_state", "fips_county", "year"))
+  year.covariates <- data.table(year.covariates)
+  # Create Interaction term
+  year.covariates <- year.covariates[, high.tax.rate_taxable := high.tax.rate*taxable]
+  # Make sure there are no 0 weights
+  year.covariates <- year.covariates[!is.na(base.sales)]
+  year.covariates <- year.covariates[, curr.sales := sales]  
+  for(Y in outcomes) {
+    
+    formula0 <- as.formula(paste0(
+      Y, " ~ high.tax.rate + taxable + high.tax.rate_taxable | product_module_code | 0 | state_by_module ", sep = ""
+    ))
+    
+    ### Base weights
+    res0 <- felm(data = year.covariates,
+                 formula = formula0,
+                 weights = year.covariates$base.sales)
+    
+    ## attach results
+    flog.info("Writing results...")
+    res1.dt <- data.table(coef(summary(res0)), keep.rownames=T)
+    res1.dt[, outcome := Y]
+    res1.dt[, Rsq := summary(res0)$r.squared]
+    res1.dt[, adj.Rsq := summary(res0)$adj.r.squared]
+    res1.dt[, specification := "NoMatch"]
+    res1.dt[, weight := "base.sales"]
+    res1.dt[, year := yr]
+    res1.dt[, av.tax.diff := difference]
+    res1.dt[, N_obs := nrow(year.covariates)]
+    res1.dt[, N_modules := length(unique(year.covariates$product_module_code))]
+    res1.dt[, N_stores := length(unique(year.covariates$store_code_uc))]
+    res1.dt[, N_counties := uniqueN(year.covariates, by = c("fips_state", "fips_county"))]
+    res1.dt[, N_county_modules := uniqueN(year.covariates, by = c("fips_state", "fips_county",
+                                                               "product_module_code"))]
+    res1.dt[, N_store_modules := uniqueN(year.covariates, by = c("store_code_uc", "product_module_code"))]
+    res1.dt[, N_state_modules := uniqueN(year.covariates, by = c("fips_state", "product_module_code"))]
+    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)  ## Write results to a csv file 
+    
+    
+    ### Current weights
+    res0 <- felm(data = year.covariates,
+                 formula = formula0,
+                 weights = year.covariates$curr.sales)
+    
+    ## attach results
+    flog.info("Writing results...")
+    res1.dt <- data.table(coef(summary(res0)), keep.rownames=T)
+    res1.dt[, outcome := Y]
+    res1.dt[, Rsq := summary(res0)$r.squared]
+    res1.dt[, adj.Rsq := summary(res0)$adj.r.squared]
+    res1.dt[, specification := "NoMatch"]
+    res1.dt[, weight := "curr.sales"]
+    res1.dt[, year := yr]
+    res1.dt[, av.tax.diff := difference]
+    res1.dt[, N_obs := nrow(year.covariates)]
+    res1.dt[, N_modules := length(unique(year.covariates$product_module_code))]
+    res1.dt[, N_stores := length(unique(year.covariates$store_code_uc))]
+    res1.dt[, N_counties := uniqueN(year.covariates, by = c("fips_state", "fips_county"))]
+    res1.dt[, N_county_modules := uniqueN(year.covariates, by = c("fips_state", "fips_county",
+                                                               "product_module_code"))]
+    res1.dt[, N_store_modules := uniqueN(year.covariates, by = c("store_code_uc", "product_module_code"))]
+    res1.dt[, N_state_modules := uniqueN(year.covariates, by = c("fips_state", "product_module_code"))]
+    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)  ## Write results to a csv file
+    
+  }  
+  
+  
   
   #### Algorithm 1: Nearest Neighbord
   nn.crosswalk <- merge(year.data, nn.crosswalk, by = c("fips_state", "fips_county", "year"), allow.cartesian=TRUE)
@@ -433,8 +505,6 @@ for (yr in 2008:2014) {
   nn.crosswalk <- nn.crosswalk[!is.na(base.sales)]
   nn.crosswalk <- nn.crosswalk[, curr.sales := sales]
 
-  
-  flog.info("Running estimates under algorithm 1 for year %s", yr)
   for(Y in outcomes) {
     
     formula0 <- as.formula(paste0(
