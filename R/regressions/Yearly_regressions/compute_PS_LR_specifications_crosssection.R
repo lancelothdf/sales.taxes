@@ -175,7 +175,7 @@ for (yr in 2008:2014) {
   year.covariates <- year.covariates[, high.tax.rate := (ln_sales_tax >= median(ln_sales_tax)) ]
   year.data <- year.data[, taxable :=ifelse(ln_sales_tax == 0, FALSE, TRUE)][, -c("ln_sales_tax")]
   # Compute average difference in sales tax between groups to report afterwards
-  difference <- year.data[ high.tax.rate == T][, mean(ln_sales_tax)] - year.data[ high.tax.rate == F][, mean(ln_sales_tax)]
+  difference <- year.covariates[ high.tax.rate == T][, mean(ln_sales_tax)] - year.covariates[ high.tax.rate == F][, mean(ln_sales_tax)]
   
   ### Selection of covariates. Algorithm suggested by Imbens (2015) -----
   # Basic regression
