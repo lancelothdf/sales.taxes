@@ -177,7 +177,7 @@ for (yr in 2008:2014) {
   # Create binary treatment. Drop first counties without tax data
   year.covariates <- year.covariates[!is.na(ln_sales_tax), ]
   year.covariates <- year.covariates[, high.tax.rate := (ln_sales_tax >= median(ln_sales_tax)) ]
-  year.data <- year.data[, taxable :=ifelse(ln_sales_tax == 0, FALSE, TRUE)][, -c("ln_sales_tax")]
+  year.data <- year.data[, taxable :=ifelse(ln_sales_tax == 0, FALSE, TRUE)]
   # Compute average difference in sales tax between groups to report afterwards
   difference <- year.covariates[ high.tax.rate == T][, mean(exp(ln_sales_tax))] - year.covariates[ high.tax.rate == F][, mean(exp(ln_sales_tax))]
   
@@ -264,8 +264,8 @@ for (yr in 2008:2014) {
   # A = {x in X | 0.1 <= e(x) <= 0.9}
   # Predict
   year.covariates[, pscore:= predict(final.select, year.covariates, type = "response")]
-  # trimming
-  year.covariates.trim <- year.covariates[pscore >= 0.1 & pscore <= 0.9 & !is.na(pscore)]
+  # trimming and dropping sales tax rates (not used any more and want to use the effective tax rate)
+  year.covariates.trim <- year.covariates[pscore >= 0.1 & pscore <= 0.9 & !is.na(pscore)][, -c("ln_sales_tax", "sales_tax")]
   
   #### Now create comparision samples. Use 4 different algorithms ----------- 
   # 1) nearest neighbord, 2) k-nearest, 3) caliper, 4) weighted
