@@ -263,14 +263,16 @@ for (yr in 2008:2014) {
   # Following their approach, we use the practical choise of alpha = 0.1 an thus 
   # A = {x in X | 0.1 <= e(x) <= 0.9}
   # Predict and dropping sales tax rates (not used any more and want to use the effective tax rate)
-  year.covariates[, pscore:= predict(final.select, year.covariates, type = "response")][, -c("ln_sales_tax")]
+  year.covariates[, pscore:= predict(final.select, year.covariates, type = "response")]
+  # Drop tax rate in county level (we need effective tax rate)
+  year.covariates <- year.covariates[, -c("ln_sales_tax")]
   # trimming 
   year.covariates.trim <- year.covariates[pscore >= 0.1 & pscore <= 0.9 & !is.na(pscore)]
   
   #### Now create comparision samples. Use 4 different algorithms ----------- 
   # 1) nearest neighbord, 2) k-nearest, 3) caliper, 4) weighted
-  
-  flog.info("Running matching algorithms for year %s", yr)
+
+    flog.info("Running matching algorithms for year %s", yr)
   # Algorithm 1: nearest neighbor (with replacement). All units are matched, both treated and controls
   nn.crosswalk <-data.table(NULL)
   for (i in 1:nrow(year.covariates.trim)) {
@@ -378,7 +380,6 @@ for (yr in 2008:2014) {
     test.year <- rbind(test.year, test.dt, fill = T)
   }
   ##### Check balance using basic regression tests on all covariates (X_all) by algorithm -------
-  flog.info("Checking balance for year %s", yr)
   test.year <- data.table(NULL)
   for (X in X_all) {
     
@@ -422,10 +423,12 @@ for (yr in 2008:2014) {
   fwrite(test.year, test.year.outfile)
   
   #### Estimate cross-sectional design for each algorithm -------
-  flog.info("Running estimates under for year %s", yr)
+  flog.info("Running estimates for year %s", yr)
   
   
   #### No-matching coefficients
+  
+  # Merge data
   year.covariates <- merge(year.data, year.covariates, by = c("fips_state", "fips_county", "year"))
   year.covariates <- data.table(year.covariates)
   # Create Interaction term
@@ -439,6 +442,7 @@ for (yr in 2008:2014) {
       Y, " ~ high.tax.rate + taxable + high.tax.rate_taxable | product_module_code | 0 | state_by_module ", sep = ""
     ))
     
+    flog.info("Estimating %s...", Y)
     ### Base weights
     res0 <- felm(data = year.covariates,
                  formula = formula0,
@@ -511,6 +515,7 @@ for (yr in 2008:2014) {
       Y, " ~ high.tax.rate + taxable + high.tax.rate_taxable | product_module_code | 0 | state_by_module ", sep = ""
     ))
     
+    flog.info("Estimating %s...", Y)
     ### Base weights
     res0 <- felm(data = nn.crosswalk,
                  formula = formula0,
@@ -582,6 +587,7 @@ for (yr in 2008:2014) {
     formula0 <- as.formula(paste0(
       Y, " ~ high.tax.rate + taxable + high.tax.rate_taxable | product_module_code | 0 | state_by_module ", sep = ""
     ))
+    flog.info("Estimating %s...", Y)
     ### Base weights
     res0 <- felm(data = knn.crosswalk,
                  formula = formula0,
@@ -653,6 +659,7 @@ for (yr in 2008:2014) {
     formula0 <- as.formula(paste0(
       Y, " ~ high.tax.rate + taxable + high.tax.rate_taxable | product_module_code | 0 | state_by_module ", sep = ""
     ))
+    flog.info("Estimating %s...", Y)
     ### Base weights
     res0 <- felm(data = calip.crosswalk,
                  formula = formula0,
@@ -726,6 +733,7 @@ for (yr in 2008:2014) {
     formula0 <- as.formula(paste0(
       Y, " ~ high.tax.rate + taxable + high.tax.rate_taxable | product_module_code | 0 | state_by_module ", sep = ""
     ))
+    flog.info("Estimating %s...", Y)
     ### Base weights
     res0 <- felm(data = weighted.crosswalk,
                  formula = formula0,
