@@ -263,7 +263,7 @@ for (yr in 2008:2014) {
   # Following their approach, we use the practical choise of alpha = 0.1 an thus 
   # A = {x in X | 0.1 <= e(x) <= 0.9}
   # Predict and dropping sales tax rates (not used any more and want to use the effective tax rate)
-  year.covariates[, pscore:= predict(final.select, year.covariates, type = "response")][, -c("ln_sales_tax", "sales_tax")]
+  year.covariates[, pscore:= predict(final.select, year.covariates, type = "response")][, -c("ln_sales_tax")]
   # trimming 
   year.covariates.trim <- year.covariates[pscore >= 0.1 & pscore <= 0.9 & !is.na(pscore)]
   
