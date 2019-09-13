@@ -158,7 +158,7 @@ Xa_pot <- c("pct_pop_urban", "housing_ownership_share", "median_income", "pct_po
             "pct_pop_over_65", "pct_pop_under_25", "pct_pop_black", "ln_mean_wage")
 
 # Vector of outcomes to run cross-sectional design. Not gonna run on covariates: already balancing on them at county level
-outcomes <- c("ln_cpricei2", "ln_quantity2", "ln_share_quantities_store")
+outcomes <- c("ln_cpricei2", "ln_quantity2", "ln_share_quantities_store", "ln_sales_tax")
 
 
 ###### Run Estimation ------------------------------------
@@ -170,11 +170,12 @@ for (yr in 2008:2014) {
   # Keep year of interest
   year.data <- yearly_data[ year == yr, ]
   year.covariates <- covariates[ year == yr, ]
-  #Check data
   # Create binary treatment. Drop first counties without tax data
   year.covariates <- year.covariates[!is.na(ln_sales_tax), ]
   year.covariates <- year.covariates[, high.tax.rate := (ln_sales_tax >= median(ln_sales_tax)) ]
   year.data <- year.data[, taxable :=ifelse(ln_sales_tax == 0, FALSE, TRUE)][, -c("ln_sales_tax")]
+  # Compute average difference in sales tax between groups to report afterwards
+  difference <- year_data[ high.tax.rate = T][, mean(ln_sales_tax)] - year_data[ high.tax.rate = F][, mean(ln_sales_tax)]
   
   ### Selection of covariates. Algorithm suggested by Imbens (2015) -----
   # Basic regression
@@ -411,6 +412,7 @@ for (yr in 2008:2014) {
     res1.dt[, specification := "NN"]
     res1.dt[, weight := "base.sales"]
     res1.dt[, year := yr]
+    res1.dt[, av.tax.diff := difference]
     res1.dt[, N_obs := nrow(nn.crosswalk)]
     res1.dt[, N_modules := length(unique(nn.crosswalk$product_module_code))]
     res1.dt[, N_stores := length(unique(nn.crosswalk$store_code_uc))]
@@ -437,6 +439,7 @@ for (yr in 2008:2014) {
     res1.dt[, specification := "NN"]
     res1.dt[, weight := "curr.sales"]
     res1.dt[, year := yr]
+    res1.dt[, av.tax.diff := difference]
     res1.dt[, N_obs := nrow(nn.crosswalk)]
     res1.dt[, N_modules := length(unique(nn.crosswalk$product_module_code))]
     res1.dt[, N_stores := length(unique(nn.crosswalk$store_code_uc))]
@@ -480,6 +483,7 @@ for (yr in 2008:2014) {
     res1.dt[, specification := "KNN"]
     res1.dt[, weight := "base.sales"]
     res1.dt[, year := yr]
+    res1.dt[, av.tax.diff := difference]
     res1.dt[, N_obs := nrow(knn.crosswalk)]
     res1.dt[, N_modules := length(unique(knn.crosswalk$product_module_code))]
     res1.dt[, N_stores := length(unique(knn.crosswalk$store_code_uc))]
@@ -506,6 +510,7 @@ for (yr in 2008:2014) {
     res1.dt[, specification := "KNN"]
     res1.dt[, weight := "curr.sales"]
     res1.dt[, year := yr]
+    res1.dt[, av.tax.diff := difference]
     res1.dt[, N_obs := nrow(knn.crosswalk)]
     res1.dt[, N_modules := length(unique(knn.crosswalk$product_module_code))]
     res1.dt[, N_stores := length(unique(knn.crosswalk$store_code_uc))]
@@ -549,6 +554,7 @@ for (yr in 2008:2014) {
     res1.dt[, specification := "Caliper"]
     res1.dt[, weight := "base.sales"]
     res1.dt[, year := yr]
+    res1.dt[, av.tax.diff := difference]
     res1.dt[, N_obs := nrow(calip.crosswalk)]
     res1.dt[, N_modules := length(unique(calip.crosswalk$product_module_code))]
     res1.dt[, N_stores := length(unique(calip.crosswalk$store_code_uc))]
@@ -575,6 +581,7 @@ for (yr in 2008:2014) {
     res1.dt[, specification := "Caliper"]
     res1.dt[, weight := "curr.sales"]
     res1.dt[, year := yr]
+    res1.dt[, av.tax.diff := difference]
     res1.dt[, N_obs := nrow(calip.crosswalk)]
     res1.dt[, N_modules := length(unique(calip.crosswalk$product_module_code))]
     res1.dt[, N_stores := length(unique(calip.crosswalk$store_code_uc))]
@@ -620,6 +627,7 @@ for (yr in 2008:2014) {
     res1.dt[, specification := "Weighted"]
     res1.dt[, weight := "base.sales"]
     res1.dt[, year := yr]
+    res1.dt[, av.tax.diff := difference]
     res1.dt[, N_obs := nrow(weighted.crosswalk)]
     res1.dt[, N_modules := length(unique(weighted.crosswalk$product_module_code))]
     res1.dt[, N_stores := length(unique(weighted.crosswalk$store_code_uc))]
@@ -646,6 +654,7 @@ for (yr in 2008:2014) {
     res1.dt[, specification := "Weighted"]
     res1.dt[, weight := "curr.sales"]
     res1.dt[, year := yr]
+    res1.dt[, av.tax.diff := difference]
     res1.dt[, N_obs := nrow(weighted.crosswalk)]
     res1.dt[, N_modules := length(unique(weighted.crosswalk$product_module_code))]
     res1.dt[, N_stores := length(unique(weighted.crosswalk$store_code_uc))]
