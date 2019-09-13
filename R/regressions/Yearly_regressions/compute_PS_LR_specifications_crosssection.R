@@ -378,7 +378,7 @@ for (yr in 2008:2014) {
     # Append to other outcomes
     test.year <- rbind(test.year, test.dt, fill = T)
   }
-  ##### Check balance using basic regression tests all covariates (X_all) by algorithm -------
+  ##### Check balance using basic regression tests on all covariates (X_all) by algorithm -------
   flog.info("Checking balance for year %s", yr)
   test.year <- data.table(NULL)
   for (X in X_all) {
