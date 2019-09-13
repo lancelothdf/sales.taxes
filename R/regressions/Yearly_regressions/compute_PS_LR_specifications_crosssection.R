@@ -157,6 +157,10 @@ Xb <- c("ln_unemp", "ln_home_price")
 Xa_pot <- c("pct_pop_urban", "housing_ownership_share", "median_income", "pct_pop_no_college", "pct_pop_bachelors",
             "pct_pop_over_65", "pct_pop_under_25", "pct_pop_black", "ln_mean_wage")
 
+# Vector of all variables
+X_all <- c(Xb, Xa_pot)
+
+
 # Vector of outcomes to run cross-sectional design. Not gonna run on covariates: already balancing on them at county level
 outcomes <- c("ln_cpricei2", "ln_quantity2", "ln_share_quantities_store", "ln_sales_tax")
 
@@ -374,9 +378,48 @@ for (yr in 2008:2014) {
     # Append to other outcomes
     test.year <- rbind(test.year, test.dt, fill = T)
   }
-  
+  ##### Check balance using basic regression tests all covariates (X_all) by algorithm -------
+  flog.info("Checking balance for year %s", yr)
+  test.year <- data.table(NULL)
+  for (X in X_all) {
+    
+    # Rowname
+    outcome <-data.table(X)
+    setnames(outcome, old = c("X"), new = c("outcome"))
+    # Prior balance
+    test.out <- lm(get(X) ~ high.tax.rate, data = year.covariates)
+    priortest.dt <- data.table(coef(summary(test.out)))[2,][, -c("t value")]
+    setnames(priortest.dt, old = c("Estimate", "Std. Error", "Pr(>|t|)"),
+             new = c("prior.est", "prior.std.err", "prior.pval"))
+    # Adjusted nn balance
+    nn.test.out <- lm(get(X) ~ high.tax.rate, data = nn.crosswalk)
+    nn.test.dt <- data.table(coef(summary(nn.test.out)))[2,][, -c("t value")]
+    setnames(nn.test.dt, old = c("Estimate", "Std. Error", "Pr(>|t|)"),
+             new = c("nn.est", "nn.std.err", "nn.pval"))
+    # Adjusted knn balance
+    knn.test.out <- lm(get(X) ~ high.tax.rate, data = knn.crosswalk, weights = w)
+    knn.test.dt <- data.table(coef(summary(knn.test.out)))[2,][, -c("t value")]
+    setnames(knn.test.dt, old = c("Estimate", "Std. Error", "Pr(>|t|)"),
+             new = c("knn.est", "knn.std.err", "knn.pval"))
+    # Adjusted caliper balance
+    calip.test.out <- lm(get(X) ~ high.tax.rate, data = calip.crosswalk, weights = w)
+    calip.test.dt <- data.table(coef(summary(calip.test.out)))[2,][, -c("t value")]
+    setnames(calip.test.dt, old = c("Estimate", "Std. Error", "Pr(>|t|)"),
+             new = c("calip.est", "calip.std.err", "calip.pval"))
+    # Adjusted caliper balance
+    weight.test.out <- lm(get(X) ~ high.tax.rate, data = weighted.crosswalk, weights = w)
+    weight.test.dt <- data.table(coef(summary(weight.test.out)))[2,][, -c("t value")]
+    setnames(weight.test.dt, old = c("Estimate", "Std. Error", "Pr(>|t|)"),
+             new = c("weight.est", "weight.std.err", "weight.pval"))
+    # Merge all tests
+    test.dt <- cbind(outcome, priortest.dt, nn.test.dt, knn.test.dt, calip.test.dt, weight.test.dt)
+    
+    flog.info("Balance check for %s done", X)
+    # Append to other outcomes
+    test.year <- rbind(test.year, test.dt, fill = T)
+  }  
   # Export yearly test
-  test.year.outfile <- paste0(output.path, "/Cov.Test/covariate_balance_", yr, ".csv")
+  test.year.outfile <- paste0(output.path, "/Cov.Test/all_covariate_balance_", yr, ".csv")
   fwrite(test.year, test.year.outfile)
   
   #### Estimate cross-sectional design for each algorithm -------
