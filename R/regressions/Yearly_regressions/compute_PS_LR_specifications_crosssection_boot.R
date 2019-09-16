@@ -164,6 +164,7 @@ outcomes <- c("ln_cpricei2", "ln_quantity2", "ln_share_quantities_store", "ln_sa
 covariates <- covariates[!is.na(ln_sales_tax), ]
 covariates <- covariates[, high.tax.rate := (ln_sales_tax >= median(ln_sales_tax)), by = .(year) ]
 setnames(covariates, old = "ln_sales_tax", new = "ln_statutory_sales_tax")
+yearly_data <- yearly_data[year >= 2008 & year <= 2014, ]
 
 ############## Create a function that performs the PS matching as desired -----------------
 
@@ -189,11 +190,12 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   covariate.data <- merge(covariate.data, list.counties, by = c('fips_state','fips_county'))
   
   # Identify years
-  list.years <- unique(actual.data[,c('year')])
+  list.years <- unique(actual.data[, c('year')])
   
   # Make sure median has been defined in data (treatment)
   # Make sure observations without sales_tax rates have been dropped
   # Make sure "ln_sales_tax" is not in covariate.data but only in actual.data
+  # Make sure data is already restricted to interest sample is not in covariate.data but only in actual.data
   
   # Start yearly estimations
   for (yr in list.years) {
