@@ -198,6 +198,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   # Start yearly estimations
   for (yr in list.years) {
     
+    flog.info("Starting year %s", yr)
     # Keep year of interest
     year.data <- actual.data[ year == yr,]
     year.covariates <- covariate.data[ year == yr, ]
@@ -205,6 +206,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
     year.data <- year.data[, taxable :=ifelse(ln_sales_tax == 0, FALSE, TRUE)]
 
     ### Selection of covariates. Algorithm suggested by Imbens (2015) -----
+    flog.info("Choosing selection equation for year %s", yr)
     # Basic regression
     RHS <- paste(must.covar, collapse  = " + ")
     curr.formula <- paste0(treatment, " ~ ", RHS)
@@ -293,7 +295,9 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
     # 1) nearest neighbord, 2) k-nearest, 3) caliper, 4) weighted
     ## To be productive: Program will not compute covariates test
     
-    # Algorithm 1: nearest neighbor (with replacement). All units are matched, both treated and controls
+    flog.info("Compute matching algorithm %s for year %yr", agor, yr)
+
+        # Algorithm 1: nearest neighbor (with replacement). All units are matched, both treated and controls
     if (algor == "NN") {
       
       ## Comparison group
@@ -462,5 +466,12 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
 
 ## Try this function and compare
 
-psmatch.taxrate(yearly_data, covariates, "NN", base.sales, X_b, Xa_pot, high.tax.rate, outcomes)
+psmatch.taxrate(actual.data = yearly_data, 
+                covariate.data = covariates,
+                algor = "NN", 
+                weights = base.sales, 
+                must.covar = X_b, 
+                oth.covars = Xa_pot, 
+                treatment = "high.tax.rate", 
+                outcomes = outcomes)
 
