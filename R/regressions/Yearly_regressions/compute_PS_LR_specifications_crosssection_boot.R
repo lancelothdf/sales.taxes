@@ -439,18 +439,18 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   
   # Identify interest estimates
   c1 <- LRdiff_res[rn == "taxableTRUE", ][, -c("Cluster s.e.", "t value", "Pr(>|t|)")]
-  c2 <- LRdiff_res[rn == "taxableTRUE" | rn == "interaction",][list(Estimate = sum(Estimate)), 
+  c2 <- LRdiff_res[rn == "taxableTRUE" | rn == "interaction",][, list(Estimate = sum(Estimate)), 
                                                                          by = .(outcome, year) ][, rn := "taxableTRUE + high.tax.rate_taxable"]
-  c3 <- LRdiff_res[rn == "taxableTRUE" | rn == "interaction",][list(Estimate = mean(Estimate)), 
+  c3 <- LRdiff_res[rn == "taxableTRUE" | rn == "interaction",][, list(Estimate = mean(Estimate)), 
                                                                          by = .(outcome, year) ][, rn := "(taxableTRUE + high.tax.rate_taxable)/2"]
   
-  c4 <- LRdiff_res[rn == paste0(treatment, "TRUE") | rn == "interaction",][list(Estimate = sum(Estimate)), 
+  c4 <- LRdiff_res[rn == paste0(treatment, "TRUE") | rn == "interaction",][, list(Estimate = sum(Estimate)), 
                                                                                by = .(outcome, year) ][, rn := "high.tax.rateTRUE + high.tax.rate_taxable"]
   c5 <- LRdiff_res[rn == "interaction", ][, -c("Cluster s.e.", "t value", "Pr(>|t|)")]
   ### Paste and compute estimates across years
   PS_res <- rbind(c1, c2, c3, c4, c5)
   
-  c6 <- PS_res[list(Estimate = mean(Estimate)), 
+  c6 <- PS_res[, list(Estimate = mean(Estimate)), 
                by = .(rn, outcome) ]
   # Renames
   c6[rn == "taxableTRUE", rn := "Av.taxableTRUE"]
@@ -472,7 +472,7 @@ psmatch.taxrate(actual.data = yearly_data,
                 covariate.data = covariates,
                 algor = "NN", 
                 weights = base.sales, 
-                must.covar = X_b, 
+                must.covar = Xb, 
                 oth.covars = Xa_pot, 
                 treatment = "high.tax.rate", 
                 outcomes = outcomes)
