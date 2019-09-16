@@ -425,7 +425,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       ### Base weights
       res0 <- felm(data = crosswalk,
                    formula = formula0,
-                   weights = crosswalk$get(weights))
+                   weights = crosswalk[, get(weights)])
       
       ## attach results
       res1.dt <- data.table(coef(summary(res0)), keep.rownames=T)
