@@ -826,7 +826,7 @@ c6[rn == "high.tax.rateTRUE + high.tax.rate_taxable", rn := "Av.(high.tax.rateTR
 c6[rn == "high.tax.rate_taxable", rn := "Av.high.tax.rate_taxable"]
 
 # Append
-PS_res <- rbind(PS_res, c6)
+PS_res <- rbind(PS_res, c6, fill = T)
 
 ## Export
 fwrite(LRdiff_res, comp.output.results.file)  ## Write results to a csv file
