@@ -440,7 +440,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   
   flog.info("Computing interest coefficients")
   # Identify interest estimates
-  c1 <- LRdiff_res[rn == "taxableTRUE", ][, -c("Cluster s.e.", "t value", "Pr(>|t|)")]
+  c1 <- LRdiff_res[rn == "taxableTRUE", ][, -c("Std. Error", "t value", "Pr(>|t|)")]
   c2 <- LRdiff_res[rn == "taxableTRUE" | rn == "interaction",][, list(Estimate = sum(Estimate)), 
                                                                          by = .(outcome, year) ][, rn := "taxableTRUE + high.tax.rate_taxable"]
   c3 <- LRdiff_res[rn == "taxableTRUE" | rn == "interaction",][, list(Estimate = mean(Estimate)), 
@@ -448,7 +448,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   
   c4 <- LRdiff_res[rn == paste0(treatment, "TRUE") | rn == "interaction",][, list(Estimate = sum(Estimate)), 
                                                                                by = .(outcome, year) ][, rn := "high.tax.rateTRUE + high.tax.rate_taxable"]
-  c5 <- LRdiff_res[rn == "interaction", ][, -c("Cluster s.e.", "t value", "Pr(>|t|)")]
+  c5 <- LRdiff_res[rn == "interaction", ][, -c("Std. Error", "t value", "Pr(>|t|)")]
   ### Paste and compute estimates across years
   PS_res <- rbind(c1, c2, c3, c4, c5)
   
@@ -466,24 +466,6 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   
   # Return a vector of estimates
   return(PS_res[["Estimates"]])
-}
-
-
-
-### Function to run the previously created function on the iteration sample (blocked)
-## I allow some arguments to vary so I can loop on it
-
-
-block.boot <- function(x, i, algor = "NN", weights, treatment, outcomes) {
-  bootdata <- do.call("rbind", lapply(i, function(n) subset(yearly_data, state_by_module == x[n])))
-  psmatch.taxrate(actual.data = bootdata, 
-                  covariate.data = covariates,
-                  algor = algor, 
-                  weights = weights, 
-                  must.covar = Xb, 
-                  oth.covars = Xa_pot, 
-                  treatment = treatment, 
-                  outcomes = outcomes)
 }
 
 
@@ -506,3 +488,28 @@ psmatch.taxrate(actual.data = yearly_data,
                 oth.covars = Xa_pot, 
                 treatment = "high.tax.rate", 
                 outcomes = outcomes)
+
+
+### Function to run the previously created function on the iteration sample (blocked)
+## I allow some arguments to vary so I can loop on it
+
+
+block.boot <- function(x, i) {
+  bootdata <- do.call("rbind", lapply(i, function(n) subset(yearly_data, state_by_module == x[n])))
+  psmatch.taxrate(actual.data = bootdata, 
+                  covariate.data = covariates,
+                  algor = "NN", 
+                  weights = "base.sales", 
+                  must.covar = Xb, 
+                  oth.covars = Xa_pot, 
+                  treatment = "high.tax.rate", 
+                  outcomes = outcomes)
+}
+
+
+
+### Run essay bootstraps
+
+# Define level of bootstrap
+state_by_module_ids <- unique(yearly_data$state_by_module)
+b0 <- boot(state_by_module_ids, block.boot, 999)
