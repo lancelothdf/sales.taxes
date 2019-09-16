@@ -326,7 +326,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       # Create Interaction term
       crosswalk <- crosswalk[, interaction := (get(treatment))*taxable]
       # Make sure there are no 0 weights
-      crosswalk <- crosswalk[!is.na((get(weights)))]
+      crosswalk <- crosswalk[!is.na(c(get(weights)))]
       
     }
 
@@ -355,7 +355,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       # Create new weights
       crosswalk <- crosswalk[, (weights) := (get(weights))*w]
       # Make sure there are no 0 weights
-      crosswalk <- crosswalk[!is.na((get(weights)))]
+      crosswalk <- crosswalk[!is.na(c(get(weights)))]
     } 
     
     # Algorithm 3: neighbors in caliper (with replacement). r=0.001. All units are matched, both treated and controls. 
@@ -387,7 +387,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       # Create new weights
       crosswalk <- crosswalk[, (weights) := (get(weights))*w]
       # Make sure there are no 0 weights
-      crosswalk <- crosswalk[!is.na((get(weights)))]
+      crosswalk <- crosswalk[!is.na(c(get(weights)))]
     }
     # Algorithm 4: weighting estimator. Build weights
     if (algor == "weighted") { 
@@ -401,7 +401,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       # Create new weights
       crosswalk <- crosswalk[, (weights) := (get(weights))*w]
       # Make sure there are no 0 weights
-      crosswalk <- crosswalk[!is.na((get(weights)))]
+      crosswalk <- crosswalk[!is.na(c(get(weights)))]
     }
     
     # Algorithm 5: No matching
@@ -413,7 +413,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       # Create Interaction term
       crosswalk <- crosswalk[, interaction := get(treatment)*taxable]
       # Make sure there are no 0 weights
-      crosswalk <- crosswalk[!is.na((get(weights)))]
+      crosswalk <- crosswalk[!is.na(c(get(weights)))]
     }
     
     flog.info("Computing estimation for algorithm %s for year %s", algor, yr)
@@ -432,7 +432,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       res1.dt <- data.table(coef(summary(res0)), keep.rownames=T)
       res1.dt[, outcome := Y]
       res1.dt[, year := yr]
-      LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+      LRdiff_res <- rbind(LRdiff_res, res1.dt)
       
     }
   }
@@ -467,6 +467,25 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   # Return a vector of estimates
   return(PS_res[["Estimates"]])
 }
+
+
+
+### Function to run the previously created function on the iteration sample (blocked)
+## I allow some arguments to vary so I can loop on it
+
+
+block.boot <- function(x, i, algor = "NN", weights, treatment, outcomes) {
+  bootdata <- do.call("rbind", lapply(i, function(n) subset(yearly_data, state_by_module == x[n])))
+  psmatch.taxrate(actual.data = bootdata, 
+                  covariate.data = covariates,
+                  algor = algor, 
+                  weights = weights, 
+                  must.covar = Xb, 
+                  oth.covars = Xa_pot, 
+                  treatment = treatment, 
+                  outcomes = outcomes)
+}
+
 
 ## Try this function and compare
 
