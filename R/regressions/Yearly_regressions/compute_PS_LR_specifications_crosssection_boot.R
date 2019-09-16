@@ -197,6 +197,8 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   # Make sure "ln_sales_tax" is not in covariate.data but only in actual.data
   # Make sure data is already restricted to interest sample
   
+  # Create output element
+  LRdiff_res <- data.table(NULL)
   # Start yearly estimations
   for (yr in list.years) {
     
@@ -418,7 +420,6 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
     
     flog.info("Computing estimation for algorithm %s for year %s", algor, yr)
     #### Estimate cross-sectional design  -------
-    LRdiff_res <- data.table(NULL)
     for(Y in outcomes) {
       
       formula0 <- as.formula(paste0(
@@ -468,8 +469,8 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   PS_res <- PS_res[order(year, outcome),]
   
   # Return a vector of estimates
-  # return(PS_res[["Estimate"]])
-  return(PS_res)
+  return(PS_res[["Estimate"]])
+  # return(PS_res)
 }
 
 
