@@ -468,7 +468,8 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   PS_res <- PS_res[order(year, outcome),]
   
   # Return a vector of estimates
-  return(PS_res[["Estimate"]])
+  # return(PS_res[["Estimate"]])
+  return(PS_res)
 }
 
 
@@ -483,19 +484,9 @@ try1 <- psmatch.taxrate(actual.data = yearly_data,
                 treatment = "high.tax.rate", 
                 outcomes = outcomes)
 
-try2 <- psmatch.taxrate(actual.data = yearly_data, 
-                covariate.data = covariates,
-                algor = "weighted", 
-                weights = "base.sales", 
-                must.covar = Xb, 
-                oth.covars = Xa_pot, 
-                treatment = "high.tax.rate", 
-                outcomes = outcomes)
 ## Export attempts
 try1 <- data.table(try1)
-try2 <- data.table(try2)
 fwrite(try1, "../../home/slacouture/PS/try1.csv")
-fwrite(try2, "../../home/slacouture/PS/try2.csv")
 
 ### Function to run the previously created function on the iteration sample (blocked)
 ## I should allow some arguments to vary so I can loop on it
