@@ -40,7 +40,7 @@ border.path <- "Data/border_counties.csv"
 output.decriptives.file <- "../../home/slacouture/PS/describe_check.csv"
 output.results.file <- "../../home/slacouture/PS/PS_LRspec_crosssection_binarypscore.csv"
 output.path <- "../../home/slacouture/PS"
-
+comp.output.results.file <- "../../home/slacouture/PS/sum_PS_LRspec_crosssection_binarypscore.csv"
 
 ###### County covariates set up. I keep every possible covariate -----------------------------
 # Need to load yearly data to identify useful counties
@@ -162,7 +162,7 @@ X_all <- c(Xb, Xa_pot)
 
 
 # Vector of outcomes to run cross-sectional design. Not gonna run on covariates: already balancing on them at county level
-outcomes <- c("ln_cpricei2", "ln_quantity2", "ln_share_quantities_store", "ln_sales_tax")
+outcomes <- c("ln_cpricei2", "ln_quantity2", "ln_share_quantities_store", "ln_sales_tax", "ln_statutory_sales_tax")
 
 
 ###### Run Estimation ------------------------------------
@@ -264,8 +264,8 @@ for (yr in 2008:2014) {
   # A = {x in X | 0.1 <= e(x) <= 0.9}
   # Predict and dropping sales tax rates (not used any more and want to use the effective tax rate)
   year.covariates[, pscore:= predict(final.select, year.covariates, type = "response")]
-  # Drop tax rate in county level (we need effective tax rate)
-  year.covariates <- year.covariates[, -c("ln_sales_tax")]
+  # Drop tax rate in county level (we need both effective and statutory tax rate)
+  setnames(year.covariates, old = "ln_sales_tax", new = "ln_statutory_sales_tax")
   # trimming 
   year.covariates.trim <- year.covariates[pscore >= 0.1 & pscore <= 0.9 & !is.na(pscore)]
   
@@ -792,9 +792,43 @@ for (yr in 2008:2014) {
 }
 
 
+##### Produce interest information of estimates in a separate file -----
+### Capture specific coeficients within year
+c1 <- LRdiff_res[rn == "taxableTRUE", ][, -c("Cluster s.e.", "t value", "Pr(>|t|)")]
+c2 <- LRdiff_res[rn == "taxableTRUE" | rn == "high.tax.rate_taxable",][list(Estimate = sum(Estimate)), 
+                                                                       by = .(outcome, Rsq,	adj.Rsq, specification,
+                                                                              weight,	year,	av.tax.diff, N_obs,	N_modules, 
+                                                                              N_stores, N_counties, N_county_modules,
+                                                                              N_store_modules, N_state_modules) ][, rn := "taxableTRUE + high.tax.rate_taxable"]
+c3 <- LRdiff_res[rn == "taxableTRUE" | rn == "high.tax.rate_taxable",][list(Estimate = mean(Estimate)), 
+                                                                       by = .(outcome, Rsq,	adj.Rsq, specification,
+                                                                              weight,	year,	av.tax.diff, N_obs,	N_modules, 
+                                                                              N_stores, N_counties, N_county_modules,
+                                                                              N_store_modules, N_state_modules) ][, rn := "(taxableTRUE + high.tax.rate_taxable)/2"]
 
+c4 <- LRdiff_res[rn == "high.tax.rateTRUE" | rn == "high.tax.rate_taxable",][list(Estimate = sum(Estimate)), 
+                                                                       by = .(outcome, Rsq,	adj.Rsq, specification,
+                                                                              weight,	year,	av.tax.diff, N_obs,	N_modules, 
+                                                                              N_stores, N_counties, N_county_modules,
+                                                                              N_store_modules, N_state_modules) ][, rn := "high.tax.rateTRUE + high.tax.rate_taxable"]
+c5 <- LRdiff_res[rn == "high.tax.rate_taxable", ][, -c("Cluster s.e.", "t value", "Pr(>|t|)")]
+### Paste and compute estimates across years
+PS_res <- rbind(c1, c2, c3, c4, c5)
 
+c6 <- PS_res[list(Estimate = mean(Estimate)), 
+             by = .(rn, outcome, Rsq,	adj.Rsq, specification, weight,	av.tax.diff, N_obs,	N_modules, 
+                    N_stores, N_counties, N_county_modules, N_store_modules, N_state_modules) ]
+# Renames
+c6[rn == "taxableTRUE", rn := "Av.taxableTRUE"]
+c6[rn == "taxableTRUE + high.tax.rate_taxable", rn := "Av.(taxableTRUE + high.tax.rate_taxable)"]
+c6[rn == "(taxableTRUE + high.tax.rate_taxable)/2", rn := "Av.(taxableTRUE + high.tax.rate_taxable)/2"]
+c6[rn == "high.tax.rateTRUE + high.tax.rate_taxable", rn := "Av.(high.tax.rateTRUE + high.tax.rate_taxable)"]
+c6[rn == "high.tax.rate_taxable", rn := "Av.high.tax.rate_taxable"]
 
+# Append
+PS_res <- rbind(PS_res, c6)
 
+## Export
+fwrite(LRdiff_res, comp.output.results.file)  ## Write results to a csv file
 
 
