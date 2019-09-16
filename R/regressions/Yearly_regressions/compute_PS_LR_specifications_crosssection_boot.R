@@ -142,6 +142,7 @@ yearly_data <- yearly_data[, -c("n", "yr", "sales_tax")]
 # Create Share of quantities
 yearly_data <- yearly_data[, ln_share_sales := log(sales/sum(sales)), 
                            by = .(store_code_uc, fips_county, fips_state, year)]
+
 ###### Propensity Score set up -----------------------------
 
 # Vector of "must be in" variables
@@ -463,6 +464,8 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   
   # Append
   PS_res <- rbind(PS_res, c6, fill = T)
+  # Keep interest order
+  PS_res <- PS_res[order(year, outcome),]
   
   # Return a vector of estimates
   return(PS_res[["Estimate"]])
@@ -471,7 +474,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
 
 ## Try this function and compare
 
-psmatch.taxrate(actual.data = yearly_data, 
+try1 <- psmatch.taxrate(actual.data = yearly_data, 
                 covariate.data = covariates,
                 algor = "NN", 
                 weights = "base.sales", 
@@ -480,7 +483,7 @@ psmatch.taxrate(actual.data = yearly_data,
                 treatment = "high.tax.rate", 
                 outcomes = outcomes)
 
-psmatch.taxrate(actual.data = yearly_data, 
+try2 <- psmatch.taxrate(actual.data = yearly_data, 
                 covariate.data = covariates,
                 algor = "weighted", 
                 weights = "base.sales", 
@@ -488,10 +491,14 @@ psmatch.taxrate(actual.data = yearly_data,
                 oth.covars = Xa_pot, 
                 treatment = "high.tax.rate", 
                 outcomes = outcomes)
-
+## Export attempts
+try1 <- data.table(try1)
+try2 <- data.table(try2)
+fwrite(try1, "../../home/slacouture/PS/try1.csv")
+fwrite(try2, "../../home/slacouture/PS/try2.csv")
 
 ### Function to run the previously created function on the iteration sample (blocked)
-## I allow some arguments to vary so I can loop on it
+## I should allow some arguments to vary so I can loop on it
 
 
 block.boot <- function(x, i) {
@@ -512,4 +519,12 @@ block.boot <- function(x, i) {
 
 # Define level of bootstrap
 state_by_module_ids <- unique(yearly_data$state_by_module)
-b0 <- boot(state_by_module_ids, block.boot, 999)
+b0 <- boot(state_by_module_ids, block.boot, 150)
+
+# Export: observed and distribution
+t <- data.table(b0$t0)
+mat.t <- data.table(b0$t)
+fwrite(t, "../../home/slacouture/PS/boottry1_t.csv")
+fwrite(mat.t, "../../home/slacouture/PS/boottry1_mat.t.csv")
+
+
