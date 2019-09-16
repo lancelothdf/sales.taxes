@@ -297,7 +297,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
     # 1) nearest neighbord, 2) k-nearest, 3) caliper, 4) weighted
     ## To be productive: Program will not compute covariates test
     
-    flog.info("Compute matching algorithm %s for year %yr", agor, yr)
+    flog.info("Compute matching algorithm %s for year %yr", algor, yr)
 
         # Algorithm 1: nearest neighbor (with replacement). All units are matched, both treated and controls
     if (algor == "NN") {
