@@ -190,12 +190,12 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   covariate.data <- merge(covariate.data, list.counties, by = c('fips_state','fips_county'))
   
   # Identify years
-  list.years <- unique(actual.data[, c('year')])
+  list.years <- unique(actual.data[, c('year')])[["year"]]
   
   # Make sure median has been defined in data (treatment)
   # Make sure observations without sales_tax rates have been dropped
   # Make sure "ln_sales_tax" is not in covariate.data but only in actual.data
-  # Make sure data is already restricted to interest sample is not in covariate.data but only in actual.data
+  # Make sure data is already restricted to interest sample
   
   # Start yearly estimations
   for (yr in list.years) {
