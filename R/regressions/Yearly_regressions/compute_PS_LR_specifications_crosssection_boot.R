@@ -140,9 +140,8 @@ yearly_data <- as.data.table(yearly_data)
 # Got to drop some variables in yearly data to perform well
 yearly_data <- yearly_data[, -c("n", "yr", "sales_tax")]
 # Create Share of quantities
-yearly_data <- yearly_data[, ln_share_quantities_store := log(exp(ln_quantity2)/sum(exp(ln_quantity2))), 
+yearly_data <- yearly_data[, ln_share_sales := log(sales/sum(sales)), 
                            by = .(store_code_uc, fips_county, fips_state, year)]
-
 ###### Propensity Score set up -----------------------------
 
 # Vector of "must be in" variables
@@ -157,7 +156,7 @@ X_all <- c(Xb, Xa_pot)
 
 
 # Vector of outcomes to run cross-sectional design. Not gonna run on covariates: already balancing on them at county level
-outcomes <- c("ln_cpricei2", "ln_quantity2", "ln_share_quantities_store", "ln_sales_tax", "ln_statutory_sales_tax")
+outcomes <- c("ln_cpricei2", "ln_quantity2", "ln_share_sales", "ln_sales_tax", "ln_statutory_sales_tax")
 
 # Create Interest variables and set up data
 
@@ -492,7 +491,7 @@ block.boot <- function(x, i, algor = "NN", weights, treatment, outcomes) {
 psmatch.taxrate(actual.data = yearly_data, 
                 covariate.data = covariates,
                 algor = "NN", 
-                weights = base.sales, 
+                weights = "base.sales", 
                 must.covar = Xb, 
                 oth.covars = Xa_pot, 
                 treatment = "high.tax.rate", 

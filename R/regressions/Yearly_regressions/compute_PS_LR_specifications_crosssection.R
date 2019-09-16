@@ -163,7 +163,7 @@ X_all <- c(Xb, Xa_pot)
 
 # Vector of outcomes to run cross-sectional design. Not gonna run on covariates: already balancing on them at county level
 outcomes <- c("ln_cpricei2", "ln_quantity2", "ln_share_sales", "ln_sales_tax", "ln_statutory_sales_tax")
-outcomes <- c("ln_share_sales")
+#outcomes <- c("ln_share_sales")
 
 
 ###### Run Estimation ------------------------------------
