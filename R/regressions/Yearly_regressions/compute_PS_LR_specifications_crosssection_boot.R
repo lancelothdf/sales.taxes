@@ -13,6 +13,9 @@ library(AER)
 library(multcomp)
 library(boot)
 
+# Set directory
+setwd("/project2/igaarder")
+
 
 ## useful filepaths ------------------------------------------------------------
 all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_notaxinfo.csv"
