@@ -465,7 +465,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   PS_res <- rbind(PS_res, c6, fill = T)
   
   # Return a vector of estimates
-  return(PS_res[["Estimates"]])
+  return(PS_res[["Estimate"]])
 }
 
 
@@ -483,7 +483,7 @@ psmatch.taxrate(actual.data = yearly_data,
 psmatch.taxrate(actual.data = yearly_data, 
                 covariate.data = covariates,
                 algor = "weighted", 
-                weights = base.sales, 
+                weights = "base.sales", 
                 must.covar = Xb, 
                 oth.covars = Xa_pot, 
                 treatment = "high.tax.rate", 
