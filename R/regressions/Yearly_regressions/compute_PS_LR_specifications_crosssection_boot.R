@@ -326,7 +326,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       # Create Interaction term
       crosswalk <- crosswalk[, interaction := (get(treatment))*taxable]
       # Make sure there are no 0 weights
-      crosswalk <- crosswalk[!is.na(get(weights))]
+      crosswalk <- crosswalk[!is.na((get(weights)))]
       
     }
 
@@ -353,11 +353,9 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       # Create Interaction term
       crosswalk <- crosswalk[, interaction := get(treatment)*taxable]
       # Create new weights
-      flog.info("Doing a")
       crosswalk <- crosswalk[, (weights) := (get(weights))*w]
       # Make sure there are no 0 weights
-      flog.info("Doing b")
-      crosswalk <- crosswalk[!is.na(get(weights))]
+      crosswalk <- crosswalk[!is.na((get(weights)))]
     } 
     
     # Algorithm 3: neighbors in caliper (with replacement). r=0.001. All units are matched, both treated and controls. 
@@ -389,7 +387,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       # Create new weights
       crosswalk <- crosswalk[, (weights) := (get(weights))*w]
       # Make sure there are no 0 weights
-      crosswalk <- crosswalk[!is.na(get(weights))]
+      crosswalk <- crosswalk[!is.na((get(weights)))]
     }
     # Algorithm 4: weighting estimator. Build weights
     if (algor == "weighted") { 
@@ -403,7 +401,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       # Create new weights
       crosswalk <- crosswalk[, (weights) := (get(weights))*w]
       # Make sure there are no 0 weights
-      crosswalk <- crosswalk[!is.na(get(weights))]      
+      crosswalk <- crosswalk[!is.na((get(weights)))]
     }
     
     # Algorithm 5: No matching
@@ -415,7 +413,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       # Create Interaction term
       crosswalk <- crosswalk[, interaction := get(treatment)*taxable]
       # Make sure there are no 0 weights
-      crosswalk <- crosswalk[!is.na(get(weights))]      
+      crosswalk <- crosswalk[!is.na((get(weights)))]
     }
     
     flog.info("Computing estimation for algorithm %s for year %s", algor, yr)
@@ -481,3 +479,11 @@ psmatch.taxrate(actual.data = yearly_data,
                 treatment = "high.tax.rate", 
                 outcomes = outcomes)
 
+psmatch.taxrate(actual.data = yearly_data, 
+                covariate.data = covariates,
+                algor = "weighted", 
+                weights = base.sales, 
+                must.covar = Xb, 
+                oth.covars = Xa_pot, 
+                treatment = "high.tax.rate", 
+                outcomes = outcomes)
