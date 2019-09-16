@@ -353,8 +353,10 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       # Create Interaction term
       crosswalk <- crosswalk[, interaction := get(treatment)*taxable]
       # Create new weights
+      flog.info("Doing a")
       crosswalk <- crosswalk[, (weights) := (get(weights))*w]
       # Make sure there are no 0 weights
+      flog.info("Doing b")
       crosswalk <- crosswalk[!is.na(get(weights))]
     } 
     
@@ -416,6 +418,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       crosswalk <- crosswalk[!is.na(get(weights))]      
     }
     
+    flog.info("Computing estimation for algorithm %s for year %s", algor, yr)
     #### Estimate cross-sectional design  -------
     for(Y in outcomes) {
       
@@ -437,6 +440,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   }
   ## After all estimations, create the return output
   
+  flog.info("Computing interest coefficients")
   # Identify interest estimates
   c1 <- LRdiff_res[rn == "taxableTRUE", ][, -c("Cluster s.e.", "t value", "Pr(>|t|)")]
   c2 <- LRdiff_res[rn == "taxableTRUE" | rn == "interaction",][, list(Estimate = sum(Estimate)), 
