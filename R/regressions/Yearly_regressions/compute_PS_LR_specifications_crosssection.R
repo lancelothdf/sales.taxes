@@ -145,7 +145,7 @@ yearly_data <- as.data.table(yearly_data)
 # Got to drop some variables in yearly data to perform well
 yearly_data <- yearly_data[, -c("n", "yr", "sales_tax")]
 # Create Share of quantities
-yearly_data <- yearly_data[, ln_share_quantities_store := log(exp(ln_quantity2)/sum(exp(ln_quantity2))), 
+yearly_data <- yearly_data[, ln_share_sales := log(sales/sum(sales)), 
                            by = .(store_code_uc, fips_county, fips_state, year)]
 
 ###### Propensity Score set up -----------------------------
@@ -162,7 +162,8 @@ X_all <- c(Xb, Xa_pot)
 
 
 # Vector of outcomes to run cross-sectional design. Not gonna run on covariates: already balancing on them at county level
-outcomes <- c("ln_cpricei2", "ln_quantity2", "ln_share_quantities_store", "ln_sales_tax", "ln_statutory_sales_tax")
+outcomes <- c("ln_cpricei2", "ln_quantity2", "ln_share_sales", "ln_sales_tax", "ln_statutory_sales_tax")
+outcomes <- c("ln_share_sales")
 
 
 ###### Run Estimation ------------------------------------
