@@ -417,10 +417,11 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
     
     flog.info("Computing estimation for algorithm %s for year %s", algor, yr)
     #### Estimate cross-sectional design  -------
+    LRdiff_res <- data.table(NULL)
     for(Y in outcomes) {
       
       formula0 <- as.formula(paste0(
-        Y, " ~ ",  treatment, " + taxable + interaction | product_module_code | 0 | state_by_module "
+        Y, " ~ ",  treatment, " + taxable + interaction | product_module_code "
       ))
       ### Base weights
       res0 <- felm(data = crosswalk,
