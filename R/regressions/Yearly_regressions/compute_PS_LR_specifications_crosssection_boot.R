@@ -490,9 +490,23 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
 #                   outcomes = outcomes)
 # }
 
+# block.boot <- function(x, i) {
+#   flog.info("Identifying sample")
+#   bootdata <- unlist(lapply(i, function(n) which(x[n] == yearly_data$state_by_module)))
+#   flog.info("Calling matching function")
+#   psmatch.taxrate(actual.data = bootdata, 
+#                   covariate.data = covariates,
+#                   algor = "NN", 
+#                   weights = "base.sales", 
+#                   must.covar = Xb, 
+#                   oth.covars = Xa_pot, 
+#                   treatment = "high.tax.rate", 
+#                   outcomes = outcomes)
+# }
+
 block.boot <- function(x, i) {
   flog.info("Identifying sample")
-  bootdata <- unlist(lapply(i, function(n) which(x[n] == yearly_data$state_by_module)))
+  bootdata <- merge(data.table(state_by_module=x[i],  key = state_by_module), yearly_data, by = "state_by_module", allow.cartesian = T)
   flog.info("Calling matching function")
   psmatch.taxrate(actual.data = bootdata, 
                   covariate.data = covariates,
@@ -504,10 +518,12 @@ block.boot <- function(x, i) {
                   outcomes = outcomes)
 }
 
+
 ### Run essay bootstrap
 
 # Define level of block bootstrap
 state_by_module_ids <- unique(yearly_data$state_by_module)
+# Improve 
 # Run bootstrap
 b0 <- boot(state_by_module_ids, block.boot, 10)
 
