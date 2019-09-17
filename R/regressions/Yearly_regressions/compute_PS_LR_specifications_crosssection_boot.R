@@ -12,6 +12,7 @@ library(futile.logger)
 library(AER)
 library(multcomp)
 library(boot)
+library(dplyr)
 
 # Set directory
 setwd("/project2/igaarder")
@@ -469,15 +470,30 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   # return(PS_res)
 }
 
+############## Run bootstraps -----------------
 
 ### Function to run the previously created function on the iteration sample (blocked)
 ## I should allow some arguments to vary so I can loop on it
 
+# 
+# block.boot <- function(x, i) {
+#   flog.info("Identifying sample")
+#   bootdata <- do.call("rbind", lapply(i, function(n) subset(yearly_data, state_by_module == x[n])))
+#   flog.info("Callin matching function")
+#   psmatch.taxrate(actual.data = bootdata, 
+#                   covariate.data = covariates,
+#                   algor = "NN", 
+#                   weights = "base.sales", 
+#                   must.covar = Xb, 
+#                   oth.covars = Xa_pot, 
+#                   treatment = "high.tax.rate", 
+#                   outcomes = outcomes)
+# }
 
 block.boot <- function(x, i) {
   flog.info("Identifying sample")
-  bootdata <- do.call("rbind", lapply(i, function(n) subset(yearly_data, state_by_module == x[n])))
-  flog.info("Callin matching function")
+  bootdata <- unlist(lapply(i, function(n) which(x[n] == yearly_data$state_by_module)))
+  flog.info("Calling matching function")
   psmatch.taxrate(actual.data = bootdata, 
                   covariate.data = covariates,
                   algor = "NN", 
@@ -490,8 +506,9 @@ block.boot <- function(x, i) {
 
 ### Run essay bootstrap
 
-# Define level of bootstrap
+# Define level of block bootstrap
 state_by_module_ids <- unique(yearly_data$state_by_module)
+# Run bootstrap
 b0 <- boot(state_by_module_ids, block.boot, 10)
 
 # Export: observed and distribution
