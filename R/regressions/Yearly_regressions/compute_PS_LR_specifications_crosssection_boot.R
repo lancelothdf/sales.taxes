@@ -210,7 +210,6 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
     # Create taxability
     year.data <- year.data[, taxable :=ifelse(ln_sales_tax == 0, FALSE, TRUE)]
 
-    flog.info("Selection equation and trimming %s", yr)
     ### Selection of covariates. Algorithm suggested by Imbens (2015) -----
     # Basic regression
     RHS <- paste(must.covar, collapse  = " + ")
@@ -314,7 +313,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
         obs.i <- obs.i[, n_pair := i]
         # Find potential pairs and order by distance to selected observation
         potential.pairs <- year.covariates.trim[get(treatment) != obs.i[, get(treatment)], 
-                                                ][, distance := abs(pscore - obs.i[, pscore])][order(distance)]
+                                                ][, distance := abs(pscore - obs.i[, pscore])][distance < 0.1][order(distance)]
         # Extract closest pair
         pair.i<- potential.pairs[1, ][, -c("distance")]
         pair.i <- pair.i[, n_pair := i]
@@ -344,7 +343,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
         obs.i <- obs.i[, n_pair := i][, w := 1]
         # Find potential pairs and order by distance to selected observation
         potential.pairs <- year.covariates.trim[get(treatment) != obs.i[, get(treatment)],
-                                                ][, distance := abs(pscore - obs.i[, pscore])][order(distance)]
+                                                ][, distance := abs(pscore - obs.i[, pscore])][distance < 0.1][order(distance)]
         # Extract closest pair
         pair.i<- potential.pairs[1:3, ][, -c("distance")]
         pair.i <- pair.i[, n_pair := i][, w := 1/3]
@@ -373,7 +372,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
         obs.i <- obs.i[, n_pair := i][, w := 1]
         # Find potential pairs and order by distance to selected observation
         potential.pairs <- year.covariates.trim[get(treatment) != obs.i[, get(treatment)],
-                                                ][, distance := abs(pscore - obs.i[, pscore])][order(distance)]
+                                                ][, distance := abs(pscore - obs.i[, pscore])][distance < 0.1][order(distance)]
         # Extract closest pair
         pair.i<- potential.pairs[distance < r, ][, -c("distance")]
         # PErform if pair found
@@ -466,11 +465,10 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   # Append
   PS_res <- rbind(PS_res, c6, fill = T)
   # Keep interest order
-  PS_res <- PS_res[order(year, outcome),]
+  PS_res <- PS_res[order(year, outcome),][["Estimate"]]
   
   # Return a vector of estimates
-  return(PS_res[["Estimate"]])
-  # return(PS_res)
+  return(PS_res)
 }
 
 ############## Run bootstraps -----------------
@@ -497,7 +495,7 @@ block.boot <- function(x, i) {
 state_by_module_ids <- unique(yearly_data$state_by_module)
 # Improve 
 # Run bootstrap
-rep_count = 1
+rep_count = 0
 b0 <- boot(state_by_module_ids, block.boot, 10)
 
 # Export: observed and distribution
