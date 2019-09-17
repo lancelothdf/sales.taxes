@@ -201,7 +201,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   # Create output element
   LRdiff_res <- data.table(NULL)
   # Start yearly estimations
-  flog.info("Starting Matching algorithm to ")
+  flog.info("Starting Matching algorithm")
   for (yr in list.years) {
     
     # Keep year of interest
@@ -210,6 +210,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
     # Create taxability
     year.data <- year.data[, taxable :=ifelse(ln_sales_tax == 0, FALSE, TRUE)]
 
+    flog.info("Selection equation and trimming %s", yr)
     ### Selection of covariates. Algorithm suggested by Imbens (2015) -----
     # Basic regression
     RHS <- paste(must.covar, collapse  = " + ")
@@ -299,7 +300,8 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
     # 1) nearest neighbord, 2) k-nearest, 3) caliper, 4) weighted
     ## To be productive: Program will not compute covariates test
     
-        # Algorithm 1: nearest neighbor (with replacement). All units are matched, both treated and controls
+    flog.info("Algorithm calculation %s", yr)
+    # Algorithm 1: nearest neighbor (with replacement). All units are matched, both treated and controls
     if (algor == "NN") {
       
       ## Comparison group
@@ -417,6 +419,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
     }
     
     #### Estimate cross-sectional design  -------
+    flog.info("Estimation %s", yr)
     for(Y in outcomes) {
       
       formula0 <- as.formula(paste0(
