@@ -506,7 +506,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
 
 block.boot <- function(x, i) {
   flog.info("Identifying sample")
-  bootdata <- merge(data.table(state_by_module=x[i],  key = state_by_module), yearly_data, by = "state_by_module", allow.cartesian = T)
+  bootdata <- merge(data.table(state_by_module=x[i]), yearly_data, by = "state_by_module", allow.cartesian = T)
   flog.info("Calling matching function")
   psmatch.taxrate(actual.data = bootdata, 
                   covariate.data = covariates,
