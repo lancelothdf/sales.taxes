@@ -469,39 +469,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   return(PS_res)
 }
 
-############## Run bootstrap: NN using base.sales -----------------
-
-block.boot <- function(x, i) {
-  bootdata <- merge(data.table(state_by_module=x[i]), yearly_data, by = "state_by_module", allow.cartesian = T)
-  rep_count <<- rep_count + 1
-  flog.info("Iteration %s", rep_count)
-  psmatch.taxrate(actual.data = bootdata, 
-                  covariate.data = covariates,
-                  algor = "calip", 
-                  weights = "base.sales", 
-                  must.covar = Xb, 
-                  oth.covars = Xa_pot, 
-                  treatment = "high.tax.rate", 
-                  outcomes = outcomes)
-}
-
-### Run essay bootstrap
-
-# Define level of block bootstrap
-state_by_module_ids <- unique(yearly_data$state_by_module)
-# Improve 
-# Run bootstrap
-rep_count = 0
-b0 <- boot(state_by_module_ids, block.boot, 50)
-
-# Export: observed and distribution
-t <- data.table(b0$t0)
-mat.t <- data.table(b0$t)
-fwrite(t, "../../home/slacouture/PS/C_base_t.csv")
-fwrite(mat.t, "../../home/slacouture/PS/C_base_mat.t.csv")
-
-
-# ############## Run bootstrap: Weighted using base.sales -----------------
+############## Run bootstrap: Calip using base.sales -----------------
 # 
 # block.boot <- function(x, i) {
 #   bootdata <- merge(data.table(state_by_module=x[i]), yearly_data, by = "state_by_module", allow.cartesian = T)
@@ -509,7 +477,7 @@ fwrite(mat.t, "../../home/slacouture/PS/C_base_mat.t.csv")
 #   flog.info("Iteration %s", rep_count)
 #   psmatch.taxrate(actual.data = bootdata, 
 #                   covariate.data = covariates,
-#                   algor = "weighted", 
+#                   algor = "calip", 
 #                   weights = "base.sales", 
 #                   must.covar = Xb, 
 #                   oth.covars = Xa_pot, 
@@ -529,5 +497,37 @@ fwrite(mat.t, "../../home/slacouture/PS/C_base_mat.t.csv")
 # # Export: observed and distribution
 # t <- data.table(b0$t0)
 # mat.t <- data.table(b0$t)
-# fwrite(t, "../../home/slacouture/PS/W_base_t.csv")
-# fwrite(mat.t, "../../home/slacouture/PS/W_base_mat.t.csv")
+# fwrite(t, "../../home/slacouture/PS/C_base_t.csv")
+# fwrite(mat.t, "../../home/slacouture/PS/C_base_mat.t.csv")
+
+
+############## Run bootstrap: Weighted using base.sales -----------------
+
+block.boot <- function(x, i) {
+  bootdata <- merge(data.table(state_by_module=x[i]), yearly_data, by = "state_by_module", allow.cartesian = T)
+  rep_count <<- rep_count + 1
+  flog.info("Iteration %s", rep_count)
+  psmatch.taxrate(actual.data = bootdata,
+                  covariate.data = covariates,
+                  algor = "weighted",
+                  weights = "base.sales",
+                  must.covar = Xb,
+                  oth.covars = Xa_pot,
+                  treatment = "high.tax.rate",
+                  outcomes = outcomes)
+}
+
+### Run essay bootstrap
+
+# Define level of block bootstrap
+state_by_module_ids <- unique(yearly_data$state_by_module)
+# Improve
+# Run bootstrap
+rep_count = 0
+b0 <- boot(state_by_module_ids, block.boot, 50)
+
+# Export: observed and distribution
+t <- data.table(b0$t0)
+mat.t <- data.table(b0$t)
+fwrite(t, "../../home/slacouture/PS/W_base_t.csv")
+fwrite(mat.t, "../../home/slacouture/PS/W_base_mat.t.csv")
