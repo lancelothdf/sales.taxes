@@ -200,9 +200,9 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   # Create output element
   LRdiff_res <- data.table(NULL)
   # Start yearly estimations
+  flog.info("Starting Matching algorithm to ")
   for (yr in list.years) {
     
-    flog.info("Starting year %s", yr)
     # Keep year of interest
     year.data <- actual.data[ year == yr,]
     year.covariates <- covariate.data[ year == yr, ]
@@ -210,7 +210,6 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
     year.data <- year.data[, taxable :=ifelse(ln_sales_tax == 0, FALSE, TRUE)]
 
     ### Selection of covariates. Algorithm suggested by Imbens (2015) -----
-    flog.info("Choosing selection equation for year %s", yr)
     # Basic regression
     RHS <- paste(must.covar, collapse  = " + ")
     curr.formula <- paste0(treatment, " ~ ", RHS)
@@ -299,8 +298,6 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
     # 1) nearest neighbord, 2) k-nearest, 3) caliper, 4) weighted
     ## To be productive: Program will not compute covariates test
     
-    flog.info("Compute matching algorithm %s for year %s", algor, yr)
-
         # Algorithm 1: nearest neighbor (with replacement). All units are matched, both treated and controls
     if (algor == "NN") {
       
@@ -418,7 +415,6 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       crosswalk <- crosswalk[!is.na(c(get(weights)))]
     }
     
-    flog.info("Computing estimation for algorithm %s for year %s", algor, yr)
     #### Estimate cross-sectional design  -------
     for(Y in outcomes) {
       
@@ -474,27 +470,14 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
 }
 
 
-## Try this function and compare
-
-try1 <- psmatch.taxrate(actual.data = yearly_data, 
-                covariate.data = covariates,
-                algor = "NN", 
-                weights = "base.sales", 
-                must.covar = Xb, 
-                oth.covars = Xa_pot, 
-                treatment = "high.tax.rate", 
-                outcomes = outcomes)
-
-## Export attempts
-try1 <- data.table(try1)
-fwrite(try1, "../../home/slacouture/PS/try1.csv")
-
 ### Function to run the previously created function on the iteration sample (blocked)
 ## I should allow some arguments to vary so I can loop on it
 
 
 block.boot <- function(x, i) {
+  flog.info("Identifying sample")
   bootdata <- do.call("rbind", lapply(i, function(n) subset(yearly_data, state_by_module == x[n])))
+  flog.info("Callin matching function")
   psmatch.taxrate(actual.data = bootdata, 
                   covariate.data = covariates,
                   algor = "NN", 
@@ -505,13 +488,11 @@ block.boot <- function(x, i) {
                   outcomes = outcomes)
 }
 
-
-
-### Run essay bootstraps
+### Run essay bootstrap
 
 # Define level of bootstrap
 state_by_module_ids <- unique(yearly_data$state_by_module)
-b0 <- boot(state_by_module_ids, block.boot, 150)
+b0 <- boot(state_by_module_ids, block.boot, 10)
 
 # Export: observed and distribution
 t <- data.table(b0$t0)
