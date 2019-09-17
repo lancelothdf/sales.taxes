@@ -475,42 +475,11 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
 
 ############## Run bootstraps -----------------
 
-### Function to run the previously created function on the iteration sample (blocked)
-## I should allow some arguments to vary so I can loop on it
-
-# 
-# block.boot <- function(x, i) {
-#   flog.info("Identifying sample")
-#   bootdata <- do.call("rbind", lapply(i, function(n) subset(yearly_data, state_by_module == x[n])))
-#   flog.info("Callin matching function")
-#   psmatch.taxrate(actual.data = bootdata, 
-#                   covariate.data = covariates,
-#                   algor = "NN", 
-#                   weights = "base.sales", 
-#                   must.covar = Xb, 
-#                   oth.covars = Xa_pot, 
-#                   treatment = "high.tax.rate", 
-#                   outcomes = outcomes)
-# }
-
-# block.boot <- function(x, i) {
-#   flog.info("Identifying sample")
-#   bootdata <- unlist(lapply(i, function(n) which(x[n] == yearly_data$state_by_module)))
-#   flog.info("Calling matching function")
-#   psmatch.taxrate(actual.data = bootdata, 
-#                   covariate.data = covariates,
-#                   algor = "NN", 
-#                   weights = "base.sales", 
-#                   must.covar = Xb, 
-#                   oth.covars = Xa_pot, 
-#                   treatment = "high.tax.rate", 
-#                   outcomes = outcomes)
-# }
 
 block.boot <- function(x, i) {
-  flog.info("Identifying sample")
   bootdata <- merge(data.table(state_by_module=x[i]), yearly_data, by = "state_by_module", allow.cartesian = T)
-  flog.info("Calling matching function")
+  rep_count <<- rep_count + 1
+  flog.info("Iteration %s", rep_count)
   psmatch.taxrate(actual.data = bootdata, 
                   covariate.data = covariates,
                   algor = "NN", 
@@ -528,6 +497,7 @@ block.boot <- function(x, i) {
 state_by_module_ids <- unique(yearly_data$state_by_module)
 # Improve 
 # Run bootstrap
+rep_count = 1
 b0 <- boot(state_by_module_ids, block.boot, 10)
 
 # Export: observed and distribution
