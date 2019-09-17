@@ -370,12 +370,10 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
         obs.i <- year.covariates.trim[i, ]
         # Add Info of pair number
         obs.i <- obs.i[, n_pair := i][, w := 1]
-        # Find potential pairs and order by distance to selected observation
-        potential.pairs <- year.covariates.trim[get(treatment) != obs.i[, get(treatment)],
-                                                ][, distance := abs(pscore - obs.i[, pscore])][distance < 0.1][order(distance)]
-        # Extract closest pair
-        pair.i<- potential.pairs[distance < r, ][, -c("distance")]
-        # PErform if pair found
+        # Find potential pairs and choose by distance to selected observation
+        pair.i <- year.covariates.trim[get(treatment) != obs.i[, get(treatment)],
+                                                ][, distance := abs(pscore - obs.i[, pscore])][distance < r][, -c("distance")]
+        # Perform if pair found
         if (nrow(pair.i) > 0) {
           pair.i <- pair.i[, n_pair := i][, w := 1/.N]
           # paste to previous selected pairs
@@ -471,8 +469,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   return(PS_res)
 }
 
-############## Run bootstraps -----------------
-
+############## Run bootstrap: NN using base.sales -----------------
 
 block.boot <- function(x, i) {
   bootdata <- merge(data.table(state_by_module=x[i]), yearly_data, by = "state_by_module", allow.cartesian = T)
@@ -480,14 +477,13 @@ block.boot <- function(x, i) {
   flog.info("Iteration %s", rep_count)
   psmatch.taxrate(actual.data = bootdata, 
                   covariate.data = covariates,
-                  algor = "NN", 
+                  algor = "calip", 
                   weights = "base.sales", 
                   must.covar = Xb, 
                   oth.covars = Xa_pot, 
                   treatment = "high.tax.rate", 
                   outcomes = outcomes)
 }
-
 
 ### Run essay bootstrap
 
@@ -496,12 +492,42 @@ state_by_module_ids <- unique(yearly_data$state_by_module)
 # Improve 
 # Run bootstrap
 rep_count = 0
-b0 <- boot(state_by_module_ids, block.boot, 10)
+b0 <- boot(state_by_module_ids, block.boot, 50)
 
 # Export: observed and distribution
 t <- data.table(b0$t0)
 mat.t <- data.table(b0$t)
-fwrite(t, "../../home/slacouture/PS/boottry1_t.csv")
-fwrite(mat.t, "../../home/slacouture/PS/boottry1_mat.t.csv")
+fwrite(t, "../../home/slacouture/PS/C_base_t.csv")
+fwrite(mat.t, "../../home/slacouture/PS/C_base_mat.t.csv")
 
 
+# ############## Run bootstrap: Weighted using base.sales -----------------
+# 
+# block.boot <- function(x, i) {
+#   bootdata <- merge(data.table(state_by_module=x[i]), yearly_data, by = "state_by_module", allow.cartesian = T)
+#   rep_count <<- rep_count + 1
+#   flog.info("Iteration %s", rep_count)
+#   psmatch.taxrate(actual.data = bootdata, 
+#                   covariate.data = covariates,
+#                   algor = "weighted", 
+#                   weights = "base.sales", 
+#                   must.covar = Xb, 
+#                   oth.covars = Xa_pot, 
+#                   treatment = "high.tax.rate", 
+#                   outcomes = outcomes)
+# }
+# 
+# ### Run essay bootstrap
+# 
+# # Define level of block bootstrap
+# state_by_module_ids <- unique(yearly_data$state_by_module)
+# # Improve 
+# # Run bootstrap
+# rep_count = 0
+# b0 <- boot(state_by_module_ids, block.boot, 50)
+# 
+# # Export: observed and distribution
+# t <- data.table(b0$t0)
+# mat.t <- data.table(b0$t)
+# fwrite(t, "../../home/slacouture/PS/W_base_t.csv")
+# fwrite(mat.t, "../../home/slacouture/PS/W_base_mat.t.csv")
