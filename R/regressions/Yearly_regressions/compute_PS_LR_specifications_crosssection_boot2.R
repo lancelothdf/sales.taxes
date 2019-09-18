@@ -524,10 +524,10 @@ state_by_module_ids <- unique(yearly_data$state_by_module)
 # Improve
 # Run bootstrap
 rep_count = 0
-b0 <- boot(state_by_module_ids, block.boot, 50)
+b0 <- boot(state_by_module_ids, block.boot, 500)
 
 # Export: observed and distribution
 t <- data.table(b0$t0)
 mat.t <- data.table(b0$t)
-fwrite(t, "../../home/slacouture/PS/W_base_t.csv")
-fwrite(mat.t, "../../home/slacouture/PS/W_base_mat.t.csv")
+fwrite(t, "../../home/slacouture/PS/W_base_t_500.csv")
+fwrite(mat.t, "../../home/slacouture/PS/W_base_mat.t_500.csv")
