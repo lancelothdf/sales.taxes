@@ -158,7 +158,10 @@ X_all <- c(Xb, Xa_pot)
 
 
 # Vector of outcomes to run cross-sectional design. Not gonna run on covariates: already balancing on them at county level
-outcomes <- c("ln_cpricei2", "ln_quantity2", "ln_share_sales", "ln_sales_tax", "ln_statutory_sales_tax")
+ 
+r.outcomes <- c("ln_cpricei2", "ln_quantity2", "ln_share_sales", "ln_unemp", "ln_home_price")
+tax.rates <- c("ln_sales_tax", "ln_statutory_sales_tax")
+outcomes <- c(r.outcomes, tax.rates)
 
 # Create Interest variables and set up data
 
@@ -442,8 +445,9 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   c1 <- LRdiff_res[rn == "taxableTRUE", ][, -c("Std. Error", "t value", "Pr(>|t|)")]
   c2 <- LRdiff_res[rn == "taxableTRUE" | rn == "interaction",][, list(Estimate = sum(Estimate)), 
                                                                          by = .(outcome, year) ][, rn := "taxableTRUE + high.tax.rate_taxable"]
-  c3 <- LRdiff_res[rn == "taxableTRUE" | rn == "interaction",][, list(Estimate = mean(Estimate)), 
-                                                                         by = .(outcome, year) ][, rn := "(taxableTRUE + high.tax.rate_taxable)/2"]
+  c3 <- LRdiff_res[rn == "taxableTRUE" | rn == "interaction",][, w := ifelse(rn == "taxableTRUE", 2/3 , 1/3)][
+                                                                          , list(Estimate = weighted.mean(Estimate, w = w)), 
+                                                                         by = .(outcome, year) ][, rn := "(2*taxableTRUE + high.tax.rate_taxable)/2"]
   
   c4 <- LRdiff_res[rn == paste0(treatment, "TRUE") | rn == "interaction",][, list(Estimate = sum(Estimate)), 
                                                                                by = .(outcome, year) ][, rn := "high.tax.rateTRUE + high.tax.rate_taxable"]
@@ -453,55 +457,45 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   
   c6 <- PS_res[, list(Estimate = mean(Estimate)), 
                by = .(rn, outcome) ]
-  # Renames
-  c6[rn == "taxableTRUE", rn := "Av.taxableTRUE"]
-  c6[rn == "taxableTRUE + high.tax.rate_taxable", rn := "Av.(taxableTRUE + high.tax.rate_taxable)"]
-  c6[rn == "(taxableTRUE + high.tax.rate_taxable)/2", rn := "Av.(taxableTRUE + high.tax.rate_taxable)/2"]
-  c6[rn == "high.tax.rateTRUE + high.tax.rate_taxable", rn := "Av.(high.tax.rateTRUE + high.tax.rate_taxable)"]
-  c6[rn == "high.tax.rate_taxable", rn := "Av.high.tax.rate_taxable"]
-  
+
   # Append
   PS_res <- rbind(PS_res, c6, fill = T)
   # Keep interest order
+  PS_res <- PS_res[order(year, outcome),]
+  
+  ## Compute other Interest estimates: implied 
+  implied.coefs <- data.table(NULL)
+  for (yr in unique(PS_res[, c('year')])[["year"]]) {
+    
+    for (Y in r.outcomes) {
+     
+      for (tax in tax.rates) {
+        
+        for (coef in unique(PS_res[, c('rn')])[["rn"]]) {
+          
+          numerator <- PS_res[ outcome == Y & year == yr & rn == coef][["Estimate"]]
+          denominator <- PS_res[ outcome == tax & year == yr & rn == coef][["Estimate"]]
+
+          Estimate <- numerator/denominator
+          
+          iter.data <- data.table(Estimate)
+          iter.data[, year := yr][, rn := coef][, outcome := paste0(Y, "_", tax)]
+          
+          implied.coefs <- rbind(implied.coefs, iter.data)
+        }
+      }
+    }
+  }
   PS_res <- PS_res[order(year, outcome),][["Estimate"]]
+  implied.coefs <- implied.coefs[order(year, outcome),][["Estimate"]]
+  
+  PS_res <- rbind(PS_res, implied.coefs)
   
   # Return a vector of estimates
   return(PS_res)
 }
 
-############## Run bootstrap: Calip using base.sales -----------------
-# 
-# block.boot <- function(x, i) {
-#   bootdata <- merge(data.table(state_by_module=x[i]), yearly_data, by = "state_by_module", allow.cartesian = T)
-#   rep_count <<- rep_count + 1
-#   flog.info("Iteration %s", rep_count)
-#   psmatch.taxrate(actual.data = bootdata, 
-#                   covariate.data = covariates,
-#                   algor = "calip", 
-#                   weights = "base.sales", 
-#                   must.covar = Xb, 
-#                   oth.covars = Xa_pot, 
-#                   treatment = "high.tax.rate", 
-#                   outcomes = outcomes)
-# }
-# 
-# ### Run essay bootstrap
-# 
-# # Define level of block bootstrap
-# state_by_module_ids <- unique(yearly_data$state_by_module)
-# # Improve 
-# # Run bootstrap
-# rep_count = 0
-# b0 <- boot(state_by_module_ids, block.boot, 50)
-# 
-# # Export: observed and distribution
-# t <- data.table(b0$t0)
-# mat.t <- data.table(b0$t)
-# fwrite(t, "../../home/slacouture/PS/C_base_t.csv")
-# fwrite(mat.t, "../../home/slacouture/PS/C_base_mat.t.csv")
-
-
-############## Run bootstrap: Weighted using base.sales -----------------
+############# Run bootstrap: Calip using base.sales -----------------
 
 block.boot <- function(x, i) {
   bootdata <- merge(data.table(state_by_module=x[i]), yearly_data, by = "state_by_module", allow.cartesian = T)
@@ -509,7 +503,7 @@ block.boot <- function(x, i) {
   flog.info("Iteration %s", rep_count)
   psmatch.taxrate(actual.data = bootdata,
                   covariate.data = covariates,
-                  algor = "weighted",
+                  algor = "calip",
                   weights = "base.sales",
                   must.covar = Xb,
                   oth.covars = Xa_pot,
@@ -524,10 +518,42 @@ state_by_module_ids <- unique(yearly_data$state_by_module)
 # Improve
 # Run bootstrap
 rep_count = 0
-b0 <- boot(state_by_module_ids, block.boot, 50)
+b0 <- boot(state_by_module_ids, block.boot, 150)
 
 # Export: observed and distribution
 t <- data.table(b0$t0)
 mat.t <- data.table(b0$t)
-fwrite(t, "../../home/slacouture/PS/W_base_t.csv")
-fwrite(mat.t, "../../home/slacouture/PS/W_base_mat.t.csv")
+fwrite(t, "../../home/slacouture/PS/C_base_t_150.csv")
+fwrite(mat.t, "../../home/slacouture/PS/C_base_mat.t_150.csv")
+
+
+# ############## Run bootstrap: Weighted using base.sales -----------------
+# 
+# block.boot <- function(x, i) {
+#   bootdata <- merge(data.table(state_by_module=x[i]), yearly_data, by = "state_by_module", allow.cartesian = T)
+#   rep_count <<- rep_count + 1
+#   flog.info("Iteration %s", rep_count)
+#   psmatch.taxrate(actual.data = bootdata,
+#                   covariate.data = covariates,
+#                   algor = "weighted",
+#                   weights = "base.sales",
+#                   must.covar = Xb,
+#                   oth.covars = Xa_pot,
+#                   treatment = "high.tax.rate",
+#                   outcomes = outcomes)
+# }
+# 
+# ### Run essay bootstrap
+# 
+# # Define level of block bootstrap
+# state_by_module_ids <- unique(yearly_data$state_by_module)
+# # Improve
+# # Run bootstrap
+# rep_count = 0
+# b0 <- boot(state_by_module_ids, block.boot, 150)
+# 
+# # Export: observed and distribution
+# t <- data.table(b0$t0)
+# mat.t <- data.table(b0$t)
+# fwrite(t, "../../home/slacouture/PS/W_base_t_150.csv")
+# fwrite(mat.t, "../../home/slacouture/PS/W_base_mat.t_150.csv")
