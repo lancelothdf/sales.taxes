@@ -172,7 +172,7 @@ yearly_data <- yearly_data[year >= 2008 & year <= 2014, ]
 
 ############## Create a function that performs the PS matching as desired -----------------
 
-psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, must.covar, oth.covars, treatment, outcomes) {
+psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, must.covar, oth.covars, treatment, Y, tau) {
   
   #' actual.data contains the estimation data (retailer data)
   #' covariate.data contains the covariates at the county level that are used to match
@@ -186,7 +186,8 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   #' must.covar are the variables that must be included in ps estimation
   #' oth.covars the other potential covariates that can be used
   #' treatment indicates the name of the "treatment" variable
-  #' outcomes indicates the vector of outcomes to run the estimation
+  #' Y indicates the vector of outcomes to run the estimation
+  #' tau indicate the vector of variables that are tax rates to retrieve the interest parameters.
   
   # Identify counties for which we will match
   list.counties <- data.table(unique(actual.data[,c('fips_state','fips_county')]))
@@ -195,6 +196,9 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   
   # Identify years
   list.years <- unique(actual.data[, c('year')])[["year"]]
+  
+  # Identify outcomes to run regressions (Y + tau)
+  outcomes <- c(Y, tau)
   
   # Make sure median has been defined in data (treatment)
   # Make sure observations without sales_tax rates have been dropped
@@ -489,33 +493,34 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   PS_res <- PS_res[order(year, outcome),][["Estimate"]]
   implied.coefs <- implied.coefs[order(year, outcome),][["Estimate"]]
   
-  PS_res <- rbind(PS_res, implied.coefs)
+  PS_res <- c(PS_res, implied.coefs)
   
   # Return a vector of estimates
   return(PS_res)
 }
 
-############## Run bootstrap: Calip using base.sales -----------------
+############# Run bootstrap: Calip using base.sales -----------------
 # 
 # block.boot <- function(x, i) {
 #   bootdata <- merge(data.table(state_by_module=x[i]), yearly_data, by = "state_by_module", allow.cartesian = T)
 #   rep_count <<- rep_count + 1
 #   flog.info("Iteration %s", rep_count)
-#   psmatch.taxrate(actual.data = bootdata, 
+#   psmatch.taxrate(actual.data = bootdata,
 #                   covariate.data = covariates,
-#                   algor = "calip", 
-#                   weights = "base.sales", 
-#                   must.covar = Xb, 
-#                   oth.covars = Xa_pot, 
-#                   treatment = "high.tax.rate", 
-#                   outcomes = outcomes)
+#                   algor = "calip",
+#                   weights = "base.sales",
+#                   must.covar = Xb,
+#                   oth.covars = Xa_pot,
+#                   treatment = "high.tax.rate",
+#                   Y = r.outcomes,
+#                   tau = tax.rates)
 # }
 # 
 # ### Run essay bootstrap
 # 
 # # Define level of block bootstrap
 # state_by_module_ids <- unique(yearly_data$state_by_module)
-# # Improve 
+# # Improve
 # # Run bootstrap
 # rep_count = 0
 # b0 <- boot(state_by_module_ids, block.boot, 150)
@@ -527,7 +532,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
 # fwrite(mat.t, "../../home/slacouture/PS/C_base_mat.t_150.csv")
 
 
-############## Run bootstrap: Weighted using base.sales -----------------
+# ############## Run bootstrap: Weighted using base.sales -----------------
 
 block.boot <- function(x, i) {
   bootdata <- merge(data.table(state_by_module=x[i]), yearly_data, by = "state_by_module", allow.cartesian = T)
@@ -540,7 +545,8 @@ block.boot <- function(x, i) {
                   must.covar = Xb,
                   oth.covars = Xa_pot,
                   treatment = "high.tax.rate",
-                  outcomes = outcomes)
+                  Y = r.outcomes,
+                  tau = tax.rates)
 }
 
 ### Run essay bootstrap
