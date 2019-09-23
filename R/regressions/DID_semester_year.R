@@ -106,6 +106,9 @@ all_pi[, region_by_module_by_time := .GRP, by = .(region, product_module_code, y
 all_pi[, division_by_module_by_time := .GRP, by = .(division, product_module_code, year)]
 all_pi[, module_by_state := .GRP, by = .(product_module_code, fips_state)]
 
+# Keep relevant years
+all_pi <- all_pi[between(year, 2008, 2014)]
+all_pi <- all_pi[ year >= 2009 | (year == 2008 & semester >= 2)] ## First semester of 2008, the difference was imputed not real data - so we drop it
 
 ### Run DID yearly data in changes and levels --------------------------------
 
