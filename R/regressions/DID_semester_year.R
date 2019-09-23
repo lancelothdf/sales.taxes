@@ -108,45 +108,8 @@ all_pi[, module_by_state := .GRP, by = .(product_module_code, fips_state)]
 
 # Keep relevant years
 all_pi <- all_pi[between(year, 2008, 2014)]
-all_pi <- all_pi[ year >= 2009 | (year == 2008 & semester >= 2)] ## First semester of 2008, the difference was imputed not real data - so we drop it
 
 ### Run DID yearly data in changes and levels --------------------------------
-
-## changes
-for (Y in c(outcomes.changes)) {
-  for (FE in FE_opts) {
-    
-    formula1 <- as.formula(paste0(
-      Y, "~ D.ln_sales_tax | ", FE, " | 0 | module_by_state"
-    ))
-    flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
-    res1 <- felm(formula = formula1, data = all_pi,
-                 weights = all_pi$base.sales)
-    flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
-    
-    
-    ## attach results
-    flog.info("Writing results...")
-    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-    res1.dt[, outcome := Y]
-    res1.dt[, controls := FE]
-    res1.dt[, window := "year"]
-    res1.dt[, spec := "changes"]
-    # Add summary values
-    res1.dt[, Rsq := summary(res1)$r.squared]
-    res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-    res1.dt[, N_obs := nrow(all_pi)]
-    res1.dt[, N_modules := length(unique(all_pi$product_module_code))]
-    res1.dt[, N_stores :=  length(unique(all_pi$store_code_uc))]
-    res1.dt[, N_counties := uniqueN(all_pi, by = c("fips_state", "fips_county"))]
-    res1.dt[, N_years := uniqueN(all_pi, by = c("year"))]
-    res1.dt[, N_county_modules := uniqueN(all_pi, by = c("fips_state", "fips_county",
-                                                         "product_module_code"))]
-    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-    fwrite(LRdiff_res, output.results.file)
-    
-  }
-}
 ## Run in levels
 for (Y in c(outcomes.levels)) {
   for (FE in FE_opts) {
@@ -167,6 +130,45 @@ for (Y in c(outcomes.levels)) {
     res1.dt[, controls := FE]
     res1.dt[, window := "year"]
     res1.dt[, spec := "levels"]
+    # Add summary values
+    res1.dt[, Rsq := summary(res1)$r.squared]
+    res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
+    res1.dt[, N_obs := nrow(all_pi)]
+    res1.dt[, N_modules := length(unique(all_pi$product_module_code))]
+    res1.dt[, N_stores :=  length(unique(all_pi$store_code_uc))]
+    res1.dt[, N_counties := uniqueN(all_pi, by = c("fips_state", "fips_county"))]
+    res1.dt[, N_years := uniqueN(all_pi, by = c("year"))]
+    res1.dt[, N_county_modules := uniqueN(all_pi, by = c("fips_state", "fips_county",
+                                                         "product_module_code"))]
+    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)
+    
+  }
+}
+
+## changes
+all_pi <- all_pi[ year >= 2009] ## Year 2008, the difference was imputed not real data - so we drop it
+
+
+for (Y in c(outcomes.changes)) {
+  for (FE in FE_opts) {
+    
+    formula1 <- as.formula(paste0(
+      Y, "~ D.ln_sales_tax | ", FE, " | 0 | module_by_state"
+    ))
+    flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
+    res1 <- felm(formula = formula1, data = all_pi,
+                 weights = all_pi$base.sales)
+    flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
+    
+    
+    ## attach results
+    flog.info("Writing results...")
+    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+    res1.dt[, outcome := Y]
+    res1.dt[, controls := FE]
+    res1.dt[, window := "year"]
+    res1.dt[, spec := "changes"]
     # Add summary values
     res1.dt[, Rsq := summary(res1)$r.squared]
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
