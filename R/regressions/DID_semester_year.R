@@ -70,6 +70,39 @@ outcomes.changes <- c("D.ln_cpricei2", "D.ln_quantity3")
 outcomes.levels <- c("ln_cpricei2", "ln_quantity3")
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
+
+# take first differences of outcomes and treatment
+all_pi <- all_pi[order(store_code_uc, product_module_code, year),] ##Sort on store by year (in ascending order)
+
+
+all_pi[, D.ln_cpricei := ln_cpricei - shift(ln_cpricei, n=1, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+all_pi[, D.ln_cpricei2 := ln_cpricei2 - shift(ln_cpricei2, n=1, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+all_pi[, D.ln_quantity := ln_quantity - shift(ln_quantity, n=1, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+all_pi[, D.ln_quantity2 := ln_quantity2 - shift(ln_quantity2, n=1, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+all_pi[, D.ln_quantity3 := ln_quantity3 - shift(ln_quantity3, n=1, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+all_pi[, D.ln_sales := ln_sales - shift(ln_sales, n=1, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+all_pi[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+all_pi[, D.ln_UPC := ln_UPC - shift(ln_UPC, n=1, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+all_pi[, D.ln_raw_quant := ln_raw_quant - shift(ln_raw_quant, n=1, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+
 ### Run DID yearly data in changes and levels --------------------------------
 LRdiff_res <- data.table(NULL)
 
