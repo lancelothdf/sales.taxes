@@ -172,7 +172,7 @@ yearly_data <- yearly_data[year >= 2008 & year <= 2014, ]
 
 ############## Create a function that performs the PS matching as desired -----------------
 
-psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, must.covar, oth.covars, treatment, Y, tau) {
+psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, must.covar, oth.covars, treatment, Y, tau, implicit = T) {
   
   #' actual.data contains the estimation data (retailer data)
   #' covariate.data contains the covariates at the county level that are used to match
@@ -187,7 +187,8 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   #' oth.covars the other potential covariates that can be used
   #' treatment indicates the name of the "treatment" variable
   #' Y indicates the vector of outcomes to run the estimation
-  #' tau indicate the vector of variables that are tax rates to retrieve the interest parameters.
+  #' tau indicate the vector of variables that are tax rates to retrieve the interest parameters
+  #' implicit tells the function to expor the "impliced reduced form estimates"
   
   # Identify counties for which we will match
   list.counties <- data.table(unique(actual.data[,c('fips_state','fips_county')]))
@@ -466,38 +467,38 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   PS_res <- rbind(PS_res, c6, fill = T)
   # Keep interest order
   PS_res <- PS_res[order(year, outcome),]
+  export <- PS_res[order(year, outcome),][["Estimate"]]
   
   ## Compute other Interest estimates: implied 
-  implied.coefs <- data.table(NULL)
-  for (yr in unique(PS_res[, c('year')])[["year"]]) {
-    
-    for (Y in r.outcomes) {
-     
-      for (tax in tax.rates) {
-        
-        for (coef in unique(PS_res[, c('rn')])[["rn"]]) {
+  if (implicit) {
+    implied.coefs <- data.table(NULL)
+    for (yr in unique(PS_res[, c('year')])[["year"]]) {
+      
+      for (Y in r.outcomes) {
+       
+        for (tax in tax.rates) {
           
-          numerator <- PS_res[ outcome == Y & year == yr & rn == coef][["Estimate"]]
-          denominator <- PS_res[ outcome == tax & year == yr & rn == coef][["Estimate"]]
-
-          Estimate <- numerator/denominator
-          
-          iter.data <- data.table(Estimate)
-          iter.data[, year := yr][, rn := coef][, outcome := paste0(Y, "_", tax)]
-          
-          implied.coefs <- rbind(implied.coefs, iter.data)
+          for (coef in unique(PS_res[, c('rn')])[["rn"]]) {
+            
+            numerator <- PS_res[ outcome == Y & year == yr & rn == coef][["Estimate"]]
+            denominator <- PS_res[ outcome == tax & year == yr & rn == coef][["Estimate"]]
+  
+            Estimate <- numerator/denominator
+            
+            iter.data <- data.table(Estimate)
+            iter.data[, year := yr][, rn := coef][, outcome := paste0(Y, "_", tax)]
+            
+            implied.coefs <- rbind(implied.coefs, iter.data)
+          }
         }
       }
     }
+    export <- implied.coefs[order(year, outcome),][["Estimate"]]
+    export <- implied.coefs[order(year, outcome),]
   }
-  #PS_res <- PS_res[order(year, outcome),][["Estimate"]]
-  #implied.coefs <- implied.coefs[order(year, outcome),][["Estimate"]]
-  
-  #PS_res <- c(PS_res, implied.coefs)
-  PS_res <- rbind(PS_res, implied.coefs)
   
   # Return a vector of estimates
-  return(PS_res)
+  return(export)
 }
 
 ## Try function and export
