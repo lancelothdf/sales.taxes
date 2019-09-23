@@ -493,8 +493,11 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
         }
       }
     }
+    # compute average
+    av <- implied.coefs[, list(Estimate = mean(Estimate), by = .(rn, outcome))]
+    implied.coefs <- rbind(implied.coefs, av)
     export <- implied.coefs[order(year, outcome),][["Estimate"]]
-    export <- implied.coefs[order(year, outcome),]
+    # export <- implied.coefs[order(year, outcome),]
   }
   
   # Return a vector of estimates
@@ -503,16 +506,16 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
 
 ## Try function and export
 
-t <- psmatch.taxrate(actual.data = yearly_data,
-                covariate.data = covariates,
-                algor = "weighted",
-                weights = "base.sales",
-                must.covar = Xb,
-                oth.covars = Xa_pot,
-                treatment = "high.tax.rate",
-                Y = r.outcomes,
-                tau = tax.rates)
-fwrite(t, "../../home/slacouture/PS/tryv2.csv")
+# t <- psmatch.taxrate(actual.data = yearly_data,
+#                 covariate.data = covariates,
+#                 algor = "weighted",
+#                 weights = "base.sales",
+#                 must.covar = Xb,
+#                 oth.covars = Xa_pot,
+#                 treatment = "high.tax.rate",
+#                 Y = r.outcomes,
+#                 tau = tax.rates)
+# fwrite(t, "../../home/slacouture/PS/tryv2.csv")
 
 
 ############# Run bootstrap: Calip using base.sales -----------------
