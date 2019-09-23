@@ -70,6 +70,22 @@ outcomes.changes <- c("D.ln_cpricei2", "D.ln_quantity3")
 outcomes.levels <- c("ln_cpricei2", "ln_quantity3")
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
+## merge region a division
+geo_dt <- structure(list(
+  fips_state = c(1L, 2L, 4L, 5L, 6L, 8L, 9L, 10L, 12L, 13L, 15L, 16L, 17L, 18L,
+                 19L, 20L, 21L, 22L, 23L, 24L, 25L, 26L, 27L, 28L, 29L, 30L,
+                 31L, 32L, 33L, 34L, 35L, 36L, 37L, 38L, 39L, 40L, 41L, 42L,
+                 44L, 45L, 46L, 47L, 48L, 49L, 50L, 51L, 53L, 54L, 55L, 56L),
+  region = c(3L, 4L, 4L, 3L, 4L, 4L, 1L, 3L, 3L, 3L, 4L, 4L, 2L, 2L, 2L, 2L, 3L,
+             3L, 1L, 3L, 1L, 2L, 2L, 3L, 2L, 4L, 2L, 4L, 1L, 1L, 4L, 1L, 3L, 2L,
+             2L, 3L, 4L, 1L, 1L, 3L, 2L, 3L, 3L, 4L, 1L, 3L, 4L, 3L, 2L, 4L),
+  division = c(6L, 9L, 8L,  7L, 9L, 8L, 1L, 5L, 5L, 5L, 9L, 8L, 3L, 3L, 4L, 4L,
+               6L, 7L, 1L, 5L, 1L, 3L, 4L, 6L, 4L, 8L, 4L, 8L, 1L, 2L, 8L, 2L,
+               5L, 4L, 3L,  7L, 9L, 2L, 1L, 5L, 4L, 6L, 7L, 8L, 1L, 5L, 9L, 5L, 3L, 8L)),
+  class = "data.frame", row.names = c(NA, -50L))
+setDT(geo_dt)
+all_pi <- merge(all_pi, geo_dt, by = "fips_state")
+
 
 # take first differences of outcomes and treatment
 all_pi <- all_pi[order(store_code_uc, product_module_code, year),] ##Sort on store by year (in ascending order)
