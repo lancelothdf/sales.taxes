@@ -495,7 +495,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
     }
     # compute average
     av <- implied.coefs[, list(Estimate = mean(Estimate), by = .(rn, outcome))]
-    implied.coefs <- rbind(implied.coefs, av)
+    implied.coefs <- rbind(implied.coefs, av, fill = T)
     export <- implied.coefs[order(year, outcome),][["Estimate"]]
     # export <- implied.coefs[order(year, outcome),]
   }
