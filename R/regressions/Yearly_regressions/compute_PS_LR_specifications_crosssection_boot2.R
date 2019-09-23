@@ -490,10 +490,11 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       }
     }
   }
-  PS_res <- PS_res[order(year, outcome),][["Estimate"]]
-  implied.coefs <- implied.coefs[order(year, outcome),][["Estimate"]]
+  #PS_res <- PS_res[order(year, outcome),][["Estimate"]]
+  #implied.coefs <- implied.coefs[order(year, outcome),][["Estimate"]]
   
-  PS_res <- c(PS_res, implied.coefs)
+  #PS_res <- c(PS_res, implied.coefs)
+  PS_res <- rbind(PS_res, implied.coefs)
   
   # Return a vector of estimates
   return(PS_res)
