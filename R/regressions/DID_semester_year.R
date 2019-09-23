@@ -88,6 +88,7 @@ all_pi[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
 all_pi[, store_by_module := .GRP, by = .(store_code_uc, product_module_code)]
 all_pi[, region_by_module_by_time := .GRP, by = .(region, product_module_code, year)]
 all_pi[, division_by_module_by_time := .GRP, by = .(division, product_module_code, year)]
+all_pi[, module_by_state := .GRP, by = .(product_module_code, fips_state)]
 
 
 ### Run DID yearly data in changes and levels --------------------------------
