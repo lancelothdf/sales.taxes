@@ -108,7 +108,6 @@ all_pi[, module_by_state := .GRP, by = .(product_module_code, fips_state)]
 
 
 ### Run DID yearly data in changes and levels --------------------------------
-LRdiff_res <- data.table(NULL)
 
 ## changes
 for (Y in c(outcomes.changes)) {
@@ -128,7 +127,7 @@ for (Y in c(outcomes.changes)) {
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := Y]
     res1.dt[, controls := FE]
-    res1.dt[, window := "semester"]
+    res1.dt[, window := "year"]
     res1.dt[, spec := "changes"]
     # Add summary values
     res1.dt[, Rsq := summary(res1)$r.squared]
@@ -163,7 +162,7 @@ for (Y in c(outcomes.levels)) {
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := Y]
     res1.dt[, controls := FE]
-    res1.dt[, window := "semester"]
+    res1.dt[, window := "year"]
     res1.dt[, spec := "levels"]
     # Add summary values
     res1.dt[, Rsq := summary(res1)$r.squared]
