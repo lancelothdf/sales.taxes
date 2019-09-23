@@ -500,6 +500,20 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   return(PS_res)
 }
 
+## Try function and export
+
+t <- psmatch.taxrate(actual.data = yearly_data,
+                covariate.data = covariates,
+                algor = "weighted",
+                weights = "base.sales",
+                must.covar = Xb,
+                oth.covars = Xa_pot,
+                treatment = "high.tax.rate",
+                Y = r.outcomes,
+                tau = tax.rates)
+fwrite(t, "../../home/slacouture/PS/tryv2.csv")
+
+
 ############# Run bootstrap: Calip using base.sales -----------------
 # 
 # block.boot <- function(x, i) {
