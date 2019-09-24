@@ -189,7 +189,9 @@ yearly_data <- yearly_data[year >= 2008 & year <= 2014, ]
 
 ############## Create a function that performs the PS matching as desired -----------------
 
-psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, must.covar, oth.covars, treatment, main.outcomes, tau, implicit = T, covar.test = F) {
+psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
+                            must.covar, oth.covars, treatment, main.outcomes, 
+                            tau, implicit = T, covar.test = F, boot.run = T) {
   
   #' actual.data contains the estimation data (retailer data)
   #' covariate.data contains the covariates at the county level that are used to match
@@ -206,6 +208,8 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   #' main.outcomes indicates the vector of outcomes to run the estimation
   #' tau indicate the vector of variables that are tax rates to retrieve the interest parameters
   #' implicit tells the function to expor the "impliced reduced form estimates"
+  #' covar.test tells the program to run the covariate test only
+  #' boot run tells the function that is going to be used for bootstrapping (thus exporting only the interest vector)
   
   # Identify counties for which we will match
   list.counties <- data.table(unique(actual.data[,c('fips_state','fips_county')]))
@@ -474,90 +478,98 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       test.year$year <- yr
       test.total <- rbind(test.total, test.year, fill = T)
       
+    } else {
+      
+      #### Estimate cross-sectional design  -------
+      flog.info("Estimation %s", yr)
+      for(Y in outcomes) {
+        
+        formula0 <- as.formula(paste0(
+          Y, " ~ ",  treatment, " + taxable + interaction | product_module_code "
+        ))
+        ### Base weights
+        res0 <- felm(data = crosswalk,
+                     formula = formula0,
+                     weights = crosswalk[, get(weights)])
+        
+        ## attach results
+        res1.dt <- data.table(coef(summary(res0)), keep.rownames=T)
+        res1.dt[, outcome := Y]
+        res1.dt[, year := yr]
+        LRdiff_res <- rbind(LRdiff_res, res1.dt)
+        
+      }
+      
+      
     }
     
-    #### Estimate cross-sectional design  -------
-    flog.info("Estimation %s", yr)
-    for(Y in outcomes) {
-      
-      formula0 <- as.formula(paste0(
-        Y, " ~ ",  treatment, " + taxable + interaction | product_module_code "
-      ))
-      ### Base weights
-      res0 <- felm(data = crosswalk,
-                   formula = formula0,
-                   weights = crosswalk[, get(weights)])
-      
-      ## attach results
-      res1.dt <- data.table(coef(summary(res0)), keep.rownames=T)
-      res1.dt[, outcome := Y]
-      res1.dt[, year := yr]
-      LRdiff_res <- rbind(LRdiff_res, res1.dt)
-      
-    }
   }
   ## After all estimations, create the return output
+  if (!covar.test) {
+    
+    flog.info("Computing interest coefficients")
+    # Identify interest estimates
+    c1 <- LRdiff_res[rn == "taxableTRUE", ][, -c("Std. Error", "t value", "Pr(>|t|)")]
+    c2 <- LRdiff_res[rn == "taxableTRUE" | rn == "interaction",][, list(Estimate = sum(Estimate)), 
+                                                                           by = .(outcome, year) ][, rn := "taxableTRUE + high.tax.rate_taxable"]
+    c3 <- LRdiff_res[rn == "taxableTRUE" | rn == "interaction",][, w := ifelse(rn == "taxableTRUE", 2/3 , 1/3)][
+                                                                            , list(Estimate = weighted.mean(Estimate, w = w)), 
+                                                                           by = .(outcome, year) ][, rn := "(2*taxableTRUE + high.tax.rate_taxable)/2"]
+    
+    c4 <- LRdiff_res[rn == paste0(treatment, "TRUE") | rn == "interaction",][, list(Estimate = sum(Estimate)), 
+                                                                             by = .(outcome, year) ][, rn := "high.tax.rateTRUE + high.tax.rate_taxable"]
+    c5 <- LRdiff_res[rn == "high.tax.rateTRUE", ][, -c("Std. Error", "t value", "Pr(>|t|)")]
+    c6 <- LRdiff_res[rn == "interaction", ][, -c("Std. Error", "t value", "Pr(>|t|)")]
+    ### Paste and compute estimates across years
+    PS_res <- rbind(c1, c2, c3, c4, c5, c6)
+    
+    c7 <- PS_res[, list(Estimate = mean(Estimate)), 
+                 by = .(rn, outcome) ]
   
-  flog.info("Computing interest coefficients")
-  # Identify interest estimates
-  c1 <- LRdiff_res[rn == "taxableTRUE", ][, -c("Std. Error", "t value", "Pr(>|t|)")]
-  c2 <- LRdiff_res[rn == "taxableTRUE" | rn == "interaction",][, list(Estimate = sum(Estimate)), 
-                                                                         by = .(outcome, year) ][, rn := "taxableTRUE + high.tax.rate_taxable"]
-  c3 <- LRdiff_res[rn == "taxableTRUE" | rn == "interaction",][, w := ifelse(rn == "taxableTRUE", 2/3 , 1/3)][
-                                                                          , list(Estimate = weighted.mean(Estimate, w = w)), 
-                                                                         by = .(outcome, year) ][, rn := "(2*taxableTRUE + high.tax.rate_taxable)/2"]
-  
-  c4 <- LRdiff_res[rn == paste0(treatment, "TRUE") | rn == "interaction",][, list(Estimate = sum(Estimate)), 
-                                                                           by = .(outcome, year) ][, rn := "high.tax.rateTRUE + high.tax.rate_taxable"]
-  c5 <- LRdiff_res[rn == "high.tax.rateTRUE", ][, -c("Std. Error", "t value", "Pr(>|t|)")]
-  c6 <- LRdiff_res[rn == "interaction", ][, -c("Std. Error", "t value", "Pr(>|t|)")]
-  ### Paste and compute estimates across years
-  PS_res <- rbind(c1, c2, c3, c4, c5, c6)
-  
-  c7 <- PS_res[, list(Estimate = mean(Estimate)), 
-               by = .(rn, outcome) ]
-
-  # Append
-  PS_res <- rbind(PS_res, c7, fill = T)
-  # Keep interest order
-  PS_res <- PS_res[order(year, outcome),]
-  export <- PS_res[order(year, outcome),][["Estimate"]]
-  
-  ## Compute other Interest estimates: implied 
-  if (implicit) {
-    implied.coefs <- data.table(NULL)
-    for (yr in unique(PS_res[, c('year')])[["year"]]) {
-      
-      for (Y in main.outcomes) {
-       
-        for (tax in tau) {
-          
-          for (coef in unique(PS_res[, c('rn')])[["rn"]]) {
+    # Append
+    PS_res <- rbind(PS_res, c7, fill = T)
+    # Keep interest order
+    PS_res <- PS_res[order(year, outcome),]
+    if (boot.run) {export <- PS_res[order(year, outcome),][["Estimate"]]} else {export <- PS_res[order(year, outcome),]}
+    
+    ## Compute other Interest estimates: implied 
+    if (implicit) {
+      implied.coefs <- data.table(NULL)
+      for (yr in unique(PS_res[, c('year')])[["year"]]) {
+        
+        for (Y in main.outcomes) {
+         
+          for (tax in tau) {
             
-            numerator <- PS_res[ outcome == Y & year == yr & rn == coef][["Estimate"]]
-            denominator <- PS_res[ outcome == tax & year == yr & rn == coef][["Estimate"]]
-  
-            Estimate <- numerator/denominator
-            
-            iter.data <- data.table(Estimate)
-            iter.data[, year := yr][, rn := coef][, outcome := paste0(Y, "_", tax)]
-            
-            implied.coefs <- rbind(implied.coefs, iter.data)
+            for (coef in unique(PS_res[, c('rn')])[["rn"]]) {
+              
+              numerator <- PS_res[ outcome == Y & year == yr & rn == coef][["Estimate"]]
+              denominator <- PS_res[ outcome == tax & year == yr & rn == coef][["Estimate"]]
+    
+              Estimate <- numerator/denominator
+              
+              iter.data <- data.table(Estimate)
+              iter.data[, year := yr][, rn := coef][, outcome := paste0(Y, "_", tax)]
+              
+              implied.coefs <- rbind(implied.coefs, iter.data)
+            }
           }
         }
       }
+      # compute average
+      av <- implied.coefs[, list(Estimate = mean(Estimate), by = .(rn, outcome))]
+      implied.coefs <- rbind(implied.coefs, av, fill = T)
+      if (boot.run) {export <- implied.coefs[order(year, outcome),][["Estimate"]]} else {export <- implied.coefs[order(year, outcome),]}
+      # export <- implied.coefs[order(year, outcome),]
     }
-    # compute average
-    av <- implied.coefs[, list(Estimate = mean(Estimate), by = .(rn, outcome))]
-    implied.coefs <- rbind(implied.coefs, av, fill = T)
-    export <- implied.coefs[order(year, outcome),][["Estimate"]]
-    # export <- implied.coefs[order(year, outcome),]
-  }
   
   # Return a vector of estimates
-  if (!covar.test) {return(export)}
+  return(export)
+  
+  } else {
   # Return covar.test
-  if (covar.test) {return(test.total)}
+    return(test.total)
+  }
   
 }
 
@@ -582,8 +594,8 @@ t <- psmatch.taxrate(actual.data = yearly_data,
                 oth.covars = Xa_pot,
                 treatment = "high.tax.rate",
                 main.outcomes = r.outcomes,
-                tau = tax.rates)
-t
+                tau = tax.rates,
+                boot.run = F)
 fwrite(t, "../../home/slacouture/PS/trynew.csv")
 
 
