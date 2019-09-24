@@ -66,6 +66,11 @@ covariates <- merge(covariates, nhgis2000, by = c("fips_state", "fips_county"), 
 census.regions <- fread(census.regions.path)
 census.regions[, Division := Region*10 + Division]
 covariates <- merge(covariates, census.regions, by = c("fips_state"), all.x = T)
+## Transform regions into dummies for selection equation
+for (reg in as.integer(unique(covariates[, c('Region')])[["Region"]])) {
+  name <-paste0("reg_", reg)
+  covariates[, get(name) := ifelse(Region == reg, 1 ,0)]
+}
 
 ## Time variant covariates
 list.obs <- data.frame(unique(yearly_data[,c('fips_state','fips_county', 'year')]))
@@ -154,11 +159,7 @@ yearly_data <- yearly_data[, -c("n", "yr", "sales_tax")]
 # Create Share of quantities
 yearly_data <- yearly_data[, ln_share_sales := log(sales/sum(sales)), 
                            by = .(store_code_uc, fips_county, fips_state, year)]
-## Transform regions into dummies for selection equation
-for (reg in as.integer(unique(yearly_data[, c('Region')])[["Region"]])) {
-  name <-paste0("reg_", reg)
-  yearly_data[, get(name) := ifelse(Region == reg, 1 ,0)]
-}
+
 
 ###### Propensity Score set up -----------------------------
 
