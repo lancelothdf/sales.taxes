@@ -461,7 +461,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
         # Adjusted balance
         test.out <- lm(get(X) ~ high.tax.rate, data = w.crosswalk, weights = w)
         af.test.dt <- data.table(coef(summary(test.out)))[2,][, -c("t value")]
-        setnames(nn.test.dt, old = c("Estimate", "Std. Error", "Pr(>|t|)"),
+        setnames(af.test.dt, old = c("Estimate", "Std. Error", "Pr(>|t|)"),
                  new = c("new.est", "new.std.err", "new.pval"))
        
         # Merge all tests
