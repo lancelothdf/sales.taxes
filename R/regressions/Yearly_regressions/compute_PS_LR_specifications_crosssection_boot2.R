@@ -124,7 +124,7 @@ zillow_dt <- zillow_dt[, list(ln_home_price = log(mean(median_home_price))),
 ## Create Lagged value and keep interest years
 zillow_dt <- zillow_dt[order(fips_state, fips_county, year),] ##Sort on store by year (in ascending order)
 zillow_dt[, L.ln_home_price := shift(ln_home_price, n=1, type="lag"),
-          by = .(fips_state, fips_county, year)]
+          by = .(fips_state, fips_county)]
 zillow_dt <- zillow_dt[between(year, 2008, 2014)]
 
 covariates <- merge(covariates, zillow_dt, by = c("year", "fips_county", "fips_state"), all.x = T)
@@ -139,7 +139,7 @@ unemp.data <- unemp.data[, ln_unemp := log(unemp)]
 ## Create Lagged value and keep interest years
 unemp.data <- unemp.data[order(fips_state, fips_county, year),] ##Sort on store by year (in ascending order)
 unemp.data[, L.ln_unemp := shift(ln_unemp, n=1, type="lag"),
-          by = .(fips_state, fips_county, year)]
+          by = .(fips_state, fips_county)]
 unemp.data <- unemp.data[, -c("rate", "unemp")]
 
 covariates <- merge(covariates, unemp.data, by = c("year", "fips_county", "fips_state"), all.x = T)
