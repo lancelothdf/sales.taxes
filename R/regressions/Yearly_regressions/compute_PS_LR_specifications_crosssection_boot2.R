@@ -560,11 +560,10 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights,
       av <- implied.coefs[, list(Estimate = mean(Estimate), by = .(rn, outcome))]
       implied.coefs <- rbind(implied.coefs, av, fill = T)
       if (boot.run) {export <- implied.coefs[order(year, outcome),][["Estimate"]]} else {export <- implied.coefs[order(year, outcome),]}
-      # export <- implied.coefs[order(year, outcome),]
     }
   
-  # Return a vector of estimates
-  return(export)
+    # Return a vector of estimates
+    return(export)
   
   } else {
   # Return covar.test
@@ -596,6 +595,7 @@ t <- psmatch.taxrate(actual.data = yearly_data,
                 main.outcomes = r.outcomes,
                 tau = tax.rates,
                 boot.run = F)
+t
 fwrite(t, "../../home/slacouture/PS/trynew.csv")
 
 
