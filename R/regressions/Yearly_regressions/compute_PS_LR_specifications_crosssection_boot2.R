@@ -140,7 +140,7 @@ unemp.data <- unemp.data[, ln_unemp := log(unemp)]
 unemp.data <- unemp.data[order(fips_state, fips_county, year),] ##Sort on store by year (in ascending order)
 unemp.data[, L.ln_unemp := shift(ln_unemp, n=1, type="lag"),
           by = .(fips_state, fips_county)]
-unemp.data <- unemp.data[, -c("rate", "unemp")]
+unemp.data <- unemp.data[, -c("unemp")]
 
 covariates <- merge(covariates, unemp.data, by = c("year", "fips_county", "fips_state"), all.x = T)
 
@@ -331,25 +331,25 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
     if (algor == "NN") {
       
       ## Comparison group
-      crosswalk <-data.table(NULL)
+      w.crosswalk <-data.table(NULL)
       for (i in 1:nrow(year.covariates.trim)) {
         
         # Extract observation info
         obs.i <- year.covariates.trim[i, ]
         # Add Info of pair number
-        obs.i <- obs.i[, n_pair := i]
+        obs.i <- obs.i[, n_pair := i][, w := 1]
         # Find potential pairs and order by distance to selected observation
         potential.pairs <- year.covariates.trim[get(treatment) != obs.i[, get(treatment)], 
                                                 ][, distance := abs(pscore - obs.i[, pscore])][distance < 0.1][order(distance)]
         # Extract closest pair
         pair.i<- potential.pairs[1, ][, -c("distance")]
-        pair.i <- pair.i[, n_pair := i]
+        pair.i <- pair.i[, n_pair := i][, w := 1]
         # paste to previous selected pairs
-        crosswalk <- rbind(crosswalk, obs.i, pair.i)
+        w.crosswalk <- rbind(w.crosswalk, obs.i, pair.i)
       } 
       
       ## Prepare Estimation
-      crosswalk <- merge(year.data, crosswalk, by = c("fips_state", "fips_county", "year"), allow.cartesian=TRUE)
+      crosswalk <- merge(year.data, w.crosswalk, by = c("fips_state", "fips_county", "year"), allow.cartesian=TRUE)
       crosswalk <- data.table(crosswalk)
       # Create Interaction term
       crosswalk <- crosswalk[, interaction := (get(treatment))*taxable]
@@ -361,7 +361,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
     
     # Algorithm 2: k-nearest neighbor (with replacement). k=3. All units are matched, both treated and controls
     if (algor == "KNN") {
-      crosswalk <-data.table(NULL)
+      w.crosswalk <-data.table(NULL)
       for (i in 1:nrow(year.covariates.trim)) {
         
         # Extract observation info
@@ -375,9 +375,9 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
         pair.i<- potential.pairs[1:3, ][, -c("distance")]
         pair.i <- pair.i[, n_pair := i][, w := 1/3]
         # paste to previous selected pairs
-        crosswalk <- rbind(crosswalk, obs.i, pair.i)
+        w.crosswalk <- rbind(w.crosswalk, obs.i, pair.i)
       }
-      crosswalk <- merge(year.data, crosswalk, by = c("fips_state", "fips_county", "year"), allow.cartesian=TRUE)
+      crosswalk <- merge(year.data, w.crosswalk, by = c("fips_state", "fips_county", "year"), allow.cartesian=TRUE)
       # Create Interaction term
       crosswalk <- crosswalk[, interaction := get(treatment)*taxable]
       # Create new weights
@@ -389,7 +389,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
     # Algorithm 3: neighbors in caliper (with replacement). r=0.001. All units are matched, both treated and controls. 
     # Note: If no pairfound, drop
     if (algor == "calip") {
-      crosswalk <-data.table(NULL)
+      w.crosswalk <-data.table(NULL)
       r <- 0.001 # Define caliper ratio
       for (i in 1:nrow(year.covariates.trim)) {
         
@@ -404,10 +404,10 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
         if (nrow(pair.i) > 0) {
           pair.i <- pair.i[, n_pair := i][, w := 1/.N]
           # paste to previous selected pairs
-          crosswalk <- rbind(crosswalk, obs.i, pair.i)
+          w.crosswalk <- rbind(w.crosswalk, obs.i, pair.i)
         }
       }
-      crosswalk <- merge(year.data, crosswalk, by = c("fips_state", "fips_county", "year"), allow.cartesian=TRUE)
+      crosswalk <- merge(year.data, w.crosswalk, by = c("fips_state", "fips_county", "year"), allow.cartesian=TRUE)
       # Create Interaction term
       crosswalk <- crosswalk[, interaction := get(treatment)*taxable]
       # Create new weights
@@ -417,11 +417,11 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
     }
     # Algorithm 4: weighting estimator. Build weights
     if (algor == "weighted") { 
-      crosswalk <- year.covariates.trim[, w := ifelse(get(treatment) == T, 
+      w.crosswalk <- year.covariates.trim[, w := ifelse(get(treatment) == T, 
                                                              sum(get(treatment))*sum(get(treatment)/pscore)/pscore,
                                                              sum(1-get(treatment))*sum((1-get(treatment))/(1-pscore))/(1-pscore)
       )]
-      crosswalk <- merge(year.data, crosswalk, by = c("fips_state", "fips_county", "year"))
+      crosswalk <- merge(year.data, w.crosswalk, by = c("fips_state", "fips_county", "year"))
       # Create Interaction term
       crosswalk <- crosswalk[, interaction := get(treatment)*taxable]
       # Create new weights
@@ -446,18 +446,20 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       Xall <- c(must.covar, oth.covars, Xfinal)
       ##### Check balance using basic regression tests on all covariates (first all, then chosen: this allow to identify chosen) -------
       test.year <- data.table(NULL)
+      ## Merge covariates to original data to calculate prior
+      
       for (X in Xall) {
         
         # Rowname
         outcome <-data.table(X)
         setnames(outcome, old = c("X"), new = c("outcome"))
         # Prior balance
-        test.out <- lm(get(X) ~ high.tax.rate, data = actual.data)
+        test.out <- lm(get(X) ~ high.tax.rate, data = year.covariates)
         priortest.dt <- data.table(coef(summary(test.out)))[2,][, -c("t value")]
         setnames(priortest.dt, old = c("Estimate", "Std. Error", "Pr(>|t|)"),
                  new = c("prior.est", "prior.std.err", "prior.pval"))
         # Adjusted balance
-        test.out <- lm(get(X) ~ high.tax.rate, data = crosswalk)
+        test.out <- lm(get(X) ~ high.tax.rate, data = crosswalk.w, weights = w)
         af.test.dt <- data.table(coef(summary(test.out)))[2,][, -c("t value")]
         setnames(nn.test.dt, old = c("Estimate", "Std. Error", "Pr(>|t|)"),
                  new = c("new.est", "new.std.err", "new.pval"))
