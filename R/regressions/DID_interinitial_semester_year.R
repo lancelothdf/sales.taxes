@@ -23,8 +23,7 @@ output.results.file <- "Data/DID_semesterly_and_yearly.csv"
 ### Set up Semester Data ---------------------------------
 all_pi <- fread(data.semester)
 
-# Create initial level of tax rate
-all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
+# Initial level already created
 # Create interaction and interaction squared
 all_pi[, D.ln_sales_tax_L.ln_sales_tax := L.ln_sales_tax*D.ln_sales_tax]
 all_pi[, D.ln_sales_tax_L.ln_sales_tax_2 := ((L.ln_sales_tax)^2)*D.ln_sales_tax]
