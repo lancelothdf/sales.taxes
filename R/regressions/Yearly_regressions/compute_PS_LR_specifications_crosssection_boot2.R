@@ -518,7 +518,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights,
     
     c4 <- LRdiff_res[rn == paste0(treatment, "TRUE") | rn == "interaction",][, list(Estimate = sum(Estimate)), 
                                                                              by = .(outcome, year) ][, rn := "high.tax.rateTRUE + high.tax.rate_taxable"]
-    c5 <- LRdiff_res[rn == "high.tax.rateTRUE", ][, -c("Std. Error", "t value", "Pr(>|t|)")]
+    c5 <- LRdiff_res[rn == paste0(treatment, "TRUE"), ][, -c("Std. Error", "t value", "Pr(>|t|)")]
     c6 <- LRdiff_res[rn == "interaction", ][, -c("Std. Error", "t value", "Pr(>|t|)")]
     ### Paste and compute estimates across years
     PS_res <- rbind(c1, c2, c3, c4, c5, c6)
@@ -557,7 +557,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights,
         }
       }
       # compute average
-      av <- implied.coefs[, list(Estimate = mean(Estimate), by = .(rn, outcome))]
+      av <- implied.coefs[, list(Estimate = mean(Estimate)), by = .(rn, outcome)]
       implied.coefs <- rbind(implied.coefs, av, fill = T)
       if (boot.run) {export <- implied.coefs[order(year, outcome),][["Estimate"]]} else {export <- implied.coefs[order(year, outcome),]}
     }
