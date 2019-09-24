@@ -5,6 +5,7 @@
 #' Use selection equation specification suggested by Imbens (C_lin = 1 and C_qua = 2.71)
 #' Try different "matching" algorithms: remember we are matching at countly level
 #' Calculate standard errors of interest outcomes by block bootstrap at module x state level
+#' NEW: We include Region FE and lagged values in some cases instead of current
 
 library(data.table)
 library(lfe)
@@ -84,7 +85,7 @@ covariates <- merge(covariates, qcew, by = c("year", "fips_county", "fips_state"
 #Zillow
 all_counties <- unique(yearly_data[, .(fips_state, fips_county)])
 county_skeleton <- data.table(NULL)
-for (X in 2008:2014) {
+for (X in 2007:2014) {
   for (Y in 1:12) {
     all_counties[, year := X]
     all_counties[, month := Y]
@@ -94,14 +95,14 @@ for (X in 2008:2014) {
 
 
 zillow_dt <- fread(zillow_path)
-zillow_dt <- zillow_dt[between(year, 2008, 2014)]
+zillow_dt <- zillow_dt[between(year, 2007, 2014)]
 zillow_dt <- zillow_dt[, .(fips_state, fips_county, median_home_price, year, month)]
 zillow_dt <- merge(county_skeleton, zillow_dt, all.x = T,
                    by = c("fips_state", "fips_county", "year", "month"))
 
 ## prep state-level house prices (for when county-level is missing)
 zillow_state_dt <- fread(zillow_state_path)
-zillow_state_dt <- zillow_state_dt[between(year, 2008, 2014)]
+zillow_state_dt <- zillow_state_dt[between(year, 2007, 2014)]
 zillow_state_dt <- zillow_state_dt[, .(fips_state, median_home_price, year, month)]
 setnames(zillow_state_dt, "median_home_price", "state_median_home_price")
 zillow_state_dt$month <- as.integer(round(zillow_state_dt$month))
@@ -115,6 +116,12 @@ zillow_dt[, state_median_home_price := NULL]
 ## collapse to years
 zillow_dt <- zillow_dt[, list(ln_home_price = log(mean(median_home_price))),
                        by = .(year, fips_state, fips_county)]
+## Create Lagged value and keep interest years
+zillow_dt <- zillow_dt[order(fips_state, fips_county, year),] ##Sort on store by year (in ascending order)
+zillow_dt[, L.ln_home_price := shift(ln_home_price, n=1, type="lag"),
+          by = .(fips_state, fips_county, year)]
+zillow_dt <- zillow_dt[between(year, 2008, 2014)]
+
 covariates <- merge(covariates, zillow_dt, by = c("year", "fips_county", "fips_state"), all.x = T)
 
 
@@ -124,6 +131,10 @@ unemp.data <- unemp.data[, c("fips_state", "fips_county", "year", "month", "rate
 unemp.data <- unemp.data[, list(unemp = mean(rate)), by = .(year, fips_state, fips_county)]
 unemp.data <- unemp.data[year >= 2006 & year <= 2016,]
 unemp.data <- unemp.data[, ln_unemp := log(unemp)]
+## Create Lagged value and keep interest years
+unemp.data <- unemp.data[order(fips_state, fips_county, year),] ##Sort on store by year (in ascending order)
+unemp.data[, L.ln_unemp := shift(ln_unemp, n=1, type="lag"),
+          by = .(fips_state, fips_county, year)]
 unemp.data <- unemp.data[, -c("rate", "unemp")]
 
 covariates <- merge(covariates, unemp.data, by = c("year", "fips_county", "fips_state"), all.x = T)
@@ -143,11 +154,16 @@ yearly_data <- yearly_data[, -c("n", "yr", "sales_tax")]
 # Create Share of quantities
 yearly_data <- yearly_data[, ln_share_sales := log(sales/sum(sales)), 
                            by = .(store_code_uc, fips_county, fips_state, year)]
+## Transform regions into dummies for selection equation
+for (reg in as.integer(unique(yearly_data[, c('Region')])[["Region"]])) {
+  name <-paste0("reg_", reg)
+  yearly_data[, get(name) := ifelse(Region == reg, 1 ,0)]
+}
 
 ###### Propensity Score set up -----------------------------
 
 # Vector of "must be in" variables
-Xb <- c("ln_unemp", "ln_home_price")
+Xb <- c("L.ln_unemp", "L.ln_home_price", "reg_2", "reg_3", "reg_4")
 
 # Vector of potential variables
 Xa_pot <- c("pct_pop_urban", "housing_ownership_share", "median_income", "pct_pop_no_college", "pct_pop_bachelors",
@@ -159,7 +175,7 @@ X_all <- c(Xb, Xa_pot)
 
 # Vector of outcomes to run cross-sectional design. Not gonna run on covariates: already balancing on them at county level
  
-r.outcomes <- c("ln_cpricei2", "ln_quantity2", "ln_share_sales", "ln_unemp", "ln_home_price")
+r.outcomes <- c("ln_cpricei2", "ln_quantity2", "ln_share_sales")
 tax.rates <- c("ln_sales_tax", "ln_statutory_sales_tax")
 outcomes <- c(r.outcomes, tax.rates)
 
@@ -172,7 +188,7 @@ yearly_data <- yearly_data[year >= 2008 & year <= 2014, ]
 
 ############## Create a function that performs the PS matching as desired -----------------
 
-psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, must.covar, oth.covars, treatment, Y, tau, implicit = T) {
+psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, must.covar, oth.covars, treatment, main.outcomes, tau, implicit = T, covar.test = F) {
   
   #' actual.data contains the estimation data (retailer data)
   #' covariate.data contains the covariates at the county level that are used to match
@@ -186,7 +202,7 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   #' must.covar are the variables that must be included in ps estimation
   #' oth.covars the other potential covariates that can be used
   #' treatment indicates the name of the "treatment" variable
-  #' Y indicates the vector of outcomes to run the estimation
+  #' main.outcomes indicates the vector of outcomes to run the estimation
   #' tau indicate the vector of variables that are tax rates to retrieve the interest parameters
   #' implicit tells the function to expor the "impliced reduced form estimates"
   
@@ -198,16 +214,18 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   # Identify years
   list.years <- unique(actual.data[, c('year')])[["year"]]
   
-  # Identify outcomes to run regressions (Y + tau)
-  outcomes <- c(Y, tau)
+  # Identify outcomes to run regressions (main.outcomes + tau)
+  outcomes <- c(main.outcomes, tau)
   
   # Make sure median has been defined in data (treatment)
   # Make sure observations without sales_tax rates have been dropped
   # Make sure "ln_sales_tax" is not in covariate.data but only in actual.data
   # Make sure data is already restricted to interest sample
   
-  # Create output element
+  # Create output elements
   LRdiff_res <- data.table(NULL)
+  test.total <- data.table(NULL)
+  
   # Start yearly estimations
   flog.info("Starting Matching algorithm")
   for (yr in list.years) {
@@ -423,6 +441,38 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
       crosswalk <- crosswalk[!is.na(c(get(weights)))]
     }
     
+    if (covar.test) {
+      Xall <- c(must.covar, oth.covars, Xfinal)
+      ##### Check balance using basic regression tests on all covariates (first all, then chosen: this allow to identify chosen) -------
+      test.year <- data.table(NULL)
+      for (X in Xall) {
+        
+        # Rowname
+        outcome <-data.table(X)
+        setnames(outcome, old = c("X"), new = c("outcome"))
+        # Prior balance
+        test.out <- lm(get(X) ~ high.tax.rate, data = actual.data)
+        priortest.dt <- data.table(coef(summary(test.out)))[2,][, -c("t value")]
+        setnames(priortest.dt, old = c("Estimate", "Std. Error", "Pr(>|t|)"),
+                 new = c("prior.est", "prior.std.err", "prior.pval"))
+        # Adjusted balance
+        test.out <- lm(get(X) ~ high.tax.rate, data = crosswalk)
+        af.test.dt <- data.table(coef(summary(test.out)))[2,][, -c("t value")]
+        setnames(nn.test.dt, old = c("Estimate", "Std. Error", "Pr(>|t|)"),
+                 new = c("new.est", "new.std.err", "new.pval"))
+       
+        # Merge all tests
+        test.dt <- cbind(outcome, priortest.dt, af.test.dt)
+        
+        # Append to other outcomes
+        test.year <- rbind(test.year, test.dt, fill = T)
+      }
+      # Append to previous year
+      test.year$year <- yr
+      test.total <- rbind(test.total, test.year, fill = T)
+      
+    }
+    
     #### Estimate cross-sectional design  -------
     flog.info("Estimation %s", yr)
     for(Y in outcomes) {
@@ -455,16 +505,17 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
                                                                          by = .(outcome, year) ][, rn := "(2*taxableTRUE + high.tax.rate_taxable)/2"]
   
   c4 <- LRdiff_res[rn == paste0(treatment, "TRUE") | rn == "interaction",][, list(Estimate = sum(Estimate)), 
-                                                                               by = .(outcome, year) ][, rn := "high.tax.rateTRUE + high.tax.rate_taxable"]
-  c5 <- LRdiff_res[rn == "interaction", ][, -c("Std. Error", "t value", "Pr(>|t|)")]
+                                                                           by = .(outcome, year) ][, rn := "high.tax.rateTRUE + high.tax.rate_taxable"]
+  c5 <- LRdiff_res[rn == "high.tax.rateTRUE", ][, -c("Std. Error", "t value", "Pr(>|t|)")]
+  c6 <- LRdiff_res[rn == "interaction", ][, -c("Std. Error", "t value", "Pr(>|t|)")]
   ### Paste and compute estimates across years
-  PS_res <- rbind(c1, c2, c3, c4, c5)
+  PS_res <- rbind(c1, c2, c3, c4, c5, c6)
   
-  c6 <- PS_res[, list(Estimate = mean(Estimate)), 
+  c7 <- PS_res[, list(Estimate = mean(Estimate)), 
                by = .(rn, outcome) ]
 
   # Append
-  PS_res <- rbind(PS_res, c6, fill = T)
+  PS_res <- rbind(PS_res, c7, fill = T)
   # Keep interest order
   PS_res <- PS_res[order(year, outcome),]
   export <- PS_res[order(year, outcome),][["Estimate"]]
@@ -474,9 +525,9 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
     implied.coefs <- data.table(NULL)
     for (yr in unique(PS_res[, c('year')])[["year"]]) {
       
-      for (Y in r.outcomes) {
+      for (Y in main.outcomes) {
        
-        for (tax in tax.rates) {
+        for (tax in tau) {
           
           for (coef in unique(PS_res[, c('rn')])[["rn"]]) {
             
@@ -501,21 +552,35 @@ psmatch.taxrate <- function(actual.data, covariate.data, algor = "NN", weights, 
   }
   
   # Return a vector of estimates
-  return(export)
+  if (!covar.test) {return(export)}
+  # Return covar.test
+  if (covar.test) {return(test.total)}
+  
 }
 
 ## Try function and export
+t <- psmatch.taxrate(actual.data = yearly_data,
+                     covariate.data = covariates,
+                     algor = "weighted",
+                     weights = "base.sales",
+                     must.covar = Xb,
+                     oth.covars = Xa_pot,
+                     treatment = "high.tax.rate",
+                     main.outcomes = r.outcomes,
+                     tau = tax.rates,
+                     covar.test = T)
+fwrite(t, "../../home/slacouture/PS/trynew_covartest.csv")
 
-# t <- psmatch.taxrate(actual.data = yearly_data,
-#                 covariate.data = covariates,
-#                 algor = "weighted",
-#                 weights = "base.sales",
-#                 must.covar = Xb,
-#                 oth.covars = Xa_pot,
-#                 treatment = "high.tax.rate",
-#                 Y = r.outcomes,
-#                 tau = tax.rates)
-# fwrite(t, "../../home/slacouture/PS/tryv2.csv")
+t <- psmatch.taxrate(actual.data = yearly_data,
+                covariate.data = covariates,
+                algor = "weighted",
+                weights = "base.sales",
+                must.covar = Xb,
+                oth.covars = Xa_pot,
+                treatment = "high.tax.rate",
+                main.outcomes = r.outcomes,
+                tau = tax.rates)
+fwrite(t, "../../home/slacouture/PS/trynew.csv")
 
 
 ############# Run bootstrap: Calip using base.sales -----------------
@@ -564,7 +629,7 @@ block.boot <- function(x, i) {
                   must.covar = Xb,
                   oth.covars = Xa_pot,
                   treatment = "high.tax.rate",
-                  Y = r.outcomes,
+                  main.outcomes = r.outcomes,
                   tau = tax.rates)
 }
 
@@ -575,10 +640,10 @@ state_by_module_ids <- unique(yearly_data$state_by_module)
 # Improve
 # Run bootstrap
 rep_count = 0
-b0 <- boot(state_by_module_ids, block.boot, 100)
+b0 <- boot(state_by_module_ids, block.boot, 20)
 
 # Export: observed and distribution
 t <- data.table(b0$t0)
 mat.t <- data.table(b0$t)
-fwrite(t, "../../home/slacouture/PS/W_base_t_100.csv")
-fwrite(mat.t, "../../home/slacouture/PS/W_base_mat.t_100.csv")
+fwrite(t, "../../home/slacouture/PS/W_base_tnew_20.csv")
+fwrite(mat.t, "../../home/slacouture/PS/W_base_mat.tnew_20.csv")
