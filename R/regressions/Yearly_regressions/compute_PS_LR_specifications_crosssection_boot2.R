@@ -583,6 +583,7 @@ t <- psmatch.taxrate(actual.data = yearly_data,
                 treatment = "high.tax.rate",
                 main.outcomes = r.outcomes,
                 tau = tax.rates)
+t
 fwrite(t, "../../home/slacouture/PS/trynew.csv")
 
 
