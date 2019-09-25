@@ -27,7 +27,7 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 RHS <- "ln_sales_tax"
 
-### Run DID semester data --------------------------------
+### Run level twoway FE semester data --------------------------------
 LRdiff_res <- data.table(NULL)
 for (n in 2:6) {
   # First create power
@@ -93,7 +93,7 @@ geo_dt <- structure(list(
 setDT(geo_dt)
 all_pi <- merge(all_pi, geo_dt, by = "fips_state")
 
-
+all_pi <- data.table(all_pi)
 # take first differences of outcomes and treatment
 all_pi <- all_pi[order(store_code_uc, product_module_code, year),] ##Sort on store by year (in ascending order)
 
@@ -123,16 +123,14 @@ all_pi[, D.ln_sales_tax_L.ln_sales_tax_2 := ((L.ln_sales_tax)^2)*D.ln_sales_tax]
 
 # Keep relevant years
 all_pi <- all_pi[between(year, 2008, 2014)]
-all_pi <- all_pi[ year >= 2009] ## Year 2008, the difference was imputed not real data - so we drop it
 
 
-### Run DID semester data --------------------------------
-LRdiff_res <- data.table(NULL)
+### Run Level yearly data --------------------------------
 for (n in 2:6) {
   # First create power
   all_pi[, paste0("ln_sales_tax_",n) := ln_sales_tax^(n)]
   # Add to formula
-  RHS <- paste(RHS, paste0("ln_sales_tax_", n), sep = " + ")
+  RHS <- paste(RHS, paste0("ln_sales_tax_",n), sep = " + ")
   for (Y in c(outcomes)) {
     for (FE in FE_opts) {
       
