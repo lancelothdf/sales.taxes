@@ -73,6 +73,10 @@ all_pi[year >= 2015,]$sales_tax_wtd <- all_pi[year >= 2015,]$base.tax
 ### Create consumer price index 2
 # We could include
 all_pi <- all_pi[, ln_cpricei2 := ln_pricei2 + log(sales_tax_wtd)]
+
+## Also need to create consumer price with pricei - (replace the one in the original file because imputed tax rate is not correct)
+all_pi <- all_pi[, cpricei := pricei*sales_tax_wtd]
+
 fwrite(all_pi, all_goods_pi_path)
 rm(all_pi)
 
@@ -125,6 +129,14 @@ rm(all_pi)
  ## Merge with "FE" price index
  yearly_data <- merge(yearly_data, FE_pi, by = c("store_code_uc", "year", "product_module_code"))
  rm(FE_pi)
+ 
+ 
+ ##Import the quarterly quantity indices, collapse at the yearly-level
+ # !! Need to do this differently - Need to compute some yearly indices then take logs.
+ quant_pi <- fread(quantity_index_path)
+ quant_pi <- quant_pi[, list(ln_quantity3 = mean(ln_quantity3), ln_UPC = mean(ln_UPC), ln_raw_quant = mean(ln_raw_quant)), by = .(store_code_uc, product_module_code, year)]
+ yearly_data <- merge(yearly_data, quant_pi, by = c("store_code_uc", "product_module_code", "year"))
+ rm(quant_pi)
 
 
  ##Re-balance the sample
@@ -143,10 +155,11 @@ rm(all_pi)
          by = .(store_code_uc, product_module_code)]
 
  yearly_data <- yearly_data[!is.na(base.sales) & !is.na(sales) & !is.na(ln_cpricei) &
-                    !is.na(ln_sales_tax) & !is.na(ln_quantity) & !is.na(FE_store)]
+                    !is.na(ln_sales_tax) & !is.na(ln_quantity) & !is.na(FE_store) & !is.na(ln_quantity3)]
 
  ## Create alternative measures of price and quantity
  yearly_data[, ln_cpricei2 := FE_store + ln_sales_tax]
+ yearly_data[, ln_pricei2 := FE_store]
  yearly_data[, ln_quantity2 := log(sales) - FE_store]
 
 
@@ -216,6 +229,7 @@ rm(all_pi)
 
  # create necessary variables
  all_pi[, ln_cpricei := log(cpricei)]
+ all_pi[, ln_pricei := log(pricei)]
  all_pi[, ln_sales_tax := log(sales_tax)]
  all_pi[, ln_sales_tax2 := log(sales_tax2)]
  all_pi[, ln_quantity := log(sales) - log(pricei)]
@@ -227,12 +241,15 @@ rm(all_pi)
  all_pi[, module_by_state := .GRP, by = .(product_module_code, fips_state)]
  all_pi[, region_by_module_by_time := .GRP, by = .(region, product_module_code, cal_time)]
  all_pi[, division_by_module_by_time := .GRP, by = .(division, product_module_code, cal_time)]
+ 
+ all_pi[, store_sales := sum(sales), by = .(store_code_uc, cal_time)]
+ all_pi[, ln_sales_share := log(sales/store_sales)]
 
  ## get sales weights
  all_pi[, base.sales := sales[year == 2008 & quarter == 1],
         by = .(store_code_uc, product_module_code)]
 
- all_pi <- all_pi[!is.na(base.sales) & !is.na(sales) & !is.na(ln_cpricei) &
+ all_pi <- all_pi[!is.na(base.sales) & !is.na(sales) & !is.na(ln_cpricei) & !is.na(ln_pricei2) &
                     !is.na(ln_sales_tax) & !is.na(ln_quantity) & !is.na(ln_quantity2) & !is.na(ln_cpricei2)
                   & !is.na(ln_quantity3)]
 
@@ -250,8 +267,9 @@ rm(all_pi)
 
  #############################################################
  ## Delete some variables to save memory
- all_pi <- all_pi[, c("fips_state", "fips_county", "year", "quarter", "store_code_uc", "product_module_code", "ln_cpricei", "ln_cpricei2", "ln_sales","ln_quantity", "ln_quantity2", "ln_quantity3", "ln_UPC", "ln_raw_quant", "ln_sales_tax", "taxability", "base.sales", "sales", "store_by_module", "cal_time", "module_by_time", "module_by_state", "region_by_module_by_time", "division_by_module_by_time")]
+ all_pi <- all_pi[, c("fips_state", "fips_county", "year", "quarter", "store_code_uc", "product_module_code", "ln_cpricei", "ln_pricei", "ln_cpricei2", "ln_pricei2", "ln_sales","ln_quantity", "ln_quantity2", "ln_quantity3", "ln_UPC", "ln_raw_quant", "ln_sales_share", "ln_sales_tax", "base.sales", "sales", "store_by_module", "cal_time", "module_by_time", "module_by_state", "region_by_module_by_time", "division_by_module_by_time")]
  ## Here we do not carry over ln_sales_tax2 because do not want to save all leads and lags - But we should try and see if results are similar using ln_sales_tax2
+  ## Also we do not carry over taxability
 
  #######################################################
  ## take first differences of outcomes and treatment
@@ -260,8 +278,14 @@ rm(all_pi)
 
  all_pi[, D.ln_cpricei := ln_cpricei - shift(ln_cpricei, n=1, type="lag"),
         by = .(store_code_uc, product_module_code)]
+ 
+ all_pi[, D.ln_pricei := ln_pricei - shift(ln_pricei, n=1, type="lag"),
+        by = .(store_code_uc, product_module_code)]
 
  all_pi[, D.ln_cpricei2 := ln_cpricei2 - shift(ln_cpricei2, n=1, type="lag"),
+        by = .(store_code_uc, product_module_code)]
+ 
+ all_pi[, D.ln_pricei2 := ln_pricei2 - shift(ln_pricei2, n=1, type="lag"),
         by = .(store_code_uc, product_module_code)]
 
  all_pi[, D.ln_quantity := ln_quantity - shift(ln_quantity, n=1, type="lag"),
@@ -284,6 +308,9 @@ rm(all_pi)
 
  all_pi[, D.ln_raw_quant := ln_raw_quant - shift(ln_raw_quant, n=1, type="lag"),
         by = .(store_code_uc, product_module_code)]
+ 
+ all_pi[, D.ln_sales_share := ln_sales_share - shift(ln_sales_share, n=1, type = "lag"),
+       by = .(store_code_uc, product_module_code)]
 
 
 
@@ -306,7 +333,8 @@ rm(all_pi)
 
 
 ### Finally keep only the variables that we may need (mostly the differenced variables)
- all_pi <- all_pi[, c("fips_state", "fips_county", "year", "quarter", "store_code_uc", "product_module_code", "D.ln_cpricei", "ln_cpricei2", "D.ln_cpricei2", "D.ln_sales","D.ln_quantity", "D.ln_quantity2", "D.ln_quantity3", "D.ln_UPC", "D.ln_raw_quant", "D.ln_sales_tax", "taxability", "base.sales", "sales", "store_by_module", "cal_time", "module_by_time", "module_by_state", "region_by_module_by_time", "division_by_module_by_time", "F8.D.ln_sales_tax", "F7.D.ln_sales_tax", "F6.D.ln_sales_tax", "F5.D.ln_sales_tax", "F4.D.ln_sales_tax", "F3.D.ln_sales_tax", "F2.D.ln_sales_tax", "F1.D.ln_sales_tax", "L1.D.ln_sales_tax", "L2.D.ln_sales_tax", "L3.D.ln_sales_tax", "L4.D.ln_sales_tax", "L5.D.ln_sales_tax", "L6.D.ln_sales_tax", "L7.D.ln_sales_tax", "L8.D.ln_sales_tax")]
+ all_pi <- all_pi[, c("fips_state", "fips_county", "year", "quarter", "store_code_uc", "product_module_code", "D.ln_cpricei", "D.ln_pricei", "ln_cpricei2", "D.ln_cpricei2", "D.ln_pricei2", "D.ln_sales","D.ln_quantity", "D.ln_quantity2", "D.ln_quantity3", "D.ln_UPC", "D.ln_raw_quant", "D.ln_sales_share", "D.ln_sales_tax", "base.sales", "sales", "store_by_module", "cal_time", "module_by_time", "module_by_state", "region_by_module_by_time", "division_by_module_by_time", "F8.D.ln_sales_tax", "F7.D.ln_sales_tax", "F6.D.ln_sales_tax", "F5.D.ln_sales_tax", "F4.D.ln_sales_tax", "F3.D.ln_sales_tax", "F2.D.ln_sales_tax", "F1.D.ln_sales_tax", "L1.D.ln_sales_tax", "L2.D.ln_sales_tax", "L3.D.ln_sales_tax", "L4.D.ln_sales_tax", "L5.D.ln_sales_tax", "L6.D.ln_sales_tax", "L7.D.ln_sales_tax", "L8.D.ln_sales_tax")]
+## We do not carry over taxability
 
  fwrite(all_pi, master_quarterly_path)
 

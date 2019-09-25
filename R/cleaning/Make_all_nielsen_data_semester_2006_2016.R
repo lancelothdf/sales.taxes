@@ -50,6 +50,7 @@ all_pi[, sales_tax := ifelse(year > 2014, sales_tax[year == 2014 & quarter == 4]
 
 # create necessary variables
 all_pi[, ln_cpricei := log(cpricei)]
+all_pi[, ln_pricei := log(pricei)]
 all_pi[, ln_sales_tax := log(sales_tax)]
 all_pi[, ln_sales_tax2 := log(sales_tax2)]
 all_pi[, ln_quantity := log(sales) - log(pricei)]
@@ -61,8 +62,8 @@ all_pi[, ln_sales := log(sales)]
 all_pi[, base.sales := sales[year == 2008 & quarter == 1],
        by = .(store_code_uc, product_module_code)]
 
-all_pi <- all_pi[!is.na(base.sales) & !is.na(sales) & !is.na(ln_cpricei) &
-                   !is.na(ln_sales_tax) & !is.na(ln_quantity) & !is.na(ln_quantity2) & !is.na(ln_cpricei2)
+all_pi <- all_pi[!is.na(base.sales) & !is.na(sales) & !is.na(ln_cpricei) & !is.na(ln_pricei) &
+                   !is.na(ln_sales_tax) & !is.na(ln_quantity) & !is.na(ln_quantity2) & !is.na(ln_cpricei2) & !is.na(ln_pricei2)
                  & !is.na(ln_quantity3)]
 
 ## balance on store-module level
@@ -79,15 +80,16 @@ setkey(all_pi, store_code_uc, product_module_code, year, quarter)
 
 #############################################################
 ## Delete some variables to save memory
-all_pi <- all_pi[, c("fips_state", "fips_county", "year", "quarter", "store_code_uc", "product_module_code", "ln_cpricei", "ln_cpricei2", "ln_sales","ln_quantity", "ln_quantity2", "ln_quantity3", "ln_UPC", "ln_raw_quant", "ln_sales_tax", "taxability", "base.sales", "sales")]
+all_pi <- all_pi[, c("fips_state", "fips_county", "year", "quarter", "store_code_uc", "product_module_code", "ln_cpricei", "ln_pricei", "ln_cpricei2", "ln_pricei2", "ln_sales","ln_quantity", "ln_quantity2", "ln_quantity3", "ln_UPC", "ln_raw_quant", "ln_sales_tax", "base.sales", "sales")]
 ## Here we do not carry over ln_sales_tax2 because do not want to save all leads and lags - But we should try and see if results are similar using ln_sales_tax2
+## Here we do not carry over "taxability"
 
 ## Generate a semester indicator
 all_pi[, semester := 1 + (quarter >= 3 & quarter <= 4)*1 ]
 
 ## Collapse at semester-leve
 #all_pi <- all_pi[, list(ln_cpricei = mean(ln_cpricei), ln_cpricei2 = mean(ln_cpricei2), ln_sales = mean(ln_sales), ln_quantity = mean(ln_quantity), ln_quantity2 = mean(ln_quantity2), ln_quantity3 = mean(ln_quantity3), ln_UPC = mean(ln_UPC), ln_raw_quant = mean(ln_raw_quant), ln_sales_tax = mean(ln_sales_tax), taxability = mean(taxability), base.sales = mean(base.sales), sales = mean(sales)), by = .(fips_state, fips_county, store_code_uc, product_module_code, year, semester)]
-all_pi <- all_pi[, list(ln_cpricei = mean(ln_cpricei), ln_cpricei2 = mean(ln_cpricei2), ln_sales = mean(ln_sales), ln_quantity = mean(ln_quantity), ln_quantity2 = mean(ln_quantity2), ln_quantity3 = mean(ln_quantity3), ln_UPC = mean(ln_UPC), ln_raw_quant = mean(ln_raw_quant), ln_sales_tax = mean(ln_sales_tax), base.sales = mean(base.sales), sales = mean(sales)), by = .(fips_state, fips_county, store_code_uc, product_module_code, year, semester)]
+all_pi <- all_pi[, list(ln_cpricei = mean(ln_cpricei), ln_pricei = mean(ln_pricei), ln_cpricei2 = mean(ln_cpricei2), ln_pricei2 = mean(ln_pricei2), ln_sales = mean(ln_sales), ln_quantity = mean(ln_quantity), ln_quantity2 = mean(ln_quantity2), ln_quantity3 = mean(ln_quantity3), ln_UPC = mean(ln_UPC), ln_raw_quant = mean(ln_raw_quant), ln_sales_tax = mean(ln_sales_tax), base.sales = mean(base.sales), sales = mean(sales)), by = .(fips_state, fips_county, store_code_uc, product_module_code, year, semester)]
 ### Excludes taxability because there was sthg wrong with that variable
 
 ## prep Census region/division data ------------------------------
@@ -118,6 +120,9 @@ all_pi[, module_by_state := .GRP, by = .(product_module_code, fips_state)]
 all_pi[, region_by_module_by_time := .GRP, by = .(region, product_module_code, cal_time)]
 all_pi[, division_by_module_by_time := .GRP, by = .(division, product_module_code, cal_time)]
 
+all_pi[, store_sales := sum(sales), by = .(store_code_uc, cal_time)]
+all_pi[, ln_sales_share := log(sales/store_sales)]
+
 
 #######################################################
 ## take first differences of outcomes and treatment
@@ -127,7 +132,13 @@ all_pi <- all_pi[order(store_code_uc, product_module_code, cal_time),] ##Sort on
 all_pi[, D.ln_cpricei := ln_cpricei - shift(ln_cpricei, n=1, type="lag"),
        by = .(store_code_uc, product_module_code)]
 
+all_pi[, D.ln_pricei := ln_pricei - shift(ln_pricei, n=1, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
 all_pi[, D.ln_cpricei2 := ln_cpricei2 - shift(ln_cpricei2, n=1, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+all_pi[, D.ln_pricei2 := ln_pricei2 - shift(ln_pricei2, n=1, type="lag"),
        by = .(store_code_uc, product_module_code)]
 
 all_pi[, D.ln_quantity := ln_quantity - shift(ln_quantity, n=1, type="lag"),
@@ -151,6 +162,9 @@ all_pi[, D.ln_UPC := ln_UPC - shift(ln_UPC, n=1, type="lag"),
 all_pi[, D.ln_raw_quant := ln_raw_quant - shift(ln_raw_quant, n=1, type="lag"),
        by = .(store_code_uc, product_module_code)]
 
+all_pi[, D.ln_sales_share := ln_sales_share - shift(ln_sales_share, n=1, type = "lag"),
+      by = .(store_code_uc, product_module_code)]
+
 
 
 ## generate lags and leads of ln_sales_tax
@@ -173,7 +187,7 @@ all_pi <- all_pi[ year >= 2009 | (year == 2008 & semester >= 2)] ## First semest
 
 ### Finally keep only the variables that we may need (mostly the differenced variables)
 #all_pi <- all_pi[, c("fips_state", "fips_county", "year", "semester", "store_code_uc", "product_module_code", "D.ln_cpricei", "ln_cpricei2", "D.ln_cpricei2", "D.ln_sales","D.ln_quantity", "D.ln_quantity2", "D.ln_quantity3", "D.ln_UPC", "D.ln_raw_quant", "D.ln_sales_tax", "taxability", "base.sales", "sales", "store_by_module", "cal_time", "module_by_time", "module_by_state", "region_by_module_by_time", "division_by_module_by_time", "F4.D.ln_sales_tax", "F3.D.ln_sales_tax", "F2.D.ln_sales_tax", "F1.D.ln_sales_tax", "L1.D.ln_sales_tax", "L2.D.ln_sales_tax", "L3.D.ln_sales_tax", "L4.D.ln_sales_tax")]
-all_pi <- all_pi[, c("fips_state", "fips_county", "year", "semester", "store_code_uc", "product_module_code", "D.ln_cpricei", "ln_cpricei2", "D.ln_cpricei2", "D.ln_sales","D.ln_quantity", "D.ln_quantity2", "D.ln_quantity3", "D.ln_UPC", "D.ln_raw_quant", "ln_sales_tax", "D.ln_sales_tax", "base.sales", "sales", "store_by_module", "cal_time", "module_by_time", "module_by_state", "region_by_module_by_time", "division_by_module_by_time", "F4.D.ln_sales_tax", "F3.D.ln_sales_tax", "F2.D.ln_sales_tax", "F1.D.ln_sales_tax", "L1.D.ln_sales_tax", "L2.D.ln_sales_tax", "L3.D.ln_sales_tax", "L4.D.ln_sales_tax")]
+all_pi <- all_pi[, c("fips_state", "fips_county", "year", "semester", "store_code_uc", "product_module_code", "D.ln_cpricei", "D.ln_pricei", "ln_cpricei2", "D.ln_pricei2", "D.ln_cpricei2", "D.ln_sales","D.ln_quantity", "D.ln_quantity2", "D.ln_quantity3", "D.ln_UPC", "D.ln_raw_quant", "D.ln_sales_share", "D.ln_sales_tax", "ln_sales_tax" , "base.sales", "sales", "store_by_module", "cal_time", "module_by_time", "module_by_state", "region_by_module_by_time", "division_by_module_by_time", "F4.D.ln_sales_tax", "F3.D.ln_sales_tax", "F2.D.ln_sales_tax", "F1.D.ln_sales_tax", "L1.D.ln_sales_tax", "L2.D.ln_sales_tax", "L3.D.ln_sales_tax", "L4.D.ln_sales_tax")]
 ## Taxability not on the list
 
 
