@@ -30,7 +30,7 @@ all_pi <- fread(data.semester)
 # Create interaction term 
 # First lagged value (initial)
 all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
-all_pi[, D.ln_sales_tax_L.ln_sales_tax := L.ln_sales_tax*D.ln_sales_tax]
+all_pi[, D.ln_sales_tax_init := L.ln_sales_tax*D.ln_sales_tax]
 
 # setup
 outcomes <- c("D.ln_cpricei2", "D.ln_quantity3")
