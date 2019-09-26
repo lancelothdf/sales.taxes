@@ -80,7 +80,7 @@ for (n in 2:6) {
       pred_b <- rep(0,15)
       pred_se <- rep(0,15)
       for (i in 1:15) {
-        plc.formula1 <- paste0("ln_sales_tax +", paste0(paste0(paste0(2:n,"*",paste0((tax_values[i]),"^",1:(n-1))), "*ln_sales_tax_",2:6), collapse = " + "), " = 0")
+        plc.formula1 <- paste0("ln_sales_tax +", paste0(paste0(paste0(2:n,"*",paste0((tax_values[i]),"^",1:(n-1))), "*ln_sales_tax_",2:n), collapse = " + "), " = 0")
         # Predictred
         pplc.test1 <- glht(res1, linfct = c(plc.formula1))
         pred_b[i] <- coef(summary(pplc.test1))[[1]]
@@ -100,7 +100,7 @@ for (n in 2:6) {
         theme_bw() +
         labs(x = "Sales Tax", y = paste0("Predicted response on ",Y), color = NULL) +
         geom_hline(yintercept = 0, color = "red", linetype = "dashed", alpha = .8)
-      ggsave(Plot)
+      ggsave(graphout)
       
     }
   }
@@ -210,7 +210,7 @@ for (n in 2:6) {
       pred_b <- rep(0,15)
       pred_se <- rep(0,15)
       for (i in 1:15) {
-        plc.formula1 <- paste0("ln_sales_tax +", paste0(paste0(paste0(2:n,"*",paste0((tax_values[i]),"^",1:(n-1))), "*ln_sales_tax_",2:6), collapse = " + "), " = 0")
+        plc.formula1 <- paste0("ln_sales_tax +", paste0(paste0(paste0(2:n,"*",paste0((tax_values[i]),"^",1:(n-1))), "*ln_sales_tax_",2:n), collapse = " + "), " = 0")
         # Predictred
         pplc.test1 <- glht(res1, linfct = c(plc.formula1))
         pred_b[i] <- coef(summary(pplc.test1))[[1]]
@@ -230,7 +230,7 @@ for (n in 2:6) {
         theme_bw() +
         labs(x = "Sales Tax", y = paste0("Predicted response on ",Y), color = NULL) +
         geom_hline(yintercept = 0, color = "red", linetype = "dashed", alpha = .8)
-      ggsave(Plot)
+      ggsave(graphout)
     }
   }
 }
