@@ -202,7 +202,7 @@ for (n in 2:4) {
         theme_bw() +
         labs(x = "Sales Tax", y = paste0("Predicted response on ",Y), color = NULL) +
         geom_hline(yintercept = 0, color = "red", linetype = "dashed", alpha = .8)
-      ggsave(Plot)
+      ggsave(graphout)
       
     }
   }
@@ -282,7 +282,7 @@ for (n in 2:6) {
         theme_bw() +
         labs(x = "Sales Tax", y = paste0("Predicted response on ",Y), color = NULL) +
         geom_hline(yintercept = 0, color = "red", linetype = "dashed", alpha = .8)
-      ggsave(Plot)
+      ggsave(graphout)
       
     }
   }
