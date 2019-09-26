@@ -5,6 +5,7 @@ library(data.table)
 library(futile.logger)
 library(lfe)
 library(multcomp)
+library(ggplot2)
 
 
 setwd("/project2/igaarder")
