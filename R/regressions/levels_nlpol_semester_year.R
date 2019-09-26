@@ -18,6 +18,7 @@ data.year <- "Data/Nielsen/yearly_nielsen_data.csv"
 
 ## output filepaths ----------------------------------------------
 output.results.file <- "Data/pol_semesterly_and_yearly_levels.csv"
+output.path <- "../../home/slacouture/NLP"
 
 ### Set up Semester Data ---------------------------------
 all_pi <- fread(data.semester)
@@ -27,6 +28,12 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 RHS <- "ln_sales_tax"
 
+## For predicted values
+# Discretize taxrate
+tax_values <-seq(min(all_pi$ln_sales_tax), max(all_pi$ln_sales_tax), length.out = 15)
+# The value of 0 is problematic: replace it for a very small value
+if (tax_values[1] == 0) tax_values[1] <- 0.001
+
 ### Run level twoway FE semester data --------------------------------
 LRdiff_res <- data.table(NULL)
 for (n in 2:6) {
@@ -34,6 +41,7 @@ for (n in 2:6) {
   all_pi[, paste0("ln_sales_tax_",n) := ln_sales_tax^(n)]
   # Add to formula
   RHS <- paste(RHS, paste0("ln_sales_tax_",n), sep = " + ")
+
   for (Y in c(outcomes)) {
     for (FE in FE_opts) {
       
@@ -65,6 +73,34 @@ for (n in 2:6) {
                                                            "product_module_code"))]
       LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
       fwrite(LRdiff_res, output.results.file)
+      
+
+      
+      # Compute predicted values of the derivative
+      pred_b <- rep(0,15)
+      pred_se <- rep(0,15)
+      for (i in 1:15) {
+        plc.formula1 <- paste0("ln_sales_tax +", paste0(paste0(paste0(2:n,"*",paste0((tax_values[i]),"^",1:(n-1))), "*ln_sales_tax_",2:6), collapse = " + "), " = 0")
+        # Predictred
+        pplc.test1 <- glht(res1, linfct = c(plc.formula1))
+        pred_b[i] <- coef(summary(pplc.test1))[[1]]
+        pred_se[i] <- sqrt(vcov(summary(pplc.test1)))[[1]]
+      }
+      # Create data
+      coef.dt <- data.table(tax_values, pred_b, pred_se)
+      
+      # Output file
+      graphout <- paste0(output.path,"/", Y, "_", n,"_", FE, "semester.png")
+      # Plot
+      ggplot(data = coef.dt, mapping = aes(x = tax_values, y = pred_b)) +
+        geom_point(size = 2, alpha = .5) +
+        geom_line(linetype = "dashed") +
+        geom_errorbar(aes(ymin = pred_b - 1.96 * pred_se,
+                          ymax = pred_b + 1.96 * pred_se), width = .005) +
+        theme_bw() +
+        labs(x = "Sales Tax", y = paste0("Predicted response on ",Y), color = NULL) +
+        geom_hline(yintercept = 0, color = "red", linetype = "dashed", alpha = .8)
+      ggsave(Plot)
       
     }
   }
@@ -125,6 +161,12 @@ all_pi[, D.ln_sales_tax_L.ln_sales_tax_2 := ((L.ln_sales_tax)^2)*D.ln_sales_tax]
 all_pi <- all_pi[between(year, 2008, 2014)]
 
 
+## For predicted values
+# Discretize taxrate
+tax_values <-seq(min(all_pi$ln_sales_tax), max(all_pi$ln_sales_tax), length.out = 15)
+# The value of 0 is problematic: replace it for a very small value
+if (tax_values[1] == 0) tax_values[1] <- 0.001
+
 ### Run Level yearly data --------------------------------
 for (n in 2:6) {
   # First create power
@@ -163,6 +205,32 @@ for (n in 2:6) {
       LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
       fwrite(LRdiff_res, output.results.file)
       
+      
+      # Compute predicted values of the derivative
+      pred_b <- rep(0,15)
+      pred_se <- rep(0,15)
+      for (i in 1:15) {
+        plc.formula1 <- paste0("ln_sales_tax +", paste0(paste0(paste0(2:n,"*",paste0((tax_values[i]),"^",1:(n-1))), "*ln_sales_tax_",2:6), collapse = " + "), " = 0")
+        # Predictred
+        pplc.test1 <- glht(res1, linfct = c(plc.formula1))
+        pred_b[i] <- coef(summary(pplc.test1))[[1]]
+        pred_se[i] <- sqrt(vcov(summary(pplc.test1)))[[1]]
+      }
+      # Create data
+      coef.dt <- data.table(tax_values, pred_b, pred_se)
+      
+      # Output file
+      graphout <- paste0(output.path,"/", Y, "_", n,"_", FE, "year.png")
+      # Plot
+      ggplot(data = coef.dt, mapping = aes(x = tax_values, y = pred_b)) +
+        geom_point(size = 2, alpha = .5) +
+        geom_line(linetype = "dashed") +
+        geom_errorbar(aes(ymin = pred_b - 1.96 * pred_se,
+                          ymax = pred_b + 1.96 * pred_se), width = .005) +
+        theme_bw() +
+        labs(x = "Sales Tax", y = paste0("Predicted response on ",Y), color = NULL) +
+        geom_hline(yintercept = 0, color = "red", linetype = "dashed", alpha = .8)
+      ggsave(Plot)
     }
   }
 }
