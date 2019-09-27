@@ -55,7 +55,7 @@ for (i in percentiles) {
   report <- rbind(report, q)
 }
 report.out <- paste0(output.path,"/quantiles_pos_change.csv")
-fwrite(LRdiff_res, output.results.file)
+fwrite(report.out, output.results.file)
 
 ## For predicted values
 # Discretize taxrate. Based on the histograms 
