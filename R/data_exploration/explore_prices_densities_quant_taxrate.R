@@ -31,15 +31,18 @@ all_pi[, n.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, weight = base.sales), 
 all_pi <- all_pi[D.ln_sales_tax != 0, ]
 
 # Add quantile of ln_sales_tax column
-all_pi <- all_pi[!is.na(ln_sales_tax)][, quartile := cut(ln_sales_tax,
-                    breaks = quantile(ln_sales_tax, probs = seq(0, 1, by = 1/5), na.rm = T),
-                    labels = 1:5, right = FALSE)]
+all_pi <- all_pi[!is.na(ln_sales_tax)][, quantile := cut(ln_sales_tax,
+                                                         breaks = quantile(ln_sales_tax, probs = seq(0, 1, by = 1/5), na.rm = T, weight = base.sales),
+                                                         labels = 1:5, right = FALSE)]
+all_pi <- all_pi[!is.na(quantile)]
 
 ##### Plot the kernel densities --------------------------
 graphout <- paste0(output.path,"/norm_prices_by_quant_salestax.png")
 
-# Plot
-ggplot(all_pi, aes(x=n.ln_cpricei2, color=quartile)) +
+# Plot - zoom in between -0.7 to 0.7
+ggplot(all_pi, aes(x=n.ln_cpricei2, color=quantile)) +
   geom_density() +
-  labs(x = "Normalized (log) Price", y = "K-Density", title = "Density by Sales Taxes")
+  labs(x = "Normalized (log) Price", y = "K-Density", title = "Density by Sales Taxes") +
+  scale_x_continuous(limits = c(-0.5,0.5), breaks = seq(-0.5, 0.5, 0.2))
+
 ggsave(graphout)
