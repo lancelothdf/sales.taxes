@@ -1,7 +1,7 @@
 #' Run Non linear estimation using polynomials (parametric) in differences
 #' Semester Only
 #' We do not run all polynomials 2-6 but only those we know will run
-#' We plot the estimated response function
+#' We plot the estimated response function: the estimated expected value for a given change
 
 library(data.table)
 library(futile.logger)
@@ -43,10 +43,12 @@ RHS <- "D.ln_sales_tax + D.ln_sales_tax_init"
 tax_values <-seq(min(all_pi$ln_sales_tax), max(all_pi$ln_sales_tax), length.out = 15)
 # The value of 0 is problematic: replace it for a very small value
 if (tax_values[1] == 0) tax_values[1] <- 0.001
+# average tax changes (from positive changes)
+av.tax.ch <- as.vector(all_pi[D.ln_sales_tax != 0, .(D.ln_sales_tax := mean(D.ln_sales_tax))])
 
 ### Run level twoway FE semester data --------------------------------
 LRdiff_res <- data.table(NULL)
-for (n in 2:5) {
+for (n in 2:3) {
   # First create power
   all_pi[, paste0("D.ln_sales_tax_init_",n) := D.ln_sales_tax*(L.ln_sales_tax^(n))]
   # Add to formula
@@ -86,31 +88,33 @@ for (n in 2:5) {
       
 
       
-      # # Compute predicted values of the derivative
-      # pred_b <- rep(0,15)
-      # pred_se <- rep(0,15)
-      # for (i in 1:15) {
-      #   plc.formula1 <- paste0("ln_sales_tax +", paste0(paste0(paste0(2:n,"*",paste0((tax_values[i]),"^",1:(n-1))), "*ln_sales_tax_",2:n), collapse = " + "), " = 0")
-      #   # Predictred
-      #   pplc.test1 <- glht(res1, linfct = c(plc.formula1))
-      #   pred_b[i] <- coef(summary(pplc.test1))[[1]]
-      #   pred_se[i] <- sqrt(vcov(summary(pplc.test1)))[[1]]
-      # }
-      # # Create data
-      # coef.dt <- data.table(tax_values, pred_b, pred_se)
-      # 
-      # # Output file
-      # graphout <- paste0(output.path,"/standard/", Y, "_", n,"_", FE, ".png")
-      # # Plot
-      # ggplot(data = coef.dt, mapping = aes(x = tax_values, y = pred_b)) +
-      #   geom_point(size = 2, alpha = .5) +
-      #   geom_line(linetype = "dashed") +
-      #   geom_errorbar(aes(ymin = pred_b - 1.96 * pred_se,
-      #                     ymax = pred_b + 1.96 * pred_se), width = .005) +
-      #   theme_bw() +
-      #   labs(x = "Sales Tax", y = paste0("Predicted response on ",Y), color = NULL) +
-      #   geom_hline(yintercept = 0, color = "red", linetype = "dashed", alpha = .8)
-      # ggsave(graphout)
+      # Compute predicted values of the derivative
+      pred_b <- rep(0,15)
+      pred_se <- rep(0,15)
+      for (i in 1:15) {
+        plc.formula1 <- paste0(av.tax.ch, "*(D.ln_sales_tax + ", (tax_values[i]),"*D.ln_sales_tax_init +", paste0(paste0(paste0(paste0((tax_values[i]),"^",2:(n))), "*D.ln_sales_tax_init_",2:n), collapse = " + "), ") = 0")
+        # Predictred
+        pplc.test1 <- glht(res1, linfct = c(plc.formula1))
+        pred_b[i] <- coef(summary(pplc.test1))[[1]]
+        pred_se[i] <- sqrt(vcov(summary(pplc.test1)))[[1]]
+      }
+      # Create data
+      coef.dt <- data.table(tax_values, pred_b, pred_se)
+      out.pred.file <- paste0(output.path,"/D standard/predict", Y, "_", n,"_", FE,".csv")
+      fwrite(coef.dt, output.results.file)
+      
+      # Output file
+      graphout <- paste0(output.path,"/D standard/", Y, "_", n,"_", FE, ".png")
+      # Plot
+      ggplot(data = coef.dt, mapping = aes(x = tax_values, y = pred_b)) +
+        geom_point(size = 2, alpha = .5) +
+        geom_line(linetype = "dashed") +
+        geom_errorbar(aes(ymin = pred_b - 1.96 * pred_se,
+                          ymax = pred_b + 1.96 * pred_se), width = .005) +
+        theme_bw() +
+        labs(x = "Sales Tax", y = paste0("Predicted response on ",Y), color = NULL) +
+        geom_hline(yintercept = 0, color = "red", linetype = "dashed", alpha = .8)
+      ggsave(graphout)
       
     }
   }
@@ -146,7 +150,7 @@ tax_hermite <- rbind(tax_values, tax_values_2, tax_values_3, tax_values_4, tax_v
 RHS <- "D.ln_sales_tax + D.ln_sales_tax_init"
 
 ### Run level twoway FE semester data: hermite polynomials --------------------------------
-for (n in 2:6) {
+for (n in 2:4) {
   # First create power
   all_pi[, paste0("D.ln_sales_tax_init_",n) := D.ln_sales_tax*(hermite(ln_sales_tax, n))]
   # Add to formula
@@ -185,31 +189,33 @@ for (n in 2:6) {
       fwrite(LRdiff_res, output.results.file)
       
       
-      # # Compute predicted values of the derivative
-      # pred_b <- rep(0,15)
-      # pred_se <- rep(0,15)
-      # for (i in 1:15) {
-      #   plc.formula1 <- paste0("ln_sales_tax +", paste0(paste0(paste0(2:n,"*",(tax_hermite)[1:n-1,i]), "*ln_sales_tax_",2:n), collapse = " + "), " = 0")
-      #   # Predictred
-      #   pplc.test1 <- glht(res1, linfct = c(plc.formula1))
-      #   pred_b[i] <- coef(summary(pplc.test1))[[1]]
-      #   pred_se[i] <- sqrt(vcov(summary(pplc.test1)))[[1]]
-      # }
-      # # Create data
-      # coef.dt <- data.table(tax_values, pred_b, pred_se)
-      # 
-      # # Output file
-      # graphout <- paste0(output.path,"/hermite prob/", Y, "_", n,"_", FE, ".png")
-      # # Plot
-      # ggplot(data = coef.dt, mapping = aes(x = tax_values, y = pred_b)) +
-      #   geom_point(size = 2, alpha = .5) +
-      #   geom_line(linetype = "dashed") +
-      #   geom_errorbar(aes(ymin = pred_b - 1.96 * pred_se,
-      #                     ymax = pred_b + 1.96 * pred_se), width = .005) +
-      #   theme_bw() +
-      #   labs(x = "Sales Tax", y = paste0("Predicted response on ",Y), color = NULL) +
-      #   geom_hline(yintercept = 0, color = "red", linetype = "dashed", alpha = .8)
-      # ggsave(Plot)
+      # Compute predicted values of the derivative
+      pred_b <- rep(0,15)
+      pred_se <- rep(0,15)
+      for (i in 1:15) {
+        plc.formula1 <- paste0(av.tax.ch, "*(D.ln_sales_tax + ", (tax_values[i]),"*D.ln_sales_tax_init +", paste0(paste0(paste0((tax_hermite)[2:n,i]), "*D.ln_sales_tax_init_",2:n), collapse = " + "), " = 0")
+        # Predictred
+        pplc.test1 <- glht(res1, linfct = c(plc.formula1))
+        pred_b[i] <- coef(summary(pplc.test1))[[1]]
+        pred_se[i] <- sqrt(vcov(summary(pplc.test1)))[[1]]
+      }
+      # Create data
+      coef.dt <- data.table(tax_values, pred_b, pred_se)
+      out.pred.file <- paste0(output.path,"/D hermite prob/predict", Y, "_", n,"_", FE,".csv")
+      fwrite(coef.dt, output.results.file)
+      
+      # Output file
+      graphout <- paste0(output.path,"/D hermite prob/", Y, "_", n,"_", FE, ".png")
+      # Plot
+      ggplot(data = coef.dt, mapping = aes(x = tax_values, y = pred_b)) +
+        geom_point(size = 2, alpha = .5) +
+        geom_line(linetype = "dashed") +
+        geom_errorbar(aes(ymin = pred_b - 1.96 * pred_se,
+                          ymax = pred_b + 1.96 * pred_se), width = .005) +
+        theme_bw() +
+        labs(x = "Sales Tax", y = paste0("Predicted response on ",Y), color = NULL) +
+        geom_hline(yintercept = 0, color = "red", linetype = "dashed", alpha = .8)
+      ggsave(graphout)
       
     }
   }
@@ -217,7 +223,9 @@ for (n in 2:6) {
 
 
 ### Run level twoway FE semester data: hermite polynomials physicists --------------------------------
-
+tax_values <-seq(min(all_pi$ln_sales_tax), max(all_pi$ln_sales_tax), length.out = 15)
+# The value of 0 is problematic: replace it for a very small value
+if (tax_values[1] == 0) tax_values[1] <- 0.001
 # Compute hermite polinomials on values and create table to extract interest values
 tax_values_2 <- hermite(tax_values, 2, prob = F)
 tax_values_3 <- hermite(tax_values, 3, prob = F)
@@ -265,31 +273,33 @@ for (n in 2:6) {
       fwrite(LRdiff_res, output.results.file)
       
       
-      # # Compute predicted values of the derivative
-      # pred_b <- rep(0,15)
-      # pred_se <- rep(0,15)
-      # for (i in 1:15) {
-      #   plc.formula1 <- paste0("ln_sales_tax +", paste0(paste0(paste0(2:n,"*",(tax_hermite)[1:n-1,i]), "*ln_sales_tax_",2:n), collapse = " + "), " = 0")
-      #   # Predictred
-      #   pplc.test1 <- glht(res1, linfct = c(plc.formula1))
-      #   pred_b[i] <- coef(summary(pplc.test1))[[1]]
-      #   pred_se[i] <- sqrt(vcov(summary(pplc.test1)))[[1]]
-      # }
-      # # Create data
-      # coef.dt <- data.table(tax_values, pred_b, pred_se)
-      # 
-      # # Output file
-      # graphout <- paste0(output.path,"/hermite phy/", Y, "_", n,"_", FE, ".png")
-      # # Plot
-      # ggplot(data = coef.dt, mapping = aes(x = tax_values, y = pred_b)) +
-      #   geom_point(size = 2, alpha = .5) +
-      #   geom_line(linetype = "dashed") +
-      #   geom_errorbar(aes(ymin = pred_b - 1.96 * pred_se,
-      #                     ymax = pred_b + 1.96 * pred_se), width = .005) +
-      #   theme_bw() +
-      #   labs(x = "Sales Tax", y = paste0("Predicted response on ",Y), color = NULL) +
-      #   geom_hline(yintercept = 0, color = "red", linetype = "dashed", alpha = .8)
-      # ggsave(Plot)
+      # Compute predicted values of the derivative
+      pred_b <- rep(0,15)
+      pred_se <- rep(0,15)
+      for (i in 1:15) {
+        plc.formula1 <- paste0(av.tax.ch, "*(D.ln_sales_tax + ", (tax_values[i]),"*D.ln_sales_tax_init +", paste0(paste0(paste0((tax_hermite)[2:n,i]), "*D.ln_sales_tax_init_",2:n), collapse = " + "), " = 0")
+        # Predictred
+        pplc.test1 <- glht(res1, linfct = c(plc.formula1))
+        pred_b[i] <- coef(summary(pplc.test1))[[1]]
+        pred_se[i] <- sqrt(vcov(summary(pplc.test1)))[[1]]
+      }
+      # Create data
+      coef.dt <- data.table(tax_values, pred_b, pred_se)
+      out.pred.file <- paste0(output.path,"/D hermite phy/predict", Y, "_", n,"_", FE,".csv")
+      fwrite(coef.dt, output.results.file)
+      
+      # Output file
+      graphout <- paste0(output.path,"/D hermite phy/", Y, "_", n,"_", FE, ".png")
+      # Plot
+      ggplot(data = coef.dt, mapping = aes(x = tax_values, y = pred_b)) +
+        geom_point(size = 2, alpha = .5) +
+        geom_line(linetype = "dashed") +
+        geom_errorbar(aes(ymin = pred_b - 1.96 * pred_se,
+                          ymax = pred_b + 1.96 * pred_se), width = .005) +
+        theme_bw() +
+        labs(x = "Sales Tax", y = paste0("Predicted response on ",Y), color = NULL) +
+        geom_hline(yintercept = 0, color = "red", linetype = "dashed", alpha = .8)
+      ggsave(graphout)
       
     }
   }
