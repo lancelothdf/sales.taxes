@@ -39,12 +39,8 @@ all_pi[!is.na(ln_sales_tax)][, quartile := cut(ln_sales_tax,
 ##### Plot the kernel densities --------------------------
 graphout <- paste0(output.path,"norm_prices_by_quant_salestax.png")
 
-# labels
-qlev <- factor(all_pi$quartile, levels= c(1:5),
-                labels = c("Quantile 1", "Quantile 2", "Quantile 3", "Quantile 4", "Quantile 5"))
 # Plot
-sm.density.compare(all_pi$n.ln_cpricei2, all_pi$quartile, xlab="Normalized (log) Price")
-title(main="Price Distribution by Quantiles of (log) sales tax")
-colfill<-c(2:(2+length(levels(qlev))))
-legend(locator(1), levels(qlev), fill=colfill)
+ggplot(all_pi, aes(x=n.ln_cpricei2, color=quartile)) +
+  geom_density() +
+  labs(x = "Normalized (log) Price", y = "K-Density", title = "Density by Sales Taxes")
 ggsave(graphout)
