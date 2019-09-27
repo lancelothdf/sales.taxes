@@ -33,7 +33,7 @@ RHS <- "ln_sales_tax"
 
 ## Defining the interest region
 graphout <- paste0(output.path,"/full_hist.png")
-hist <- ggplot(data=all_pi, aes(all_pi$ln_sales_tax)) + 
+hist <- ggplot(data=all_pi, aes(ln_sales_tax, weight = base.sales)) + 
   geom_histogram() +    
   theme_bw() +
   labs(x = "Sales Tax", color = NULL) +
@@ -42,11 +42,20 @@ hist <- ggplot(data=all_pi, aes(all_pi$ln_sales_tax)) +
 # "Keeping" observations where there are changes
 all_pi[, ln_sales_tax_r := ifelse(D.ln_sales_tax == 0, NA, ln_sales_tax)]
 graphout <- paste0(output.path,"/pos_changes_hist.png")
-hist <- ggplot(data=all_pi, aes(all_pi$ln_sales_tax_r)) + 
+hist <- ggplot(data=all_pi, aes(ln_sales_tax_r, weight = base.sales)) + 
   geom_histogram() +    
   theme_bw() +
   labs(x = "Sales Tax", color = NULL) +
   ggsave(graphout)
+# Distribution report
+report <- data.table(NULL)
+percentiles <- c(1, 5 , 10, 20, 25, 75, 80, 90, 95, 99)
+for (i in percentiles) {
+  q <- data.table(wtd.quantile(all_pi$ln_sales_tax_r, q= i, na.rm = T, weight=all_pi$base.sales), i)
+  report <- rbind(report, q)
+}
+report.out <- paste0(output.path,"/quantiles_pos_change.csv")
+fwrite(LRdiff_res, output.results.file)
 
 ## For predicted values
 # Discretize taxrate. Based on the histograms 
