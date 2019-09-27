@@ -32,7 +32,7 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 RHS <- "ln_sales_tax"
 
 ## Defining the interest region
-graphout <- paste0(output.path,"full_hist.png")
+graphout <- paste0(output.path,"/full_hist.png")
 hist <- ggplot(data=all_pi, aes(all_pi$ln_sales_tax)) + 
   geom_histogram() +    
   theme_bw() +
@@ -41,7 +41,7 @@ hist <- ggplot(data=all_pi, aes(all_pi$ln_sales_tax)) +
 
 # "Keeping" observations where there are changes
 all_pi[, ln_sales_tax_r := ifelse(D.ln_sales_tax == 0, NA, ln_sales_tax)]
-graphout <- paste0(output.path,"hist_changes.png")
+graphout <- paste0(output.path,"/pos_changes_hist.png")
 hist <- ggplot(data=all_pi, aes(all_pi$ln_sales_tax_r)) + 
   geom_histogram() +    
   theme_bw() +
@@ -49,8 +49,8 @@ hist <- ggplot(data=all_pi, aes(all_pi$ln_sales_tax_r)) +
   ggsave(graphout)
 
 ## For predicted values
-# Discretize taxrate
-tax_values <-seq(min(all_pi$ln_sales_tax_r), max(all_pi$ln_sales_tax_r), length.out = 15)
+# Discretize taxrate. Based on the histograms 
+tax_values <-seq(0.045, 0.09, length.out = 15)
 # The value of 0 is problematic: replace it for a very small value
 if (tax_values[1] == 0) tax_values[1] <- 0.001
 
@@ -108,6 +108,8 @@ for (n in 2:5) {
       }
       # Create data
       coef.dt <- data.table(tax_values, pred_b, pred_se)
+      out.pred.file <- paste0(output.path,"/standard/predict", n,".png")
+      fwrite(coef.dt, output.results.file)
       
       # Output file
       graphout <- paste0(output.path,"/standard/", Y, "_", n,"_", FE, ".png")
@@ -207,6 +209,8 @@ for (n in 2:4) {
       }
       # Create data
       coef.dt <- data.table(tax_values, pred_b, pred_se)
+      out.pred.file <- paste0(output.path,"/hermite prob/predict", n,".png")
+      fwrite(coef.dt, output.results.file)
       
       # Output file
       graphout <- paste0(output.path,"/hermite prob/", Y, "_", n,"_", FE, ".png")
@@ -229,9 +233,8 @@ for (n in 2:4) {
 ### Run level twoway FE semester data: hermite polynomials physicists --------------------------------
 
 # Compute hermite polinomials on values and create table to extract interest values
-tax_values <-seq(min(all_pi$ln_sales_tax_r), max(all_pi$ln_sales_tax_r), length.out = 15)
+tax_values <-seq(0.045, 0.09, length.out = 15)
 # The value of 0 is problematic: replace it for a very small value
-if (tax_values[1] == 0) tax_values[1] <- 0.001
 tax_values_2 <- hermite(tax_values, 2, prob = F)
 tax_values_3 <- hermite(tax_values, 3, prob = F)
 tax_values_4 <- hermite(tax_values, 4, prob = F)
@@ -290,6 +293,8 @@ for (n in 2:6) {
       }
       # Create data
       coef.dt <- data.table(tax_values, pred_b, pred_se)
+      out.pred.file <- paste0(output.path,"/hermite phy/predict", n,".png")
+      fwrite(coef.dt, output.results.file)
       
       # Output file
       graphout <- paste0(output.path,"/hermite phy/", Y, "_", n,"_", FE, ".png")
