@@ -49,7 +49,7 @@ hist <- ggplot(data=all_pi, aes(ln_sales_tax_r, weight = base.sales)) +
   ggsave(graphout)
 # Distribution report
 report <- data.table(NULL)
-percentiles <- c(1, 5 , 10, 20, 25, 75, 80, 90, 95, 99)
+percentiles <- c(1, 5, 10, 20, 25, 40, 60, 75, 80, 90, 95, 99)
 percentiles <- percentiles/100
 report <- data.table(quantile(all_pi$ln_sales_tax_r, probs = percentiles, na.rm = T, weight=all_pi$base.sales), percentiles)
 
@@ -65,7 +65,7 @@ tax_values <-seq(quantile(all_pi$ln_sales_tax_r, probs = 0.05, na.rm = T, weight
 if (tax_values[1] == 0) tax_values[1] <- 0.001
 
 # ### Run level twoway FE semester data --------------------------------
-# LRdiff_res <- data.table(NULL)
+LRdiff_res <- data.table(NULL)
 # for (n in 2:5) {
 #   # First create power
 #   all_pi[, paste0("ln_sales_tax_",n) := ln_sales_tax^(n)]
