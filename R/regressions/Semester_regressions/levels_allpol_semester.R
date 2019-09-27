@@ -51,7 +51,7 @@ hist <- ggplot(data=all_pi, aes(ln_sales_tax_r, weight = base.sales)) +
 report <- data.table(NULL)
 percentiles <- c(1, 5 , 10, 20, 25, 75, 80, 90, 95, 99)
 for (i in percentiles) {
-  q <- data.table(wtd.quantile(all_pi$ln_sales_tax_r, q= i, na.rm = T, weight=all_pi$base.sales), i)
+  q <- data.table(quantile(all_pi$ln_sales_tax_r, q= i, na.rm = T, weight=all_pi$base.sales), i)
   report <- rbind(report, q)
 }
 report.out <- paste0(output.path,"/quantiles_pos_change.csv")
