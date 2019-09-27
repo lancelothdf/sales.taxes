@@ -5,8 +5,7 @@ library(futile.logger)
 library(lfe)
 library(multcomp)
 library(ggplot2)
-install.packages("sm")
-library(sm)
+
 
 
 setwd("/project2/igaarder")
