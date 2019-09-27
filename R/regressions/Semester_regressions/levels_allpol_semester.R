@@ -108,7 +108,7 @@ for (n in 2:5) {
       }
       # Create data
       coef.dt <- data.table(tax_values, pred_b, pred_se)
-      out.pred.file <- paste0(output.path,"/standard/predict", n,".png")
+      out.pred.file <- paste0(output.path,"/standard/predict",  Y, "_", n,"_", FE,".csv")
       fwrite(coef.dt, output.results.file)
       
       # Output file
@@ -213,7 +213,7 @@ for (n in 2:4) {
       fwrite(coef.dt, output.results.file)
       
       # Output file
-      graphout <- paste0(output.path,"/hermite prob/", Y, "_", n,"_", FE, ".png")
+      out.pred.file <- paste0(output.path,"/hermite prob/predict",  Y, "_", n,"_", FE,".csv")
       # Plot
       ggplot(data = coef.dt, mapping = aes(x = tax_values, y = pred_b)) +
         geom_point(size = 2, alpha = .5) +
@@ -293,7 +293,7 @@ for (n in 2:6) {
       }
       # Create data
       coef.dt <- data.table(tax_values, pred_b, pred_se)
-      out.pred.file <- paste0(output.path,"/hermite phy/predict", n,".png")
+      out.pred.file <- paste0(output.path,"/hermite phy/predict", Y, "_", n,"_", FE,".csv")
       fwrite(coef.dt, output.results.file)
       
       # Output file
