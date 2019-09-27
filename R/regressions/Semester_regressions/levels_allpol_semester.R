@@ -50,7 +50,7 @@ hist <- ggplot(data=all_pi, aes(ln_sales_tax_r, weight = base.sales)) +
 # Distribution report
 report <- data.table(NULL)
 percentiles <- c(1, 5 , 10, 20, 25, 75, 80, 90, 95, 99)
-percentile <- percentiles/100
+percentiles <- percentiles/100
 report <- data.table(quantile(all_pi$ln_sales_tax_r, probs = percentiles, na.rm = T, weight=all_pi$base.sales), percentiles)
 
 report.out <- paste0(output.path,"/quantiles_pos_change.csv")
