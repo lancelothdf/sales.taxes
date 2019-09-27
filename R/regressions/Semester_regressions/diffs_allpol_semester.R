@@ -44,7 +44,7 @@ tax_values <-seq(min(all_pi$ln_sales_tax), max(all_pi$ln_sales_tax), length.out 
 # The value of 0 is problematic: replace it for a very small value
 if (tax_values[1] == 0) tax_values[1] <- 0.001
 # average tax changes (from positive changes)
-av.tax.ch <- as.vector(all_pi[D.ln_sales_tax != 0, .(D.ln_sales_tax := mean(D.ln_sales_tax))])
+av.tax.ch <- as.vector(all_pi[D.ln_sales_tax != 0, mean(D.ln_sales_tax)])
 
 ### Run level twoway FE semester data --------------------------------
 LRdiff_res <- data.table(NULL)
