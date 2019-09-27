@@ -25,9 +25,9 @@ output.path <- "../../home/slacouture/NLP"
 all_pi <- fread(data.semester)
 
 # Create de-meaned prices
-all_pi[, n.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, weight := base.sales), by = .(module_by_time)]
+all_pi[, n.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, weight = base.sales), by = .(module_by_time)]
 
-# take the sample that includes only changes
+# take the sample that comes only from changes
 all_pi[D.ln_sales_tax != 0, ]
 
 # Add quantile of ln_sales_tax column
@@ -36,7 +36,7 @@ all_pi[!is.na(ln_sales_tax)][, quartile := cut(ln_sales_tax,
                     labels = 1:5, right = FALSE)]
 
 ##### Plot the kernel densities --------------------------
-graphout <- paste0(output.path,"norm_prices_by_quant_salestax.png")
+graphout <- paste0(output.path,"/norm_prices_by_quant_salestax.png")
 
 # Plot
 ggplot(all_pi, aes(x=n.ln_cpricei2, color=quartile)) +
