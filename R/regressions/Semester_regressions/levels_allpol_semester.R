@@ -109,7 +109,7 @@ for (n in 2:5) {
       # Create data
       coef.dt <- data.table(tax_values, pred_b, pred_se)
       out.pred.file <- paste0(output.path,"/standard/predict",  Y, "_", n,"_", FE,".csv")
-      fwrite(coef.dt, output.results.file)
+      fwrite(coef.dt, out.pred.file)
       
       # Output file
       graphout <- paste0(output.path,"/standard/", Y, "_", n,"_", FE, ".png")
@@ -210,7 +210,7 @@ for (n in 2:4) {
       # Create data
       coef.dt <- data.table(tax_values, pred_b, pred_se)
       out.pred.file <- paste0(output.path,"/hermite prob/predict", n,".png")
-      fwrite(coef.dt, output.results.file)
+      fwrite(coef.dt, out.pred.file)
       
       # Output file
       out.pred.file <- paste0(output.path,"/hermite prob/predict",  Y, "_", n,"_", FE,".csv")
@@ -294,7 +294,7 @@ for (n in 2:6) {
       # Create data
       coef.dt <- data.table(tax_values, pred_b, pred_se)
       out.pred.file <- paste0(output.path,"/hermite phy/predict", Y, "_", n,"_", FE,".csv")
-      fwrite(coef.dt, output.results.file)
+      fwrite(coef.dt, out.pred.file)
       
       # Output file
       graphout <- paste0(output.path,"/hermite phy/", Y, "_", n,"_", FE, ".png")

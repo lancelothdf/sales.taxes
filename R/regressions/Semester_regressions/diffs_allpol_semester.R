@@ -44,7 +44,7 @@ tax_values <-seq(min(all_pi$ln_sales_tax), max(all_pi$ln_sales_tax), length.out 
 # The value of 0 is problematic: replace it for a very small value
 if (tax_values[1] == 0) tax_values[1] <- 0.001
 # average tax changes (from positive changes)
-av.tax.ch <- as.vector(all_pi[D.ln_sales_tax != 0, mean(D.ln_sales_tax)])
+av.tax.ch <- as.vector(all_pi[D.ln_sales_tax != 0,][, mean(D.ln_sales_tax)])
 
 ### Run level twoway FE semester data --------------------------------
 LRdiff_res <- data.table(NULL)
@@ -101,7 +101,7 @@ for (n in 2:3) {
       # Create data
       coef.dt <- data.table(tax_values, pred_b, pred_se)
       out.pred.file <- paste0(output.path,"/D standard/predict", Y, "_", n,"_", FE,".csv")
-      fwrite(coef.dt, output.results.file)
+      fwrite(coef.dt, out.pred.file)
       
       # Output file
       graphout <- paste0(output.path,"/D standard/", Y, "_", n,"_", FE, ".png")
@@ -193,7 +193,7 @@ for (n in 2:4) {
       pred_b <- rep(0,15)
       pred_se <- rep(0,15)
       for (i in 1:15) {
-        plc.formula1 <- paste0(av.tax.ch, "*(D.ln_sales_tax + ", (tax_values[i]),"*D.ln_sales_tax_init +", paste0(paste0(paste0((tax_hermite)[2:n,i]), "*D.ln_sales_tax_init_",2:n), collapse = " + "), " = 0")
+        plc.formula1 <- paste0(av.tax.ch, "*(D.ln_sales_tax + ", (tax_values[i]),"*D.ln_sales_tax_init +", paste0(paste0(paste0((tax_hermite)[2:n,i]), "*D.ln_sales_tax_init_",2:n), collapse = " + "), ") = 0")
         # Predictred
         pplc.test1 <- glht(res1, linfct = c(plc.formula1))
         pred_b[i] <- coef(summary(pplc.test1))[[1]]
@@ -202,7 +202,7 @@ for (n in 2:4) {
       # Create data
       coef.dt <- data.table(tax_values, pred_b, pred_se)
       out.pred.file <- paste0(output.path,"/D hermite prob/predict", Y, "_", n,"_", FE,".csv")
-      fwrite(coef.dt, output.results.file)
+      fwrite(coef.dt, out.pred.file)
       
       # Output file
       graphout <- paste0(output.path,"/D hermite prob/", Y, "_", n,"_", FE, ".png")
@@ -277,7 +277,7 @@ for (n in 2:6) {
       pred_b <- rep(0,15)
       pred_se <- rep(0,15)
       for (i in 1:15) {
-        plc.formula1 <- paste0(av.tax.ch, "*(D.ln_sales_tax + ", (tax_values[i]),"*D.ln_sales_tax_init +", paste0(paste0(paste0((tax_hermite)[2:n,i]), "*D.ln_sales_tax_init_",2:n), collapse = " + "), " = 0")
+        plc.formula1 <- paste0(av.tax.ch, "*(D.ln_sales_tax + ", (tax_values[i]),"*D.ln_sales_tax_init +", paste0(paste0(paste0((tax_hermite)[2:n,i]), "*D.ln_sales_tax_init_",2:n), collapse = " + "), ") = 0")
         # Predictred
         pplc.test1 <- glht(res1, linfct = c(plc.formula1))
         pred_b[i] <- coef(summary(pplc.test1))[[1]]
@@ -286,7 +286,7 @@ for (n in 2:6) {
       # Create data
       coef.dt <- data.table(tax_values, pred_b, pred_se)
       out.pred.file <- paste0(output.path,"/D hermite phy/predict", Y, "_", n,"_", FE,".csv")
-      fwrite(coef.dt, output.results.file)
+      fwrite(coef.dt, out.pred.file)
       
       # Output file
       graphout <- paste0(output.path,"/D hermite phy/", Y, "_", n,"_", FE, ".png")
