@@ -54,7 +54,7 @@ percentiles <- percentiles/100
 report <- data.table(quantile(all_pi$ln_sales_tax_r, probs = percentiles, na.rm = T, weight=all_pi$base.sales), percentiles)
 
 report.out <- paste0(output.path,"/quantiles_pos_change.csv")
-fwrite(report.out, output.results.file)
+fwrite(report, report.out)
 
 ## For predicted values
 # Discretize taxrate. Between 5th and 95th percentile of the (weighted) distribution of ln_sales_tax in the sample with changes only.
