@@ -50,16 +50,17 @@ hist <- ggplot(data=all_pi, aes(ln_sales_tax_r, weight = base.sales)) +
 # Distribution report
 report <- data.table(NULL)
 percentiles <- c(1, 5 , 10, 20, 25, 75, 80, 90, 95, 99)
-for (i in percentiles) {
-  q <- data.table(quantile(all_pi$ln_sales_tax_r, q= i, na.rm = T, weight=all_pi$base.sales), i)
-  report <- rbind(report, q)
-}
+percentile <- percentiles/100
+report <- data.table(quantile(all_pi$ln_sales_tax_r, probs = percentiles, na.rm = T, weight=all_pi$base.sales), percentiles)
+
 report.out <- paste0(output.path,"/quantiles_pos_change.csv")
 fwrite(report.out, output.results.file)
 
 ## For predicted values
-# Discretize taxrate. Based on the histograms 
-tax_values <-seq(0.045, 0.09, length.out = 15)
+# Discretize taxrate. Between 5th and 95th percentile of the (weighted) distribution of ln_sales_tax in the sample with changes only.
+tax_values <-seq(quantile(all_pi$ln_sales_tax_r, probs = 0.05, na.rm = T, weight=all_pi$base.sales),
+                 quantile(all_pi$ln_sales_tax_r, probs = 0.95, na.rm = T, weight=all_pi$base.sales),
+                 length.out = 15)
 # The value of 0 is problematic: replace it for a very small value
 if (tax_values[1] == 0) tax_values[1] <- 0.001
 
@@ -242,7 +243,9 @@ for (n in 2:4) {
 ### Run level twoway FE semester data: hermite polynomials physicists --------------------------------
 
 # Compute hermite polinomials on values and create table to extract interest values
-tax_values <-seq(0.045, 0.09, length.out = 15)
+tax_values <-seq(quantile(all_pi$ln_sales_tax_r, probs = 0.05, na.rm = T, weight=all_pi$base.sales),
+                 quantile(all_pi$ln_sales_tax_r, probs = 0.95, na.rm = T, weight=all_pi$base.sales),
+                 length.out = 15)
 # The value of 0 is problematic: replace it for a very small value
 tax_values_2 <- hermite(tax_values, 2, prob = F)
 tax_values_3 <- hermite(tax_values, 3, prob = F)
