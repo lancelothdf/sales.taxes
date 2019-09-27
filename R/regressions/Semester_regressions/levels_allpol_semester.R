@@ -1,7 +1,7 @@
 #' Run Non linear estimation using polynomials (parametric) in levels
 #' Semester Only
 #' We do not run all polynomials 2-6 but only those we know will run
-#' We plot the estimated response function
+#' We plot the estimated response function (the derivative). We plot this in the interest region 
 
 library(data.table)
 library(futile.logger)
@@ -31,9 +31,26 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 RHS <- "ln_sales_tax"
 
+## Defining the interest region
+graphout <- paste0(output.path,"full_hist.png")
+hist <- ggplot(data=all_pi, aes(all_pi$ln_sales_tax)) + 
+  geom_histogram() +    
+  theme_bw() +
+  labs(x = "Sales Tax", color = NULL) +
+  ggsave(graphout)
+
+# "Keeping" observations where there are changes
+all_pi[, ln_sales_tax_r := ifelse(D.ln_sales_tax == 0, NA, ln_sales_tax)]
+graphout <- paste0(output.path,"hist_changes.png")
+hist <- ggplot(data=all_pi, aes(all_pi$ln_sales_tax_r)) + 
+  geom_histogram() +    
+  theme_bw() +
+  labs(x = "Sales Tax", color = NULL) +
+  ggsave(graphout)
+
 ## For predicted values
 # Discretize taxrate
-tax_values <-seq(min(all_pi$ln_sales_tax), max(all_pi$ln_sales_tax), length.out = 15)
+tax_values <-seq(min(all_pi$ln_sales_tax_r), max(all_pi$ln_sales_tax_r), length.out = 15)
 # The value of 0 is problematic: replace it for a very small value
 if (tax_values[1] == 0) tax_values[1] <- 0.001
 
@@ -212,6 +229,9 @@ for (n in 2:4) {
 ### Run level twoway FE semester data: hermite polynomials physicists --------------------------------
 
 # Compute hermite polinomials on values and create table to extract interest values
+tax_values <-seq(min(all_pi$ln_sales_tax_r), max(all_pi$ln_sales_tax_r), length.out = 15)
+# The value of 0 is problematic: replace it for a very small value
+if (tax_values[1] == 0) tax_values[1] <- 0.001
 tax_values_2 <- hermite(tax_values, 2, prob = F)
 tax_values_3 <- hermite(tax_values, 3, prob = F)
 tax_values_4 <- hermite(tax_values, 4, prob = F)
