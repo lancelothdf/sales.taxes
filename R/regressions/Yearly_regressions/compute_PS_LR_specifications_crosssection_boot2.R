@@ -595,9 +595,19 @@ t <- psmatch.taxrate(actual.data = yearly_data,
                 main.outcomes = r.outcomes,
                 tau = tax.rates,
                 boot.run = F)
-t
 fwrite(t, "../../home/slacouture/PS/trynew.csv")
 
+t <- psmatch.taxrate(actual.data = yearly_data,
+                     covariate.data = covariates,
+                     algor = "weighted",
+                     weights = "base.sales",
+                     must.covar = Xb,
+                     oth.covars = Xa_pot,
+                     treatment = "high.tax.rate",
+                     main.outcomes = r.outcomes,
+                     tau = tax.rates,
+                     boot.run = F)
+fwrite(t, "../../home/slacouture/PS/trynew_direct.csv")
 
 ############# Run bootstrap: Calip using base.sales -----------------
 # 
@@ -656,10 +666,10 @@ state_by_module_ids <- unique(yearly_data$state_by_module)
 # Improve
 # Run bootstrap
 rep_count = 0
-b0 <- boot(state_by_module_ids, block.boot, 20)
+b0 <- boot(state_by_module_ids, block.boot, 100)
 
 # Export: observed and distribution
 t <- data.table(b0$t0)
 mat.t <- data.table(b0$t)
-fwrite(t, "../../home/slacouture/PS/W_base_tnew_20.csv")
-fwrite(mat.t, "../../home/slacouture/PS/W_base_mat.tnew_20.csv")
+fwrite(t, "../../home/slacouture/PS/W_base_tnew_100.csv")
+fwrite(mat.t, "../../home/slacouture/PS/W_base_mat.tnew_100.csv")
