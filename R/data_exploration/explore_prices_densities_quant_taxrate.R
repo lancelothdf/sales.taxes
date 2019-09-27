@@ -28,11 +28,11 @@ all_pi <- fread(data.semester)
 all_pi[, n.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, weight = base.sales), by = .(module_by_time)]
 
 # take the sample that comes only from changes
-all_pi[D.ln_sales_tax != 0, ]
+all_pi <- all_pi[D.ln_sales_tax != 0, ]
 
 # Add quantile of ln_sales_tax column
 all_pi[!is.na(ln_sales_tax)][, quartile := cut(ln_sales_tax,
-                    breaks = quantile(ln_sales_tax, probs = seq(0, 1, by = 1/5)),
+                    breaks = quantile(ln_sales_tax, probs = seq(0, 1, by = 1/5), na.rm = T),
                     labels = 1:5, right = FALSE)]
 
 ##### Plot the kernel densities --------------------------
