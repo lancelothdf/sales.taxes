@@ -39,8 +39,11 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 RHS <- "D.ln_sales_tax + D.ln_sales_tax_init"
 
 ## For predicted values
-# Discretize taxrate
-tax_values <-seq(min(all_pi$ln_sales_tax), max(all_pi$ln_sales_tax), length.out = 15)
+# Discretize taxrate: relevant support
+all_pi[, ln_sales_tax_r := ifelse(D.ln_sales_tax == 0, NA, ln_sales_tax)]
+tax_values <-seq(quantile(all_pi$ln_sales_tax_r, probs = 0.05, na.rm = T, weight=all_pi$base.sales),
+                 quantile(all_pi$ln_sales_tax_r, probs = 0.95, na.rm = T, weight=all_pi$base.sales),
+                 length.out = 15)
 # The value of 0 is problematic: replace it for a very small value
 if (tax_values[1] == 0) tax_values[1] <- 0.001
 # average tax changes (from positive changes)
