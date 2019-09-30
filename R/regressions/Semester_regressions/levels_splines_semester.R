@@ -46,7 +46,7 @@ LRdiff_res <- data.table(NULL)
 # K is the number of knots
 # n is the polynomial degree of spline
 for (k in 3:10) {
-  knots <- max(all_pi$ln_sales_tax) * (1:k) / (k+1)
+  knots <- (max(all_pi$ln_sales_tax) - min(all_pi$ln_sales_tax))* (1:k) / (k+1)
   for (n in 1:5) {
     # Restart formula
     RHS <- "ln_sales_tax"
@@ -54,7 +54,7 @@ for (k in 3:10) {
     if (n > 1) {
       all_pi[, paste0("ln_sales_tax_",n) := ln_sales_tax^(n)]
       # Add to formula
-      RHS <- paste(RHS, paste0("ln_sales_tax_",2:n), sep = " + ")
+      RHS <- paste(RHS, paste0(paste0("ln_sales_tax_",2:n), collapse = " + "), sep = " + ")
     }
     # Second create truncated function
     d <-1
@@ -62,8 +62,9 @@ for (k in 3:10) {
       all_pi[, paste0("ln_sales_tax_k",d) := (ln_sales_tax > ep)*(ln_sales_tax - ep)^(n)]
       d <- d+1
     }
+    
     # Add trunctaed terms to formula
-    RHS <- paste(RHS, paste0("ln_sales_tax_k",1:k), sep = " + ")
+    RHS <- paste(RHS, paste0(paste0("ln_sales_tax_k",1:k), collapse = " + "), sep = " + ")
     
     for (Y in c(outcomes)) {
       for (FE in FE_opts) {
@@ -71,18 +72,18 @@ for (k in 3:10) {
         formula1 <- as.formula(paste0(
           Y, "~", RHS ," | ", FE, " + store_by_module | 0 | module_by_state"
         ))
-        flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
+        flog.info("Estimating spline with %s knots of degree %s with %s as outcome with %s FE", k, n, Y, FE)
         res1 <- felm(formula = formula1, data = all_pi,
                      weights = all_pi$base.sales)
-        flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
-  
+        flog.info("Finished estimating spline with %s knots of degree %s with %s as outcome with %s FE", k, n, Y, FE)
+        
   
         ## attach results
         flog.info("Writing results...")
         res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
         res1.dt[, outcome := Y]
         res1.dt[, controls := FE]
-        res1.dt[, poly := "spline"]
+        res1.dt[, spec := "spline"]
         res1.dt[, degree.or := n]
         res1.dt[, n.knots := k]
         # Add summary values
@@ -101,15 +102,26 @@ for (k in 3:10) {
   
   
         # Compute predicted values of the derivative
+        flog.info("Producing predicted responses results...")
         pred_b <- rep(0,15)
         pred_se <- rep(0,15)
         for (i in 1:15) {
-          plc.formula1 <- paste0("ln_sales_tax +", 
-                                 paste0(paste0(paste0(2:n,"*",paste0((tax_values[i]),"^",1:(n-1))), "*ln_sales_tax_",2:n),
-                                        paste0(n, "*", paste0(((tax_values[i]) > knots)*((tax_values[i]) - knots), "*ln_sales_tax_k",1:k)),
+          plc.formula1pk <- paste0("ln_sales_tax +", 
+                                 paste0(paste0(paste0(2:n,"*",paste0((tax_values[i]),"^",1:(n-1))), "*ln_sales_tax_",2:n), 
                                         collapse = " + "),
-                                 " = 0")
-          # Predictred
+                                  )
+          # Can't Add directly: have to add if is taken into account
+          d <-1
+          for (ep in knots) {
+            if ((tax_values[i]) > knots) {
+              plc.formula1pk <- paste0(plc.formula1pk, "+", paste0(n, "*",((tax_values[i]) - knots)^(n-1), "*","ln_sales_tax_k",d))
+            }
+            d <- d+1
+          }
+          plc.formula1 <- paste0(plc.formula1pk, " = 0")
+          
+          
+          # Predicted
           pplc.test1 <- glht(res1, linfct = c(plc.formula1))
           pred_b[i] <- coef(summary(pplc.test1))[[1]]
           pred_se[i] <- sqrt(vcov(summary(pplc.test1)))[[1]]
