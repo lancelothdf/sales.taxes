@@ -46,3 +46,21 @@ ggplot(all_pi, aes(x=n.ln_cpricei2, color=quantile)) +
   scale_x_continuous(limits = c(-0.5,0.5), breaks = seq(-0.5, 0.5, 0.2))
 
 ggsave(graphout)
+
+#### Plot the CDF of the kernel densities -------------------
+
+# Split the data by group and calculate the smoothed cumulative density for each group
+dens = split(all_pi, all_pi$quantile) %>% 
+  map_df(function(d) {
+    dens = density(d$n.ln_cpricei2, from=-1, to=1)
+    data.frame(x=dens$x, y=dens$y, cd=cumsum(dens$y)/sum(dens$y), group=d$quantile[1])
+  })
+
+graphout <- paste0(output.path,"/norm_prices_by_quant_salestax_cdf.png")
+ggplot() +
+  geom_line(data=dens, aes(x, cd, colour=group)) +
+  theme_classic() +
+  labs(x = "Normalized (log) Price", y = "Cumulative K-Density", 
+       title = "CDF by Sales Taxes Quantiles")+
+  scale_x_continuous(limits = c(-0.3,0.3), breaks = seq(-0.3, 0.3, 0.1))
+ggsave(graphout)
