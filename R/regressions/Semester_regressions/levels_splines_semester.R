@@ -54,12 +54,12 @@ for (k in 3:10) {
     if (n > 1) {
       all_pi[, paste0("ln_sales_tax_",n) := ln_sales_tax^(n)]
       # Add to formula
-      RHS <- paste(RHS, paste0("ln_sales_tax_",n), sep = " + ")
+      RHS <- paste(RHS, paste0("ln_sales_tax_",2:n), sep = " + ")
     }
     # Second create truncated function
     d <-1
     for (ep in knots) {
-      all_pi[, paste0("ln_sales_tax_k",n) := (ln_sales_tax - ep)^(n)]
+      all_pi[, paste0("ln_sales_tax_k",d) := (ln_sales_tax > ep)*(ln_sales_tax - ep)^(d)]
       d <- d+1
     }
     # Add trunctaed terms to formula
