@@ -89,7 +89,7 @@ for (k in 3:10) {
         res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
         res1.dt[, outcome := Y]
         res1.dt[, controls := FE]
-        res1.dt[, poly := "standard"]
+        res1.dt[, poly := "spline"]
         res1.dt[, degree.or := n]
         res1.dt[, n.knots := k]
         # Add summary values
