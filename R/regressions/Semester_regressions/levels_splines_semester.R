@@ -20,7 +20,7 @@ data.year <- "Data/Nielsen/yearly_nielsen_data.csv"
 
 
 ## output filepaths ----------------------------------------------
-output.results.file <- "Data/allpol_semesterly_levels.csv"
+output.results.file <- "Data/splines_semesterly_levels.csv"
 output.path <- "../../home/slacouture/NLP"
 
 ### Set up Semester Data ---------------------------------
@@ -30,17 +30,9 @@ outcomes <- c("ln_cpricei2", "ln_quantity3")
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 
-## Defining the interest region
-graphout <- paste0(output.path,"/full_hist.png")
-hist <- ggplot(data=all_pi, aes(ln_sales_tax, weight = base.sales)) + 
-  geom_histogram() +    
-  theme_bw() +
-  labs(x = "Sales Tax", color = NULL) +
-  ggsave(graphout)
-
-# "Keeping" observations where there are changes to test model
-all_pi[, ln_sales_tax_r := ifelse(D.ln_sales_tax == 0, NA, ln_sales_tax)]
-## For predicted values
+# # "Keeping" observations where there are changes to test model
+# all_pi[, ln_sales_tax_r := ifelse(D.ln_sales_tax == 0, NA, ln_sales_tax)]
+# # For predicted values
 # Discretize taxrate. Between 5th and 95th percentile of the (weighted) distribution of ln_sales_tax in the sample with changes only.
 # tax_values <-seq(quantile(all_pi$ln_sales_tax_r, probs = 0.05, na.rm = T, weight=all_pi$base.sales),
 #                  quantile(all_pi$ln_sales_tax_r, probs = 0.95, na.rm = T, weight=all_pi$base.sales),
@@ -70,6 +62,7 @@ for (k in 3:10) {
       all_pi[, paste0("ln_sales_tax_k",n) := (ln_sales_tax - ep)^(n)]
       d <- d+1
     }
+    # Add trunctaed terms to formula
     RHS <- paste(RHS, paste0("ln_sales_tax_k",1:k), sep = " + ")
     
     for (Y in c(outcomes)) {
