@@ -59,7 +59,7 @@ for (k in 3:10) {
     # Second create truncated function
     d <-1
     for (ep in knots) {
-      all_pi[, paste0("ln_sales_tax_k",d) := (ln_sales_tax > ep)*(ln_sales_tax - ep)^(d)]
+      all_pi[, paste0("ln_sales_tax_k",d) := (ln_sales_tax > ep)*(ln_sales_tax - ep)^(n)]
       d <- d+1
     }
     # Add trunctaed terms to formula
