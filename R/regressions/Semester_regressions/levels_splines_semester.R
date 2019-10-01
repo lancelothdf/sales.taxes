@@ -113,8 +113,7 @@ for (k in 3:10) {
           if (n >1) {
               plc.formula1pk <- paste0("ln_sales_tax +", 
                                      paste0(paste0(paste0(2:n,"*",paste0((tax_values[i]),"^",1:(n-1))), "*ln_sales_tax_",2:n), 
-                                            collapse = " + "),
-              )
+                                            collapse = " + "))
           } else {
             
             plc.formula1pk <- "ln_sales_tax"
