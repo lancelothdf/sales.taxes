@@ -120,8 +120,8 @@ for (k in 3:10) {
           # Can't Add directly: have to add if is taken into account
           d <-1
           for (ep in knots) {
-            if ((tax_values[i]) > knots) {
-              plc.formula1pk <- paste0(plc.formula1pk, "+", paste0(n, "*",((tax_values[i]) - knots)^(n-1), "*","ln_sales_tax_k",d))
+            if ((tax_values[i]) > ep) {
+              plc.formula1pk <- paste0(plc.formula1pk, "+", paste0(n, "*",((tax_values[i]) - ep)^(n-1), "*","ln_sales_tax_k",d))
             }
             d <- d+1
           }
