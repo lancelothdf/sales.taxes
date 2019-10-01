@@ -106,10 +106,17 @@ for (k in 3:10) {
         pred_b <- rep(0,15)
         pred_se <- rep(0,15)
         for (i in 1:15) {
-          plc.formula1pk <- paste0("ln_sales_tax +", 
-                                 paste0(paste0(paste0(2:n,"*",paste0((tax_values[i]),"^",1:(n-1))), "*ln_sales_tax_",2:n), 
-                                        collapse = " + "),
-                                  )
+          if (n >1) {
+              plc.formula1pk <- paste0("ln_sales_tax +", 
+                                     paste0(paste0(paste0(2:n,"*",paste0((tax_values[i]),"^",1:(n-1))), "*ln_sales_tax_",2:n), 
+                                            collapse = " + "),
+              )
+          } else {
+            
+            plc.formula1pk <- "ln_sales_tax"
+            
+          }
+
           # Can't Add directly: have to add if is taken into account
           d <-1
           for (ep in knots) {
