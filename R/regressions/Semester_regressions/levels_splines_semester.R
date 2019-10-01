@@ -21,6 +21,7 @@ data.year <- "Data/Nielsen/yearly_nielsen_data.csv"
 
 ## output filepaths ----------------------------------------------
 output.results.file <- "Data/splines_semesterly_levels.csv"
+output.knots.file <- "Data/splines_semesterly_levels_knots.csv"
 output.path <- "../../home/slacouture/NLP"
 
 ### Set up Semester Data ---------------------------------
@@ -43,10 +44,13 @@ if (tax_values[1] == 0) tax_values[1] <- 0.001
 
 # ### Run level twoway FE semester data --------------------------------
 LRdiff_res <- data.table(NULL)
+knots_out <- data.table(NULL)
 # K is the number of knots
 # n is the polynomial degree of spline
 for (k in 3:10) {
   knots <- (max(all_pi$ln_sales_tax) - min(all_pi$ln_sales_tax))* (1:k) / (k+1)
+  knots_out <- cbind(data.table(knots), knots_out)
+  fwrite(knots_out, output.knots.file)
   for (n in 1:5) {
     # Restart formula
     RHS <- "ln_sales_tax"
