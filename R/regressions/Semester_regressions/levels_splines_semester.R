@@ -51,7 +51,7 @@ for (k in 3:10) {
   knots <- (max(all_pi$ln_sales_tax) - min(all_pi$ln_sales_tax))* (1:k) / (k+1)
   knots_out <- cbind(data.table(knots), knots_out)
   fwrite(knots_out, output.knots.file)
-  for (n in 1:5) {
+  for (n in 1:3) {
     # Restart formula
     RHS <- "ln_sales_tax"
     # First create power
