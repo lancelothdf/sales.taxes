@@ -231,7 +231,7 @@ for (n in 2:4) {
       fwrite(coef.dt, out.pred.file)
       
       # Output file
-      graphout <- paste0(output.path,"/hermite prob w/predict",  Y, "_", n,"_", FE,".png")
+      graphout <- paste0(output.path,"/hermite prob w/",  Y, "_", n,"_", FE,".png")
       # Plot
       ggplot(data = coef.dt, mapping = aes(x = tax_values, y = pred_b)) +
         geom_point(size = 2, alpha = .5) +

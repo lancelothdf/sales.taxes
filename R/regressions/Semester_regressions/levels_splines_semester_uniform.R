@@ -2,7 +2,7 @@
 #' Semester Only
 #' We try different degrees for splines
 #' Implementing this manually to retrieve the response function 
-#' We use equally spaced knots in this specification
+#' We use equally deistributed knots (quartiles) in this specification to use the same amount of data within each quantile
 
 library(data.table)
 library(futile.logger)
@@ -49,7 +49,8 @@ knots_out <- data.table(NULL)
 # K is the number of knots
 # n is the polynomial degree of spline
 for (k in 3:10) {
-  knots <- (max(all_pi$ln_sales_tax) - min(all_pi$ln_sales_tax))* (1:k) / (k+1)
+  dis.points <- (1:k)/(k+1)
+  knots <- quantile(all_pi$ln_sales_tax, probs = dis.points, weight = all_pi$base.sales)
   knots_out <- cbind(data.table(knots), knots_out)
   fwrite(knots_out, output.knots.file)
   for (n in 1:3) {
@@ -139,11 +140,11 @@ for (k in 3:10) {
         }
         # Create data
         coef.dt <- data.table(tax_values, pred_b, pred_se)
-        out.pred.file <- paste0(output.path,"/splines/predict",  Y, "_", n,"_", FE, "_", k,".csv")
+        out.pred.file <- paste0(output.path,"/splines uniform/predict",  Y, "_", n,"_", FE, "_", k,".csv")
         fwrite(coef.dt, out.pred.file)
   
         # Output file
-        graphout <- paste0(output.path,"/splines/", Y, "_", n,"_", FE, "_", k,".png")
+        graphout <- paste0(output.path,"/splines uniform/", Y, "_", n,"_", FE, "_", k,".png")
         # Plot
         ggplot(data = coef.dt, mapping = aes(x = tax_values, y = pred_b)) +
           geom_point(size = 2, alpha = .5) +
