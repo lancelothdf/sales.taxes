@@ -63,7 +63,7 @@ for (k in 3:10) {
   knots_out <- cbind(data.table(knots), knots_out)
   fwrite(knots_out, output.knots.file)
   
-  for (n in 1:3) {
+  for (n in 1:2) {
     # Restart formula
     RHS <- "D.ln_sales_tax + D.ln_sales_tax_init"
     # First create power
@@ -149,11 +149,11 @@ for (k in 3:10) {
         }
         # Create data
         coef.dt <- data.table(tax_values, pred_b, pred_se)
-        out.pred.file <- paste0(output.path,"/D splines/predict", Y, "_", n,"_", FE,".csv")
+        out.pred.file <- paste0(output.path,"/D splines/predict",  Y, "_", n,"_", FE, "_", k,".csv")
         fwrite(coef.dt, out.pred.file)
         
         # Output file
-        graphout <- paste0(output.path,"/D splines/", Y, "_", n,"_", FE, ".png")
+        graphout <- paste0(output.path,"/D splines/", Y, "_", n,"_", FE, "_", k, ".png")
         # Plot
         ggplot(data = coef.dt, mapping = aes(x = tax_values, y = pred_b)) +
           geom_point(size = 2, alpha = .5) +
