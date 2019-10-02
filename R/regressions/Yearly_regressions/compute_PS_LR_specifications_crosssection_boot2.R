@@ -149,6 +149,7 @@ covariates <- merge(covariates, unemp.data, by = c("year", "fips_county", "fips_
 ### Political Covars
 pol.data <- fread(pol.path)
 pol.data <- pol.data[, ln_mw := log(mw)]
+pol.data <- pol.data[, fips_county := fips_county - fips_state*1000]
 covariates <- merge(covariates, pol.data, by = c("year", "fips_county", "fips_state"), all.x = T)
 
 
