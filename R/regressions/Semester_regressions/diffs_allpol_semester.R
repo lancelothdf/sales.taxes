@@ -197,7 +197,7 @@ for (n in 2:4) {
       pred_b <- rep(0,15)
       pred_se <- rep(0,15)
       for (i in 1:15) {
-        plc.formula1 <- paste0(av.tax.ch, "*(D.ln_sales_tax + ", (tax_values[i]),"*D.ln_sales_tax_init +", paste0(paste0(paste0((tax_hermite)[2:n,i]), "*D.ln_sales_tax_init_",2:n), collapse = " + "), ") = 0")
+        plc.formula1 <- paste0(av.tax.ch, "*(D.ln_sales_tax_init +", paste0(paste0(paste0(2:n,"*",(tax_hermite)[1:n-1,i]), "*D.ln_sales_tax_init_",2:n), collapse = " + "), ") = 0")
         # Predictred
         pplc.test1 <- glht(res1, linfct = c(plc.formula1))
         pred_b[i] <- coef(summary(pplc.test1))[[1]]
