@@ -5,7 +5,8 @@
 #' Use selection equation specification suggested by Imbens (C_lin = 1 and C_qua = 2.71)
 #' Try different "matching" algorithms: remember we are matching at countly level
 #' Calculate standard errors of interest outcomes by block bootstrap at module x state level
-#' NEW: We include Region FE and lagged values in some cases instead of current
+#' We include Region FE and lagged values in some cases instead of current
+#' NEW: include some politica observables as potential outcomes
 
 library(data.table)
 library(lfe)
@@ -35,6 +36,7 @@ zillow_path <- "Data/covariates/zillow_long_by_county_clean.csv"
 zillow_state_path <- "Data/covariates/zillow_long_by_state_clean.csv"
 unemp.path <- "Data/covariates/county_monthly_unemp_clean.csv"
 border.path <- "Data/border_counties.csv"
+pol.path <- "Data/political_covars.csv"
 
 ## Where to save results
 output.path <- "../../home/slacouture/PS"
@@ -144,6 +146,12 @@ unemp.data <- unemp.data[, -c("unemp")]
 
 covariates <- merge(covariates, unemp.data, by = c("year", "fips_county", "fips_state"), all.x = T)
 
+### Political Covars
+pol.data <- fread(pol.path)
+pol.data <- pol.data[, ln_mw := log(mw)]
+covariates <- merge(covariates, pol.data, by = c("year", "fips_county", "fips_state"), all.x = T)
+
+
 #### tax rates
 
 tax.data <- fread(tax.path)
@@ -169,6 +177,10 @@ Xb <- c("L.ln_unemp", "L.ln_home_price", "reg_2", "reg_3", "reg_4")
 # Vector of potential variables
 Xa_pot <- c("pct_pop_urban", "housing_ownership_share", "median_income", "pct_pop_no_college", "pct_pop_bachelors",
             "pct_pop_over_65", "pct_pop_under_25", "pct_pop_black", "ln_mean_wage")
+# I include republican characteristics
+Xa_pot2 <- c("pct_pop_urban", "housing_ownership_share", "median_income", "pct_pop_no_college", "pct_pop_bachelors",
+            "pct_pop_over_65", "pct_pop_under_25", "pct_pop_black", "ln_mean_wage", "mrpres_totalvotes",
+            "mrpres_rep_share", "gov_n_years", "gov_rep", "rep_legist_part_cont", "ln_mw")
 
 # Vector of all variables
 X_all <- c(Xb, Xa_pot)
@@ -607,7 +619,47 @@ t <- psmatch.taxrate(actual.data = yearly_data,
                      main.outcomes = r.outcomes,
                      tau = tax.rates,
                      boot.run = F)
-fwrite(t, "../../home/slacouture/PS/trynew_direct.csv")
+fwrite(t, "../../home/slacouture/PS/trynew_pol_direct.csv")
+
+
+## Try function and export using political covars
+t <- psmatch.taxrate(actual.data = yearly_data,
+                     covariate.data = covariates,
+                     algor = "weighted",
+                     weights = "base.sales",
+                     must.covar = Xb,
+                     oth.covars = Xa_pot2,
+                     treatment = "high.tax.rate",
+                     main.outcomes = r.outcomes,
+                     tau = tax.rates,
+                     covar.test = T)
+fwrite(t, "../../home/slacouture/PS/trynew_pol_covartest.csv")
+
+t <- psmatch.taxrate(actual.data = yearly_data,
+                     covariate.data = covariates,
+                     algor = "weighted",
+                     weights = "base.sales",
+                     must.covar = Xb,
+                     oth.covars = Xa_pot2,
+                     treatment = "high.tax.rate",
+                     main.outcomes = r.outcomes,
+                     tau = tax.rates,
+                     boot.run = F,
+                     implicit = F)
+fwrite(t, "../../home/slacouture/PS/trynew_pol.csv")
+
+t <- psmatch.taxrate(actual.data = yearly_data,
+                     covariate.data = covariates,
+                     algor = "weighted",
+                     weights = "base.sales",
+                     must.covar = Xb,
+                     oth.covars = Xa_pot2,
+                     treatment = "high.tax.rate",
+                     main.outcomes = r.outcomes,
+                     tau = tax.rates,
+                     boot.run = F,
+                     implicit = F)
+fwrite(t, "../../home/slacouture/PS/trynew_pol_direct.csv")
 
 ############# Run bootstrap: Calip using base.sales -----------------
 # 
@@ -653,7 +705,7 @@ block.boot <- function(x, i) {
                   algor = "weighted",
                   weights = "base.sales",
                   must.covar = Xb,
-                  oth.covars = Xa_pot,
+                  oth.covars = Xa_pot2,
                   treatment = "high.tax.rate",
                   main.outcomes = r.outcomes,
                   tau = tax.rates)
@@ -671,5 +723,5 @@ b0 <- boot(state_by_module_ids, block.boot, 100)
 # Export: observed and distribution
 t <- data.table(b0$t0)
 mat.t <- data.table(b0$t)
-fwrite(t, "../../home/slacouture/PS/W_base_tnew_100.csv")
-fwrite(mat.t, "../../home/slacouture/PS/W_base_mat.tnew_100.csv")
+fwrite(t, "../../home/slacouture/PS/W_base_tnew_pol_100.csv")
+fwrite(mat.t, "../../home/slacouture/PS/W_base_mat.tnew_pol_100.csv")
