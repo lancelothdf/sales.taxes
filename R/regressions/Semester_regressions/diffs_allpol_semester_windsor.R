@@ -164,7 +164,7 @@ RHS <- "D.ln_sales_tax + D.ln_sales_tax_init"
 ### Run level twoway FE semester data: hermite polynomials --------------------------------
 for (n in 2:4) {
   # First create power
-  all_pi[, paste0("D.ln_sales_tax_init_",n) := D.ln_sales_tax*(hermite(ln_sales_tax, n))]
+  all_pi[, paste0("D.ln_sales_tax_init_",n) := D.ln_sales_tax*(hermite(L.ln_sales_tax, n))]
   # Add to formula
   RHS <- paste(RHS, paste0("D.ln_sales_tax_init_",n), sep = " + ")
   
