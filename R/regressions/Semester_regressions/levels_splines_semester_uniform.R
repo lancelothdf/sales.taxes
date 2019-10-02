@@ -2,7 +2,8 @@
 #' Semester Only
 #' We try different degrees for splines
 #' Implementing this manually to retrieve the response function 
-#' We use equally deistributed knots (quartiles) in this specification to use the same amount of data within each quantile
+#' We use equally deistributed knots (quartiles of the distribution with observed changes) 
+#' in this specification to use the same amount of data within each quantile
 
 library(data.table)
 library(futile.logger)
@@ -33,7 +34,7 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 
 # # "Keeping" observations where there are changes to test model
-# all_pi[, ln_sales_tax_r := ifelse(D.ln_sales_tax == 0, NA, ln_sales_tax)]
+all_pi[, ln_sales_tax_r := ifelse(D.ln_sales_tax == 0, NA, ln_sales_tax)]
 # # For predicted values
 # Discretize taxrate. Between 5th and 95th percentile of the (weighted) distribution of ln_sales_tax in the sample with changes only.
 # tax_values <-seq(quantile(all_pi$ln_sales_tax_r, probs = 0.05, na.rm = T, weight=all_pi$base.sales),
@@ -50,7 +51,7 @@ knots_out <- data.table(NULL)
 # n is the polynomial degree of spline
 for (k in 3:10) {
   dis.points <- (1:k)/(k+1)
-  knots <- quantile(all_pi$ln_sales_tax, probs = dis.points, weight = all_pi$base.sales)
+  knots <- quantile(all_pi$ln_sales_tax_r, probs = dis.points, weights = all_pi$base.sales, na.rm = T)
   knots_out <- cbind(data.table(knots), knots_out)
   fwrite(knots_out, output.knots.file)
   for (n in 1:3) {
