@@ -21,8 +21,8 @@ data.year <- "Data/Nielsen/yearly_nielsen_data.csv"
 
 
 ## output filepaths ----------------------------------------------
-output.results.file <- "Data/splines_semesterly_levels.csv"
-output.knots.file <- "Data/splines_semesterly_levels_knots.csv"
+output.results.file <- "Data/splines_semesterly_levels_unif.csv"
+output.knots.file <- "Data/splines_semesterly_levels_knots_unif.csv"
 output.path <- "../../home/slacouture/NLP"
 
 ### Set up Semester Data ---------------------------------
