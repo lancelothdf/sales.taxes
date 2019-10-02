@@ -32,10 +32,15 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 RHS <- "ln_sales_tax"
 
-### Windsorize: cut in between 5th and 95th percentiles
-all_pi[, ln_cpricei2 := ifelse(ln_cpricei2 < quantile(ln_cpricei2, probs = 0.05) | ln_cpricei2 > quantile(ln_cpricei2, probs = 0.95),
+### Windsorize: cut in between 5th and 95th percentiles of DEMEANED outcomes (on weighted distribution)
+all_pi[, dem.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, weights = base.sales), by = .(store_by_module)]
+all_pi[, ln_cpricei2 := ifelse(dem.ln_cpricei2 < quantile(dem.ln_cpricei2, probs = 0.05, weights = base.sales) | 
+                                 dem.ln_cpricei2 > quantile(dem.ln_cpricei2, probs = 0.95, weights = base.sales),
                                NA, ln_cpricei2)]
-all_pi[, ln_quantity3 := ifelse(ln_quantity3 < quantile(ln_quantity3, probs = 0.05) | ln_quantity3 > quantile(ln_quantity3, probs = 0.95),
+
+all_pi[, dem.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, weights = base.sales), by = .(store_by_module)]
+all_pi[, ln_quantity3 := ifelse(dem.ln_quantity3 < quantile(dem.ln_quantity3, probs = 0.05, weights = base.sales) | 
+                                  dem.ln_quantity3 > quantile(dem.ln_quantity3, probs = 0.95, weights = base.sales),
                                NA, ln_quantity3)]
 
 
