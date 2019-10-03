@@ -37,10 +37,10 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 all_pi[, ln_sales_tax_r := ifelse(D.ln_sales_tax == 0, NA, ln_sales_tax)]
 # # For predicted values
 # Discretize taxrate. Between 5th and 95th percentile of the (weighted) distribution of ln_sales_tax in the sample with changes only.
-# tax_values <-seq(quantile(all_pi$ln_sales_tax_r, probs = 0.05, na.rm = T, weight=all_pi$base.sales),
-#                  quantile(all_pi$ln_sales_tax_r, probs = 0.95, na.rm = T, weight=all_pi$base.sales),
-#                  length.out = 15)
-tax_values <-seq(min(all_pi$ln_sales_tax, na.rm = T), max(all_pi$ln_sales_tax, na.rm = T), length.out = 15)
+tax_values <-seq(quantile(all_pi$ln_sales_tax_r, probs = 0.05, na.rm = T, weight=all_pi$base.sales),
+                 quantile(all_pi$ln_sales_tax_r, probs = 0.95, na.rm = T, weight=all_pi$base.sales),
+                 length.out = 15)
+# tax_values <-seq(min(all_pi$ln_sales_tax, na.rm = T), max(all_pi$ln_sales_tax, na.rm = T), length.out = 15)
 # The value of 0 is problematic: replace it for a very small value
 if (tax_values[1] == 0) tax_values[1] <- 0.001
 
