@@ -619,7 +619,8 @@ t <- psmatch.taxrate(actual.data = yearly_data,
                      treatment = "high.tax.rate",
                      main.outcomes = r.outcomes,
                      tau = tax.rates,
-                     boot.run = F)
+                     boot.run = F,
+                     implicit = F)
 fwrite(t, "../../home/slacouture/PS/trynew_pol_direct.csv")
 
 
@@ -645,8 +646,7 @@ t <- psmatch.taxrate(actual.data = yearly_data,
                      treatment = "high.tax.rate",
                      main.outcomes = r.outcomes,
                      tau = tax.rates,
-                     boot.run = F,
-                     implicit = F)
+                     boot.run = F)
 fwrite(t, "../../home/slacouture/PS/trynew_pol.csv")
 
 t <- psmatch.taxrate(actual.data = yearly_data,
@@ -706,7 +706,7 @@ block.boot <- function(x, i) {
                   algor = "weighted",
                   weights = "base.sales",
                   must.covar = Xb,
-                  oth.covars = Xa_pot2,
+                  oth.covars = Xa_pot,
                   treatment = "high.tax.rate",
                   main.outcomes = r.outcomes,
                   tau = tax.rates)
@@ -724,5 +724,5 @@ b0 <- boot(state_by_module_ids, block.boot, 100)
 # Export: observed and distribution
 t <- data.table(b0$t0)
 mat.t <- data.table(b0$t)
-fwrite(t, "../../home/slacouture/PS/W_base_tnew_pol_100.csv")
-fwrite(mat.t, "../../home/slacouture/PS/W_base_mat.tnew_pol_100.csv")
+fwrite(t, "../../home/slacouture/PS/W_base_tnew_100.csv")
+fwrite(mat.t, "../../home/slacouture/PS/W_base_mat.tnew_100.csv")
