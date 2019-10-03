@@ -621,7 +621,7 @@ t <- psmatch.taxrate(actual.data = yearly_data,
                      tau = tax.rates,
                      boot.run = F,
                      implicit = F)
-fwrite(t, "../../home/slacouture/PS/trynew_pol_direct.csv")
+fwrite(t, "../../home/slacouture/PS/trynew_direct.csv")
 
 
 ## Try function and export using political covars
