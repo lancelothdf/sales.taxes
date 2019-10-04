@@ -50,7 +50,7 @@ for (n in 2:5) {
   all_pi[, paste0("ln_sales_tax_",n) := ln_sales_tax^(n)]
   # Now create difference of the power
   all_pi <- all_pi[order(store_code_uc, product_module_code, cal_time),] ##Sort on store by year-quarter (in ascending order)
-  all_pi[, paste0("D.ln_sales_tax_",n) := as.name(paste0("ln_sales_tax_",n)) - shift(as.name(paste0("ln_sales_tax_",n)), n=1, type="lag"),
+  all_pi[, paste0("D.ln_sales_tax_",n) := get(paste0("ln_sales_tax_",n)) - shift(get(paste0("ln_sales_tax_",n)), n=1, type="lag"),
          by = .(store_code_uc, product_module_code)]  # Add to formula
   RHS <- paste(RHS, paste0("D.ln_sales_tax_",n), sep = " + ")
   
@@ -155,7 +155,7 @@ for (n in 2:5) {
   all_pi[, paste0("ln_sales_tax_",n) := hermite(ln_sales_tax, n)]
   # Now create difference of the power
   all_pi <- all_pi[order(store_code_uc, product_module_code, cal_time),] ##Sort on store by year-quarter (in ascending order)
-  all_pi[, paste0("D.ln_sales_tax_",n) := as.name(paste0("ln_sales_tax_",n)) - shift(as.name(paste0("ln_sales_tax_",n)), n=1, type="lag"),
+  all_pi[, paste0("D.ln_sales_tax_",n) := get(paste0("ln_sales_tax_",n)) - shift(get(paste0("ln_sales_tax_",n)), n=1, type="lag"),
          by = .(store_code_uc, product_module_code)]  # Add to formula
   RHS <- paste(RHS, paste0("D.ln_sales_tax_",n), sep = " + ")
   
