@@ -36,7 +36,7 @@ all_pi[, D.ln_sales_tax_init := L.ln_sales_tax*D.ln_sales_tax]
 outcomes <- c("D.ln_cpricei2", "D.ln_quantity3")
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
-RHS <- "D.ln_sales_tax + D.ln_sales_tax_init"
+RHS <- "D.ln_sales_tax_init"
 
 ## For predicted values
 # Discretize taxrate: relevant support
@@ -44,6 +44,7 @@ all_pi[, ln_sales_tax_r := ifelse(D.ln_sales_tax == 0, NA, ln_sales_tax)]
 tax_values <-seq(quantile(all_pi$ln_sales_tax_r, probs = 0.05, na.rm = T, weight=all_pi$base.sales),
                  quantile(all_pi$ln_sales_tax_r, probs = 0.95, na.rm = T, weight=all_pi$base.sales),
                  length.out = 15)
+tax_values <-seq(min(all_pi$ln_sales_tax, na.rm = T), max(all_pi$ln_sales_tax, na.rm = T), length.out = 15)
 # The value of 0 is problematic: replace it for a very small value
 if (tax_values[1] == 0) tax_values[1] <- 0.001
 # average tax changes (from positive changes)
@@ -96,7 +97,7 @@ for (n in 2:3) {
       pred_b <- rep(0,15)
       pred_se <- rep(0,15)
       for (i in 1:15) {
-        plc.formula1 <- paste0(av.tax.ch, "*(D.ln_sales_tax + ", (tax_values[i]),"*D.ln_sales_tax_init +", paste0(paste0(paste0(paste0((tax_values[i]),"^",2:(n))), "*D.ln_sales_tax_init_",2:n), collapse = " + "), ") = 0")
+        plc.formula1 <- paste0(av.tax.ch, "*( ", (tax_values[i]),"*D.ln_sales_tax_init +", paste0(paste0(paste0(paste0((tax_values[i]),"^",2:(n))), "*D.ln_sales_tax_init_",2:n), collapse = " + "), ") = 0")
         # Predictred
         pplc.test1 <- glht(res1, linfct = c(plc.formula1))
         pred_b[i] <- coef(summary(pplc.test1))[[1]]
@@ -151,7 +152,7 @@ tax_values_4 <- hermite(tax_values, 4)
 tax_values_5 <- hermite(tax_values, 5)
 tax_hermite <- rbind(tax_values, tax_values_2, tax_values_3, tax_values_4, tax_values_5)
 
-RHS <- "D.ln_sales_tax + D.ln_sales_tax_init"
+RHS <- "D.ln_sales_tax_init"
 
 ### Run level twoway FE semester data: hermite polynomials --------------------------------
 for (n in 2:4) {
@@ -197,7 +198,7 @@ for (n in 2:4) {
       pred_b <- rep(0,15)
       pred_se <- rep(0,15)
       for (i in 1:15) {
-        plc.formula1 <- paste0(av.tax.ch, "*(D.ln_sales_tax + ", (tax_values[i]),"*D.ln_sales_tax_init +", paste0(paste0(paste0((tax_hermite)[2:n,i]), "*D.ln_sales_tax_init_",2:n), collapse = " + "), ") = 0")
+        plc.formula1 <- paste0(av.tax.ch, "*(", (tax_values[i]),"*D.ln_sales_tax_init +", paste0(paste0(paste0((tax_hermite)[2:n,i]), "*D.ln_sales_tax_init_",2:n), collapse = " + "), ") = 0")
         # Predictred
         pplc.test1 <- glht(res1, linfct = c(plc.formula1))
         pred_b[i] <- coef(summary(pplc.test1))[[1]]
@@ -237,7 +238,7 @@ tax_values_4 <- hermite(tax_values, 4, prob = F)
 tax_values_5 <- hermite(tax_values, 5, prob = F)
 tax_hermite <- rbind(tax_values, tax_values_2, tax_values_3, tax_values_4, tax_values_5)
 
-RHS <- "D.ln_sales_tax + D.ln_sales_tax_init"
+RHS <- "D.ln_sales_tax_init"
 for (n in 2:6) {
   # First create power
   all_pi[, paste0("D.ln_sales_tax_init_",n) := D.ln_sales_tax*(hermite(ln_sales_tax, n, prob = F))]
@@ -281,7 +282,7 @@ for (n in 2:6) {
       pred_b <- rep(0,15)
       pred_se <- rep(0,15)
       for (i in 1:15) {
-        plc.formula1 <- paste0(av.tax.ch, "*(D.ln_sales_tax + ", (tax_values[i]),"*D.ln_sales_tax_init +", paste0(paste0(paste0((tax_hermite)[2:n,i]), "*D.ln_sales_tax_init_",2:n), collapse = " + "), ") = 0")
+        plc.formula1 <- paste0(av.tax.ch, "*(", (tax_values[i]),"*D.ln_sales_tax_init +", paste0(paste0(paste0((tax_hermite)[2:n,i]), "*D.ln_sales_tax_init_",2:n), collapse = " + "), ") = 0")
         # Predictred
         pplc.test1 <- glht(res1, linfct = c(plc.formula1))
         pred_b[i] <- coef(summary(pplc.test1))[[1]]
