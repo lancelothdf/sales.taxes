@@ -86,7 +86,7 @@ for (n in 2:3) {
       ## attach results
       flog.info("Writing results...")
       res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-      res1.dt[, c("Cluster s.e.") := get("Cluster s.e.")*((res1$N - res1$p)/(res1$N - res1$p - unique(all_pi$store_by_module)))^(1/2)]
+      res1.dt[, c("Cluster s.e.") := get("Cluster s.e.")*((res1$N - res1$p)/(res1$N - res1$p - length(unique(all_pi$store_by_module))))^(1/2)]
       res1.dt[, outcome := Y]
       res1.dt[, controls := FE]
       res1.dt[, poly := "standard"]
@@ -114,7 +114,7 @@ for (n in 2:3) {
         # Predictred
         pplc.test1 <- glht(res1, linfct = c(plc.formula1))
         pred_b[i] <- coef(summary(pplc.test1))[[1]]
-        pred_se[i] <- sqrt(vcov(summary(pplc.test1)))[[1]]*((res1$N - res1$p)/(res1$N - res1$p - unique(all_pi$store_by_module)))^(1/2)
+        pred_se[i] <- sqrt(vcov(summary(pplc.test1)))[[1]]*((res1$N - res1$p)/(res1$N - res1$p - length(unique(all_pi$store_by_module))))^(1/2)
       }
       # Create data
       coef.dt <- data.table(tax_values, pred_b, pred_se)
