@@ -45,7 +45,7 @@ all_pi[, w.ln_sales_tax_init := w.ln_sales_tax*mean(ln_sales_tax), by = .(store_
 all_pi[, m.ln_sales_tax := mean(ln_sales_tax), by = .(store_by_module)]
 
 # setup
-outcomes <- c("D.ln_cpricei2", "D.ln_quantity3")
+outcomes <- c("w.ln_cpricei2", "w.ln_quantity3")
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 RHS <- "w.ln_sales_tax + w.ln_sales_tax_init"
@@ -87,6 +87,7 @@ for (n in 2:3) {
       flog.info("Writing results...")
       res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
       res1.dt[, c("Cluster s.e.") := get("Cluster s.e.")*((res1$N - res1$p)/(res1$N - res1$p - length(unique(all_pi$store_by_module))))^(1/2)]
+      res1.dt[, c("t value") := Estimate/get("Cluster s.e.")]
       res1.dt[, outcome := Y]
       res1.dt[, controls := FE]
       res1.dt[, poly := "standard"]
@@ -190,6 +191,7 @@ for (n in 2:4) {
       flog.info("Writing results...")
       res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
       res1.dt[, c("Cluster s.e.") := get("Cluster s.e.")*((res1$N - res1$p)/(res1$N - res1$p - unique(all_pi$store_by_module)))^(1/2)]
+      res1.dt[, c("t value") := Estimate/get("Cluster s.e.")]
       res1.dt[, outcome := Y]
       res1.dt[, controls := FE]
       res1.dt[, poly := "hermite"]
