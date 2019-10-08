@@ -39,16 +39,27 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 RHS <- "D.ln_sales_tax + D.ln_sales_tax_init"
 
-### Windsorize: cut in between 5th and 95th percentiles of DEMEANED outcomes (on weighted distribution)
-all_pi[, dem.D.ln_cpricei2 := D.ln_cpricei2 - mean(D.ln_cpricei2, weights = base.sales), by = .(store_by_module)]
-all_pi[, D.ln_cpricei2 := ifelse(dem.D.ln_cpricei2 < quantile(dem.D.ln_cpricei2, probs = 0.05, weights = base.sales) | 
-                                   dem.D.ln_cpricei2 > quantile(dem.D.ln_cpricei2, probs = 0.95, weights = base.sales),
-                               NA, D.ln_cpricei2)]
+### Windsorize: cut in between 5th and 95th percentiles of the (weighted) distribution within tax rate bin
+# first create tax rate bins 0.0125 (to have exactly 10 bins)
+all_pi[, tax_bin := floor(ln_sales_tax/0.0125)]
+# now windsorize outcomes 
+all_pi[, D.ln_cpricei2 := ifelse(D.ln_cpricei2 < quantile(D.ln_cpricei2, probs = 0.05, weights = base.sales) |  
+                                   D.ln_cpricei2 > quantile(D.ln_cpricei2, probs = 0.95, weights = base.sales), NA, D.ln_cpricei2), by = .(tax_bin)]
 
-all_pi[, dem.D.ln_quantity3 := D.ln_quantity3 - mean(D.ln_quantity3, weights = base.sales), by = .(store_by_module)]
-all_pi[, D.ln_quantity3 := ifelse(dem.D.ln_quantity3 < quantile(dem.D.ln_quantity3, probs = 0.05, weights = base.sales) | 
-                                    dem.D.ln_quantity3 > quantile(dem.D.ln_quantity3, probs = 0.95, weights = base.sales),
-                                NA, D.ln_quantity3)]
+all_pi[, D.ln_quantity3 := ifelse(D.ln_quantity3 < quantile(D.ln_quantity3, probs = 0.05, weights = base.sales) |  
+                                  D.ln_quantity3 > quantile(D.ln_quantity3, probs = 0.95, weights = base.sales), NA, D.ln_quantity3), by = .(tax_bin)]
+
+
+### Windsorize: cut in between 5th and 95th percentiles of DEMEANED outcomes (on weighted distribution)
+# all_pi[, dem.D.ln_cpricei2 := D.ln_cpricei2 - mean(D.ln_cpricei2, weights = base.sales), by = .(store_by_module)]
+# all_pi[, D.ln_cpricei2 := ifelse(dem.D.ln_cpricei2 < quantile(dem.D.ln_cpricei2, probs = 0.05, weights = base.sales) | 
+#                                    dem.D.ln_cpricei2 > quantile(dem.D.ln_cpricei2, probs = 0.95, weights = base.sales),
+#                                NA, D.ln_cpricei2)]
+# 
+# all_pi[, dem.D.ln_quantity3 := D.ln_quantity3 - mean(D.ln_quantity3, weights = base.sales), by = .(store_by_module)]
+# all_pi[, D.ln_quantity3 := ifelse(dem.D.ln_quantity3 < quantile(dem.D.ln_quantity3, probs = 0.05, weights = base.sales) | 
+#                                     dem.D.ln_quantity3 > quantile(dem.D.ln_quantity3, probs = 0.95, weights = base.sales),
+#                                 NA, D.ln_quantity3)]
 
 
 ## For predicted values
@@ -57,6 +68,7 @@ all_pi[, ln_sales_tax_r := ifelse(D.ln_sales_tax == 0, NA, ln_sales_tax)]
 tax_values <-seq(quantile(all_pi$ln_sales_tax_r, probs = 0.05, na.rm = T, weight=all_pi$base.sales),
                  quantile(all_pi$ln_sales_tax_r, probs = 0.95, na.rm = T, weight=all_pi$base.sales),
                  length.out = 15)
+tax_values <-seq(min(all_pi$ln_sales_tax, na.rm = T), max(all_pi$ln_sales_tax, na.rm = T), length.out = 15)
 # The value of 0 is problematic: replace it for a very small value
 if (tax_values[1] == 0) tax_values[1] <- 0.001
 # average tax changes (from positive changes)

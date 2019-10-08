@@ -32,16 +32,28 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 RHS <- "ln_sales_tax"
 
-### Windsorize: cut in between 5th and 95th percentiles of DEMEANED outcomes (on weighted distribution)
-all_pi[, dem.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, weights = base.sales), by = .(store_by_module)]
-all_pi[, ln_cpricei2 := ifelse(dem.ln_cpricei2 < quantile(dem.ln_cpricei2, probs = 0.05, weights = base.sales) | 
-                                 dem.ln_cpricei2 > quantile(dem.ln_cpricei2, probs = 0.95, weights = base.sales),
-                               NA, ln_cpricei2)]
+### Windsorize: cut in between 5th and 95th percentiles of the (weighted) distribution within tax rate bin
+# first create tax rate bins 0.0125 (to have exactly 10 bins)
+all_pi[, tax_bin := floor(ln_sales_tax/0.0125)]
+# now windsorize outcomes 
+all_pi[, ln_cpricei2 := ifelse(ln_cpricei2 < quantile(ln_cpricei2, probs = 0.05, weights = base.sales) |  
+                                 ln_cpricei2 > quantile(ln_cpricei2, probs = 0.95, weights = base.sales), NA, ln_cpricei2), by = .(tax_bin)]
 
-all_pi[, dem.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, weights = base.sales), by = .(store_by_module)]
-all_pi[, ln_quantity3 := ifelse(dem.ln_quantity3 < quantile(dem.ln_quantity3, probs = 0.05, weights = base.sales) | 
-                                  dem.ln_quantity3 > quantile(dem.ln_quantity3, probs = 0.95, weights = base.sales),
-                               NA, ln_quantity3)]
+all_pi[, ln_quantity3 := ifelse(ln_quantity3 < quantile(ln_quantity3, probs = 0.05, weights = base.sales) |  
+                                  ln_quantity3 > quantile(ln_quantity3, probs = 0.95, weights = base.sales), NA, ln_quantity3), by = .(tax_bin)]
+
+
+
+### Windsorize: cut in between 5th and 95th percentiles of DEMEANED outcomes (on weighted distribution)
+# all_pi[, dem.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, weights = base.sales), by = .(store_by_module)]
+# all_pi[, ln_cpricei2 := ifelse(dem.ln_cpricei2 < quantile(dem.ln_cpricei2, probs = 0.05, weights = base.sales) | 
+#                                  dem.ln_cpricei2 > quantile(dem.ln_cpricei2, probs = 0.95, weights = base.sales),
+#                                NA, ln_cpricei2)]
+# 
+# all_pi[, dem.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, weights = base.sales), by = .(store_by_module)]
+# all_pi[, ln_quantity3 := ifelse(dem.ln_quantity3 < quantile(dem.ln_quantity3, probs = 0.05, weights = base.sales) | 
+#                                   dem.ln_quantity3 > quantile(dem.ln_quantity3, probs = 0.95, weights = base.sales),
+#                                NA, ln_quantity3)]
 
 
 ## Defining the interest region
@@ -74,6 +86,7 @@ all_pi[, ln_quantity3 := ifelse(dem.ln_quantity3 < quantile(dem.ln_quantity3, pr
 tax_values <-seq(quantile(all_pi$ln_sales_tax_r, probs = 0.05, na.rm = T, weight=all_pi$base.sales),
                  quantile(all_pi$ln_sales_tax_r, probs = 0.95, na.rm = T, weight=all_pi$base.sales),
                  length.out = 15)
+tax_values <-seq(min(all_pi$ln_sales_tax, na.rm = T), max(all_pi$ln_sales_tax, na.rm = T), length.out = 15)
 # The value of 0 is problematic: replace it for a very small value
 if (tax_values[1] == 0) tax_values[1] <- 0.001
 
