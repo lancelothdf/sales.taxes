@@ -47,7 +47,7 @@ for (Y in outcomes) {
   ggsave(graphout)
   
   # Plot the residuals comming from non-0 changes
-  graph.data <- all_pi[D.ln_sales_taxes !=0,]
+  graph.data <- all_pi[D.ln_sales_tax !=0,]
   graphout <- paste0(output.path, "/res_",Y, "no0change.png")
   ggplot(graph.data, aes(x = ln_sales_tax, y = res, weights = base.sales)) + 
     stat_binhex()
@@ -74,7 +74,7 @@ for (Y in outcomesFD) {
   ggsave(graphout)
 
   # Plot the residuals comming from non-0 changes
-  graph.data <- all_pi[D.ln_sales_taxes !=0,]
+  graph.data <- all_pi[D.ln_sales_tax !=0,]
   graphout <- paste0(output.path, "/res_",Y, "no0change.png")
   ggplot(graph.data, aes(x = ln_sales_tax, y = res, weights = base.sales)) + 
     stat_binhex()
