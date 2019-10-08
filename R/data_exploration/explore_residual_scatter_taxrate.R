@@ -46,12 +46,6 @@ for (Y in outcomes) {
     stat_binhex(aes(fill=log(..count..)), bins = 50)
   ggsave(graphout)
   
-  # Zoom in at y-axis
-  graphout <- paste0(output.path, "/res_",Y, "_zoom.png")
-  ggplot(all_pi, aes(x = ln_sales_tax, y = res, weights = base.sales)) + 
-    stat_binhex(aes(fill=log(..count..)), bins = 50) + scale_y_continuous(limits = c(-1,1), breaks = seq(-1, 1, 0.2))
-  ggsave(graphout)  
-  
   # Plot the residuals comming from non-0 changes
   graph.data <- all_pi[D.ln_sales_tax !=0,]
   graphout <- paste0(output.path, "/res_",Y, "no0change.png")
@@ -59,11 +53,6 @@ for (Y in outcomes) {
     stat_binhex(aes(fill=log(..count..)), bins = 50)
   ggsave(graphout)
   
-  # Zoom in at y-axis
-  graphout <- paste0(output.path, "/res_",Y, "no0change_zoom.png")
-  ggplot(graph.data, aes(x = ln_sales_tax, y = res, weights = base.sales)) + 
-    stat_binhex(aes(fill=log(..count..)), bins = 50) + scale_y_continuous(limits = c(-1,1), breaks = seq(-1, 1, 0.2))
-  ggsave(graphout)    
   
 }
 
@@ -85,11 +74,6 @@ for (Y in outcomesFD) {
     stat_binhex(aes(fill=log(..count..)), bins = 50)
   ggsave(graphout)
   
-  # Zoom in at y-axis
-  graphout <- paste0(output.path, "/res_",Y, "_zoom.png")
-  ggplot(all_pi, aes(x = ln_sales_tax, y = res, weights = base.sales)) + 
-    stat_binhex(aes(fill=log(..count..)), bins = 50) + scale_y_continuous(limits = c(-1,1), breaks = seq(-1, 1, 0.2))
-  ggsave(graphout) 
 
   # Plot the residuals comming from non-0 changes
   graph.data <- all_pi[D.ln_sales_tax !=0,]
@@ -98,10 +82,6 @@ for (Y in outcomesFD) {
     stat_binhex(aes(fill=log(..count..)), bins = 50)
   ggsave(graphout)
   
-  # Zoom in at y-axis
-  graphout <- paste0(output.path, "/res_",Y, "no0change_zoom.png")
-  ggplot(graph.data, aes(x = ln_sales_tax, y = res, weights = base.sales)) + 
-    stat_binhex(aes(fill=log(..count..)), bins = 50) + scale_y_continuous(limits = c(-1,1), breaks = seq(-1, 1, 0.2))
-  ggsave(graphout)  
+
 }
 
