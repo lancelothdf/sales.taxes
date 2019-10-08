@@ -123,7 +123,7 @@ for (Y in outcomes) {
     graph.data <- all_pi[init_tax_bin == bin,]
     graphout <- paste0(output.path, "/res by bin/res_",Y, "_bin", bin,".png")
     ggplot(all_pi, aes(x = ln_sales_tax.res, y = res, weights = base.sales)) + 
-      stat_binhex(aes(fill=log(..count..)), bins = 50) +
+      stat_binhex(aes(fill=log(..count..)), bins = 50, colour="white") + scale_fill_gradientn(colours=c("yellow","black")) +
       labs(x = "(residualized) Sales Tax in bin", y = paste0("(residualized)", Y), color = NULL)
       
     ggsave(graphout)
@@ -132,7 +132,7 @@ for (Y in outcomes) {
     graph.data <- graph.data[D.ln_sales_tax !=0,]
     graphout <- paste0(output.path, "/res by bin/res_",Y, "_bin", bin, "no0change.png")
     ggplot(graph.data, aes(x = ln_sales_tax.res, y = res, weights = base.sales)) + 
-      stat_binhex(aes(fill=log(..count..)), bins = 50) + 
+      stat_binhex(aes(fill=log(..count..)), bins = 50, colour="white") + scale_fill_gradientn(colours=c("yellow","black")) +
       labs(x = "(residualized) Sales Tax in bin", y = paste0("(residualized)", Y), color = NULL)
     ggsave(graphout)    
     
@@ -160,7 +160,7 @@ for (Y in outcomesFD) {
     graph.data <- all_pi[init_tax_bin == bin,]
     graphout <- paste0(output.path, "/res by bin/res_",Y, "_bin", bin,".png")
     ggplot(all_pi, aes(x = D.ln_sales_tax.res, y = res, weights = base.sales)) + 
-      stat_binhex(aes(fill=log(..count..)), bins = 50) +
+      stat_binhex(aes(fill=log(..count..)), bins = 50, colour="white") + scale_fill_gradientn(colours=c("yellow","black")) +
       labs(x = "(residualized) \Delta Sales Tax in bin", y = paste0("(residualized)", Y), color = NULL)
     
     ggsave(graphout)
@@ -169,7 +169,7 @@ for (Y in outcomesFD) {
     graph.data <- graph.data[D.ln_sales_tax !=0,]
     graphout <- paste0(output.path, "/res by bin/res_",Y, "_bin", bin, "no0change.png")
     ggplot(graph.data, aes(x = D.ln_sales_tax.res, y = res, weights = base.sales)) + 
-      stat_binhex(aes(fill=log(..count..)), bins = 50) + 
+      stat_binhex(aes(fill=log(..count..)), bins = 50, colour="white") + scale_fill_gradientn(colours=c("yellow","black")) +
       labs(x = "(residualized) \Delta Sales Tax in bin", y = paste0("(residualized)", Y), color = NULL)
     ggsave(graphout)    
     
