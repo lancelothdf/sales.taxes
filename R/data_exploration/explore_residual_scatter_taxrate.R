@@ -43,15 +43,27 @@ for (Y in outcomes) {
   # Plot the residuals
   graphout <- paste0(output.path, "/res_",Y, ".png")
   ggplot(all_pi, aes(x = ln_sales_tax, y = res, weights = base.sales)) + 
-    stat_binhex()
+    stat_binhex(bins = 50)
   ggsave(graphout)
+  
+  # Zoom in at y-axis
+  graphout <- paste0(output.path, "/res_",Y, "_zoom.png")
+  ggplot(all_pi, aes(x = ln_sales_tax, y = res, weights = base.sales)) + 
+    stat_binhex(bins = 50) + coord_cartesian(ylim=c(-1,1))
+  ggsave(graphout)  
   
   # Plot the residuals comming from non-0 changes
   graph.data <- all_pi[D.ln_sales_tax !=0,]
   graphout <- paste0(output.path, "/res_",Y, "no0change.png")
   ggplot(graph.data, aes(x = ln_sales_tax, y = res, weights = base.sales)) + 
-    stat_binhex()
+    stat_binhex(bins = 50)
   ggsave(graphout)
+  
+  # Zoom in at y-axis
+  graphout <- paste0(output.path, "/res_",Y, "no0change_zoom.png")
+  ggplot(graph.data, aes(x = ln_sales_tax, y = res, weights = base.sales)) + 
+    stat_binhex(bins = 50) + coord_cartesian(ylim=c(-1,1))
+  ggsave(graphout)    
   
 }
 
@@ -70,14 +82,26 @@ for (Y in outcomesFD) {
   # Plot the residuals
   graphout <- paste0(output.path, "/res_",Y, ".png")
   ggplot(all_pi, aes(x = ln_sales_tax, y = res, weights = base.sales)) + 
-    stat_binhex()
+    stat_binhex(bins = 50)
   ggsave(graphout)
+  
+  # Zoom in at y-axis
+  graphout <- paste0(output.path, "/res_",Y, "_zoom.png")
+  ggplot(all_pi, aes(x = ln_sales_tax, y = res, weights = base.sales)) + 
+    stat_binhex(bins = 50) + coord_cartesian(ylim=c(-1,1))
+  ggsave(graphout) 
 
   # Plot the residuals comming from non-0 changes
   graph.data <- all_pi[D.ln_sales_tax !=0,]
   graphout <- paste0(output.path, "/res_",Y, "no0change.png")
   ggplot(graph.data, aes(x = ln_sales_tax, y = res, weights = base.sales)) + 
-    stat_binhex()
+    stat_binhex(bins = 50)
+  ggsave(graphout)
+  
+  # Zoom in at y-axis
+  graphout <- paste0(output.path, "/res_",Y, "no0change_zoom.png")
+  ggplot(graph.data, aes(x = ln_sales_tax, y = res, weights = base.sales)) + 
+    stat_binhex(bins = 50) + coord_cartesian(ylim=c(-1,1))
   ggsave(graphout)  
 }
 
