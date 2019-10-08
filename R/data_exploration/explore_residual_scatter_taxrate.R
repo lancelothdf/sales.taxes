@@ -104,42 +104,42 @@ all_pi$D.ln_sales_tax.res <- taxfd$residuals
 
 
 #### Run loop res vs. res set up ----------------------
-for (Y in outcomes) {
-  
-  # Run the FE regression with weights
-  formula1 <- as.formula(paste0(
-    Y, " ~ 1 | division_by_module_by_time + store_by_module | 0 | module_by_state"
-  ))
-  res1 <- felm(formula = formula1, data = all_pi,
-               weights = all_pi$base.sales)
-  
-  # Residualize
-  all_pi$res <- res1$residuals
-  
-  # Plot the residuals by bin
-  for (bin in unique(all_pi$init_tax_bin)) {
-    
-    ## Full residuals
-    graph.data <- all_pi[init_tax_bin == bin,]
-    graphout <- paste0(output.path, "/res by bin/res_",Y, "_bin", bin,".png")
-    ggplot(graph.data, aes(x = ln_sales_tax.res, y = res, weights = base.sales)) + 
-      stat_binhex(aes(fill=log(..count..)), bins = 50, colour="white") + scale_fill_gradientn(colours=c("yellow","black")) +
-      labs(x = "(residualized) Sales Tax in bin", y = paste0("(residualized)", Y), color = NULL)
-      
-    ggsave(graphout)
-    
-    # Plot the residuals comming from non-0 changes
-    graph.data <- graph.data[D.ln_sales_tax !=0,]
-    graphout <- paste0(output.path, "/res by bin/res_",Y, "_bin", bin, "no0change.png")
-    ggplot(graph.data, aes(x = ln_sales_tax.res, y = res, weights = base.sales)) + 
-      stat_binhex(aes(fill=log(..count..)), bins = 50, colour="white") + scale_fill_gradientn(colours=c("yellow","black")) +
-      labs(x = "(residualized) Sales Tax in bin", y = paste0("(residualized)", Y), color = NULL)
-    ggsave(graphout)    
-    
-    
-  }
-
-}
+# for (Y in outcomes) {
+#   
+#   # Run the FE regression with weights
+#   formula1 <- as.formula(paste0(
+#     Y, " ~ 1 | division_by_module_by_time + store_by_module | 0 | module_by_state"
+#   ))
+#   res1 <- felm(formula = formula1, data = all_pi,
+#                weights = all_pi$base.sales)
+#   
+#   # Residualize
+#   all_pi$res <- res1$residuals
+#   
+#   # Plot the residuals by bin
+#   for (bin in unique(all_pi$init_tax_bin)) {
+#     
+#     ## Full residuals
+#     graph.data <- all_pi[init_tax_bin == bin,]
+#     graphout <- paste0(output.path, "/res by bin/res_",Y, "_bin", bin,".png")
+#     ggplot(graph.data, aes(x = ln_sales_tax.res, y = res, weights = base.sales)) + 
+#       stat_binhex(aes(fill=log(..count..)), bins = 50, colour="white") + scale_fill_gradientn(colours=c("yellow","black")) +
+#       labs(x = "(residualized) Sales Tax in bin", y = paste0("(residualized)", Y), color = NULL)
+#       
+#     ggsave(graphout)
+#     
+#     # Plot the residuals comming from non-0 changes
+#     graph.data <- graph.data[D.ln_sales_tax !=0,]
+#     graphout <- paste0(output.path, "/res by bin/res_",Y, "_bin", bin, "no0change.png")
+#     ggplot(graph.data, aes(x = ln_sales_tax.res, y = res, weights = base.sales)) + 
+#       stat_binhex(aes(fill=log(..count..)), bins = 50, colour="white") + scale_fill_gradientn(colours=c("yellow","black")) +
+#       labs(x = "(residualized) Sales Tax in bin", y = paste0("(residualized)", Y), color = NULL)
+#     ggsave(graphout)    
+#     
+#     
+#   }
+# 
+# }
 
 for (Y in outcomesFD) {
   
@@ -161,7 +161,7 @@ for (Y in outcomesFD) {
     graphout <- paste0(output.path, "/res by bin/res_",Y, "_bin", bin,".png")
     ggplot(graph.data, aes(x = D.ln_sales_tax.res, y = res, weights = base.sales)) + 
       stat_binhex(aes(fill=log(..count..)), bins = 50, colour="white") + scale_fill_gradientn(colours=c("yellow","black")) +
-      labs(x = "(residualized) \Delta Sales Tax in bin", y = paste0("(residualized)", Y), color = NULL)
+      labs(x = "(residualized) Delta Sales Tax in bin", y = paste0("(residualized)", Y), color = NULL)
     
     ggsave(graphout)
     
@@ -170,7 +170,7 @@ for (Y in outcomesFD) {
     graphout <- paste0(output.path, "/res by bin/res_",Y, "_bin", bin, "no0change.png")
     ggplot(graph.data, aes(x = D.ln_sales_tax.res, y = res, weights = base.sales)) + 
       stat_binhex(aes(fill=log(..count..)), bins = 50, colour="white") + scale_fill_gradientn(colours=c("yellow","black")) +
-      labs(x = "(residualized) \Delta Sales Tax in bin", y = paste0("(residualized)", Y), color = NULL)
+      labs(x = "(residualized) Delta Sales Tax in bin", y = paste0("(residualized)", Y), color = NULL)
     ggsave(graphout)    
     
     
