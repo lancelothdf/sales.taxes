@@ -122,7 +122,7 @@ for (Y in outcomes) {
     ## Full residuals
     graph.data <- all_pi[init_tax_bin == bin,]
     graphout <- paste0(output.path, "/res by bin/res_",Y, "_bin", bin,".png")
-    ggplot(all_pi, aes(x = ln_sales_tax.res, y = res, weights = base.sales)) + 
+    ggplot(graph.data, aes(x = ln_sales_tax.res, y = res, weights = base.sales)) + 
       stat_binhex(aes(fill=log(..count..)), bins = 50, colour="white") + scale_fill_gradientn(colours=c("yellow","black")) +
       labs(x = "(residualized) Sales Tax in bin", y = paste0("(residualized)", Y), color = NULL)
       
@@ -159,7 +159,7 @@ for (Y in outcomesFD) {
     ## Full residuals
     graph.data <- all_pi[init_tax_bin == bin,]
     graphout <- paste0(output.path, "/res by bin/res_",Y, "_bin", bin,".png")
-    ggplot(all_pi, aes(x = D.ln_sales_tax.res, y = res, weights = base.sales)) + 
+    ggplot(graph.data, aes(x = D.ln_sales_tax.res, y = res, weights = base.sales)) + 
       stat_binhex(aes(fill=log(..count..)), bins = 50, colour="white") + scale_fill_gradientn(colours=c("yellow","black")) +
       labs(x = "(residualized) \Delta Sales Tax in bin", y = paste0("(residualized)", Y), color = NULL)
     
