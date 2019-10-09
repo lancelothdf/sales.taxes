@@ -210,7 +210,7 @@ for (Y in outcomes) {
     graph.data <- graph.data[ , .(ln_sales_tax.res = median(ln_sales_tax.res, na.rm = T), 
                     res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
 
-    graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin,".png")
+    graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin, "_full.png")
     ggplot(graph.data, aes(x = ln_sales_tax.res , y = res)) +
       geom_point() + labs(x = "(residualized) Sales Tax in bin", y = paste0("(residualized) ", Y), color = NULL)
 
@@ -226,7 +226,7 @@ for (Y in outcomes) {
                                   res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
     
     
-    graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin, "no0change.png")
+    graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin, "_no0change.png")
     ggplot(graph.data, aes(x = ln_sales_tax.res , y = res)) +
       geom_point() + labs(x = "(residualized) Sales Tax in bin", y = paste0("(residualized) ", Y), color = NULL)
     ggsave(graphout)
@@ -261,7 +261,7 @@ for (Y in outcomesFD) {
     graph.data <- graph.data[ , .(D.ln_sales_tax.res = median(D.ln_sales_tax.res, na.rm = T), 
                     res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
     
-    graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin,".png")
+    graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin, "_full.png")
     ggplot(graph.data, aes(x = D.ln_sales_tax.res , y = res)) +
       geom_point() + labs(x = "(residualized) Delta Sales Tax in bin", y = paste0("(residualized) ", Y), color = NULL)
     
@@ -277,7 +277,7 @@ for (Y in outcomesFD) {
                                   res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
     
     
-    graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin, "no0change.png")
+    graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin, "_no0change.png")
     ggplot(graph.data, aes(x = D.ln_sales_tax.res , y = res)) +
       geom_point() + labs(x = "(residualized) Delta Sales Tax in bin", y = paste0("(residualized) ", Y), color = NULL)
     ggsave(graphout)
