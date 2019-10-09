@@ -178,7 +178,7 @@ all_pi$D.ln_sales_tax.res <- taxfd$residuals
 #   
 # }
 
-#### Plot binscatters istead of hexagonal heatmaps ------------------
+#### Plot binscatters instead of hexagonal heatmaps ------------------
 
 # Minor change: divide the mean sales tax for the model in levels
 all_pi[, m.ln_sales_tax := mean(ln_sales_tax), by = .(store_by_module)]
@@ -202,19 +202,33 @@ for (Y in outcomes) {
 
     ## Full residuals
     graph.data <- all_pi[init_tax_bin_m == bin,]
+    # identify quantile (50)
+    graph.data[ , quartile := cut(ln_sales_tax.res,
+                            breaks = quantile(ln_sales_tax.res, probs = seq(0, 1, by = 1/50), weights = base.sales, na.rm = T), 
+                            labels = 1:50, right = FALSE)]
+    # collapse by quartile
+    graph.data[ , .(ln_sales_tax.res = median(ln_sales_tax.res, na.rm = T), 
+                    res = mean(res, weights = base.sales, na.rm = T)), by = .(quartile)]
+
     graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin,".png")
-    ggplot(graph.data, aes(x = ln_sales_tax.res , y = res, weights = base.sales)) +
-      stat_summary_bin(fun.y='mean', fun.args = 'weights = base.sales', bins=50, color='orange', size=2, geom='point') +
-      labs(x = "(residualized) Delta Sales Tax in bin", y = paste0("(residualized) ", Y), color = NULL)
+    ggplot(graph.data, aes(x = ln_sales_tax.res , y = res)) +
+      geom_point() + labs(x = "(residualized) Delta Sales Tax in bin", y = paste0("(residualized) ", Y), color = NULL)
 
     ggsave(graphout)
 
     # Plot the residuals comming from non-0 changes
-    graph.data <- graph.data[D.ln_sales_tax !=0,]
+    graph.data <- all_pi[D.ln_sales_tax !=0 & init_tax_bin_m == bin,]
+    graph.data[ , quartile := cut(ln_sales_tax.res,
+                                  breaks = quantile(ln_sales_tax.res, probs = seq(0, 1, by = 1/50), weights = base.sales, na.rm = T), 
+                                  labels = 1:50, right = FALSE)]
+    # collapse by quartile
+    graph.data[ , .(ln_sales_tax.res = median(ln_sales_tax.res, na.rm = T), 
+                    res = mean(res, weights = base.sales, na.rm = T)), by = .(quartile)]
+    
+    
     graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin, "no0change.png")
-    ggplot(graph.data, aes(x = ln_sales_tax.res , y = res, weights = base.sales)) +
-      stat_summary_bin(fun.y='mean', fun.args = 'weights = base.sales', bins=50, color='orange', size=2, geom='point') +
-      labs(x = "(residualized) Delta Sales Tax in bin", y = paste0("(residualized) ", Y), color = NULL)
+    ggplot(graph.data, aes(x = ln_sales_tax.res , y = res)) +
+      geom_point() + labs(x = "(residualized) Delta Sales Tax in bin", y = paste0("(residualized) ", Y), color = NULL)
     ggsave(graphout)
 
 
@@ -239,19 +253,33 @@ for (Y in outcomesFD) {
 
     ## Full residuals
     graph.data <- all_pi[init_tax_bin == bin,]
+    # identify quantile (50)
+    graph.data[ , quartile := cut(D.ln_sales_tax.res,
+                                  breaks = quantile(D.ln_sales_tax.res, probs = seq(0, 1, by = 1/50), weights = base.sales, na.rm = T), 
+                                  labels = 1:50, right = FALSE)]
+    # collapse by quartile
+    graph.data[ , .(D.ln_sales_tax.res = median(D.ln_sales_tax.res, na.rm = T), 
+                    res = mean(res, weights = base.sales, na.rm = T)), by = .(quartile)]
+    
     graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin,".png")
-    ggplot(graph.data, aes(x = D.ln_sales_tax.res , y = res, weights = base.sales)) +
-      stat_summary_bin(fun.y='mean', fun.args = 'weights = base.sales', bins=50, color='orange', size=2, geom='point') +
-      labs(x = "(residualized) Delta Sales Tax in bin", y = paste0("(residualized) ", Y), color = NULL)
-
+    ggplot(graph.data, aes(x = D.ln_sales_tax.res , y = res)) +
+      geom_point() + labs(x = "(residualized) Delta Sales Tax in bin", y = paste0("(residualized) ", Y), color = NULL)
+    
     ggsave(graphout)
-
+    
     # Plot the residuals comming from non-0 changes
-    graph.data <- graph.data[D.ln_sales_tax !=0,]
+    graph.data <- all_pi[D.ln_sales_tax !=0 & init_tax_bin == bin,]
+    graph.data[ , quartile := cut(D.ln_sales_tax.res,
+                                  breaks = quantile(D.ln_sales_tax.res, probs = seq(0, 1, by = 1/50), weights = base.sales, na.rm = T), 
+                                  labels = 1:50, right = FALSE)]
+    # collapse by quartile
+    graph.data[ , .(D.ln_sales_tax.res = median(D.ln_sales_tax.res, na.rm = T), 
+                    res = mean(res, weights = base.sales, na.rm = T)), by = .(quartile)]
+    
+    
     graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin, "no0change.png")
-    ggplot(graph.data, aes(x = D.ln_sales_tax.res , y = res, weights = base.sales)) +
-      stat_summary_bin(fun.y='mean', fun.args = 'weights = base.sales', bins=50, color='orange', size=2, geom='point') +
-      labs(x = "(residualized) Delta Sales Tax in bin", y = paste0("(residualized) ", Y), color = NULL)
+    ggplot(graph.data, aes(x = D.ln_sales_tax.res , y = res)) +
+      geom_point() + labs(x = "(residualized) Delta Sales Tax in bin", y = paste0("(residualized) ", Y), color = NULL)
     ggsave(graphout)
 
 
