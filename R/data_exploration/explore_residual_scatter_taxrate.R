@@ -219,8 +219,8 @@ for (Y in outcomes) {
     # Plot the residuals comming from non-0 changes
     graph.data <- all_pi[D.ln_sales_tax !=0 & init_tax_bin_m == bin,]
     graph.data[ , quartile := cut(ln_sales_tax.res,
-                                  breaks = quantile(ln_sales_tax.res, probs = seq(0, 1, by = 1/50), weights = base.sales, na.rm = T), 
-                                  labels = 1:50, right = FALSE)]
+                                  breaks = quantile(ln_sales_tax.res, probs = seq(0, 1, by = 1/20), weights = base.sales, na.rm = T), 
+                                  labels = 1:20, right = FALSE)]
     # collapse by quartile
     graph.data[ , .(ln_sales_tax.res = median(ln_sales_tax.res, na.rm = T), 
                     res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
@@ -270,8 +270,8 @@ for (Y in outcomesFD) {
     # Plot the residuals comming from non-0 changes
     graph.data <- all_pi[D.ln_sales_tax !=0 & init_tax_bin == bin,]
     graph.data[ , quartile := cut(D.ln_sales_tax.res,
-                                  breaks = quantile(D.ln_sales_tax.res, probs = seq(0, 1, by = 1/50), weights = base.sales, na.rm = T), 
-                                  labels = 1:50, right = FALSE)]
+                                  breaks = quantile(D.ln_sales_tax.res, probs = seq(0, 1, by = 1/20), weights = base.sales, na.rm = T), 
+                                  labels = 1:20, right = FALSE)]
     # collapse by quartile
     graph.data[ , .(D.ln_sales_tax.res = median(D.ln_sales_tax.res, na.rm = T), 
                     res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
