@@ -205,7 +205,7 @@ for (Y in outcomes) {
     # identify quantile (50)
     graph.data[ , quartile := cut(ln_sales_tax.res,
                             breaks = quantile(ln_sales_tax.res, probs = seq(0, 1, by = 1/30), weights = base.sales, na.rm = T), 
-                            labels = 1:50, right = FALSE)]
+                            labels = 1:30, right = FALSE)]
     # collapse by quartile
     graph.data <- graph.data[ , .(ln_sales_tax.res = median(ln_sales_tax.res, na.rm = T), 
                     res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
@@ -223,7 +223,7 @@ for (Y in outcomes) {
                                   labels = 1:20, right = FALSE)]
     # collapse by quartile
     graph.data <- graph.data[ , .(ln_sales_tax.res = median(ln_sales_tax.res, na.rm = T), 
-                    res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
+                                  res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
     
     
     graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin, "no0change.png")
@@ -256,7 +256,7 @@ for (Y in outcomesFD) {
     # identify quantile (50)
     graph.data[ , quartile := cut(D.ln_sales_tax.res,
                                   breaks = quantile(D.ln_sales_tax.res, probs = seq(0, 1, by = 1/30), weights = base.sales, na.rm = T), 
-                                  labels = 1:50, right = FALSE)]
+                                  labels = 1:30, right = FALSE)]
     # collapse by quartile
     graph.data <- graph.data[ , .(D.ln_sales_tax.res = median(D.ln_sales_tax.res, na.rm = T), 
                     res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
