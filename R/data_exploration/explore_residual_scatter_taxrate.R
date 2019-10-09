@@ -208,7 +208,7 @@ for (Y in outcomes) {
                             labels = 1:50, right = FALSE)]
     # collapse by quartile
     graph.data[ , .(ln_sales_tax.res = median(ln_sales_tax.res, na.rm = T), 
-                    res = mean(res, weights = base.sales, na.rm = T)), by = .(quartile)]
+                    res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
 
     graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin,".png")
     ggplot(graph.data, aes(x = ln_sales_tax.res , y = res)) +
@@ -223,7 +223,7 @@ for (Y in outcomes) {
                                   labels = 1:50, right = FALSE)]
     # collapse by quartile
     graph.data[ , .(ln_sales_tax.res = median(ln_sales_tax.res, na.rm = T), 
-                    res = mean(res, weights = base.sales, na.rm = T)), by = .(quartile)]
+                    res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
     
     
     graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin, "no0change.png")
@@ -259,7 +259,7 @@ for (Y in outcomesFD) {
                                   labels = 1:50, right = FALSE)]
     # collapse by quartile
     graph.data[ , .(D.ln_sales_tax.res = median(D.ln_sales_tax.res, na.rm = T), 
-                    res = mean(res, weights = base.sales, na.rm = T)), by = .(quartile)]
+                    res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
     
     graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin,".png")
     ggplot(graph.data, aes(x = D.ln_sales_tax.res , y = res)) +
@@ -274,7 +274,7 @@ for (Y in outcomesFD) {
                                   labels = 1:50, right = FALSE)]
     # collapse by quartile
     graph.data[ , .(D.ln_sales_tax.res = median(D.ln_sales_tax.res, na.rm = T), 
-                    res = mean(res, weights = base.sales, na.rm = T)), by = .(quartile)]
+                    res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
     
     
     graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin, "no0change.png")
