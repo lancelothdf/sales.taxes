@@ -212,15 +212,15 @@ for (Y in outcomes) {
 
     graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin,".png")
     ggplot(graph.data, aes(x = ln_sales_tax.res , y = res)) +
-      geom_point() + labs(x = "(residualized) Delta Sales Tax in bin", y = paste0("(residualized) ", Y), color = NULL)
+      geom_point() + labs(x = "(residualized) Sales Tax in bin", y = paste0("(residualized) ", Y), color = NULL)
 
     ggsave(graphout)
 
     # Plot the residuals comming from non-0 changes
     graph.data <- all_pi[D.ln_sales_tax !=0 & init_tax_bin_m == bin,]
     graph.data[ , quartile := cut(ln_sales_tax.res,
-                                  breaks = quantile(ln_sales_tax.res, probs = seq(0, 1, by = 1/20), weights = base.sales, na.rm = T), 
-                                  labels = 1:20, right = FALSE)]
+                                  breaks = quantile(ln_sales_tax.res, probs = seq(0, 1, by = 1/15), weights = base.sales, na.rm = T), 
+                                  labels = 1:15, right = FALSE)]
     # collapse by quartile
     graph.data <- graph.data[ , .(ln_sales_tax.res = median(ln_sales_tax.res, na.rm = T), 
                                   res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
@@ -228,7 +228,7 @@ for (Y in outcomes) {
     
     graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin, "no0change.png")
     ggplot(graph.data, aes(x = ln_sales_tax.res , y = res)) +
-      geom_point() + labs(x = "(residualized) Delta Sales Tax in bin", y = paste0("(residualized) ", Y), color = NULL)
+      geom_point() + labs(x = "(residualized) Sales Tax in bin", y = paste0("(residualized) ", Y), color = NULL)
     ggsave(graphout)
 
 
@@ -270,8 +270,8 @@ for (Y in outcomesFD) {
     # Plot the residuals comming from non-0 changes
     graph.data <- all_pi[D.ln_sales_tax !=0 & init_tax_bin == bin,]
     graph.data[ , quartile := cut(D.ln_sales_tax.res,
-                                  breaks = quantile(D.ln_sales_tax.res, probs = seq(0, 1, by = 1/20), weights = base.sales, na.rm = T), 
-                                  labels = 1:20, right = FALSE)]
+                                  breaks = quantile(D.ln_sales_tax.res, probs = seq(0, 1, by = 1/15), weights = base.sales, na.rm = T), 
+                                  labels = 1:15, right = FALSE)]
     # collapse by quartile
     graph.data <- graph.data[ , .(D.ln_sales_tax.res = median(D.ln_sales_tax.res, na.rm = T),
                                   res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
