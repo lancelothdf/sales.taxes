@@ -198,16 +198,16 @@ for (Y in outcomes) {
   all_pi$res <- res1$residuals
 
   # Plot the residuals by bin
-  for (bin in unique(all_pi$init_tax_bin_m)) {
+  for (bin in order(unique(all_pi$init_tax_bin))) {
 
     ## Full residuals
     graph.data <- all_pi[init_tax_bin_m == bin,]
     # identify quantile (50)
     graph.data[ , quartile := cut(ln_sales_tax.res,
-                            breaks = quantile(ln_sales_tax.res, probs = seq(0, 1, by = 1/50), weights = base.sales, na.rm = T), 
+                            breaks = quantile(ln_sales_tax.res, probs = seq(0, 1, by = 1/30), weights = base.sales, na.rm = T), 
                             labels = 1:50, right = FALSE)]
     # collapse by quartile
-    graph.data[ , .(ln_sales_tax.res = median(ln_sales_tax.res, na.rm = T), 
+    graph.data <- graph.data[ , .(ln_sales_tax.res = median(ln_sales_tax.res, na.rm = T), 
                     res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
 
     graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin,".png")
@@ -222,7 +222,7 @@ for (Y in outcomes) {
                                   breaks = quantile(ln_sales_tax.res, probs = seq(0, 1, by = 1/20), weights = base.sales, na.rm = T), 
                                   labels = 1:20, right = FALSE)]
     # collapse by quartile
-    graph.data[ , .(ln_sales_tax.res = median(ln_sales_tax.res, na.rm = T), 
+    graph.data <- graph.data[ , .(ln_sales_tax.res = median(ln_sales_tax.res, na.rm = T), 
                     res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
     
     
@@ -249,16 +249,16 @@ for (Y in outcomesFD) {
   all_pi$res <- res1$residuals
 
   # Plot the residuals by bin
-  for (bin in unique(all_pi$init_tax_bin)) {
+  for (bin in order(unique(all_pi$init_tax_bin))) {
 
     ## Full residuals
     graph.data <- all_pi[init_tax_bin == bin,]
     # identify quantile (50)
     graph.data[ , quartile := cut(D.ln_sales_tax.res,
-                                  breaks = quantile(D.ln_sales_tax.res, probs = seq(0, 1, by = 1/50), weights = base.sales, na.rm = T), 
+                                  breaks = quantile(D.ln_sales_tax.res, probs = seq(0, 1, by = 1/30), weights = base.sales, na.rm = T), 
                                   labels = 1:50, right = FALSE)]
     # collapse by quartile
-    graph.data[ , .(D.ln_sales_tax.res = median(D.ln_sales_tax.res, na.rm = T), 
+    graph.data <- graph.data[ , .(D.ln_sales_tax.res = median(D.ln_sales_tax.res, na.rm = T), 
                     res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
     
     graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin,".png")
@@ -273,8 +273,8 @@ for (Y in outcomesFD) {
                                   breaks = quantile(D.ln_sales_tax.res, probs = seq(0, 1, by = 1/20), weights = base.sales, na.rm = T), 
                                   labels = 1:20, right = FALSE)]
     # collapse by quartile
-    graph.data[ , .(D.ln_sales_tax.res = median(D.ln_sales_tax.res, na.rm = T), 
-                    res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
+    graph.data <- graph.data[ , .(D.ln_sales_tax.res = median(D.ln_sales_tax.res, na.rm = T),
+                                  res = weighted.mean(res, w = base.sales, na.rm = T)), by = .(quartile)]
     
     
     graphout <- paste0(output.path, "/res by bin scatter/res_",Y, "_bin", bin, "no0change.png")
