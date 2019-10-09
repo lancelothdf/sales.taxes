@@ -198,7 +198,7 @@ for (Y in outcomes) {
   all_pi$res <- res1$residuals
 
   # Plot the residuals by bin
-  for (bin in order(unique(all_pi$init_tax_bin))) {
+  for (bin in sort(unique(all_pi$init_tax_bin))) {
 
     ## Full residuals
     graph.data <- all_pi[init_tax_bin_m == bin,]
@@ -249,7 +249,7 @@ for (Y in outcomesFD) {
   all_pi$res <- res1$residuals
 
   # Plot the residuals by bin
-  for (bin in order(unique(all_pi$init_tax_bin))) {
+  for (bin in sort(-unique(all_pi$init_tax_bin))) {
 
     ## Full residuals
     graph.data <- all_pi[init_tax_bin == bin,]
