@@ -6,6 +6,8 @@
 #' the full support
 #' In this case the standard errors must be adjusted to the fact they are not taking into accout the FE.
 
+## This is a Robustness (2) to main specification: 10/17/19
+
 
 library(data.table)
 library(futile.logger)
@@ -38,12 +40,11 @@ all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax), by = .(store_by_mo
 all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2), by = .(store_by_module)]
 all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3), by = .(store_by_module)]
 
+# Create lagged value (initial)
+all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
 
 # Create interaction term 
-all_pi[, w.ln_sales_tax_init := w.ln_sales_tax*mean(ln_sales_tax), by = .(store_by_module)]
-
-#Create mean value
-all_pi[, m.ln_sales_tax := mean(ln_sales_tax), by = .(store_by_module)]
+all_pi[, w.ln_sales_tax_init := w.ln_sales_tax*L.ln_sales_tax]
 
 # setup
 outcomes <- c("w.ln_cpricei2", "w.ln_quantity3")
@@ -53,11 +54,11 @@ RHS <- "w.ln_sales_tax + w.ln_sales_tax_init"
 
 ## For predicted values
 # Discretize taxrate: relevant support
-all_pi[, ln_sales_tax_r := ifelse(D.ln_sales_tax == 0, NA, ln_sales_tax)]
+all_pi[, ln_sales_tax_r := ifelse(D.ln_sales_tax == 0, NA, L.ln_sales_tax)]
 tax_values <-seq(quantile(all_pi$ln_sales_tax_r, probs = 0.05, na.rm = T, weight=all_pi$base.sales),
                  quantile(all_pi$ln_sales_tax_r, probs = 0.95, na.rm = T, weight=all_pi$base.sales),
                  length.out = 15)
-tax_values <-seq(min(all_pi$ln_sales_tax, na.rm = T), max(all_pi$ln_sales_tax, na.rm = T), length.out = 15)
+# tax_values <-seq(min(all_pi$ln_sales_tax, na.rm = T), max(all_pi$ln_sales_tax, na.rm = T), length.out = 15)
 # The value of 0 is problematic: replace it for a very small value
 if (tax_values[1] == 0) tax_values[1] <- 0.001
 # average tax changes (from positive changes)
@@ -71,7 +72,7 @@ knots_out <- data.table(NULL)
 # K is the number of knots
 # n is the polynomial degree of spline
 for (k in 3:10) {
-  knots <- (max(all_pi$m.ln_sales_tax) - min(all_pi$m.ln_sales_tax))* (1:k) / (k+1)
+  knots <- (max(all_pi$L.ln_sales_tax) - min(all_pi$L.ln_sales_tax))* (1:k) / (k+1)
   knots_out <- cbind(data.table(knots), knots_out)
   fwrite(knots_out, output.knots.file)
   
@@ -81,7 +82,7 @@ for (k in 3:10) {
     # First create power
     if (n > 1) {
       # First create power
-      all_pi[, paste0("w.ln_sales_tax_init_",n) := w.ln_sales_tax*(mean(ln_sales_tax)^(n)), by = .(store_by_module)]
+      all_pi[, paste0("w.ln_sales_tax_init_",n) := w.ln_sales_tax*(L.ln_sales_tax^(n))]
       # Add to formula
       RHS <- paste(RHS, paste0(paste0("w.ln_sales_tax_init_",2:n), collapse = " + "), sep = " + ")
 
@@ -89,7 +90,7 @@ for (k in 3:10) {
     # Second create truncated function
     d <-1
     for (ep in knots) {
-      all_pi[, paste0("w.ln_sales_tax_init_k",d) := (m.ln_sales_tax > ep)*w.ln_sales_tax*(m.ln_sales_tax - ep)^(n)]
+      all_pi[, paste0("w.ln_sales_tax_init_k",d) := (L.ln_sales_tax > ep)*w.ln_sales_tax*(L.ln_sales_tax - ep)^(n)]
       d <- d+1
     }
     
