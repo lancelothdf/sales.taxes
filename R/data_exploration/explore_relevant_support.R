@@ -68,7 +68,7 @@ hist <- ggplot(data=all_pi, aes(L.ln_sales_tax_r, weight = base.sales)) +
 report <- data.table(NULL)
 percentiles <- c(1, 5, 10, 20, 25, 40, 60, 75, 80, 90, 95, 99)
 percentiles <- percentiles/100
-report <- data.table(quantile(all_pi$ln_sales_tax_r, probs = percentiles, na.rm = T, weight=all_pi$base.sales), 
+report <- data.table(quantile(all_pi$L.ln_sales_tax_r, probs = percentiles, na.rm = T, weight=all_pi$base.sales), 
                      percentiles)
 
 report.out <- paste0(output.path,"/quantiles_pos_change_lag.csv")
