@@ -54,10 +54,10 @@ all_pi[, w.ln_sales_tax_init := w.ln_sales_tax*L.ln_sales_tax]
 ############ Winsorizing ----------------
 
 ## Method 1. cut in between 5th and 95th percentiles of the (weighted) distribution 
-all_pi[, w.ln_cpricei2_3 := ifelse(ln_cpricei2 < quantile(ln_cpricei2, probs = 0.05, weights = base.sales) |  
+all_pi[, w.ln_cpricei2_1 := ifelse(ln_cpricei2 < quantile(ln_cpricei2, probs = 0.05, weights = base.sales) |  
                                      ln_cpricei2 > quantile(ln_cpricei2, probs = 0.95, weights = base.sales), NA, w.ln_cpricei2)]
 
-all_pi[, w.ln_quantity3_3 := ifelse(ln_quantity3 < quantile(ln_quantity3, probs = 0.05, weights = base.sales) |  
+all_pi[, w.ln_quantity3_1 := ifelse(ln_quantity3 < quantile(ln_quantity3, probs = 0.05, weights = base.sales) |  
                                       ln_quantity3 > quantile(ln_quantity3, probs = 0.95, weights = base.sales), NA, w.ln_quantity3)]
 
 
