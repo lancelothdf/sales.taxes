@@ -34,7 +34,7 @@ all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
 graphout <- paste0(output.path,"/full_hist.png")
 hist <- ggplot(data=all_pi, aes(ln_sales_tax, weight = base.sales)) + 
   geom_histogram(aes(y=..count../sum(..count..))) +    
-  theme_bw() +
+  theme_bw(base_size = 24) +
   labs(x = "Sales Tax", y = "Fraction", color = NULL) +
   ggsave(graphout)
 
@@ -43,7 +43,7 @@ all_pi[, ln_sales_tax_r := ifelse(D.ln_sales_tax == 0, NA, ln_sales_tax)]
 graphout <- paste0(output.path,"/pos_changes_hist.png")
 hist <- ggplot(data=all_pi, aes(ln_sales_tax_r, weight = base.sales)) + 
   geom_histogram(aes(y=..count../sum(..count..))) +    
-  theme_bw() +
+  theme_bw(base_size = 24) +
   labs(x = "Sales Tax", y = "Fraction", color = NULL) +
   ggsave(graphout)
 # Distribution report
@@ -61,7 +61,7 @@ all_pi[, L.ln_sales_tax_r := ifelse(D.ln_sales_tax == 0, NA, L.ln_sales_tax)]
 graphout <- paste0(output.path,"/pos_changes_lag_hist.png")
 hist <- ggplot(data=all_pi, aes(L.ln_sales_tax_r, weight = base.sales)) + 
   geom_histogram(aes(y=..count../sum(..count..))) +    
-  theme_bw() +
+  theme_bw(base_size = 24) +
   labs(x = "Sales Tax", y = "Fraction", color = NULL) +
   ggsave(graphout)
 # Distribution report
