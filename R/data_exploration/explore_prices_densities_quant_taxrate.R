@@ -1,5 +1,6 @@
 #' Compute de-meaned price distributions at different quantiles of the sales tax (for which you observe positive tax changes)
 
+library(tidyverse)
 library(data.table)
 library(futile.logger)
 library(lfe)
@@ -40,7 +41,7 @@ all_pi <- all_pi[!is.na(quantile)]
 
 quantlab <- as.character(round(quantile(all_pi$L.ln_sales_tax, 
                                   probs = seq(0, 1, by = 1/5), na.rm = T, 
-                                  weight = all_pi$base.sales)[-6]), digits = 4)
+                                  weight = all_pi$base.sales)[-6], digits = 4))
 ##### Plot the kernel densities --------------------------
 graphout <- paste0(output.path,"/norm_prices_by_quant_salestax.png")
 
