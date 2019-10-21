@@ -218,11 +218,11 @@ for (n in 2:3) {
         }
         # Create data
         coef.dt <- data.table(tax_values, pred_b, pred_se)
-        out.pred.file <- paste0(output.path,"/D standard tolev control/predict", Y, "_", n,"_", FE,".csv")
+        out.pred.file <- paste0(output.path,"/D standard tolev control/predict", Y, "_", n,"_", FE, "_con", k, ".csv")
         fwrite(coef.dt, out.pred.file)
         
         # Output file
-        graphout <- paste0(output.path,"/D standard tolev control/", Y, "_", n,"_", FE, ".png")
+        graphout <- paste0(output.path,"/D standard tolev control/", Y, "_", n,"_", FE, "_con", k, ".png")
         # Plot
         ggplot(data = coef.dt, mapping = aes(x = tax_values, y = pred_b)) +
           geom_point(size = 2, alpha = .5) +
