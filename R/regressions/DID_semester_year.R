@@ -26,6 +26,8 @@ all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax), by = .(store_by_mo
 all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2), by = .(store_by_module)]
 all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3), by = .(store_by_module)]
 
+# Create lagged value (initial)
+all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
 
 outcomes.changes <- c("D.ln_cpricei2", "D.ln_quantity3")
 outcomes.levels <- c("ln_cpricei2", "ln_quantity3")
@@ -54,6 +56,7 @@ for (Y in c(outcomes.levels)) {
     res1.dt[, controls := FE]
     res1.dt[, window := "semester"]
     res1.dt[, spec := "levels"]
+    res1.dt[, control := "no"]
     # Add summary values
     res1.dt[, Rsq := summary(res1)$r.squared]
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
@@ -66,6 +69,48 @@ for (Y in c(outcomes.levels)) {
                                                          "product_module_code"))]
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
+    
+    ## Add control of the lagged value of the tax rate
+    RHS <- "ln_sales_tax"
+    for (k in 1:3) {
+      
+      # First create power
+      all_pi[, paste0("L.ln_sales_tax_",n) := (L.ln_sales_tax^(n))]
+      # Add to formula
+      RHS <- paste(RHS, paste0("L.ln_sales_tax_",n), sep = " + ")
+      
+      formula1 <- as.formula(paste0(
+        Y, "~", RHS, "| store_by_module +", FE, " | 0 | module_by_state"
+      ))
+      flog.info("Estimating with %s as outcome with %s FE with control k = %s.", Y, FE, k)
+      res1 <- felm(formula = formula1, data = all_pi,
+                   weights = all_pi$base.sales)
+      flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
+      
+      
+      ## attach results
+      flog.info("Writing results...")
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, outcome := Y]
+      res1.dt[, controls := FE]
+      res1.dt[, window := "semester"]
+      res1.dt[, spec := "levels"]
+      res1.dt[, control := paste0("lag pol. k = ", k)]
+      # Add summary values
+      res1.dt[, Rsq := summary(res1)$r.squared]
+      res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
+      res1.dt[, N_obs := nrow(all_pi)]
+      res1.dt[, N_modules := length(unique(all_pi$product_module_code))]
+      res1.dt[, N_stores :=  length(unique(all_pi$store_code_uc))]
+      res1.dt[, N_counties := uniqueN(all_pi, by = c("fips_state", "fips_county"))]
+      res1.dt[, N_years := uniqueN(all_pi, by = c("year"))]
+      res1.dt[, N_county_modules := uniqueN(all_pi, by = c("fips_state", "fips_county",
+                                                           "product_module_code"))]
+      LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+      fwrite(LRdiff_res, output.results.file)
+      
+    }
+    
     
   }
 }
@@ -92,6 +137,7 @@ for (Y in c(outcomes.changes)) {
     res1.dt[, controls := FE]
     res1.dt[, window := "semester"]
     res1.dt[, spec := "changes"]
+    res1.dt[, control := "no"]
     # Add summary values
     res1.dt[, Rsq := summary(res1)$r.squared]
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
@@ -104,6 +150,48 @@ for (Y in c(outcomes.changes)) {
                                                          "product_module_code"))]
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
+    
+    ## Add control of the lagged value of the tax rate
+    RHS <- "D.ln_sales_tax"
+    for (k in 1:3) {
+      
+      # First create power
+      all_pi[, paste0("L.ln_sales_tax_",n) := (L.ln_sales_tax^(n))]
+      # Add to formula
+      RHS <- paste(RHS, paste0("L.ln_sales_tax_",n), sep = " + ")
+      
+      formula1 <- as.formula(paste0(
+        Y, "~", RHS, "| store_by_module +", FE, " | 0 | module_by_state"
+      ))
+      flog.info("Estimating with %s as outcome with %s FE with control k = %s.", Y, FE, k)
+      res1 <- felm(formula = formula1, data = all_pi,
+                   weights = all_pi$base.sales)
+      flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
+      
+      
+      ## attach results
+      flog.info("Writing results...")
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, outcome := Y]
+      res1.dt[, controls := FE]
+      res1.dt[, window := "semester"]
+      res1.dt[, spec := "changes"]
+      res1.dt[, control := paste0("lag pol. k = ", k)]
+      # Add summary values
+      res1.dt[, Rsq := summary(res1)$r.squared]
+      res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
+      res1.dt[, N_obs := nrow(all_pi)]
+      res1.dt[, N_modules := length(unique(all_pi$product_module_code))]
+      res1.dt[, N_stores :=  length(unique(all_pi$store_code_uc))]
+      res1.dt[, N_counties := uniqueN(all_pi, by = c("fips_state", "fips_county"))]
+      res1.dt[, N_years := uniqueN(all_pi, by = c("year"))]
+      res1.dt[, N_county_modules := uniqueN(all_pi, by = c("fips_state", "fips_county",
+                                                           "product_module_code"))]
+      LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+      fwrite(LRdiff_res, output.results.file)
+      
+    }
+    
     
   }
 }
