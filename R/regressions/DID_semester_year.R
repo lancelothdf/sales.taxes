@@ -75,9 +75,9 @@ for (Y in c(outcomes.levels)) {
     for (k in 1:3) {
       
       # First create power
-      all_pi[, paste0("L.ln_sales_tax_",n) := (L.ln_sales_tax^(n))]
+      all_pi[, paste0("L.ln_sales_tax_",k) := (L.ln_sales_tax^(k))]
       # Add to formula
-      RHS <- paste(RHS, paste0("L.ln_sales_tax_",n), sep = " + ")
+      RHS <- paste(RHS, paste0("L.ln_sales_tax_",k), sep = " + ")
       
       formula1 <- as.formula(paste0(
         Y, "~", RHS, "| store_by_module +", FE, " | 0 | module_by_state"
@@ -156,9 +156,9 @@ for (Y in c(outcomes.changes)) {
     for (k in 1:3) {
       
       # First create power
-      all_pi[, paste0("L.ln_sales_tax_",n) := (L.ln_sales_tax^(n))]
+      all_pi[, paste0("L.ln_sales_tax_",k) := (L.ln_sales_tax^(k))]
       # Add to formula
-      RHS <- paste(RHS, paste0("L.ln_sales_tax_",n), sep = " + ")
+      RHS <- paste(RHS, paste0("L.ln_sales_tax_",k), sep = " + ")
       
       formula1 <- as.formula(paste0(
         Y, "~", RHS, "| store_by_module +", FE, " | 0 | module_by_state"
