@@ -161,7 +161,7 @@ for (Y in c(outcomes.changes)) {
       RHS <- paste(RHS, paste0("L.ln_sales_tax_",k), sep = " + ")
       
       formula1 <- as.formula(paste0(
-        Y, "~", RHS, "| store_by_module +", FE, " | 0 | module_by_state"
+        Y, "~", RHS, "| ", FE, " | 0 | module_by_state"
       ))
       flog.info("Estimating with %s as outcome with %s FE with control k = %s.", Y, FE, k)
       res1 <- felm(formula = formula1, data = all_pi,
