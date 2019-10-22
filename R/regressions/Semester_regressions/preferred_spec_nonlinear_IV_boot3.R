@@ -138,7 +138,7 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtax, FE_opts, weights
           # Can't Add directly: have to add if is taken into account
           d <-1
           for (ep in knots) {
-            if ((tax_values[i]) > ep) {
+            if ((prediction[i]) > ep) {
               plc.formula1pk <- paste0(plc.formula1pk, "+", paste0(((prediction[i]) - ep)^(pol.degree), "*tau_k",d))
             }
             d <- d+1
@@ -167,7 +167,7 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtax, FE_opts, weights
           # Can't Add directly: have to add if is taken into account
           d <-1
           for (ep in knots) {
-            if ((tax_values[i]) > ep) {
+            if ((prediction[i]) > ep) {
               plc.formula1pk <- paste0(plc.formula1pk, "+", paste0(((prediction[i]) - ep)^(pol.degree), "*tau_k",d))
             }
             d <- d+1
@@ -224,17 +224,20 @@ tax_values <-seq(quantile(all_pi$ln_sales_tax_r, probs = 0.05, na.rm = T, weight
 #                  pol.degree = 3,
 #                  boot.run = F)
 # fwrite(t, "../../home/slacouture/NLP/beta_IV/try_IVest.csv")
-# t <- estimate.iv(data = all_pi,
-#                  quantity = "w.ln_quantity3", 
-#                  price = "w.ln_cpricei2", 
-#                  taxrate = "w.ln_sales_tax",
-#                  lagtax = "L.ln_sales_tax", 
-#                  FE_opts = FE_opts,
-#                  weights = "base.sales", 
-#                  prediction = tax_values, 
-#                  nonlinear = "polynomial", 
-#                  pol.degree = 3)
-# fwrite(t, "../../home/slacouture/NLP/beta_IV/try_IVest_out.csv")
+knots <- (max(all_pi$L.ln_sales_tax) - min(all_pi$L.ln_sales_tax))* (1:5) / (5+1)
+t <- estimate.iv(data = all_pi,
+                 quantity = "w.ln_quantity3",
+                 price = "w.ln_cpricei2",
+                 taxrate = "w.ln_sales_tax",
+                 lagtax = "L.ln_sales_tax",
+                 FE_opts = FE_opts,
+                 weights = "base.sales",
+                 prediction = tax_values,
+                 nonlinear = "splines",
+                 pol.degree = 2,
+                 knots = knots,
+                 boot.run = F)
+fwrite(t, "../../home/slacouture/NLP/beta_IV/try_IVest_2.csv")
 
 
 
