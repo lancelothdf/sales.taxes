@@ -65,7 +65,7 @@ ggsave(graphout)
 #### Plot the CDF of the kernel densities -------------------
 
 # Split the data by group and calculate the smoothed cumulative density for each group
-require(scales)
+option( scipen = 10 )
 dens = split(all_pi, all_pi$quantile) %>% 
   map_df(function(d) {
     dens = density(d$n.ln_cpricei2, from=-1, to=1)
@@ -78,7 +78,7 @@ ggplot() +
   theme_classic(base_size = 22) +
   labs(x = "Normalized (log) Price (mod x t)", y = "Cumulative K-Density", 
        title = "CDF by Sales Taxes Quantiles")+
-  scale_x_continuous(limits = c(-0.3,0.3), breaks = seq(-0.3, 0.3, 0.1), labels = point) +
+  scale_x_continuous(limits = c(-0.3,0.3), breaks = seq(-0.3, 0.3, 0.1)) +
   scale_color_discrete(name = "Tax levels", labels = quantlab)
 
 ggsave(graphout)
