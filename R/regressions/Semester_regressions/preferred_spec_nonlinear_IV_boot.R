@@ -46,6 +46,10 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtaxrate, FE_opts, wei
     RHS <- as.character(taxrate)
     
     data[, (paste0("tau_",1:pol.degree)) := get(taxrate)*(get(lagtaxrate)^(1:pol.degree))]
+    a <- paste0(taxrate, "*",paste0(lagtaxrate, "^", 1:pol.degree ))
+    flog.info("Created %s", a)
+    
+    
     # Add to formula
     RHS <- paste(RHS, paste0("tau_",1:pol.degree, collapse = " + "), sep = " + ")
     for (FE in FE_opts) {
@@ -54,7 +58,7 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtaxrate, FE_opts, wei
       formula1 <- as.formula(paste0(
         price, "~", RHS ," | ", FE, " | 0 | module_by_state"
       ))
-      flog.info("Estimating %s", formula1)
+      flog.info("Estimating %s", RHS)
       res1 <- felm(formula = formula1, data = data,
                    weights = data[, get(weights)])
 
@@ -72,7 +76,7 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtaxrate, FE_opts, wei
       formula1 <- as.formula(paste0(
         quantity, "~", RHS ," | ", FE, " | 0 | module_by_state"
       ))
-      flog.info("Estimating %s", formula1)
+      flog.info("Estimating %s", RHS)
       res1 <- felm(formula = formula1, data = data,
                    weights = data[, get(weights)])
 
@@ -98,7 +102,7 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtaxrate, FE_opts, wei
       return("You must specify a number of knots higher than 3")
     } else {
       RHS <- as.character(taxrate)
-      
+
       data[, (paste0("tau_",1:pol.degree)) := get(taxrate)*(get(lagtaxrate)^(1:pol.degree))]
       # Add to formula
       RHS <- paste(RHS, paste0("tau_",1:pol.degree, collapse = " + "), sep = " + ")
@@ -117,7 +121,7 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtaxrate, FE_opts, wei
         formula1 <- as.formula(paste0(
           price, "~", RHS ," | ", FE, " | 0 | module_by_state"
         ))
-        flog.info("Estimating %s", formula1)
+        flog.info("Estimating %s", RHS)
         res1 <- felm(formula = formula1, data = data,
                      weights = data[, get(weights)])
   
@@ -147,7 +151,7 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtaxrate, FE_opts, wei
         formula1 <- as.formula(paste0(
           quantity, "~", RHS ," | ", FE, " | 0 | module_by_state"
         ))
-        flog.info("Estimating %s", formula1)
+        flog.info("Estimating %s", RHS)
         res1 <- felm(formula = formula1, data = data,
                      weights = data[, get(weights)])
         
