@@ -78,7 +78,7 @@ ggplot() +
   theme_classic(base_size = 22) +
   labs(x = "Normalized (log) Price (mod x t)", y = "Cumulative K-Density", 
        title = "CDF by Sales Taxes Quantiles")+
-  scale_x_continuous(limits = c(-0.3,0.3), breaks = seq(-0.3, 0.3, 0.1), labels = comma) +
+  scale_x_continuous(limits = c(-0.3,0.3), breaks = seq(-0.3, 0.3, 0.1), labels = point) +
   scale_color_discrete(name = "Tax levels", labels = quantlab)
 
 ggsave(graphout)
