@@ -125,7 +125,7 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtaxrate, FE_opts, wei
         pred_b_p <- rep(0,length(prediction))
         for (i in 1:length(prediction)) {
           
-          plc.formula1pk <- paste0(paste0(paste0((tax_values[i]),"^",1:n), "*tau_",1:n), collapse = " + ")
+          plc.formula1pk <- paste0(paste0(paste0((tax_values[i]),"^",1:pol.degree), "*tau_",1:pol.degree), collapse = " + ")
            
           # Can't Add directly: have to add if is taken into account
           d <-1
@@ -155,13 +155,13 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtaxrate, FE_opts, wei
         pred_b_q <- rep(0,length(prediction))
         for (i in 1:length(prediction)) {
           
-          plc.formula1pk <- paste0(paste0(paste0((tax_values[i]),"^",1:n), "*tau_",1:n), collapse = " + ")
+          plc.formula1pk <- paste0(paste0(paste0((tax_values[i]),"^",1:pol.degree), "*tau_",1:pol.degree), collapse = " + ")
           
           # Can't Add directly: have to add if is taken into account
           d <-1
           for (ep in knots) {
             if ((tax_values[i]) > ep) {
-              plc.formula1pk <- paste0(plc.formula1pk, "+", paste0(((tax_values[i]) - ep)^(n), "*tau_k",d))
+              plc.formula1pk <- paste0(plc.formula1pk, "+", paste0(((tax_values[i]) - ep)^(pol.degree), "*tau_k",d))
             }
             d <- d+1
           }
