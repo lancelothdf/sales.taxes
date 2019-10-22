@@ -112,10 +112,10 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtax, FE_opts, weights
       # Add to formula
       RHS <- paste(RHS, paste0("tau_",1:pol.degree, collapse = " + "), sep = " + ")
       # Second create truncated function
-      d <-1
+      d <-0
       for (ep in knots) {
-        all_pi[, paste0("tau_k",d) := (get(lagtax) > ep)*get(taxrate)*(get(lagtax) - ep)^(pol.degree)]
         d <- d+1
+        all_pi[, paste0("tau_k",d) := (get(lagtax) > ep)*get(taxrate)*(get(lagtax) - ep)^(pol.degree)]
       }
       # Add trunctaed terms to formula
       RHS <- paste(RHS, paste0(paste0("tau_k",1:d), collapse = " + "), sep = " + ")
@@ -136,12 +136,12 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtax, FE_opts, weights
           plc.formula1pk <- paste0(paste0(paste0((prediction[i]),"^",1:pol.degree), "*tau_",1:pol.degree), collapse = " + ")
            
           # Can't Add directly: have to add if is taken into account
-          d <-1
+          d <-0
           for (ep in knots) {
+            d <- d+1
             if ((prediction[i]) > ep) {
               plc.formula1pk <- paste0(plc.formula1pk, "+", paste0(((prediction[i]) - ep)^(pol.degree), "*tau_k",d))
             }
-            d <- d+1
           }
           plc.formula1 <- paste0(taxrate, " + ", plc.formula1pk, " = 0")
           
@@ -165,12 +165,12 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtax, FE_opts, weights
           plc.formula1pk <- paste0(paste0(paste0((prediction[i]),"^",1:pol.degree), "*tau_",1:pol.degree), collapse = " + ")
           
           # Can't Add directly: have to add if is taken into account
-          d <-1
+          d <-0
           for (ep in knots) {
+            d <- d+1
             if ((prediction[i]) > ep) {
               plc.formula1pk <- paste0(plc.formula1pk, "+", paste0(((prediction[i]) - ep)^(pol.degree), "*tau_k",d))
             }
-            d <- d+1
           }
           plc.formula1 <- paste0(taxrate, " + ", plc.formula1pk, " = 0")
           
