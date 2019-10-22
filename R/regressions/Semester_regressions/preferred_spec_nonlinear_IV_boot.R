@@ -45,11 +45,8 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtax, FE_opts, weights
   if (nonlinear == "polynomial") {
     RHS <- as.character(taxrate)
     
-    data[, (paste0("tau_",1:pol.degree)) := get(taxrate)*(get(lagtax)^(1:pol.degree))]
-    a <- paste0(taxrate, "*",paste0(lagtax, "^", 1:pol.degree ))
-    flog.info("Created %s", a)
-    
-    
+    data[, (paste0("tau_",1:pol.degree)) := get(taxrate)*(get(lagtax)^(1:(pol.degree)))]
+
     # Add to formula
     RHS <- paste(RHS, paste0("tau_",1:pol.degree, collapse = " + "), sep = " + ")
     for (FE in FE_opts) {
@@ -103,7 +100,7 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtax, FE_opts, weights
     } else {
       RHS <- as.character(taxrate)
 
-      data[, (paste0("tau_",1:pol.degree)) := get(taxrate)*(get(lagtax)^(1:pol.degree))]
+      data[, (paste0("tau_",1:pol.degree)) := get(taxrate)*(get(lagtax)^(1:(pol.degree)))]
       # Add to formula
       RHS <- paste(RHS, paste0("tau_",1:pol.degree, collapse = " + "), sep = " + ")
       # Second create truncated function
@@ -135,7 +132,7 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtax, FE_opts, weights
           d <-1
           for (ep in knots) {
             if ((tax_values[i]) > ep) {
-              plc.formula1pk <- paste0(plc.formula1pk, "+", paste0(((prediction[i]) - ep)^(n), "*tau_k",d))
+              plc.formula1pk <- paste0(plc.formula1pk, "+", paste0(((prediction[i]) - ep)^(pol.degree), "*tau_k",d))
             }
             d <- d+1
           }
