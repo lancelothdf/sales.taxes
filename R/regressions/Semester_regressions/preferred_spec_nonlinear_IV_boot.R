@@ -45,7 +45,11 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtax, FE_opts, weights
   if (nonlinear == "polynomial") {
     RHS <- as.character(taxrate)
     
-    data[, (paste0("tau_",1:pol.degree)) := get(taxrate)*(get(lagtax)^(1:(pol.degree)))]
+    for (n in 1:pol.degree) {
+      
+      data[, (paste0("tau_",n)) := get(taxrate)*(get(lagtax)^(n))]
+      
+    }
 
     # Add to formula
     RHS <- paste(RHS, paste0("tau_",1:pol.degree, collapse = " + "), sep = " + ")
@@ -100,7 +104,11 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtax, FE_opts, weights
     } else {
       RHS <- as.character(taxrate)
 
-      data[, (paste0("tau_",1:pol.degree)) := get(taxrate)*(get(lagtax)^(1:(pol.degree)))]
+      for (n in 1:pol.degree) {
+        
+        data[, (paste0("tau_",n)) := get(taxrate)*(get(lagtax)^(n))]
+        
+      }
       # Add to formula
       RHS <- paste(RHS, paste0("tau_",1:pol.degree, collapse = " + "), sep = " + ")
       # Second create truncated function
