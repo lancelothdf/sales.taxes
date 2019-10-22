@@ -65,7 +65,7 @@ ggsave(graphout)
 #### Plot the CDF of the kernel densities -------------------
 
 # Split the data by group and calculate the smoothed cumulative density for each group
-options( scipen = 10 )
+options( scipen = 1000 )
 dens = split(all_pi, all_pi$quantile) %>% 
   map_df(function(d) {
     dens = density(d$n.ln_cpricei2, from=-1, to=1)
