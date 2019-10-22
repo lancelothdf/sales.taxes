@@ -34,12 +34,15 @@ all_pi <- all_pi[D.ln_sales_tax != 0, ]
 # Add quantile of L.ln_sales_tax column
 # First lagged value (initial)
 all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
+## Will plot the cdfs using the relevant support
+all_pi[, ln_sales_tax_r := ifelse(D.ln_sales_tax == 0, NA, L.ln_sales_tax)]
+
 all_pi <- all_pi[!is.na(L.ln_sales_tax)][, quantile := cut(L.ln_sales_tax,
-                                                         breaks = quantile(L.ln_sales_tax, probs = seq(0, 1, by = 1/5), na.rm = T, weight = base.sales),
+                                                         breaks = quantile(ln_sales_tax_r, probs = seq(0, 1, by = 1/5), na.rm = T, weight = base.sales),
                                                          labels = 1:5, right = FALSE)]
 all_pi <- all_pi[!is.na(quantile)]
 
-quantlab <- as.character(round(quantile(all_pi$L.ln_sales_tax, 
+quantlab <- as.character(round(quantile(all_pi$ln_sales_tax_r, 
                                   probs = seq(0, 1, by = 1/5), na.rm = T, 
                                   weight = all_pi$base.sales)[-6], digits = 4))
 ##### Plot the kernel densities --------------------------
@@ -66,7 +69,7 @@ dens = split(all_pi, all_pi$quantile) %>%
 graphout <- paste0(output.path,"/norm_prices_by_quant_salestax_cdf.png")
 ggplot() +
   geom_line(data=dens, aes(x, cd, colour=group)) +
-  theme_classic() +
+  theme_classic(size = 24) +
   labs(x = "Normalized (log) Price (mod x t)", y = "Cumulative K-Density", 
        title = "CDF by Sales Taxes Quantiles")+
   scale_x_continuous(limits = c(-0.3,0.3), breaks = seq(-0.3, 0.3, 0.1)) +
