@@ -69,7 +69,7 @@ dens = split(all_pi, all_pi$quantile) %>%
 graphout <- paste0(output.path,"/norm_prices_by_quant_salestax_cdf.png")
 ggplot() +
   geom_line(data=dens, aes(x, cd, colour=group)) +
-  theme_classic(size = 24) +
+  theme_classic(base_size = 24) +
   labs(x = "Normalized (log) Price (mod x t)", y = "Cumulative K-Density", 
        title = "CDF by Sales Taxes Quantiles")+
   scale_x_continuous(limits = c(-0.3,0.3), breaks = seq(-0.3, 0.3, 0.1)) +
