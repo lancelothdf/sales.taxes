@@ -54,7 +54,7 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtaxrate, FE_opts, wei
       formula1 <- as.formula(paste0(
         price, "~", RHS ," | ", FE, " | 0 | module_by_state"
       ))
-      flog.info("Estimating price with %s FE.", FE)
+      flog.info("Estimating %s", formula1)
       res1 <- felm(formula = formula1, data = data,
                    weights = data[, get(weights)])
 
@@ -72,7 +72,7 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtaxrate, FE_opts, wei
       formula1 <- as.formula(paste0(
         quantity, "~", RHS ," | ", FE, " | 0 | module_by_state"
       ))
-      flog.info("Estimating price with %s FE.", FE)
+      flog.info("Estimating %s", formula1)
       res1 <- felm(formula = formula1, data = data,
                    weights = data[, get(weights)])
 
@@ -117,7 +117,7 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtaxrate, FE_opts, wei
         formula1 <- as.formula(paste0(
           price, "~", RHS ," | ", FE, " | 0 | module_by_state"
         ))
-        flog.info("Estimating price with %s FE.", FE)
+        flog.info("Estimating %s", formula1)
         res1 <- felm(formula = formula1, data = data,
                      weights = data[, get(weights)])
   
@@ -147,7 +147,7 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtaxrate, FE_opts, wei
         formula1 <- as.formula(paste0(
           quantity, "~", RHS ," | ", FE, " | 0 | module_by_state"
         ))
-        flog.info("Estimating quantity with %s FE.", FE)
+        flog.info("Estimating %s", formula1)
         res1 <- felm(formula = formula1, data = data,
                      weights = data[, get(weights)])
         

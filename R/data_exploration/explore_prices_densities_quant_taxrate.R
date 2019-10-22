@@ -37,6 +37,11 @@ all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
 ## Will plot the cdfs using the relevant support
 all_pi[, ln_sales_tax_r := ifelse(D.ln_sales_tax == 0, NA, L.ln_sales_tax)]
 
+# Cut in the relevant support
+all_pi[, ln_sales_tax_r := ifelse(ln_sales_tax_r < quantile(ln_sales_tax_r, probs = 0.05, na.rm = T, weight=base.sales) |
+                                    ln_sales_tax_r > quantile(ln_sales_tax_r, probs = 0.95, na.rm = T, weight=base.sales)
+                                  , NA, L.ln_sales_tax)]
+
 all_pi <- all_pi[!is.na(L.ln_sales_tax)][, quantile := cut(L.ln_sales_tax,
                                                          breaks = quantile(ln_sales_tax_r, probs = seq(0, 1, by = 1/5), na.rm = T, weight = base.sales),
                                                          labels = 1:5, right = FALSE)]
@@ -44,7 +49,7 @@ all_pi <- all_pi[!is.na(quantile)]
 
 quantlab <- as.character(round(quantile(all_pi$ln_sales_tax_r, 
                                   probs = seq(0, 1, by = 1/5), na.rm = T, 
-                                  weight = all_pi$base.sales)[-6], digits = 4))
+                                  weight = all_pi$base.sales)[-(6)], digits = 4))
 ##### Plot the kernel densities --------------------------
 graphout <- paste0(output.path,"/norm_prices_by_quant_salestax.png")
 
