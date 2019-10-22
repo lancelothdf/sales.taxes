@@ -9,6 +9,8 @@ library(futile.logger)
 library(lfe)
 library(multcomp)
 library(ggplot2)
+library(boot)
+library(dplyr)
 
 
 setwd("/project2/igaarder")
