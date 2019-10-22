@@ -22,7 +22,7 @@ data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
 
 
 ## Function that estimates the IV ----------------------------------
-estimate.iv <- function(data, quantity, price, taxrate, lagtaxrate, FE_opts, weights, 
+estimate.iv <- function(data, quantity, price, taxrate, lagtax, FE_opts, weights, 
                                        prediction, nonlinear = "polynomial", pol.degree = 3,
                                        knots = NULL, boot.run = T) {
   
@@ -30,7 +30,7 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtaxrate, FE_opts, wei
   #' quantity: the name of the variable of quantities
   #' price: the name of the variable of price
   #' taxrate: the name of the variables of tax rates
-  #' lagtaxrate: the name of the variable of the lag value of the taxrate
+  #' lagtax: the name of the variable of the lag value of the taxrate
   #' FE_opts: a vector of FE that will be used
   #' weight: the name of the vector of weights
   #' prediction: the vector of the values of tax rates for which we want predictions
@@ -45,8 +45,8 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtaxrate, FE_opts, wei
   if (nonlinear == "polynomial") {
     RHS <- as.character(taxrate)
     
-    data[, (paste0("tau_",1:pol.degree)) := get(taxrate)*(get(lagtaxrate)^(1:pol.degree))]
-    a <- paste0(taxrate, "*",paste0(lagtaxrate, "^", 1:pol.degree ))
+    data[, (paste0("tau_",1:pol.degree)) := get(taxrate)*(get(lagtax)^(1:pol.degree))]
+    a <- paste0(taxrate, "*",paste0(lagtax, "^", 1:pol.degree ))
     flog.info("Created %s", a)
     
     
@@ -103,13 +103,13 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtaxrate, FE_opts, wei
     } else {
       RHS <- as.character(taxrate)
 
-      data[, (paste0("tau_",1:pol.degree)) := get(taxrate)*(get(lagtaxrate)^(1:pol.degree))]
+      data[, (paste0("tau_",1:pol.degree)) := get(taxrate)*(get(lagtax)^(1:pol.degree))]
       # Add to formula
       RHS <- paste(RHS, paste0("tau_",1:pol.degree, collapse = " + "), sep = " + ")
       # Second create truncated function
       d <-1
       for (ep in knots) {
-        all_pi[, paste0("tau_k",d) := (get(lagtaxrate) > ep)*get(taxrate)*(get(lagtaxrate) - ep)^(pol.degree)]
+        all_pi[, paste0("tau_k",d) := (get(lagtax) > ep)*get(taxrate)*(get(lagtax) - ep)^(pol.degree)]
         d <- d+1
       }
       # Add trunctaed terms to formula
@@ -213,7 +213,7 @@ t <- estimate.iv(data = all_pi,
                  quantity = "w.ln_quantity3", 
                  price = "w.ln_cpricei2", 
                  taxrate = "w.ln_sales_tax",
-                 lagtaxrate = "L.ln_sales_tax", 
+                 lagtax = "L.ln_sales_tax", 
                  FE_opts = FE_opts,
                  weights = "base.sales", 
                  prediction = tax_values, 
@@ -225,11 +225,47 @@ t <- estimate.iv(data = all_pi,
                  quantity = "w.ln_quantity3", 
                  price = "w.ln_cpricei2", 
                  taxrate = "w.ln_sales_tax",
-                 lagtaxrate = "L.ln_sales_tax", 
+                 lagtax = "L.ln_sales_tax", 
                  FE_opts = FE_opts,
                  weights = "base.sales", 
                  prediction = tax_values, 
                  nonlinear = "polynomial", 
-                 pol.degree = 3,
-                 boot.run = T)
+                 pol.degree = 3)
 fwrite(t, "../../home/slacouture/NLP/beta_IV/try_IVest_out.csv")
+
+
+
+
+
+# ############## Run bootstrap: Weighted using base.sales -----------------
+
+block.boot <- function(x, i) {
+  bootdata <- merge(data.table(state_by_module=x[i]), all_pi, by = "state_by_module", allow.cartesian = T)
+  rep_count <<- rep_count + 1
+  flog.info("Iteration %s", rep_count)
+  estimate.iv(data = all_pi,
+              quantity = "w.ln_quantity3", 
+              price = "w.ln_cpricei2", 
+              taxrate = "w.ln_sales_tax",
+              lagtax = "L.ln_sales_tax", 
+              FE_opts = FE_opts,
+              weights = "base.sales", 
+              prediction = tax_values, 
+              nonlinear = "polynomial", 
+              pol.degree = 3)
+}
+
+### Run essay bootstrap
+
+# Define level of block bootstrap
+state_by_module_ids <- unique(all_pi$state_by_module)
+# Improve
+# Run bootstrap
+rep_count = 0
+b0 <- boot(state_by_module_ids, block.boot, 100)
+
+# Export: observed and distribution
+t <- data.table(b0$t0)
+mat.t <- data.table(b0$t)
+fwrite(t, "../../home/slacouture/NLP/beta_IV/IV_est_pol3_100.csv")
+fwrite(mat.t, "../../home/slacouture/NLP/beta_IV/mat_IV_est_pol3_100.csv")
