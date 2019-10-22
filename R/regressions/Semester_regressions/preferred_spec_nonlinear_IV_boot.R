@@ -243,10 +243,10 @@ fwrite(t, "../../home/slacouture/NLP/beta_IV/try_IVest.csv")
 # ############## Run bootstrap: polynomial K = 3 -----------------
 
 block.boot <- function(x, i) {
-  bootdata <- merge(data.table(state_by_module=x[i]), all_pi, by = "state_by_module", allow.cartesian = T)
+  bootdata <- merge(data.table(module_by_state=x[i]), all_pi, by = "module_by_state", allow.cartesian = T)
   rep_count <<- rep_count + 1
   flog.info("Iteration %s", rep_count)
-  estimate.iv(data = all_pi,
+  estimate.iv(data = bootdata,
               quantity = "w.ln_quantity3", 
               price = "w.ln_cpricei2", 
               taxrate = "w.ln_sales_tax",
@@ -261,7 +261,7 @@ block.boot <- function(x, i) {
 ### Run bootstrap
 
 # Define level of block bootstrap
-state_by_module_ids <- unique(all_pi$state_by_module)
+state_by_module_ids <- unique(all_pi$module_by_state)
 # Improve
 # Run bootstrap
 rep_count = 0
@@ -278,10 +278,10 @@ fwrite(mat.t, "../../home/slacouture/NLP/beta_IV/mat_IV_est_pol3_100.csv")
 knots <- (max(all_pi$L.ln_sales_tax) - min(all_pi$L.ln_sales_tax))* (1:4) / (4+1)
 
 block.boot <- function(x, i) {
-  bootdata <- merge(data.table(state_by_module=x[i]), all_pi, by = "state_by_module", allow.cartesian = T)
+  bootdata <- merge(data.table(module_by_state=x[i]), all_pi, by = "module_by_state", allow.cartesian = T)
   rep_count <<- rep_count + 1
   flog.info("Iteration %s", rep_count)
-  estimate.iv(data = all_pi,
+  estimate.iv(data = bootdata,
               quantity = "w.ln_quantity3", 
               price = "w.ln_cpricei2", 
               taxrate = "w.ln_sales_tax",
@@ -297,7 +297,7 @@ block.boot <- function(x, i) {
 ### Run bootstrap
 
 # Define level of block bootstrap
-state_by_module_ids <- unique(all_pi$state_by_module)
+state_by_module_ids <- unique(all_pi$module_by_state)
 # Improve
 # Run bootstrap
 rep_count = 0
@@ -314,10 +314,10 @@ fwrite(mat.t, "../../home/slacouture/NLP/beta_IV/mat_IV_splines2_4_100.csv")
 knots <- (max(all_pi$L.ln_sales_tax) - min(all_pi$L.ln_sales_tax))* (1:5) / (5+1)
 
 block.boot <- function(x, i) {
-  bootdata <- merge(data.table(state_by_module=x[i]), all_pi, by = "state_by_module", allow.cartesian = T)
+  bootdata <- merge(data.table(module_by_state=x[i]), all_pi, by = "module_by_state", allow.cartesian = T)
   rep_count <<- rep_count + 1
   flog.info("Iteration %s", rep_count)
-  estimate.iv(data = all_pi,
+  estimate.iv(data = bootdata,
               quantity = "w.ln_quantity3", 
               price = "w.ln_cpricei2", 
               taxrate = "w.ln_sales_tax",
@@ -333,7 +333,7 @@ block.boot <- function(x, i) {
 ### Run bootstrap
 
 # Define level of block bootstrap
-state_by_module_ids <- unique(all_pi$state_by_module)
+state_by_module_ids <- unique(all_pi$module_by_state)
 # Improve
 # Run bootstrap
 rep_count = 0
