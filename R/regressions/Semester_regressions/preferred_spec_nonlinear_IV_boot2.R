@@ -285,14 +285,14 @@ block.boot <- function(x, i) {
   rep_count <<- rep_count + 1
   flog.info("Iteration %s", rep_count)
   estimate.iv(data = bootdata,
-              quantity = "w.ln_quantity3",
-              price = "w.ln_cpricei2",
+              quantity = "w.ln_quantity3", 
+              price = "w.ln_cpricei2", 
               taxrate = "w.ln_sales_tax",
-              lagtax = "L.ln_sales_tax",
+              lagtax = "L.ln_sales_tax", 
               FE_opts = FE_opts,
-              weights = "base.sales",
-              prediction = tax_values,
-              nonlinear = "splines",
+              weights = "base.sales", 
+              prediction = tax_values, 
+              nonlinear = "splines", 
               pol.degree = 2,
               knots = knots)
 }
