@@ -238,7 +238,20 @@ tax_values <-seq(quantile(all_pi$ln_sales_tax_r, probs = 0.05, na.rm = T, weight
 #                  knots = knots,
 #                  boot.run = F)
 # fwrite(t, "../../home/slacouture/NLP/beta_IV/try_IVest_2.csv")
-knots <- (max(all_pi$L.ln_sales_tax) - min(all_pi$L.ln_sales_tax))* (1:4) / (4+1)
+# knots <- (max(all_pi$L.ln_sales_tax) - min(all_pi$L.ln_sales_tax))* (1:4) / (4+1)
+# t <- estimate.iv(data = all_pi,
+#                  quantity = "w.ln_quantity3",
+#                  price = "w.ln_cpricei2",
+#                  taxrate = "w.ln_sales_tax",
+#                  lagtax = "L.ln_sales_tax",
+#                  FE_opts = FE_opts,
+#                  weights = "base.sales",
+#                  prediction = tax_values,
+#                  nonlinear = "splines",
+#                  pol.degree = 2,
+#                  knots = knots,
+#                  boot.run = F)
+# fwrite(t, "../../home/slacouture/NLP/beta_IV/try_IVest_3.csv")
 t <- estimate.iv(data = all_pi,
                  quantity = "w.ln_quantity3",
                  price = "w.ln_cpricei2",
@@ -247,14 +260,44 @@ t <- estimate.iv(data = all_pi,
                  FE_opts = FE_opts,
                  weights = "base.sales",
                  prediction = tax_values,
-                 nonlinear = "splines",
-                 pol.degree = 2,
-                 knots = knots,
+                 nonlinear = "polynomial",
+                 pol.degree = 1,
                  boot.run = F)
-fwrite(t, "../../home/slacouture/NLP/beta_IV/try_IVest_3.csv")
+fwrite(t, "../../home/slacouture/NLP/beta_IV/try_IVest_4.csv")
 
+# ############## polynomial K = 1 -----------------
 
+block.boot <- function(x, i) {
+  bootdata <- merge(data.table(module_by_state=x[i]), all_pi, by = "module_by_state", allow.cartesian = T)
+  rep_count <<- rep_count + 1
+  flog.info("Iteration %s", rep_count)
+  estimate.iv(data = bootdata,
+              quantity = "w.ln_quantity3",
+              price = "w.ln_cpricei2",
+              taxrate = "w.ln_sales_tax",
+              lagtax = "L.ln_sales_tax",
+              FE_opts = FE_opts,
+              weights = "base.sales",
+              prediction = tax_values,
+              nonlinear = "polynomial",
+              pol.degree = 1,
+              knots = knots)
+}
 
+### Run bootstrap
+
+# Define level of block bootstrap
+state_by_module_ids <- unique(all_pi$module_by_state)
+# Improve
+# Run bootstrap
+rep_count = 0
+b0 <- boot(state_by_module_ids, block.boot, 100)
+
+# Export: observed and distribution
+t <- data.table(b0$t0)
+mat.t <- data.table(b0$t)
+fwrite(t, "../../home/slacouture/NLP/beta_IV/IV_est_pol1_100.csv")
+fwrite(mat.t, "../../home/slacouture/NLP/beta_IV/mat_IV_pol1_100.csv")
 
 
 # ############## Run bootstrap: polynomial K = 3 -----------------
@@ -291,75 +334,75 @@ fwrite(t, "../../home/slacouture/NLP/beta_IV/try_IVest_3.csv")
 # fwrite(mat.t, "../../home/slacouture/NLP/beta_IV/mat_IV_est_pol3_100.csv")
 
 
-############## Run bootstrap: splines K = 2, L = 4 -----------------
-knots <- (max(all_pi$L.ln_sales_tax) - min(all_pi$L.ln_sales_tax))* (1:4) / (4+1)
+# ############## Run bootstrap: splines K = 2, L = 4 -----------------
+# knots <- (max(all_pi$L.ln_sales_tax) - min(all_pi$L.ln_sales_tax))* (1:4) / (4+1)
+# 
+# block.boot <- function(x, i) {
+#   bootdata <- merge(data.table(module_by_state=x[i]), all_pi, by = "module_by_state", allow.cartesian = T)
+#   rep_count <<- rep_count + 1
+#   flog.info("Iteration %s", rep_count)
+#   estimate.iv(data = bootdata,
+#               quantity = "w.ln_quantity3",
+#               price = "w.ln_cpricei2",
+#               taxrate = "w.ln_sales_tax",
+#               lagtax = "L.ln_sales_tax",
+#               FE_opts = FE_opts,
+#               weights = "base.sales",
+#               prediction = tax_values,
+#               nonlinear = "splines",
+#               pol.degree = 2,
+#               knots = knots)
+# }
+# 
+# ### Run bootstrap
+# 
+# # Define level of block bootstrap
+# state_by_module_ids <- unique(all_pi$module_by_state)
+# # Improve
+# # Run bootstrap
+# rep_count = 0
+# b0 <- boot(state_by_module_ids, block.boot, 100)
+# 
+# # Export: observed and distribution
+# t <- data.table(b0$t0)
+# mat.t <- data.table(b0$t)
+# fwrite(t, "../../home/slacouture/NLP/beta_IV/IV_est_splines2_4_100.csv")
+# fwrite(mat.t, "../../home/slacouture/NLP/beta_IV/mat_IV_splines2_4_100.csv")
 
-block.boot <- function(x, i) {
-  bootdata <- merge(data.table(module_by_state=x[i]), all_pi, by = "module_by_state", allow.cartesian = T)
-  rep_count <<- rep_count + 1
-  flog.info("Iteration %s", rep_count)
-  estimate.iv(data = bootdata,
-              quantity = "w.ln_quantity3", 
-              price = "w.ln_cpricei2", 
-              taxrate = "w.ln_sales_tax",
-              lagtax = "L.ln_sales_tax", 
-              FE_opts = FE_opts,
-              weights = "base.sales", 
-              prediction = tax_values, 
-              nonlinear = "splines", 
-              pol.degree = 2,
-              knots = knots)
-}
 
-### Run bootstrap
-
-# Define level of block bootstrap
-state_by_module_ids <- unique(all_pi$module_by_state)
-# Improve
-# Run bootstrap
-rep_count = 0
-b0 <- boot(state_by_module_ids, block.boot, 100)
-
-# Export: observed and distribution
-t <- data.table(b0$t0)
-mat.t <- data.table(b0$t)
-fwrite(t, "../../home/slacouture/NLP/beta_IV/IV_est_splines2_4_100.csv")
-fwrite(mat.t, "../../home/slacouture/NLP/beta_IV/mat_IV_splines2_4_100.csv")
-
-
-# ############## Run bootstrap: splines K = 2, L = 5 -----------------
-knots <- (max(all_pi$L.ln_sales_tax) - min(all_pi$L.ln_sales_tax))* (1:5) / (5+1)
-
-block.boot <- function(x, i) {
-  bootdata <- merge(data.table(module_by_state=x[i]), all_pi, by = "module_by_state", allow.cartesian = T)
-  rep_count <<- rep_count + 1
-  flog.info("Iteration %s", rep_count)
-  estimate.iv(data = bootdata,
-              quantity = "w.ln_quantity3", 
-              price = "w.ln_cpricei2", 
-              taxrate = "w.ln_sales_tax",
-              lagtax = "L.ln_sales_tax", 
-              FE_opts = FE_opts,
-              weights = "base.sales", 
-              prediction = tax_values, 
-              nonlinear = "splines", 
-              pol.degree = 2,
-              knots = knots)
-}
-
-### Run bootstrap
-
-# Define level of block bootstrap
-state_by_module_ids <- unique(all_pi$module_by_state)
-# Improve
-# Run bootstrap
-rep_count = 0
-b0 <- boot(state_by_module_ids, block.boot, 100)
-
-# Export: observed and distribution
-t <- data.table(b0$t0)
-mat.t <- data.table(b0$t)
-fwrite(t, "../../home/slacouture/NLP/beta_IV/IV_est_splines2_5_100.csv")
-fwrite(mat.t, "../../home/slacouture/NLP/beta_IV/mat_IV_splines2_5_100.csv")
+# # ############## Run bootstrap: splines K = 2, L = 5 -----------------
+# knots <- (max(all_pi$L.ln_sales_tax) - min(all_pi$L.ln_sales_tax))* (1:5) / (5+1)
+# 
+# block.boot <- function(x, i) {
+#   bootdata <- merge(data.table(module_by_state=x[i]), all_pi, by = "module_by_state", allow.cartesian = T)
+#   rep_count <<- rep_count + 1
+#   flog.info("Iteration %s", rep_count)
+#   estimate.iv(data = bootdata,
+#               quantity = "w.ln_quantity3",
+#               price = "w.ln_cpricei2",
+#               taxrate = "w.ln_sales_tax",
+#               lagtax = "L.ln_sales_tax",
+#               FE_opts = FE_opts,
+#               weights = "base.sales",
+#               prediction = tax_values,
+#               nonlinear = "splines",
+#               pol.degree = 2,
+#               knots = knots)
+# }
+# 
+# ### Run bootstrap
+# 
+# # Define level of block bootstrap
+# state_by_module_ids <- unique(all_pi$module_by_state)
+# # Improve
+# # Run bootstrap
+# rep_count = 0
+# b0 <- boot(state_by_module_ids, block.boot, 100)
+# 
+# # Export: observed and distribution
+# t <- data.table(b0$t0)
+# mat.t <- data.table(b0$t)
+# fwrite(t, "../../home/slacouture/NLP/beta_IV/IV_est_splines2_5_100.csv")
+# fwrite(mat.t, "../../home/slacouture/NLP/beta_IV/mat_IV_splines2_5_100.csv")
 
 
