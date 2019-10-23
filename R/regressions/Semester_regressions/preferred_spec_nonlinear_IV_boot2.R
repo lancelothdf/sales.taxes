@@ -112,10 +112,10 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtax, FE_opts, weights
       # Add to formula
       RHS <- paste(RHS, paste0("tau_",1:pol.degree, collapse = " + "), sep = " + ")
       # Second create truncated function
-      d <-1
+      d <-0
       for (ep in knots) {
-        all_pi[, paste0("tau_k",d) := (get(lagtax) > ep)*get(taxrate)*(get(lagtax) - ep)^(pol.degree)]
         d <- d+1
+        all_pi[, paste0("tau_k",d) := (get(lagtax) > ep)*get(taxrate)*(get(lagtax) - ep)^(pol.degree)]
       }
       # Add trunctaed terms to formula
       RHS <- paste(RHS, paste0(paste0("tau_k",1:d), collapse = " + "), sep = " + ")
@@ -136,12 +136,12 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtax, FE_opts, weights
           plc.formula1pk <- paste0(paste0(paste0((prediction[i]),"^",1:pol.degree), "*tau_",1:pol.degree), collapse = " + ")
            
           # Can't Add directly: have to add if is taken into account
-          d <-1
+          d <-0
           for (ep in knots) {
-            if ((tax_values[i]) > ep) {
+            d <- d+1
+            if ((prediction[i]) > ep) {
               plc.formula1pk <- paste0(plc.formula1pk, "+", paste0(((prediction[i]) - ep)^(pol.degree), "*tau_k",d))
             }
-            d <- d+1
           }
           plc.formula1 <- paste0(taxrate, " + ", plc.formula1pk, " = 0")
           
@@ -165,12 +165,12 @@ estimate.iv <- function(data, quantity, price, taxrate, lagtax, FE_opts, weights
           plc.formula1pk <- paste0(paste0(paste0((prediction[i]),"^",1:pol.degree), "*tau_",1:pol.degree), collapse = " + ")
           
           # Can't Add directly: have to add if is taken into account
-          d <-1
+          d <-0
           for (ep in knots) {
-            if ((tax_values[i]) > ep) {
+            d <- d+1
+            if ((prediction[i]) > ep) {
               plc.formula1pk <- paste0(plc.formula1pk, "+", paste0(((prediction[i]) - ep)^(pol.degree), "*tau_k",d))
             }
-            d <- d+1
           }
           plc.formula1 <- paste0(taxrate, " + ", plc.formula1pk, " = 0")
           
@@ -224,17 +224,20 @@ tax_values <-seq(quantile(all_pi$ln_sales_tax_r, probs = 0.05, na.rm = T, weight
 #                  pol.degree = 3,
 #                  boot.run = F)
 # fwrite(t, "../../home/slacouture/NLP/beta_IV/try_IVest.csv")
+# knots <- (max(all_pi$L.ln_sales_tax) - min(all_pi$L.ln_sales_tax))* (1:5) / (5+1)
 # t <- estimate.iv(data = all_pi,
-#                  quantity = "w.ln_quantity3", 
-#                  price = "w.ln_cpricei2", 
+#                  quantity = "w.ln_quantity3",
+#                  price = "w.ln_cpricei2",
 #                  taxrate = "w.ln_sales_tax",
-#                  lagtax = "L.ln_sales_tax", 
+#                  lagtax = "L.ln_sales_tax",
 #                  FE_opts = FE_opts,
-#                  weights = "base.sales", 
-#                  prediction = tax_values, 
-#                  nonlinear = "polynomial", 
-#                  pol.degree = 3)
-# fwrite(t, "../../home/slacouture/NLP/beta_IV/try_IVest_out.csv")
+#                  weights = "base.sales",
+#                  prediction = tax_values,
+#                  nonlinear = "splines",
+#                  pol.degree = 2,
+#                  knots = knots,
+#                  boot.run = F)
+# fwrite(t, "../../home/slacouture/NLP/beta_IV/try_IVest_2.csv")
 
 
 
@@ -274,7 +277,7 @@ tax_values <-seq(quantile(all_pi$ln_sales_tax_r, probs = 0.05, na.rm = T, weight
 # fwrite(mat.t, "../../home/slacouture/NLP/beta_IV/mat_IV_est_pol3_100.csv")
 
 
-# ############## Run bootstrap: splines K = 2, L = 4 -----------------
+############## Run bootstrap: splines K = 2, L = 4 -----------------
 knots <- (max(all_pi$L.ln_sales_tax) - min(all_pi$L.ln_sales_tax))* (1:4) / (4+1)
 
 block.boot <- function(x, i) {
@@ -282,14 +285,14 @@ block.boot <- function(x, i) {
   rep_count <<- rep_count + 1
   flog.info("Iteration %s", rep_count)
   estimate.iv(data = bootdata,
-              quantity = "w.ln_quantity3", 
-              price = "w.ln_cpricei2", 
+              quantity = "w.ln_quantity3",
+              price = "w.ln_cpricei2",
               taxrate = "w.ln_sales_tax",
-              lagtax = "L.ln_sales_tax", 
+              lagtax = "L.ln_sales_tax",
               FE_opts = FE_opts,
-              weights = "base.sales", 
-              prediction = tax_values, 
-              nonlinear = "splines", 
+              weights = "base.sales",
+              prediction = tax_values,
+              nonlinear = "splines",
               pol.degree = 2,
               knots = knots)
 }
