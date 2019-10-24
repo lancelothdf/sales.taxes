@@ -59,17 +59,19 @@ all_pi[, treatment := ifelse(D.ln_sales_tax != 0, 1, 0)]
 ## Full sample
 graphout <- paste0(output.path,"/lag_tax_group.png")
 hist <- ggplot(data=subset(all_pi), aes(L.ln_sales_tax, fill = treatment, weight = base.sales)) + 
-  geom_histogram(alpha = 0.3, aes(y=..count../sum(..count..))) +    
-  theme_bw(base_size = 24) +
-  labs(x = "Sales Tax", y = "Fraction", color = NULL)
+  geom_histogram(alpha = 0.3, aes(y=..count../sum(..count..)), position="identity") +    
+  theme_classic(base_size = 24) +
+  labs(x = "Sales Tax", y = "Fraction", color = NULL) +
+  scale_fill_discrete(name = "Group", labels = c("Tax Change", "No Change"))
 ggsave(graphout)
 
 ## Common support
 graphout <- paste0(output.path,"/lag_tax_group_support.png")
 hist <- ggplot(data=subset(all_pi,cs_tax == 1), aes(L.ln_sales_tax, fill = treatment, weight = base.sales)) + 
-  geom_histogram(alpha = 0.3, aes(y=..count../sum(..count..))) +    
-  theme_bw(base_size = 24) +
-  labs(x = "Sales Tax", y = "Fraction", color = NULL)
+  geom_histogram(alpha = 0.3, aes(y=..count../sum(..count..)), position="identity") +    
+  theme_classic(base_size = 24) +
+  labs(x = "Sales Tax", y = "Fraction", color = NULL) +
+  scale_fill_discrete(name = "Group", labels = c("Tax Change", "No Change"))
 ggsave(graphout)
 
 
@@ -91,17 +93,19 @@ all_pi[, cs_price := ifelse(is.na(dm.L.ln_cpricei2), 0, cs_price)]
 ## Full sample
 graphout <- paste0(output.path,"/lag_price_group.png")
 hist <- ggplot(data=all_pi, aes(dm.L.ln_cpricei2, fill = treatment, weight = base.sales)) + 
-  geom_histogram(alpha = 0.3, aes(y=..count../sum(..count..))) +    
-  theme_bw(base_size = 24) +
+  geom_histogram(alpha = 0.3, aes(y=..count../sum(..count..)), position="identity") +    
+  theme_classic(base_size = 24) +
   scale_x_continuous(limits = c(-0.5,0.5), breaks = seq(-0.5, 0.5, 0.1)) +
-  labs(x = "Demeaned Price", y = "Fraction", color = NULL)
+  labs(x = "Demeaned Price", y = "Fraction", color = NULL) +
+  scale_fill_discrete(name = "Group", labels = c("Tax Change", "No Change"))
 ggsave(graphout)
 
 ## Common support
 graphout <- paste0(output.path,"/lag_price_grupo_support.png")
 hist <- ggplot(data=subset(all_pi,cs_price == 1), aes(dm.L.ln_cpricei2, fill = treatment,  weight = base.sales)) + 
-  geom_histogram(alpha = 0.3, aes(y=..count../sum(..count..))) +    
-  theme_bw(base_size = 24) +
-  labs(x = "Demeaned Price", y = "Fraction", color = NULL)
+  geom_histogram(alpha = 0.3, aes(y=..count../sum(..count..)), position="identity") +    
+  theme_classic(base_size = 24) +
+  labs(x = "Demeaned Price", y = "Fraction", color = NULL) +
+  scale_fill_discrete(name = "Group", labels = c("Tax Change", "No Change"))
 ggsave(graphout)
 
