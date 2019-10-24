@@ -52,13 +52,13 @@ all_pi[, cs_tax := ifelse(is.na(L.ln_sales_tax), 0, cs_tax)]
 
 # Define groups for histogram
 all_pi[, treatment := ifelse(D.ln_sales_tax != 0, 1, 0)]
-
+all_pi$treatment <- as.factor(all_pi$treatment) ## HAs to be a factor for plots
 
 ## Export histograms:
 
 ## Full sample
 graphout <- paste0(output.path,"/lag_tax_group.png")
-hist <- ggplot(data=subset(all_pi), aes(L.ln_sales_tax, fill = treatment, weight = base.sales)) + 
+hist <- ggplot(all_pi, aes(L.ln_sales_tax, fill = treatment, weight = base.sales)) + 
   geom_histogram(alpha = 0.3, aes(y=..count../sum(..count..)), position="identity") +    
   theme_classic(base_size = 24) +
   labs(x = "Sales Tax", y = "Fraction", color = NULL) +
