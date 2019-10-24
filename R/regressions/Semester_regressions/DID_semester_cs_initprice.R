@@ -31,10 +31,11 @@ all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax), by = .(store_by_mo
 all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2), by = .(store_by_module)]
 all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3), by = .(store_by_module)]
 
-# Create lagged value (initial)
-all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
-# Need to keep data that has initial tax rate level
-all_pi <- all_pi[!is.na(L.ln_sales_tax)]
+# Need to demean
+all_pi[, module_by_time := .GRP, by = .(product_module_code, year)]
+all_pi[, L.ln_cpricei2 := ln_cpricei2 - D.ln_cpricei2]
+all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
+
 
 # Defining common support
 control <- all_pi[D.ln_sales_tax == 0,]
