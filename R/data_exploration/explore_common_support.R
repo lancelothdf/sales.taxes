@@ -56,8 +56,8 @@ all_pi[, cs_tax := ifelse(is.na(L.ln_sales_tax), 0, cs_tax)]
 ## Full sample
 graphout <- paste0(output.path,"/lag_tax_group.png")
 hist <- ggplot(data=subset(all_pi), aes(L.ln_sales_tax, weight = base.sales)) + 
-  geom_histogram(data=subset(all_pi & D.ln_sales_tax == 0),fill = "red", alpha = 0.3, aes(y=..count../sum(..count..))) +    
-  geom_histogram(data=subset(all_pi & D.ln_sales_tax != 0),fill = "blue", alpha = 0.3, aes(y=..count../sum(..count..))) +    
+  geom_histogram(data=subset(all_pi, D.ln_sales_tax == 0),fill = "red", alpha = 0.3, aes(y=..count../sum(..count..))) +    
+  geom_histogram(data=subset(all_pi, D.ln_sales_tax != 0),fill = "blue", alpha = 0.3, aes(y=..count../sum(..count..))) +    
   theme_bw(base_size = 24) +
   labs(x = "Sales Tax", y = "Fraction", color = NULL)
 ggsave(graphout)
@@ -90,8 +90,8 @@ all_pi[, cs_price := ifelse(is.na(dm.L.ln_cpricei2), 0, cs_price)]
 ## Full sample
 graphout <- paste0(output.path,"/lag_price_group.png")
 hist <- ggplot(data=subset(all_pi), aes(dm.L.ln_cpricei2, weight = base.sales)) + 
-  geom_histogram(data=subset(all_pi & D.ln_sales_tax == 0),fill = "red", alpha = 0.3, aes(y=..count../sum(..count..))) +    
-  geom_histogram(data=subset(all_pi & D.ln_sales_tax != 0),fill = "blue", alpha = 0.3, aes(y=..count../sum(..count..))) +    
+  geom_histogram(data=subset(all_pi, D.ln_sales_tax == 0),fill = "red", alpha = 0.3, aes(y=..count../sum(..count..))) +    
+  geom_histogram(data=subset(all_pi, D.ln_sales_tax != 0),fill = "blue", alpha = 0.3, aes(y=..count../sum(..count..))) +    
   theme_bw(base_size = 24) +
   labs(x = "Demeaned Price", y = "Fraction", color = NULL)
 ggsave(graphout)
