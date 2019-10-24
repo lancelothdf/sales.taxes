@@ -51,7 +51,7 @@ all_pi[, cs_tax := ifelse(is.na(L.ln_sales_tax), 0, cs_tax)]
 
 
 
-# Price
+# Price: first need to demean to compare appropiately
 all_pi[, module_by_time := .GRP, by = .(product_module_code, year)]
 all_pi[, L.ln_cpricei2 := ln_cpricei2 - D.ln_cpricei2]
 all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
@@ -81,7 +81,7 @@ LRdiff_res <- data.table(NULL)
 
 for (cs in common.supports) {
   
-  all_pi_cs <- all_pi[(cs) == 1,]
+  all_pi_cs <- all_pi[get(cs) == 1,]
   for (FE in FE_opts) {
     
     ## Run in Diffs
