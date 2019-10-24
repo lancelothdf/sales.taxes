@@ -33,6 +33,13 @@ all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3), by = .(store_by_mo
 # Create lagged value (initial)
 all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
 
+# need to demean lag price to compare appropiately
+all_pi[, module_by_time := .GRP, by = .(product_module_code, year)]
+all_pi[, L.ln_cpricei2 := ln_cpricei2 - D.ln_cpricei2]
+all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
+
+
+
 # Defining common support
 control <- all_pi[D.ln_sales_tax == 0,]
 treated <- all_pi[D.ln_sales_tax != 0,]
@@ -51,11 +58,7 @@ all_pi[, cs_tax := ifelse(is.na(L.ln_sales_tax), 0, cs_tax)]
 
 
 
-# Price: first need to demean to compare appropiately
-all_pi[, module_by_time := .GRP, by = .(product_module_code, year)]
-all_pi[, L.ln_cpricei2 := ln_cpricei2 - D.ln_cpricei2]
-all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
-
+# Price: 
 pct1.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=all_pi$base.sales)
 pct1.treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=all_pi$base.sales)
 
