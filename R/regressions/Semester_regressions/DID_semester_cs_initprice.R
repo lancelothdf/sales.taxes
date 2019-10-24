@@ -145,7 +145,7 @@ for (Y in c(outcomes.within)) {
         res1.dt[, outcome := Y]
         res1.dt[, controls := FE]
         res1.dt[, window := "semester"]
-        res1.dt[, spec := "changes"]
+        res1.dt[, spec := "within"]
         res1.dt[, n.groups := n.g]
         res1.dt[, group.n := group]
         # Add summary values
