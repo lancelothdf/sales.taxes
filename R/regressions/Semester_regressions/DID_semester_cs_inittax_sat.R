@@ -82,7 +82,7 @@ for (Y in c(outcomes.changes)) {
     for (FE in FE_opts) {
       
       formula1 <- as.formula(paste0(
-        Y, "~ D.ln_sales_tax:quantile | ", FE, " | 0 | module_by_state"
+        Y, "~ D.ln_sales_tax:quantile | ", FE, "+ quantile | 0 | module_by_state"
       ))
       flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
       res1 <- felm(formula = formula1, data = all_pi,
@@ -141,7 +141,7 @@ for (Y in c(outcomes.within)) {
     for (FE in FE_opts) {
       
       formula1 <- as.formula(paste0(
-        Y, "~ w.ln_sales_tax:quantile | ", FE, " | 0 | module_by_state"
+        Y, "~ w.ln_sales_tax:quantile | ", FE, "+ quantile | 0 | module_by_state"
       ))
       flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
       res1 <- felm(formula = formula1, data = all_pi,
