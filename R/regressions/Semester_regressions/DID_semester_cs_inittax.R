@@ -72,6 +72,9 @@ for (Y in c(outcomes.changes)) {
     all_pi <- all_pi[, quantile := cut(L.ln_sales_tax,
                                         breaks = quantile(L.ln_sales_tax, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
                                         labels = 1:n.g, right = FALSE)]
+    quantlab <- round(quantile(all_pi$L.ln_sales_tax, 
+                               probs = seq(0, 1, by = 1/n.g), na.rm = T, 
+                               weight = all_pi$base.sales), digits = 4)
     for (group in 1:n.g) {
       group.data <- all_pi[quantile == group]
       for (FE in FE_opts) {
@@ -94,6 +97,8 @@ for (Y in c(outcomes.changes)) {
         res1.dt[, spec := "changes"]
         res1.dt[, n.groups := n.g]
         res1.dt[, group.n := group]
+        res1.dt[, ll := quantlab[group]]
+        res1.dt[, ul := quantlab[group + 1]]
         # Add summary values
         res1.dt[, Rsq := summary(res1)$r.squared]
         res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
@@ -125,6 +130,9 @@ for (Y in c(outcomes.within)) {
     all_pi <- all_pi[, quantile := cut(L.ln_sales_tax,
                                        breaks = quantile(L.ln_sales_tax, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
                                        labels = 1:n.g, right = FALSE)]
+    quantlab <- round(quantile(all_pi$L.ln_sales_tax, 
+                               probs = seq(0, 1, by = 1/n.g), na.rm = T, 
+                               weight = all_pi$base.sales), digits = 4)
     for (group in 1:n.g) {
       group.data <- all_pi[quantile == group]
       for (FE in FE_opts) {
@@ -147,6 +155,8 @@ for (Y in c(outcomes.within)) {
         res1.dt[, spec := "within"]
         res1.dt[, n.groups := n.g]
         res1.dt[, group.n := group]
+        res1.dt[, ll := quantlab[group]]
+        res1.dt[, ul := quantlab[group + 1]]
         # Add summary values
         res1.dt[, Rsq := summary(res1)$r.squared]
         res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
