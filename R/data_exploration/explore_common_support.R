@@ -76,6 +76,31 @@ hist <- ggplot(data=subset(all_pi,cs_tax == 1), aes(L.ln_sales_tax, fill = treat
   scale_fill_discrete(name = "Group", labels = c("No Change", "Tax Change"))
 ggsave(graphout)
 
+## Histograms re-scaling by group:
+
+## Full sample
+graphout <- paste0(output.path,"/lag_tax_group_rescaled.png")
+hist <- ggplot(all_pi, aes(L.ln_sales_tax, fill = treatment, weight = base.sales)) + 
+  geom_histogram(alpha = 0.3, aes(y=..density.., fill = treatment), position="identity") +    
+  theme_classic(base_size = 24) +
+  theme(legend.position="bottom") +
+  labs(x = "Sales Tax", y = "Fraction", color = NULL) +
+  scale_fill_discrete(name = "Group", labels = c("No Change", "Tax Change"))
+ggsave(graphout)
+
+## Common support
+graphout <- paste0(output.path,"/lag_tax_group_support_rescaled.png")
+hist <- ggplot(data=subset(all_pi,cs_tax == 1), aes(L.ln_sales_tax, fill = treatment, weight = base.sales)) + 
+  geom_histogram(alpha = 0.3, aes(y=..density.., fill = treatment), position="identity") +    
+  theme_classic(base_size = 24) +
+  theme(legend.position="bottom") +
+  labs(x = "Sales Tax", y = "Fraction", color = NULL) +
+  scale_fill_discrete(name = "Group", labels = c("No Change", "Tax Change"))
+ggsave(graphout)
+
+
+
+
 
 # Price
 pct1.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=all_pi$base.sales)
@@ -113,3 +138,24 @@ hist <- ggplot(data=subset(all_pi,cs_price == 1), aes(dm.L.ln_cpricei2, fill = t
   scale_fill_discrete(name = "Group", labels = c("No Change", "Tax Change"))
 ggsave(graphout)
 
+## Histograms re-scaling by group:
+## Full sample
+graphout <- paste0(output.path,"/lag_price_group_rescaled.png")
+hist <- ggplot(data=all_pi, aes(dm.L.ln_cpricei2, fill = treatment, weight = base.sales)) + 
+  geom_histogram(alpha = 0.3, aes(y=..density.., fill = treatment), position="identity") +    
+  theme_classic(base_size = 24) +
+  theme(legend.position="bottom") +
+  scale_x_continuous(limits = c(-0.5,0.5), breaks = seq(-0.5, 0.5, 0.1)) +
+  labs(x = "Demeaned Price", y = "Fraction", color = NULL) +
+  scale_fill_discrete(name = "Group", labels = c("No Change", "Tax Change"))
+ggsave(graphout)
+
+## Common support
+graphout <- paste0(output.path,"/lag_price_group_support_rescaled.png")
+hist <- ggplot(data=subset(all_pi,cs_price == 1), aes(dm.L.ln_cpricei2, fill = treatment,  weight = base.sales)) + 
+  geom_histogram(alpha = 0.3, aes(y=..density.., fill = treatment), position="identity") +    
+  theme_classic(base_size = 24) +
+  theme(legend.position="bottom") +
+  labs(x = "Demeaned Price", y = "Fraction", color = NULL) +
+  scale_fill_discrete(name = "Group", labels = c("No Change", "Tax Change"))
+ggsave(graphout)
