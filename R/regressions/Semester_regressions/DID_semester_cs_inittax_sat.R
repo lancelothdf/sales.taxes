@@ -98,9 +98,7 @@ for (Y in c(outcomes.changes)) {
       res1.dt[, window := "semester"]
       res1.dt[, spec := "changes"]
       res1.dt[, n.groups := n.g]
-      res1.dt[, group.n := group]
-      res1.dt[, ll := quantlab[group]]
-      res1.dt[, ul := quantlab[group + 1]]
+      res1.dt[, lev := quantlab]
       # Add summary values
       res1.dt[, Rsq := summary(res1)$r.squared]
       res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
@@ -157,9 +155,7 @@ for (Y in c(outcomes.within)) {
       res1.dt[, window := "semester"]
       res1.dt[, spec := "within"]
       res1.dt[, n.groups := n.g]
-      res1.dt[, group.n := group]
-      res1.dt[, ll := quantlab[group]]
-      res1.dt[, ul := quantlab[group + 1]]
+      res1.dt[, lev := quantlab]
       # Add summary values
       res1.dt[, Rsq := summary(res1)$r.squared]
       res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
