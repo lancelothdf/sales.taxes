@@ -69,59 +69,60 @@ outcomes.within <- c("w.ln_cpricei2", "w.ln_quantity3")
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 
-LRdiff_res <- data.table(NULL)
-## Run in Diffs
-for (Y in c(outcomes.changes)) {
-  for (h in pot.bws) {
-    for (FE in FE_opts) {
-      for (point in tax_values) {
-        
-        # Define Sample
-        sample <- all_pi[abs(L.ln_sales_tax - (point)) <= (h)*(bw), ]
-        # Create weight: Epanechnikov
-        sample[, w := base.sales*(3/4)*(1-((L.ln_sales_tax - (point))/(h)*(bw))^2)]
-        
-        formula1 <- as.formula(paste0(
-          Y, "~ D.ln_sales_tax | ", FE, " | 0 | module_by_state"
-        ))
-        flog.info("Estimating with %s as outcome with %s FE in %s", Y, FE, point)
-        res1 <- felm(formula = formula1, data = sample,
-                     weights = sample$w)
-        flog.info("Finished estimating with %s as outcome with %s FE in %s", Y, FE, point)
-        
-        
-        ## attach results
-        flog.info("Writing results...")
-        res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-        res1.dt[, outcome := Y]
-        res1.dt[, controls := FE]
-        res1.dt[, window := "semester"]
-        res1.dt[, spec := "changes"]
-        res1.dt[, at := point]
-        res1.dt[, bdw := h]
-        # Add summary values
-        res1.dt[, Rsq := summary(res1)$r.squared]
-        res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-        res1.dt[, N_obs := nrow(sample)]
-        res1.dt[, N_modules := length(unique(sample$product_module_code))]
-        res1.dt[, N_stores :=  length(unique(sample$store_code_uc))]
-        res1.dt[, N_counties := uniqueN(sample, by = c("fips_state", "fips_county"))]
-        res1.dt[, N_years := uniqueN(sample, by = c("year"))]
-        res1.dt[, N_county_modules := uniqueN(sample, by = c("fips_state", "fips_county",
-                                                             "product_module_code"))]
-        LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-        fwrite(LRdiff_res, output.results.file)
-        
-        
-      }
-      
-      
-    }
-  }
-}
+# LRdiff_res <- data.table(NULL)
+# ## Run in Diffs
+# for (Y in c(outcomes.changes)) {
+#   for (h in pot.bws) {
+#     for (FE in FE_opts) {
+#       for (point in tax_values) {
+#         
+#         # Define Sample
+#         sample <- all_pi[abs(L.ln_sales_tax - (point)) <= (h)*(bw), ]
+#         # Create weight: Epanechnikov
+#         sample[, w := base.sales*(3/4)*(1-((L.ln_sales_tax - (point))/(h)*(bw))^2)]
+#         
+#         formula1 <- as.formula(paste0(
+#           Y, "~ D.ln_sales_tax | ", FE, " | 0 | module_by_state"
+#         ))
+#         flog.info("Estimating with %s as outcome with %s FE in %s", Y, FE, point)
+#         res1 <- felm(formula = formula1, data = sample,
+#                      weights = sample$w)
+#         flog.info("Finished estimating with %s as outcome with %s FE in %s", Y, FE, point)
+#         
+#         
+#         ## attach results
+#         flog.info("Writing results...")
+#         res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+#         res1.dt[, outcome := Y]
+#         res1.dt[, controls := FE]
+#         res1.dt[, window := "semester"]
+#         res1.dt[, spec := "changes"]
+#         res1.dt[, at := point]
+#         res1.dt[, bdw := h]
+#         # Add summary values
+#         res1.dt[, Rsq := summary(res1)$r.squared]
+#         res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
+#         res1.dt[, N_obs := nrow(sample)]
+#         res1.dt[, N_modules := length(unique(sample$product_module_code))]
+#         res1.dt[, N_stores :=  length(unique(sample$store_code_uc))]
+#         res1.dt[, N_counties := uniqueN(sample, by = c("fips_state", "fips_county"))]
+#         res1.dt[, N_years := uniqueN(sample, by = c("year"))]
+#         res1.dt[, N_county_modules := uniqueN(sample, by = c("fips_state", "fips_county",
+#                                                              "product_module_code"))]
+#         LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+#         fwrite(LRdiff_res, output.results.file)
+#         
+#         
+#       }
+#       
+#       
+#     }
+#   }
+# }
 
 
 ## Run within
+LRdiff_res <- fread(output.results.file)
 
 ## Run in Diffs
 for (Y in c(outcomes.within)) {
