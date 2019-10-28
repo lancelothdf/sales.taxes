@@ -127,7 +127,7 @@ for (Y in c(outcomes.changes)) {
 for (Y in c(outcomes.within)) {
   for (h in pot.bws) {
     for (FE in FE_opts) {
-      for (point in price_values) {
+      for (point in tax_values) {
         
         # Define Sample
         sample <- all_pi[abs(dm.L.ln_cpricei2 - (point)) <= (h)*(bw)]
