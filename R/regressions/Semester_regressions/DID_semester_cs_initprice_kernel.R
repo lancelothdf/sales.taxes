@@ -79,9 +79,9 @@ for (Y in c(outcomes.changes)) {
       for (point in price_values) {
         
         # Define Sample
-        sample <- all_pi[abs(dm.L.ln_cpricei2 - get(point)) <= get(h)*get(bw)]
+        sample <- all_pi[abs(dm.L.ln_cpricei2 - (point)) <= (h)*(bw)]
         # Create weight: Epanechnikov
-        sample[ w := base.sales*(3/4)*(1-((dm.L.ln_cpricei2 - get(point))/get(h)*get(bw))^2)]
+        sample[ w := base.sales*(3/4)*(1-((dm.L.ln_cpricei2 - (point))/(h)*(bw))^2)]
         
         formula1 <- as.formula(paste0(
           Y, "~ D.ln_sales_tax | ", FE, " | 0 | module_by_state"
@@ -132,9 +132,9 @@ for (Y in c(outcomes.within)) {
       for (point in price_values) {
         
         # Define Sample
-        sample <- all_pi[abs(dm.L.ln_cpricei2 - get(point)) <= get(h)*get(bw)]
+        sample <- all_pi[abs(dm.L.ln_cpricei2 - (point)) <= (h)*(bw)]
         # Create weight: Epanechnikov
-        sample[ w := base.sales*(3/4)*(1-((dm.L.ln_cpricei2 - get(point))/get(h)*get(bw))^2)]
+        sample[ w := base.sales*(3/4)*(1-((dm.L.ln_cpricei2 - (point))/(h)*(bw))^2)]
         
         formula1 <- as.formula(paste0(
           Y, "~ w.ln_sales_tax | ", FE, " | 0 | module_by_state"
