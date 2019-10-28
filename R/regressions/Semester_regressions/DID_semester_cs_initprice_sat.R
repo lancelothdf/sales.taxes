@@ -23,7 +23,7 @@ data.year <- "Data/Nielsen/yearly_nielsen_data.csv"
 
 
 ## output filepaths ----------------------------------------------
-output.results.file <- "Data/DID_split_initial_price_semester_saturated.csv"
+output.results.file <- "Data/DID_sat_initial_price_semester.csv"
 
 ### Set up Semester Data ---------------------------------
 all_pi <- fread(data.semester)
@@ -99,7 +99,7 @@ for (Y in c(outcomes.changes)) {
       res1.dt[, window := "semester"]
       res1.dt[, spec := "changes"]
       res1.dt[, n.groups := n.g]
-      res1.dt[, lev := quantlab]
+      res1.dt[, lev := quantlab[-1]]
       # Add summary values
       res1.dt[, Rsq := summary(res1)$r.squared]
       res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
@@ -157,7 +157,7 @@ for (Y in c(outcomes.within)) {
       res1.dt[, window := "semester"]
       res1.dt[, spec := "within"]
       res1.dt[, n.groups := n.g]
-      res1.dt[, lev := quantlab]
+      res1.dt[, lev := quantlab[-1]]
       # Add summary values
       res1.dt[, Rsq := summary(res1)$r.squared]
       res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
