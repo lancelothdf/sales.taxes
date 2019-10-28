@@ -58,7 +58,7 @@ all_pi <- all_pi[cs_tax == 1,]
 # Discretize taxrate: common support
 tax_values <-seq(min(all_pi$L.ln_sales_tax, na.rm = T), max(all_pi$L.ln_sales_tax, na.rm = T), length.out = 15)
 # The value of 0 is problematic: replace it for a very small value
-if (tax_values_full[1] == 0) tax_values_full[1] <- 0.001
+if (tax_values[1] == 0) tax_values[1] <- 0.001
 # average tax changes (for prediction)
 av.tax.ch <- 1
 
