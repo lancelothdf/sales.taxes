@@ -172,8 +172,7 @@ for (Y in c(outcomes.within)) {
       res1.dt[, controls := FE]
       res1.dt[, window := "semester"]
       res1.dt[, spec := "within"]
-      res1.dt[, n.groups := n.g]
-      res1.dt[, lev := quantlab[-1]]
+      res1.dt[, degree := n]
       # Add summary values
       res1.dt[, Rsq := summary(res1)$r.squared]
       res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
