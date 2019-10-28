@@ -85,10 +85,10 @@ for (Y in c(outcomes.changes)) {
     for (FE in FE_opts) {
       
       # Saturate fixed effects
-      RHS2 <- paste0(paste0(FE,":L.ln_sales_tax_",1:n), collapse = " + ")
+      RHS2 <- paste0(paste0("L.ln_sales_tax_",1:n ,":", FE), collapse = " + ")
       
       formula1 <- as.formula(paste0(
-        Y, "~ ", RHS1,"| ", FE, "+", RHS2," | 0 | module_by_state"
+        Y, "~ ", RHS1,"| ", RHS2, "+", FE, " | 0 | module_by_state"
       ))
       flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
       res1 <- felm(formula = formula1, data = all_pi,
@@ -154,10 +154,10 @@ for (Y in c(outcomes.within)) {
     for (FE in FE_opts) {
       
       # Saturate fixed effects
-      RHS2 <- paste0(paste0(FE,":L.ln_sales_tax_",1:n), collapse = " + ")
+      RHS2 <- paste0(paste0("L.ln_sales_tax_",1:n ,":", FE), collapse = " + ")
       
       formula1 <- as.formula(paste0(
-        Y, "~ ", RHS1,"| ", FE, "+", RHS2," | 0 | module_by_state"
+        Y, "~ ", RHS1,"| ", RHS2, "+", FE, " | 0 | module_by_state"
       ))
       flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
       res1 <- felm(formula = formula1, data = all_pi,
