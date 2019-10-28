@@ -67,6 +67,8 @@ outcomes.changes <- c("D.ln_cpricei2", "D.ln_quantity3")
 outcomes.within <- c("w.ln_cpricei2", "w.ln_quantity3")
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
+## Force FEs to be factors:
+for (FE in FE_opts) {all_pi[, (FE) := as.factor(get(FE))] }
 
 LRdiff_res <- data.table(NULL)
 ## Run in Diffs
