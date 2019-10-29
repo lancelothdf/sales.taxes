@@ -5,7 +5,9 @@ library(tidyverse)
 library(data.table)
 library(futile.logger)
 library(lfe)
-library(lm)
+library(mice)
+library(miceadds)
+library(estimatr)
 library(multcomp)
 library(ggplot2)
 
@@ -44,7 +46,7 @@ all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by 
 
 ## Model 1:
 formula1 <- as.formula("ln_cpricei2 ~ L.ln_cpricei2")
-res1 <- lm.cluster(formula = formula1, data = all_pi, cluster = all_pi$module_by_state,
+res1 <- lm_robust(formula = formula1, data = all_pi, clusters = all_pi$module_by_state,
              weights = all_pi$base.sales)
 res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
 res1.dt[, sigma.hat := (sd(resid(res1)))^2]
