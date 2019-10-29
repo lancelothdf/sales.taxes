@@ -1,6 +1,6 @@
 #' Compute de-meaned price distributions at different quantiles of the lagged taxes and prices (for which you observe positive tax changes)
 #' Everything in the common supports. First I export a bit of basic info about 
-
+install.packages("estimatr")
 library(tidyverse)
 library(data.table)
 library(futile.logger)
