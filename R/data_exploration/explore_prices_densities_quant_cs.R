@@ -52,7 +52,8 @@ res1.dt[, controls := "no"]
 formula1 <- as.formula("ln_cpricei2 ~ L.ln_cpricei2 | division_by_module_by_time | 0 | module_by_state")
 res2 <- felm(formula = formula1, data = all_pi,
              weights = all_pi$base.sales)
-res2.dt[, sigma.hat := (sd(resid(res1)))^2]
+res2.dt <- data.table(coef(summary(res2)), keep.rownames=T)
+res2.dt[, sigma.hat := (sd(resid(res2)))^2]
 res2.dt[, controls := "yes"]
 
 res.dt <- rbind(res1.dt, res2.dt)
