@@ -79,7 +79,7 @@ all_pi[, cs_tax := ifelse(is.na(L.ln_sales_tax), 0, cs_tax)]
 
 ## Keep within the common support
 all_pi_taxcs <- all_pi[cs_tax == 1,]
-all_pi_taxcs[, quantile := cut(L.ln_sales_tax, breaks = quantile(ln_sales_tax_r, probs = seq(0, 1, by = 1/5), 
+all_pi_taxcs[, quantile := cut(L.ln_sales_tax, breaks = quantile(L.ln_sales_tax, probs = seq(0, 1, by = 1/5), 
                                                                  na.rm = T, weight = base.sales),
                                labels = 1:5, right = FALSE)]
 all_pi_taxcs <- all_pi_taxcs[!is.na(quantile)]
@@ -142,7 +142,7 @@ all_pi[, cs_price := ifelse(is.na(dm.L.ln_cpricei2), 0, cs_price)]
 
 ## Keep within the common support
 all_pi_pcs <- all_pi[cs_price == 1,]
-all_pi_pcs[, quantile := cut(dm.L.ln_cpricei2, breaks = quantile(ln_sales_tax_r, probs = seq(0, 1, by = 1/5), 
+all_pi_pcs[, quantile := cut(dm.L.ln_cpricei2, breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/5), 
                                                                  na.rm = T, weight = base.sales),
                                labels = 1:5, right = FALSE)]
 all_pi_pcs <- all_pi_pcs[!is.na(quantile)]
