@@ -75,12 +75,12 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 #   for (h in pot.bws) {
 #     for (FE in FE_opts) {
 #       for (point in tax_values) {
-#         
+# 
 #         # Define Sample
 #         sample <- all_pi[abs(L.ln_sales_tax - (point)) <= (h)*(bw), ]
 #         # Create weight: Epanechnikov
 #         sample[, w := base.sales*(3/4)*(1-((L.ln_sales_tax - (point))/(h)*(bw))^2)]
-#         
+# 
 #         formula1 <- as.formula(paste0(
 #           Y, "~ D.ln_sales_tax | ", FE, " | 0 | module_by_state"
 #         ))
@@ -88,8 +88,8 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 #         res1 <- felm(formula = formula1, data = sample,
 #                      weights = sample$w)
 #         flog.info("Finished estimating with %s as outcome with %s FE in %s", Y, FE, point)
-#         
-#         
+# 
+# 
 #         ## attach results
 #         flog.info("Writing results...")
 #         res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
@@ -111,11 +111,11 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 #                                                              "product_module_code"))]
 #         LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
 #         fwrite(LRdiff_res, output.results.file)
-#         
-#         
+# 
+# 
 #       }
-#       
-#       
+# 
+# 
 #     }
 #   }
 # }
@@ -131,9 +131,9 @@ for (Y in c(outcomes.within)) {
       for (point in tax_values) {
         
         # Define Sample
-        sample <- all_pi[abs(dm.L.ln_cpricei2 - (point)) <= (h)*(bw)]
+        sample <- all_pi[abs(L.ln_sales_tax - (point)) <= (h)*(bw)]
         # Create weight: Epanechnikov
-        sample[, w := base.sales*(3/4)*(1-((dm.L.ln_cpricei2 - (point))/(h)*(bw))^2)]
+        sample[, w := base.sales*(3/4)*(1-((L.ln_sales_tax - (point))/(h)*(bw))^2)]
         
         formula1 <- as.formula(paste0(
           Y, "~ w.ln_sales_tax | ", FE, " | 0 | module_by_state"
