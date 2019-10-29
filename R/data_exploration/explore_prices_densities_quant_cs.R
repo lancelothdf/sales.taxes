@@ -47,6 +47,7 @@ res1 <- lm(formula = formula1, data = all_pi,
 res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
 res1.dt[, sigma.hat := (sd(resid(res1)))^2]
 res1.dt[, controls := "no"]
+setnames(res1.dt, old = "Std. Error", new = "Cluster s.e.")
 
 ## Model 2:
 formula1 <- as.formula("ln_cpricei2 ~ L.ln_cpricei2 | division_by_module_by_time | 0 | module_by_state")
