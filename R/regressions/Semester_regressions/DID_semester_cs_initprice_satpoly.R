@@ -132,7 +132,7 @@ for (Y in c(outcomes.changes)) {
         pred_b <- rep(0,15)
         pred_se <- rep(0,15)
         for (i in 1:15) {
-          plc.formula1 <- paste0(av.tax.ch, "*(D.ln_sales_tax + ", (price_values[i]),"*D.ln_sales_tax_init +", paste0(paste0(paste0(paste0((price_values[i]),"^",2:(n))), "*D.ln_sales_tax_init_",2:n), collapse = " + "), ") = 0")
+          plc.formula1 <- paste0(av.tax.ch, "*(", paste0(paste0(paste0(paste0((price_values[i]),"^",1:(n))), "*D.ln_sales_tax_init_",1:n), collapse = " + "), ") = 0")
           # Predictred
           pplc.test1 <- glht(res1, linfct = c(plc.formula1))
           pred_b[i] <- coef(summary(pplc.test1))[[1]]
@@ -211,7 +211,7 @@ for (Y in c(outcomes.within)) {
         pred_b <- rep(0,15)
         pred_se <- rep(0,15)
         for (i in 1:15) {
-          plc.formula1 <- paste0(av.tax.ch, "*(w.ln_sales_tax + ", (price_values[i]),"*w.ln_sales_tax_init +", paste0(paste0(paste0(paste0((price_values[i]),"^",2:(n))), "*w.ln_sales_tax_init_",2:n), collapse = " + "), ") = 0")
+          plc.formula1 <- paste0(av.tax.ch, "*(", paste0(paste0(paste0(paste0((price_values[i]),"^",1:(n))), "*w.ln_sales_tax_init_",1:n), collapse = " + "), ") = 0")
           # Predictred
           pplc.test1 <- glht(res1, linfct = c(plc.formula1))
           pred_b[i] <- coef(summary(pplc.test1))[[1]]
