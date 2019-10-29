@@ -23,9 +23,6 @@ output.path <- "../../home/slacouture/NLP"
 
 ### Set up Semester Data ---------------------------------
 all_pi <- fread(data.semester)
-all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax), by = .(store_by_module)]
-all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2), by = .(store_by_module)]
-all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3), by = .(store_by_module)]
 
 # Create lagged value (initial)
 all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
