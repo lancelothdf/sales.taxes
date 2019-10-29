@@ -141,7 +141,7 @@ all_pi[, cs_price := ifelse(dm.L.ln_cpricei2 > max(pct1.treated, pct1.control) &
 all_pi[, cs_price := ifelse(is.na(dm.L.ln_cpricei2), 0, cs_price)]
 
 ## Keep within the common support
-all_pi_pcs <- all_pi[cs_tax == 1,]
+all_pi_pcs <- all_pi[cs_price == 1,]
 all_pi_pcs[, quantile := cut(dm.L.ln_cpricei2, breaks = quantile(ln_sales_tax_r, probs = seq(0, 1, by = 1/5), 
                                                                  na.rm = T, weight = base.sales),
                                labels = 1:5, right = FALSE)]
@@ -157,9 +157,9 @@ graphout <- paste0(output.path,"/norm_prices_by_quant_csp.png")
 # Plot - zoom in between -0.7 to 0.7
 ggplot(all_pi_pcs, aes(x=n.ln_cpricei2, color=quantile)) +
   geom_density() +
-  labs(x = "Normalized (log) Price (mod x t)", y = "K-Density", title = "Density by Sales Taxes") +
+  labs(x = "Normalized (log) Price (mod x t)", y = "K-Density", title = "Density by Lagged Price") +
   scale_x_continuous(limits = c(-0.5,0.5), breaks = seq(-0.5, 0.5, 0.2)) +
-  scale_color_discrete(name = "Tax levels", labels = quantlab)
+  scale_color_discrete(name = "Price levels", labels = quantlab)
 
 ggsave(graphout)
 
@@ -177,9 +177,9 @@ ggplot() +
   geom_line(data=dens, aes(x, cd, colour=group)) +
   theme_classic(base_size = 22) +
   labs(x = "Normalized (log) Price (mod x t)", y = "Cumulative K-Density", 
-       title = "CDF by Sales Taxes Quantiles")+
+       title = "CDF by Lagged Price Quantiles")+
   scale_x_continuous(limits = c(-0.3,0.3), breaks = seq(-0.3, 0.3, 0.15), labels = as.character( seq(-0.3, 0.3, 0.15))) +
-  scale_color_discrete(name = "Tax levels", labels = quantlab)
+  scale_color_discrete(name = "Price levels", labels = quantlab)
 
 ggsave(graphout)
 
