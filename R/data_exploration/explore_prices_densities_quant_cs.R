@@ -35,6 +35,7 @@ all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
 all_pi[, module_by_time := .GRP, by = .(product_module_code, year)]
 all_pi[, L.ln_cpricei2 := ln_cpricei2 - D.ln_cpricei2]
 all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
+all_pi[, dm.ln_cpricei2 := ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
 
 
 
@@ -43,21 +44,30 @@ all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by 
 ## Model 1:
 formula1 <- as.formula("ln_cpricei2 ~ L.ln_cpricei2")
 res1 <- lm(formula = formula1, data = all_pi,
-             weights = all_pi$base.sales)
+           weights = all_pi$base.sales)
 res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
 res1.dt[, sigma.hat := (sd(resid(res1)))^2]
 res1.dt[, controls := "no"]
 setnames(res1.dt, old = "Std. Error", new = "Cluster s.e.")
 
 ## Model 2:
+formula1 <- as.formula("dm.ln_cpricei2 ~ dm.L.ln_cpricei2")
+res1 <- lm(formula = formula1, data = all_pi,
+           weights = all_pi$base.sales)
+res2.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+res2.dt[, sigma.hat := (sd(resid(res1)))^2]
+res2.dt[, controls := "no"]
+setnames(res2.dt, old = "Std. Error", new = "Cluster s.e.")
+
+## Model 3:
 formula1 <- as.formula("ln_cpricei2 ~ L.ln_cpricei2 | division_by_module_by_time | 0 | module_by_state")
 res2 <- felm(formula = formula1, data = all_pi,
              weights = all_pi$base.sales)
-res2.dt <- data.table(coef(summary(res2)), keep.rownames=T)
-res2.dt[, sigma.hat := (sd(resid(res2)))^2]
-res2.dt[, controls := "yes"]
+res3.dt <- data.table(coef(summary(res2)), keep.rownames=T)
+res3.dt[, sigma.hat := (sd(resid(res2)))^2]
+res3.dt[, controls := "yes"]
 
-res.dt <- rbind(res1.dt, res2.dt)
+res.dt <- rbind(res1.dt, res2.dt, res3.dt)
 fwrite(res.dt, output.results)
 #### Tax rate -----------------
 
@@ -66,11 +76,11 @@ control <- all_pi[D.ln_sales_tax == 0,]
 treated <- all_pi[D.ln_sales_tax != 0,]
 
 # Tax rate
-pct1.control <- quantile(control$L.ln_sales_tax, probs = 0.01, na.rm = T, weight=all_pi$base.sales)
-pct1.treated <- quantile(treated$L.ln_sales_tax, probs = 0.01, na.rm = T, weight=all_pi$base.sales)
+pct1.control <- quantile(control$L.ln_sales_tax, probs = 0.01, na.rm = T, weight=control$base.sales)
+pct1.treated <- quantile(treated$L.ln_sales_tax, probs = 0.01, na.rm = T, weight=treated$base.sales)
 
-pct99.control <- quantile(control$L.ln_sales_tax, probs = 0.99, na.rm = T, weight=all_pi$base.sales)
-pct99treated <- quantile(treated$L.ln_sales_tax, probs = 0.99, na.rm = T, weight=all_pi$base.sales)
+pct99.control <- quantile(control$L.ln_sales_tax, probs = 0.99, na.rm = T, weight=control$base.sales)
+pct99treated <- quantile(treated$L.ln_sales_tax, probs = 0.99, na.rm = T, weight=treated$base.sales)
 
 all_pi[, cs_tax := ifelse(L.ln_sales_tax > max(pct1.treated, pct1.control) & 
                             L.ln_sales_tax < min(pct99treated, pct99.control), 1, 0)]
@@ -129,11 +139,11 @@ ggsave(graphout)
 
 #### Prices -----------------
 
-pct1.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=all_pi$base.sales)
-pct1.treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=all_pi$base.sales)
+pct1.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=control$base.sales)
+pct1.treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=treated$base.sales)
 
-pct99.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=all_pi$base.sales)
-pct99treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=all_pi$base.sales)
+pct99.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=control$base.sales)
+pct99treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=treated$base.sales)
 
 all_pi[, cs_price := ifelse(dm.L.ln_cpricei2 > max(pct1.treated, pct1.control) & 
                               dm.L.ln_cpricei2 < min(pct99treated, pct99.control), 1, 0)]
