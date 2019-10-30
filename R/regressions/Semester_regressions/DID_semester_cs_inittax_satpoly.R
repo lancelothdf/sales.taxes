@@ -79,7 +79,7 @@ for (Y in c(outcomes.changes)) {
     # Add to formula 1
     RHS1 <- paste(RHS1, paste0("D.ln_sales_tax_init_",n), sep = " + ")
     
-    for (n.g in 2:5) {
+    for (n.g in 1:5) {
       
       # Create groups of initial values of tax rate
       # We use the full weighted distribution
@@ -157,7 +157,7 @@ for (Y in c(outcomes.within)) {
     # Add to formula 1
     RHS1 <- paste(RHS1, paste0("w.ln_sales_tax_init_",n), sep = " + ")
     
-    for (n.g in 2:5) {
+    for (n.g in 1:5) {
       
       # Create groups of initial values of tax rate
       # We use the full weighted distribution
