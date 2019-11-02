@@ -58,6 +58,7 @@ target_res <- data.table(NULL)
 ## Iteration
 for (rep in 1:100) {
   
+  flog.info("Iteration %s", rep)
   ##### Create fake Data based on real distribution of tax changes ----------
   
   # Sample (to keep "real" tax rates)
@@ -189,7 +190,7 @@ for (rep in 1:100) {
   }
   
   ## Estimate IV and retrieve in vector
-  IV <- LRdiff_res[outcome == "D.q" & initial == "tax",][["Estimate"]]/LRdiff_res[outcome == "D.p_t" & initial == "tax",][["Estimate"]]
+  IV <- LRdiff_res[outcome == "D.q" & initial == "tax" & iter == rep,][["Estimate"]]/LRdiff_res[outcome == "D.p_t" & initial == "tax" & iter == rep,][["Estimate"]]
   
   ## Estimate the matrix of the implied system of equations
   
@@ -284,7 +285,7 @@ for (rep in 1:100) {
   }
   
   ## Estimate IV and retrieve in vector
-  IV <- LRdiff_res[outcome == "D.q" & initial == "price",][["Estimate"]]/LRdiff_res[outcome == "D.p_t" & initial == "price",][["Estimate"]]
+  IV <- LRdiff_res[outcome == "D.q" & initial == "price" & iter == rep,][["Estimate"]]/LRdiff_res[outcome == "D.p_t" & initial == "price" & iter == rep,][["Estimate"]]
   
   ## Estimate the matrix of the implied system of equations
   
