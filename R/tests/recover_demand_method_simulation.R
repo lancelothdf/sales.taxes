@@ -22,12 +22,13 @@ setwd("/project2/igaarder")
 
 ## input and output filepaths -----------------------------------------------
 data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
-output.results.file <- "Data/SimulationIV_100.csv"
-output.target.file <- "Data/SimulationTarget_100.csv"
+output.results.file <- "Data/SimulationIV_150.csv"
+output.target.file <- "Data/SimulationTarget_150.csv"
 
 
 ## input values ------------------------------
-set.seed(1948)
+#set.seed(1948)
+set.seed(2019)
 
 # We first use estimates of rho and sigma we have previously gotten
 rho <- 0.8089
@@ -56,7 +57,7 @@ LRdiff_res <- data.table(NULL)
 target_res <- data.table(NULL)
 
 ## Iteration
-for (rep in 1:100) {
+for (rep in 1:150) {
   
   flog.info("Iteration %s", rep)
   ##### Create fake Data based on real distribution of tax changes ----------
