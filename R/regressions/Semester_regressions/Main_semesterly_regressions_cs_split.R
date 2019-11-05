@@ -110,7 +110,8 @@ for (cs in common.supports) {
         all_pi <- all_pi[, quantile := cut(dm.L.ln_cpricei2,
                                            breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
                                            labels = 1:n.g, right = FALSE)]
-      } else if(cs == "cs_tax") {
+      } 
+      if(cs == "cs_tax") {
         all_pi <- all_pi[, quantile := cut(L.ln_sales_tax,
                                            breaks = quantile(L.ln_sales_tax, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
                                            labels = 1:n.g, right = FALSE)]
@@ -120,7 +121,7 @@ for (cs in common.supports) {
       for (lev in 1:n.g) {
         
         # Restrict to sample  fixed effects
-        all_pi_cs <- all_pi_cs_full[quantile == lev]
+        all_pi_cs <- all_pi_cs_full[quantile == lev,]
         
         for (FE in FE_opts) {
           
