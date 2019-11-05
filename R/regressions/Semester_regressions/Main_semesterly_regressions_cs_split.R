@@ -105,15 +105,13 @@ for (cs in common.supports) {
     for (n.g in 2:8) {
       
       # Create groups of initial values of covariate
-      
-      flog.info("Computing quantiles")
       if (cs == "cs_price") {
-        all_pi <- all_pi[, quantile := cut(dm.L.ln_cpricei2,
+        all_pi_cs_full <- all_pi_cs_full[, quantile := cut(dm.L.ln_cpricei2,
                                            breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
                                            labels = 1:n.g, right = FALSE)]
       } 
       if(cs == "cs_tax") {
-        all_pi <- all_pi[, quantile := cut(L.ln_sales_tax,
+        all_pi_cs_full <- all_pi_cs_full[, quantile := cut(L.ln_sales_tax,
                                            breaks = quantile(L.ln_sales_tax, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
                                            labels = 1:n.g, right = FALSE)]
       } 
@@ -121,7 +119,6 @@ for (cs in common.supports) {
       
       for (lev in 1:n.g) {
         
-        flog.info("Restricting to Quantile")
         # Restrict to sample  fixed effects
         all_pi_cs <- all_pi_cs_full[quantile == lev,]
         
