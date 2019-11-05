@@ -76,7 +76,7 @@ for (Y in c(outcomes.within)) {
       # Saturate fixed effects
       all_pi <- all_pi[, quantile_sat := cut(L.ln_sales_tax,
                                          breaks = quantile(L.ln_sales_tax, probs = seq(0, 1, by = 1/n.sat), na.rm = T, weight = base.sales),
-                                         labels = 1:n.g, right = FALSE)]      
+                                         labels = 1:n.sat, right = FALSE)]      
       
       
       all_pi[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile_sat)]
