@@ -66,7 +66,7 @@ FE_opts <- c("group_region_by_module_by_time", "group_division_by_module_by_time
 LRdiff_res <- data.table(NULL)
 ## Run in Diffs
 for (Y in c(outcomes.within)) {
-  for (n.g in 2:5) {
+  for (n.g in 2:8) {
     for (n.sat in 1:n.g) {
       
       # Create groups of initial values of tax rate
