@@ -102,7 +102,7 @@ for (cs in common.supports) {
   
   all_pi_cs_full <- all_pi[get(cs) == 1,]
   for (Y in c(outcomes)) {
-    for (n.g in 2:8) {
+    for (n.g in 2:7) {
       
       # Create groups of initial values of covariate
       if (cs == "cs_price") {
