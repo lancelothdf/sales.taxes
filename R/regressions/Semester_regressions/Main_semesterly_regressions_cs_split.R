@@ -106,6 +106,7 @@ for (cs in common.supports) {
       
       # Create groups of initial values of covariate
       
+      flog.info("Computing quantiles")
       if (cs == "cs_price") {
         all_pi <- all_pi[, quantile := cut(dm.L.ln_cpricei2,
                                            breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
@@ -120,6 +121,7 @@ for (cs in common.supports) {
       
       for (lev in 1:n.g) {
         
+        flog.info("Restricting to Quantile")
         # Restrict to sample  fixed effects
         all_pi_cs <- all_pi_cs_full[quantile == lev,]
         
@@ -128,10 +130,10 @@ for (cs in common.supports) {
           formula1 <- as.formula(paste0(
             Y, "~", formula_RHS, "| ", FE, " | 0 | module_by_state"
           ))
-          flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
+          flog.info("Estimating with %s as outcome with %s FE in q %s for %s qs.", Y, FE, lev, n.g)
           res1 <- felm(formula = formula1, data = all_pi_cs,
                        weights = all_pi_cs$base.sales)
-          flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
+          flog.info("Finished estimating with %s as outcome with %s FE in q %s for %s qs.", Y, FE, lev, n.g)
           
           
           ## attach results
