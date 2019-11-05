@@ -42,11 +42,11 @@ control <- all_pi[D.ln_sales_tax == 0,]
 treated <- all_pi[D.ln_sales_tax != 0,]
 
 # Tax rate
-pct1.control <- quantile(control$L.ln_sales_tax, probs = 0.01, na.rm = T, weight=all_pi$base.sales)
-pct1.treated <- quantile(treated$L.ln_sales_tax, probs = 0.01, na.rm = T, weight=all_pi$base.sales)
+pct1.control <- quantile(control$L.ln_sales_tax, probs = 0.01, na.rm = T, weight=control$base.sales)
+pct1.treated <- quantile(treated$L.ln_sales_tax, probs = 0.01, na.rm = T, weight=treated$base.sales)
 
-pct99.control <- quantile(control$L.ln_sales_tax, probs = 0.99, na.rm = T, weight=all_pi$base.sales)
-pct99treated <- quantile(treated$L.ln_sales_tax, probs = 0.99, na.rm = T, weight=all_pi$base.sales)
+pct99.control <- quantile(control$L.ln_sales_tax, probs = 0.99, na.rm = T, weight=control$base.sales)
+pct99treated <- quantile(treated$L.ln_sales_tax, probs = 0.99, na.rm = T, weight=treated$base.sales)
 
 all_pi[, cs_tax := ifelse(L.ln_sales_tax > max(pct1.treated, pct1.control) & 
                             L.ln_sales_tax < min(pct99treated, pct99.control), 1, 0)]
@@ -67,15 +67,15 @@ for (Y in c(outcomes.within)) {
       
       # Create groups of initial values of tax rate
       # We use the full weighted distribution
-      all_pi <- all_pi[, quantile := cut(dm.L.ln_cpricei2,
-                                         breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
+      all_pi <- all_pi[, quantile := cut(L.ln_sales_tax,
+                                         breaks = quantile(L.ln_sales_tax, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
                                          labels = 1:n.g, right = FALSE)]
-      quantlab <- round(quantile(all_pi$dm.L.ln_cpricei2, 
+      quantlab <- round(quantile(all_pi$L.ln_sales_tax, 
                                  probs = seq(0, 1, by = 1/n.g), na.rm = T, 
                                  weight = all_pi$base.sales), digits = 4)
       # Saturate fixed effects
-      all_pi <- all_pi[, quantile_sat := cut(dm.L.ln_cpricei2,
-                                         breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/n.sat), na.rm = T, weight = base.sales),
+      all_pi <- all_pi[, quantile_sat := cut(L.ln_sales_tax,
+                                         breaks = quantile(L.ln_sales_tax, probs = seq(0, 1, by = 1/n.sat), na.rm = T, weight = base.sales),
                                          labels = 1:n.g, right = FALSE)]      
       
       
