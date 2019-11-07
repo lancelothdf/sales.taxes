@@ -34,8 +34,10 @@ all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3), by = .(store_by_mo
 all_pi <- all_pi[order(store_by_module, cal_time),] ##Sort on store by year-quarter (in ascending order)
 all_pi[, L1.w.ln_cpricei2 := shift(w.ln_cpricei2, n=1, type="lag"), by = .(store_by_module)]
 all_pi[, L2.w.ln_cpricei2 := shift(w.ln_cpricei2, n=2, type="lag"), by = .(store_by_module)]
+all_pi[, L4.w.ln_cpricei2 := shift(w.ln_cpricei2, n=4, type="lag"), by = .(store_by_module)]
 all_pi[, L1.w.ln_quantity3 := shift(w.ln_quantity3, n=1, type="lag"), by = .(store_by_module)]
 all_pi[, L2.w.ln_quantity3 := shift(w.ln_quantity3, n=2, type="lag"), by = .(store_by_module)]
+all_pi[, L4.w.ln_quantity3 := shift(w.ln_quantity3, n=4, type="lag"), by = .(store_by_module)]
 
 
 
@@ -66,8 +68,8 @@ all_pi <- all_pi[cs_tax == 1,]
 
 
 
-outcomes.changes <- c("L1.D.ln_cpricei2", "L2.D.ln_cpricei2", "L1.D.ln_quantity3", "L2.D.ln_quantity3")
-outcomes.within <- c("L1.w.ln_cpricei2", "L2.w.ln_cpricei2", "L1.w.ln_quantity3", "L2.w.ln_quantity3")
+outcomes.changes <- c("L1.D.ln_cpricei2", "L2.D.ln_cpricei2", "L4.D.ln_cpricei2", "L1.D.ln_quantity3", "L2.D.ln_quantity3", "L4.D.ln_quantity3")
+outcomes.within <- c("L1.w.ln_cpricei2", "L2.w.ln_cpricei2", "L4.w.ln_cpricei2", "L1.w.ln_quantity3", "L2.w.ln_quantity3", "L4.w.ln_quantity3")
 FE_opts <- c("group_region_by_module_by_time", "group_division_by_module_by_time")
 
 
