@@ -39,6 +39,12 @@ all_pi[, L4.w.ln_cpricei2 := shift(w.ln_cpricei2, n=4, type="lag"), by = .(store
 all_pi[, L1.w.ln_quantity3 := shift(w.ln_quantity3, n=1, type="lag"), by = .(store_by_module)]
 all_pi[, L2.w.ln_quantity3 := shift(w.ln_quantity3, n=2, type="lag"), by = .(store_by_module)]
 all_pi[, L4.w.ln_quantity3 := shift(w.ln_quantity3, n=4, type="lag"), by = .(store_by_module)]
+all_pi[, L1.D.ln_cpricei2 := shift(D.ln_cpricei2, n=1, type="lag"), by = .(store_by_module)]
+all_pi[, L2.D.ln_cpricei2 := shift(D.ln_cpricei2, n=2, type="lag"), by = .(store_by_module)]
+all_pi[, L4.D.ln_cpricei2 := shift(D.ln_cpricei2, n=4, type="lag"), by = .(store_by_module)]
+all_pi[, L1.D.ln_quantity3 := shift(D.ln_quantity3, n=1, type="lag"), by = .(store_by_module)]
+all_pi[, L2.D.ln_quantity3 := shift(D.ln_quantity3, n=2, type="lag"), by = .(store_by_module)]
+all_pi[, L4.D.ln_quantity3 := shift(D.ln_quantity3, n=4, type="lag"), by = .(store_by_module)]
 
 
 
