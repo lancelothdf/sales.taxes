@@ -60,11 +60,11 @@ all_pi[, cs_tax := ifelse(is.na(L.ln_sales_tax), 0, cs_tax)]
 
 
 # Price: 
-pct1.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=all_pi$base.sales)
-pct1.treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=all_pi$base.sales)
+pct1.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=all_pi$control)
+pct1.treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=all_pi$treated)
 
-pct99.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=all_pi$base.sales)
-pct99treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=all_pi$base.sales)
+pct99.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=all_pi$control)
+pct99treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=all_pi$treated)
 
 all_pi[, cs_price := ifelse(dm.L.ln_cpricei2 > max(pct1.treated, pct1.control) & 
                               dm.L.ln_cpricei2 < min(pct99treated, pct99.control), 1, 0)]
@@ -138,7 +138,6 @@ for (cs in common.supports) {
           res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
           res1.dt[, outcome := Y]
           res1.dt[, controls := FE]
-          res1.dt[, econ := "none"]
           res1.dt[, support := cs]
           res1.dt[, n.groups := n.g]
           res1.dt[, group := lev]
@@ -187,7 +186,6 @@ for (cs in common.supports) {
             `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
             outcome = Y,
             controls = FE,
-            econ = "none",
             support = cs,
             n.groups = n.g,
             group = lev,
@@ -262,7 +260,6 @@ for (cs in common.supports) {
             `Pr(>|t|)` = c(cumul.lead5.pval, cumul.lead4.pval, cumul.lead3.pval, cumul.lead2.pval, cumul.lead1.pval, cumul.lag0.pval, cumul.lag1.pval, cumul.lag2.pval, cumul.lag3.pval, cumul.lag4.pval),
             outcome = Y,
             controls = FE,
-            econ = "none",
             support = cs,
             n.groups = n.g,
             group = lev,
