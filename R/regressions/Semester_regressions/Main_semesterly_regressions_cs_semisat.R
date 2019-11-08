@@ -113,10 +113,10 @@ for (cs in common.supports) {
         formula1 <- as.formula(paste0(
           Y, "~", formula_RHS, "| ", FE, " | 0 | module_by_state"
         ))
-        flog.info("Estimating with %s as outcome with %s FE in q %s for %s qs.", Y, FE, lev, n.g)
+        flog.info("Estimating with %s as outcome with %s FE for %s qs.", Y, FE, n.g)
         res1 <- felm(formula = formula1, data = all_pi_cs,
                      weights = all_pi_cs$base.sales)
-        flog.info("Finished estimating with %s as outcome with %s FE in q %s for %s qs.", Y, FE, lev, n.g)
+        flog.info("Finished estimating with %s as outcome with %s FE for %s qs.", Y, FE, n.g)
         
         
         ## attach results
@@ -145,6 +145,7 @@ for (cs in common.supports) {
         
         ##### Add the cumulative effect at each lead/lag (relative to -1) for each quantile
         for (lev in 1:n.g) {
+          flog.info("Estimating cumulative effect for %s q.", lev)
           cumul.lead1.est <- 0
           cumul.lead1.se <- NA
           cumul.lead1.pval <- NA
