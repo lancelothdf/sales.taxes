@@ -34,9 +34,11 @@ all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3), by = .(store_by_mo
 all_pi <- all_pi[order(store_by_module, cal_time),] ##Sort on store by year-quarter (in ascending order)
 all_pi[, L1.D.ln_cpricei2 := shift(D.ln_cpricei2, n=1, type="lag"), by = .(store_by_module)]
 all_pi[, L2.D.ln_cpricei2 := shift(D.ln_cpricei2, n=2, type="lag"), by = .(store_by_module)]
+all_pi[, L3.D.ln_cpricei2 := shift(D.ln_cpricei2, n=3, type="lag"), by = .(store_by_module)]
 all_pi[, L4.D.ln_cpricei2 := shift(D.ln_cpricei2, n=4, type="lag"), by = .(store_by_module)]
 all_pi[, L1.D.ln_quantity3 := shift(D.ln_quantity3, n=1, type="lag"), by = .(store_by_module)]
 all_pi[, L2.D.ln_quantity3 := shift(D.ln_quantity3, n=2, type="lag"), by = .(store_by_module)]
+all_pi[, L3.D.ln_quantity3 := shift(D.ln_quantity3, n=3, type="lag"), by = .(store_by_module)]
 all_pi[, L4.D.ln_quantity3 := shift(D.ln_quantity3, n=4, type="lag"), by = .(store_by_module)]
 
 all_pi[, L5.3.D.ln_cpricei2 := L4.D.ln_cpricei2 + L3.D.ln_cpricei2]
