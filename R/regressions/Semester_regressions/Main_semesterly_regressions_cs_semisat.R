@@ -93,18 +93,18 @@ LRdiff_res <- data.table(NULL)
 
 for (cs in common.supports) {
   
-  all_pi_cs_full <- all_pi[get(cs) == 1,]
+  all_pi_cs <- all_pi[get(cs) == 1,]
   for (Y in c(outcomes)) {
     for (n.g in 2:7) {
       
       # Create groups of initial values of covariate
       if (cs == "cs_price") {
-        all_pi_cs_full <- all_pi_cs_full[, quantile := cut(dm.L.ln_cpricei2,
+        all_pi_cs <- all_pi_cs[, quantile := cut(dm.L.ln_cpricei2,
                                            breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
                                            labels = 1:n.g, right = FALSE)]
       } 
       if(cs == "cs_tax") {
-        all_pi_cs_full <- all_pi_cs_full[, quantile := cut(L.ln_sales_tax,
+        all_pi_cs <- all_pi_cs[, quantile := cut(L.ln_sales_tax,
                                            breaks = quantile(L.ln_sales_tax, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
                                            labels = 1:n.g, right = FALSE)]
       } 
