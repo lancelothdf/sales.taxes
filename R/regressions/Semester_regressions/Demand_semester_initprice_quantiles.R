@@ -61,7 +61,7 @@ all_pi <- all_pi[cs_price == 1,]
 
 
 
-outcomes.within <- c("w.ln_cpricei2", "w.ln_quantity3")
+outcomes <- c("w.ln_cpricei2", "w.ln_quantity3")
 FE_opts <- c("group_region_by_module_by_time", "group_division_by_module_by_time")
 
 
@@ -84,24 +84,25 @@ for (n.g in 2:7) {
   
   ## Estimate RF and FS
   for (Y in outcomes) {
-    formula1 <- as.formula(paste0(
-      Y, " ~ w.ln_sales_tax:quantile | ", FE, "+ quantile | 0 | module_by_state"
-    ))
-    res1 <- felm(formula = formula1, data = all_pi,
-                 weights = all_pi$base.sales)
-    
-    
-    ## attach results
-    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-    res1.dt[, outcome := Y]
-    res1.dt[, controls := FE]
-    res1.dt[, n.groups := n.g]
-    res1.dt[, lev := quantlab[-1]]
-
-    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-    fwrite(LRdiff_res, iv.output.results.file)
-  }
+    for (FE in FE_opts) {
+        formula1 <- as.formula(paste0(
+        Y, " ~ w.ln_sales_tax:quantile | ", FE, "+ quantile | 0 | module_by_state"
+      ))
+      res1 <- felm(formula = formula1, data = all_pi,
+                   weights = all_pi$base.sales)
+      
+      
+      ## attach results
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, outcome := Y]
+      res1.dt[, controls := FE]
+      res1.dt[, n.groups := n.g]
+      res1.dt[, lev := quantlab[-1]]
   
+      LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+      fwrite(LRdiff_res, iv.output.results.file)
+    }
+  }
   ## Estimate IVs and retrieve in vector
   IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE,][["Estimate"]]
   
