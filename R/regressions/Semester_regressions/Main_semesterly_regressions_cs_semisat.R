@@ -151,9 +151,9 @@ for (cs in common.supports) {
           cumul.lead1.pval <- NA
           
           #cumul.lead2.est is just equal to minus the change between -2 and -1
-          cumul.lead2.est <- - coef(summary(res1))[paste0("F1.D.ln_sales_tax:quantile",lev), "Estimate"]
-          cumul.lead2.se <- coef(summary(res1))[paste0("F1.D.ln_sales_tax:quantile",lev), "Cluster s.e."]
-          cumul.lead2.pval <- coef(summary(res1))[paste0("F1.D.ln_sales_tax:quantile",lev), "Pr(>|t|)"]
+          cumul.lead2.est <- - coef(summary(res1))[paste0("quantile", lev,":F1.D.ln_sales_tax"), "Estimate"]
+          cumul.lead2.se <- coef(summary(res1))[paste0("quantile", lev,":F1.D.ln_sales_tax"), "Cluster s.e."]
+          cumul.lead2.pval <- coef(summary(res1))[paste0("quantile", lev,":F1.D.ln_sales_tax"), "Pr(>|t|)"]
           
           ##LEADS
           for(j in 3:5) {
@@ -164,7 +164,7 @@ for (cs in common.supports) {
             cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
             
             ## Create the formula to compute cumulative estimate at each lead/lag
-            cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_sales_tax:quantile", lev), collapse = " - "))
+            cumul.test.form <- paste0("-", paste(paste0("quantile", lev,":F", (j-1):1, ".D.ln_sales_tax"), collapse = " - "))
             cumul.test.form <- paste(cumul.test.form, " = 0")
             
             ## Compute estimate and store in variables names
@@ -190,7 +190,7 @@ for (cs in common.supports) {
             cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
             
             ## Create the formula to compute cumulative estimate at each lead/lag
-            cumul.test.form <- paste("D.ln_sales_tax + ", paste(paste0("L", 1:j, ".D.ln_sales_tax:quantile", lev), collapse = " + "), sep = "")
+            cumul.test.form <- paste("D.ln_sales_tax:quantile", lev," + ", paste(paste0("quantile", lev,":L", 1:j, ".D.ln_sales_tax"), collapse = " + "), sep = "")
             cumul.test.form <- paste(cumul.test.form, " = 0")
             
             ## Compute estimate and store in variables names
