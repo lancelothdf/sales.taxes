@@ -140,7 +140,7 @@ for (n.g in 2:7) {
   estimated.target[, n.groups := n.g]
   estimated.target[, controls := FE]
   target_res <- rbind(target_res, estimated.target)
-  fwrite(target_res, output.target.file)
+  fwrite(target_res, theta.output.results.file)
   
 }
 
