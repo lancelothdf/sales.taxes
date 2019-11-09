@@ -130,8 +130,8 @@ for (n.g in 2:7) {
   ## Retrieve target parameters
   beta_hat <- as.vector(solve(as.matrix(gamma))%*%(as.matrix(IV)))
   # Estimate intercept
-  mean.q <- sampled.data_cstax[, mean(dm.ln_quantity3, weights = base.sales)]
-  mean.p <- sampled.data_cstax[, mean(dm.ln_cpricei2, weights = base.sales)]
+  mean.q <- all_pi[, mean(dm.ln_quantity3, weights = base.sales)]
+  mean.p <- all_pi[, mean(dm.ln_cpricei2, weights = base.sales)]
   beta_0_hat <- mean.q - sum((beta_hat)*(mean.p^(1:n.g)))
   beta_hat <- c(beta_0_hat, beta_hat)
   
