@@ -82,7 +82,7 @@ all_pi <- all_pi[cs_price == 1,]
 outcomes.changes <- c("L1.D.ln_cpricei2", "L2.D.ln_cpricei2", "L4.D.ln_cpricei2", 
                       "L5.3.D.ln_cpricei2", "L5.2.D.ln_cpricei2", "L4.2.D.ln_cpricei2", 
                       "L1.D.ln_quantity3", "L2.D.ln_quantity3", "L4.D.ln_quantity3",
-                      "L5.3.D.ln_quantity3", "L5.2.D.ln_quantity3", "L4.2.ln_quantity3")
+                      "L5.3.D.ln_quantity3", "L5.2.D.ln_quantity3", "L4.2.D.ln_quantity3")
 FE_opts <- c("group_region_by_module_by_time", "group_division_by_module_by_time")
 
 
