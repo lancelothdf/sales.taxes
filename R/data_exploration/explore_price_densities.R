@@ -51,12 +51,14 @@ bins <- c(30, 50, 100, 150)
 histogram.data <- data.table(NULL)
 for (bin.n in bins) {
   
-  all_pi[, p_group := floor((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/bin.n))]
-  all_pi[, p_ll := p_group*((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/bin.n)]
+  binwidth <- (max(all_pi$dm.ln_cpricei2, na.rm = T)-min(all_pi$dm.ln_cpricei2, na.rm = T))/bin.n
+  all_pi[, p_group := floor(((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/binwidth))]
+  all_pi[, p_ll := p_group*binwidth]
   all_pi[, p_ll := p_ll + min(dm.ln_cpricei2, na.rm = T)]
-  all_pi[, p_ul := p_ll + ((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/bin.n)]
+  all_pi[, p_ul := p_ll + binwidth]
   
-  bin.range <- all_pi[, .(density = sum(base.sales)), by = .(p_ul, p_ll)]
+  bin.range <- all_pi[, .(density = sum(base.sales)), by = .(p_ul, p_ll, p_group)]
+  bin.range[, density := density/(sum(density))]
   bin.range[, n.bins := bin.n]
   histogram.data <- rbind(histogram.data, bin.range)
 }
