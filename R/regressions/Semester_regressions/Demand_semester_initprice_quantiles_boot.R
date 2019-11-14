@@ -150,6 +150,7 @@ for (n.g in 2:7) {
 }
 
 ### Start manual bootstrap
+set.seed(2019)
 ids <- unique(all_pi$store_by_module)
 
 
@@ -202,7 +203,7 @@ for (rep in 1:100) {
       }
       
       ## Estimate IVs and retrieve in vector
-      IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE,][["Estimate"]]
+      IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE & iter == rep,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE & iter == rep,][["Estimate"]]
       
       ## Estimate the matrix of the implied system of equations
       
@@ -228,8 +229,8 @@ for (rep in 1:100) {
       ## Retrieve target parameters
       beta_hat <- as.vector(solve(as.matrix(gamma))%*%(as.matrix(IV)))
       # Estimate intercept
-      mean.q <- all_pi[, mean(dm.ln_quantity3, weights = base.sales)]
-      mean.p <- all_pi[, mean(dm.ln_cpricei2, weights = base.sales)]
+      mean.q <- sampled.data[, mean(dm.ln_quantity3, weights = base.sales)]
+      mean.p <- sampled.data[, mean(dm.ln_cpricei2, weights = base.sales)]
       beta_0_hat <- mean.q - sum((beta_hat)*(mean.p^(1:n.g)))
       beta_hat <- c(beta_0_hat, beta_hat)
       
