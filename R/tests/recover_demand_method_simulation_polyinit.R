@@ -192,8 +192,8 @@ for (rep in 1:100) {
   RHS <- "D.t"
   # Create higher orders and add to RHS formula
   for (k in 1:n.poly) {
-    sampled.data_csprice[, paste0("D.t_L.p_",k) := D.t*(L.p^k)]
-    RHS <- paste0(RHS, " + ", paste0("D.t_L.p_",k))
+    sampled.data_csprice[, paste0("D.t_L.p_t_",k) := D.t*(L.p_t^k)]
+    RHS <- paste0(RHS, " + ", paste0("D.t_L.p_t_",k))
   }
   
   
