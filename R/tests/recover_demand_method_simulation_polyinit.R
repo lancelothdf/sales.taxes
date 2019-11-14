@@ -179,8 +179,7 @@ for (rep in 1:100) {
     ## attach results
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := Y]
-    res1.dt[, n.groups := n.quantiles]
-    res1.dt[, lev := quantlab[-1]]
+    res1.dt[, degree := n.poly]
     res1.dt[, initial := "tax"]
     res1.dt[, iter := rep]
     
@@ -210,8 +209,7 @@ for (rep in 1:100) {
     ## attach results
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := Y]
-    res1.dt[, n.groups := n.quantiles]
-    res1.dt[, lev := quantlab[-1]]
+    res1.dt[, degree := n.poly]
     res1.dt[, initial := "price"]
     res1.dt[, iter := rep]
     
