@@ -160,7 +160,7 @@ for (rep in 1:100) {
   
   ###### Estimation by initial tax rate: polynomial -----------------
   
-  RHS <- "D.t"
+  RHS <- "0 + D.t"
   # Create higher orders and add to RHS formula
   for (k in 1:n.poly) {
     sampled.data_cstax[, paste0("D.t_L.t_",k) := D.t*(L.t^k)]
@@ -189,7 +189,7 @@ for (rep in 1:100) {
   
   ###### Estimation by initial price -----------------
   
-  RHS <- "D.t"
+  RHS <- "0 + D.t"
   # Create higher orders and add to RHS formula
   for (k in 1:n.poly) {
     sampled.data_csprice[, paste0("D.t_L.p_t_",k) := D.t*(L.p_t^k)]
