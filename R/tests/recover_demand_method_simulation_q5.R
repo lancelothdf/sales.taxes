@@ -63,7 +63,7 @@ for (rep in 1:100) {
   ##### Create fake Data based on real distribution of tax changes ----------
   
   # Sample (to keep "real" tax rates)
-  sampled.ids <- data.table(sample(ids))
+  sampled.ids <- data.table(sample(ids, replace = T))
   setnames(sampled.ids, old= "V1", new = "store_by_module")
   # Compute random initial prices
   sampled.ids$p0 <- rnorm(length(sampled.ids$store_by_module), 0, sigma_2)
