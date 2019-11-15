@@ -160,7 +160,7 @@ for (rep in 1:100) {
   flog.info("Iteration %s", rep)
 
   # Sample by block
-  sampled.ids <- data.table(sample(ids))
+  sampled.ids <- data.table(sample(ids, replace = T))
   setnames(sampled.ids, old= "V1", new = "store_by_module")
   
   # Merge data to actual data
