@@ -151,7 +151,7 @@ for (n.g in 2:7) {
 
 ### Start manual bootstrap
 set.seed(2019)
-ids <- unique(all_pi$store_by_module)
+ids <- unique(all_pi$module_by_state)
 
 
 
@@ -161,10 +161,10 @@ for (rep in 1:100) {
 
   # Sample by block
   sampled.ids <- data.table(sample(ids, replace = T))
-  setnames(sampled.ids, old= "V1", new = "store_by_module")
+  setnames(sampled.ids, old= "V1", new = "module_by_state")
   
   # Merge data to actual data
-  sampled.data <- merge(sampled.ids, all_pi, by = c("store_by_module") , allow.cartesian = T, all.x = T)
+  sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
   
   for (n.g in 2:7) {
     
