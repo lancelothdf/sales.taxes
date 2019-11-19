@@ -38,6 +38,9 @@ all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by 
 all_pi[, dm.ln_cpricei2 := ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
 
 
+# Defining common support
+control <- all_pi[D.ln_sales_tax == 0,]
+treated <- all_pi[D.ln_sales_tax != 0,]
 
 
 
