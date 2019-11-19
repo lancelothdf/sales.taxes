@@ -5,7 +5,7 @@
 #' Here initial level means previous period and we divide by groups within the "common" support
 #' In this case, we run a fully saturated model (instead of splitting the sample)
 #' We get the Implied IV and recover the implied demand function varying the degree estimated (no. of quantiles)
-#' Bootstrap to get CIs
+#' Bootstrap to get CIs. We get the non demeaned q estimated of the intercept
 
 
 library(data.table)
@@ -24,8 +24,8 @@ data.year <- "Data/Nielsen/yearly_nielsen_data.csv"
 
 
 ## output filepaths ----------------------------------------------
-iv.output.results.file <- "Data/Demand_iv_sat_initial_price_semester_boot.csv"
-theta.output.results.file <- "Data/Demand_theta_sat_initial_price_semester_boot.csv"
+iv.output.results.file <- "Data/Demand_iv_sat_initial_price_semester_boot_r.csv"
+theta.output.results.file <- "Data/Demand_theta_sat_initial_price_semester_boot_r.csv"
 
 ### Set up Semester Data ---------------------------------
 all_pi <- fread(data.semester)
@@ -113,10 +113,10 @@ for (n.g in 2:7) {
     
     # Get the empirical distribution of prices by quantile
     all_pi[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
-    all_pi[, p_group := floor((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100)), by = .(quantile)]
-    all_pi[, p_ll := p_group*((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
+    all_pi[, p_group := floor((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500)), by = .(quantile)]
+    all_pi[, p_ll := p_group*((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500), by = .(quantile)]
     all_pi[, p_ll := p_ll + min(dm.ln_cpricei2, na.rm = T), by = .(quantile)]
-    all_pi[, p_ul := p_ll + ((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
+    all_pi[, p_ul := p_ll + ((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500), by = .(quantile)]
     
     ed.price.quantile <- all_pi[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
     ed.price.quantile[, p_m := (p_ul+p_ll)/2]
@@ -133,7 +133,7 @@ for (n.g in 2:7) {
     ## Retrieve target parameters
     beta_hat <- as.vector(solve(as.matrix(gamma))%*%(as.matrix(IV)))
     # Estimate intercept
-    mean.q <- all_pi[, mean(dm.ln_quantity3, weights = base.sales)]
+    mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales)]
     mean.p <- all_pi[, mean(dm.ln_cpricei2, weights = base.sales)]
     beta_0_hat <- mean.q - sum((beta_hat)*(mean.p^(1:n.g)))
     beta_hat <- c(beta_0_hat, beta_hat)
@@ -209,10 +209,10 @@ for (rep in 1:100) {
       
       # Get the empirical distribution of prices by quantile
       sampled.data[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
-      sampled.data[, p_group := floor((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100)), by = .(quantile)]
-      sampled.data[, p_ll := p_group*((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
+      sampled.data[, p_group := floor((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500)), by = .(quantile)]
+      sampled.data[, p_ll := p_group*((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500), by = .(quantile)]
       sampled.data[, p_ll := p_ll + min(dm.ln_cpricei2, na.rm = T), by = .(quantile)]
-      sampled.data[, p_ul := p_ll + ((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
+      sampled.data[, p_ul := p_ll + ((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500), by = .(quantile)]
       
       ed.price.quantile <- sampled.data[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
       ed.price.quantile[, p_m := (p_ul+p_ll)/2]
@@ -229,7 +229,7 @@ for (rep in 1:100) {
       ## Retrieve target parameters
       beta_hat <- as.vector(solve(as.matrix(gamma))%*%(as.matrix(IV)))
       # Estimate intercept
-      mean.q <- sampled.data[, mean(dm.ln_quantity3, weights = base.sales)]
+      mean.q <- sampled.data[, mean(ln_quantity3, weights = base.sales)]
       mean.p <- sampled.data[, mean(dm.ln_cpricei2, weights = base.sales)]
       beta_0_hat <- mean.q - sum((beta_hat)*(mean.p^(1:n.g)))
       beta_hat <- c(beta_0_hat, beta_hat)
