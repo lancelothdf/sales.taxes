@@ -47,7 +47,7 @@ all_pi[, cs_price := ifelse(is.na(dm.L.ln_cpricei2), 0, cs_price)]
 ## Keep within the common support
 all_pi <- all_pi[cs_price == 1,]
 
-bins <- c(30, 50, 100, 150)
+bins <- c(150, 300, 500)
 histogram.data <- data.table(NULL)
 for (bin.n in bins) {
   
