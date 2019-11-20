@@ -161,7 +161,7 @@ for (n.g in 2:5) {
     
     # 1. Expected value of the scale factor
     all_pi[, qhat := beta_hat[1]]
-    for (i in 2:length(theta)) {
+    for (i in 2:length(beta_hat)) {
       all_pi[, qhat := qhat*(beta_hat[i])*dm.ln_cpricei2^(i-1)]
     }
     all_pi[, alpha_m := mean(ln_quantity3 - qhat), by = store_by_module]
@@ -289,7 +289,7 @@ for (rep in 1:100) {
       
       # 1. Expected value of the scale factor
       sampled.data[, qhat := beta_hat[1]]
-      for (i in 2:length(theta)) {
+      for (i in 2:length(beta_hat)) {
         sampled.data[, qhat := qhat*(beta_hat[i])*dm.ln_cpricei2^(i-1)]
       }
       sampled.data[, alpha_m := mean(ln_quantity3 - qhat), by = store_by_module]
