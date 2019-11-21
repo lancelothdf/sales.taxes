@@ -172,8 +172,8 @@ for (n.g in 2:5) {
     # 2. Integral and export
     for (change in c(0.01, 0.05, 0.1)) {
       
-      cschangepos <- integrate(integrant, 0, change, theta = beta_hat)
-      cschangeneg <- integrate(integrant, 0, -change, theta = beta_hat)
+      cschangepos <- integrate(integrand, 0, change, theta = beta_hat)
+      cschangeneg <- integrate(integrand, 0, -change, theta = beta_hat)
       
       from0 <- (cschangepos$value)*scale.factor
       to0 <- (cschangeneg$value)*scale.factor
@@ -300,8 +300,8 @@ for (rep in 1:100) {
       # 2. Integral and export
       for (change in c(0.01, 0.05, 0.1)) {
         
-        cschangepos <- integrate(integrant, 0, change, theta = beta_hat)
-        cschangeneg <- integrate(integrant, 0, -change, theta = beta_hat)
+        cschangepos <- integrate(integrand, 0, change, theta = beta_hat)
+        cschangeneg <- integrate(integrand, 0, -change, theta = beta_hat)
         
         from0 <- (cschangepos$value)*scale.factor
         to0 <- (cschangeneg$value)*scale.factor
