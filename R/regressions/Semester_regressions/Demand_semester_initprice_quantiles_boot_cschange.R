@@ -29,11 +29,10 @@ cs.output.results.file <- "Data/Demand_conssur_sat_initial_price_semester_boot_r
 
 ## Function needed for the consumer surplus calculations ---------
 integrand <- function(p, theta) {
-  f <- 1
+  f <- exp(p)
   for (i in 1:length(theta)) {
     f <- f*exp(theta[i]*(p)^(i-1))
   }
-  f <- f/exp(p)
   return(f)
 }
 
@@ -168,13 +167,13 @@ for (n.g in 2:5) {
     all_pi[, alpha_m := mean(ln_quantity3 - qhat, na.rm = T), by = store_by_module]
     all_pi[, p_bar := mean(ln_cpricei2, na.rm = T), by = module_by_time]
     
-    scale.factor <- all_pi[, mean(exp(alpha_m)/p_bar)]   
+    scale.factor <- all_pi[, mean(exp(alpha_m+p_bar), na.rm = T)]   
     
     # 2. Integral and export
     for (change in c(0.01, 0.05, 0.1)) {
       
       cschangepos <- integrate(integrand, 0, change, theta = beta_hat)
-      cschangeneg <- integrate(integrand, 0, -change, theta = beta_hat)
+      cschangeneg <- integrate(integrand, -change, 0, theta = beta_hat)
       
       from0 <- (cschangepos$value)
       to0 <- (cschangeneg$value)
@@ -296,7 +295,7 @@ for (rep in 1:100) {
       sampled.data[, alpha_m := mean(ln_quantity3 - qhat, na.rm = T), by = store_by_module]
       sampled.data[, p_bar := mean(ln_cpricei2, na.rm = T), by = module_by_time]
       
-      scale.factor <- sampled.data[, mean(exp(alpha_m)/p_bar)]   
+      scale.factor <- all_pi[, mean(exp(alpha_m+p_bar), na.rm = T)]   
       
       # 2. Integral and export
       for (change in c(0.01, 0.05, 0.1)) {
