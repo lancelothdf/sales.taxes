@@ -25,6 +25,7 @@ data.year <- "Data/Nielsen/yearly_nielsen_data.csv"
 ## output filepaths ----------------------------------------------
 iv.output.results.file <- "Data/Demand_iv_sat_initial_price_semester_boot_r_cschange.csv"
 theta.output.results.file <- "Data/Demand_theta_sat_initial_price_semester_boot_r_cschange.csv"
+cs.output.results.file <- "Data/Demand_conssur_sat_initial_price_semester_boot_r_cschange.csv"
 
 ## Function needed for the consumer surplus calculations ---------
 integrand <- function(p, theta) {
@@ -185,7 +186,7 @@ for (n.g in 2:5) {
       estimated.cschange[, iter := 0]    
       estimated.cschange[, change := change]    
       cs_res <- rbind(cs_res, estimated.cschange)
-      fwrite(cs_res, theta.output.results.file)
+      fwrite(cs_res, cs.output.results.file)
     }
   } 
 }
@@ -313,7 +314,7 @@ for (rep in 1:100) {
         estimated.cschange[, iter := iter]    
         estimated.cschange[, change := change]    
         cs_res <- rbind(cs_res, estimated.cschange)
-        fwrite(cs_res, theta.output.results.file)
+        fwrite(cs_res, cs.output.results.file)
       }
     } 
   }
