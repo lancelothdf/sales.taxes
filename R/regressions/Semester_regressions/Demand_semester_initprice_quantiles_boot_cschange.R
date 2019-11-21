@@ -311,7 +311,7 @@ for (rep in 1:100) {
         estimated.cschange <- data.table(from0, to0, scale.factor)
         estimated.cschange[, n.groups := n.g]
         estimated.cschange[, controls := FE]
-        estimated.cschange[, iter := iter]    
+        estimated.cschange[, iter := rep]    
         estimated.cschange[, change := change]    
         cs_res <- rbind(cs_res, estimated.cschange)
       }
