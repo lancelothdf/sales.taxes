@@ -165,8 +165,8 @@ for (n.g in 2:5) {
     for (i in 2:length(beta_hat)) {
       all_pi[, qhat := qhat*(beta_hat[i])*dm.ln_cpricei2^(i-1)]
     }
-    all_pi[, alpha_m := mean(ln_quantity3 - qhat), by = store_by_module]
-    all_pi[, p_bar := mean(ln_cpricei2), by = module_by_time]
+    all_pi[, alpha_m := mean(ln_quantity3 - qhat, na.rm = T), by = store_by_module]
+    all_pi[, p_bar := mean(ln_cpricei2, na.rm = T), by = module_by_time]
     
     scale.factor <- all_pi[, mean(exp(alpha_m)/p_bar)]   
     
@@ -176,18 +176,18 @@ for (n.g in 2:5) {
       cschangepos <- integrate(integrand, 0, change, theta = beta_hat)
       cschangeneg <- integrate(integrand, 0, -change, theta = beta_hat)
       
-      from0 <- (cschangepos$value)*scale.factor
-      to0 <- (cschangeneg$value)*scale.factor
+      from0 <- (cschangepos$value)
+      to0 <- (cschangeneg$value)
       
       # Export estimates
-      estimated.cschange <- data.table(from0, to0)
+      estimated.cschange <- data.table(from0, to0, scale.factor)
       estimated.cschange[, n.groups := n.g]
       estimated.cschange[, controls := FE]
       estimated.cschange[, iter := 0]    
       estimated.cschange[, change := change]    
       cs_res <- rbind(cs_res, estimated.cschange)
-      fwrite(cs_res, cs.output.results.file)
     }
+    fwrite(cs_res, cs.output.results.file)
   } 
 }
 
@@ -293,8 +293,8 @@ for (rep in 1:100) {
       for (i in 2:length(beta_hat)) {
         sampled.data[, qhat := qhat*(beta_hat[i])*dm.ln_cpricei2^(i-1)]
       }
-      sampled.data[, alpha_m := mean(ln_quantity3 - qhat), by = store_by_module]
-      sampled.data[, p_bar := mean(ln_cpricei2), by = module_by_time]
+      sampled.data[, alpha_m := mean(ln_quantity3 - qhat, na.rm = T), by = store_by_module]
+      sampled.data[, p_bar := mean(ln_cpricei2, na.rm = T), by = module_by_time]
       
       scale.factor <- sampled.data[, mean(exp(alpha_m)/p_bar)]   
       
@@ -302,20 +302,21 @@ for (rep in 1:100) {
       for (change in c(0.01, 0.05, 0.1)) {
         
         cschangepos <- integrate(integrand, 0, change, theta = beta_hat)
-        cschangeneg <- integrate(integrand, 0, -change, theta = beta_hat)
+        cschangeneg <- integrate(integrand, -change, 0, theta = beta_hat)
         
-        from0 <- (cschangepos$value)*scale.factor
-        to0 <- (cschangeneg$value)*scale.factor
+        from0 <- (cschangepos$value)
+        to0 <- (cschangeneg$value)
         
         # Export estimates
-        estimated.cschange <- data.table(from0, to0)
+        estimated.cschange <- data.table(from0, to0, scale.factor)
         estimated.cschange[, n.groups := n.g]
         estimated.cschange[, controls := FE]
         estimated.cschange[, iter := iter]    
         estimated.cschange[, change := change]    
         cs_res <- rbind(cs_res, estimated.cschange)
-        fwrite(cs_res, cs.output.results.file)
       }
+      fwrite(cs_res, cs.output.results.file)
+      
     } 
   }
 }
