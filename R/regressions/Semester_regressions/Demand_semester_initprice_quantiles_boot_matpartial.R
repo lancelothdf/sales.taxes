@@ -76,7 +76,7 @@ mean.p <- all_pi[, mean(dm.ln_cpricei2, weights = base.sales, na.rm = T)]
 
 estimated.pq <- data.table(mean.q, mean.p)
 pq_res <- rbind(pq_res, estimated.pq)
-frwite(pq_res, pq.output.results.file)
+fwrite(pq_res, pq.output.results.file)
 
 
 for (n.g in 2:7) {
@@ -123,7 +123,7 @@ for (n.g in 2:7) {
     } else {
       previous.data <- fread(theta.output.results.file)
       current <- rbind(current, gamma)
-      frwite(current, theta.output.results.file)
+      fwrite(current, theta.output.results.file)
     }
   } 
 }
@@ -154,7 +154,7 @@ for (rep in 1:100) {
   
   estimated.pq <- data.table(mean.q, mean.p)
   pq_res <- rbind(pq_res, estimated.pq)
-  frwite(pq_res, pq.output.results.file)
+  fwrite(pq_res, pq.output.results.file)
   
   for (n.g in 2:7) {
     
@@ -195,7 +195,7 @@ for (rep in 1:100) {
      
       previous.data <- fread(theta.output.results.file)
       current <- rbind(current, gamma)
-      frwite(current, theta.output.results.file)
+      fwrite(current, theta.output.results.file)
       
     } 
   }
