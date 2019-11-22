@@ -122,8 +122,8 @@ for (n.g in 2:7) {
       fwrite(gamma, theta.output.results.file)
     } else {
       previous.data <- fread(theta.output.results.file)
-      current <- rbind(current, gamma)
-      fwrite(current, theta.output.results.file)
+      previous.data <- rbind(previous.data, gamma)
+      fwrite(previous.data, theta.output.results.file)
     }
   } 
 }
@@ -194,8 +194,8 @@ for (rep in 1:100) {
       gamma[, iter := rep]
      
       previous.data <- fread(theta.output.results.file)
-      current <- rbind(current, gamma)
-      fwrite(current, theta.output.results.file)
+      previous.data <- rbind(previous.data, gamma)
+      fwrite(previous.data, theta.output.results.file)
       
     } 
   }
