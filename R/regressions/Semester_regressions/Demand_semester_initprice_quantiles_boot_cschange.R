@@ -160,14 +160,8 @@ for (n.g in 2:5) {
     ## Calculate interesting consumer surplus changes
     
     # 1. Expected value of the scale factor
-    all_pi[, qhat := beta_hat[1]]
-    for (i in 2:length(beta_hat)) {
-      all_pi[, qhat := qhat+(beta_hat[i])*dm.ln_cpricei2^(i-1)]
-    }
-    all_pi[, alpha_m := mean(ln_quantity3 - qhat, na.rm = T), by = store_by_module]
-    all_pi[, p_bar := mean(ln_cpricei2, na.rm = T), by = module_by_time]
-    
-    scale.factor <- all_pi[, mean(exp(alpha_m+p_bar), na.rm = T)]   
+    scale.factor <- all_pi[, .(p_bar = mean(ln_cpricei2, na.rm = T)), by = module_by_time]
+    scale.factor <- scale.factor[, mean(exp(p_bar), na.rm = T)]   
     
     # 2. Integral and export
     for (change in c(0.01, 0.05, 0.1)) {
@@ -288,14 +282,8 @@ for (rep in 1:100) {
       ## Calculate interesting consumer surplus changes
       
       # 1. Expected value of the scale factor
-      sampled.data[, qhat := beta_hat[1]]
-      for (i in 2:length(beta_hat)) {
-        sampled.data[, qhat := qhat+(beta_hat[i])*dm.ln_cpricei2^(i-1)]
-      }
-      sampled.data[, alpha_m := mean(ln_quantity3 - qhat, na.rm = T), by = store_by_module]
-      sampled.data[, p_bar := mean(ln_cpricei2, na.rm = T), by = module_by_time]
-      
-      scale.factor <- all_pi[, mean(exp(alpha_m+p_bar), na.rm = T)]   
+      scale.factor <- sampled.data[, .(p_bar = mean(ln_cpricei2, na.rm = T)), by = module_by_time]
+      scale.factor <- scale.factor[, mean(exp(p_bar), na.rm = T)]   
       
       # 2. Integral and export
       for (change in c(0.01, 0.05, 0.1)) {
