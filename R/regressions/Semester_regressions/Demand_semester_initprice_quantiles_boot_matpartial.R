@@ -71,8 +71,8 @@ pq_res <- data.table(NULL)
 flog.info("Iteration 0")
 
 ## To estimate the intercept
-mean.q <- sampled.data[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
-mean.p <- sampled.data[, mean(dm.ln_cpricei2, weights = base.sales, na.rm = T)]
+mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
+mean.p <- all_pi[, mean(dm.ln_cpricei2, weights = base.sales, na.rm = T)]
 
 estimated.pq <- data.table(mean.q, mean.p)
 pq_res <- rbind(pq_res, estimated.pq)
