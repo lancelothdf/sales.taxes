@@ -121,7 +121,7 @@ for (n.g in 2:7) {
     if (n.g == 2) {
       fwrite(gamma, theta.output.results.file)
     } else {
-      previous.data <- fread(theta.output.results.file)
+      previous.data <- fread(theta.output.results.file)r
       previous.data <- rbind(previous.data, gamma)
       fwrite(previous.data, theta.output.results.file)
     }
@@ -193,6 +193,7 @@ for (rep in 1:100) {
       gamma[, n.groups := n.g]
       gamma[, iter := rep]
      
+      theta.output.results.file <- paste0("Data/Demand_gamma_sat_initial_price_semester_boot_r_K", K,".csv")
       previous.data <- fread(theta.output.results.file)
       previous.data <- rbind(previous.data, gamma)
       fwrite(previous.data, theta.output.results.file)
