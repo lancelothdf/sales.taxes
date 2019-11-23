@@ -121,7 +121,7 @@ for (n.g in 2:7) {
     if (n.g == 2) {
       fwrite(gamma, theta.output.results.file)
     } else {
-      previous.data <- fread(theta.output.results.file)r
+      previous.data <- fread(theta.output.results.file)
       previous.data <- rbind(previous.data, gamma)
       fwrite(previous.data, theta.output.results.file)
     }
