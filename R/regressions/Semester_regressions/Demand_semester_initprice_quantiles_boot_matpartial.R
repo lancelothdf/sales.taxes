@@ -79,7 +79,7 @@ pq_res <- rbind(pq_res, estimated.pq)
 fwrite(pq_res, pq.output.results.file)
 
 
-for (n.g in 2:7) {
+for (n.g in 1:7) {
     
   # Create groups of initial values of tax rate
   # We use the full weighted distribution
@@ -154,7 +154,7 @@ for (rep in 1:100) {
   pq_res <- rbind(pq_res, estimated.pq)
   fwrite(pq_res, pq.output.results.file)
   
-  for (n.g in 2:7) {
+  for (n.g in 1:7) {
     
     # Create groups of initial values of tax rate
     # We use the full weighted distribution
