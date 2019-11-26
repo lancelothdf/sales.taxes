@@ -207,7 +207,7 @@ for (rep in 1:100) {
     }
     
     # Calculate integral
-    gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",1:K)]
+    gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",1:15)]
     gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
     
     # Export Calculation
