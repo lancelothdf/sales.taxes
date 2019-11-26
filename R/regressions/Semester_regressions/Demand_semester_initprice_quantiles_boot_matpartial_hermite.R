@@ -203,7 +203,7 @@ for (rep in 1:100) {
     
     # Create the derivative of the polynomial of prices and multiplicate by weights
     for (n in 1:15){
-      ed.price.quantile[, paste0("b",n) := (n)*w1*(p_m^(n-1))]
+      ed.price.quantile[, paste0("b",n) := w1*(d.hermite(p_m,n))]
     }
     
     # Calculate integral
