@@ -91,41 +91,39 @@ for (n.g in 2:7) {
                             weight = all_pi$base.sales), digits = 4)
   
   ## Do partial identification
-  for (K in (n.g + 1):10) {
-    
-    ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
-    # Get the empirical distribution of prices by quantile
-    all_pi[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
-    all_pi[, p_group := floor((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100)), by = .(quantile)]
-    all_pi[, p_ll := p_group*((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
-    all_pi[, p_ll := p_ll + min(dm.ln_cpricei2, na.rm = T), by = .(quantile)]
-    all_pi[, p_ul := p_ll + ((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
-    
-    ed.price.quantile <- all_pi[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
-    ed.price.quantile[, p_m := (p_ul+p_ll)/2]
-    
-    # Create the derivative of the polynomial of prices and multiplicate by weights
-    for (n in 1:K){
-      ed.price.quantile[, paste0("b",n) := (n)*w1*(p_m^(n-1))]
-    }
-    
-    # Calculate integral
-    gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",1:K)]
-    gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
-    
-    # Export Calculation
-    gamma[, n.groups := n.g]
-    gamma[, iter := 0]
-    
-    theta.output.results.file <- paste0("Data/Demand_gamma_sat_initial_price_semester_boot_r_K", K,".csv")
-    if (n.g == 2) {
-      fwrite(gamma, theta.output.results.file)
-    } else {
-      previous.data <- fread(theta.output.results.file)
-      previous.data <- rbind(previous.data, gamma)
-      fwrite(previous.data, theta.output.results.file)
-    }
-  } 
+  ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
+  # Get the empirical distribution of prices by quantile
+  all_pi[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
+  all_pi[, p_group := floor((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100)), by = .(quantile)]
+  all_pi[, p_ll := p_group*((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
+  all_pi[, p_ll := p_ll + min(dm.ln_cpricei2, na.rm = T), by = .(quantile)]
+  all_pi[, p_ul := p_ll + ((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
+  
+  ed.price.quantile <- all_pi[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
+  ed.price.quantile[, p_m := (p_ul+p_ll)/2]
+  
+  # Create the derivative of the polynomial of prices and multiplicate by weights
+  for (n in 1:15){
+    ed.price.quantile[, paste0("b",n) := (n)*w1*(p_m^(n-1))]
+  }
+  
+  # Calculate integral
+  gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",1:K)]
+  gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
+  
+  # Export Calculation
+  gamma[, n.groups := n.g]
+  gamma[, iter := 0]
+  
+  theta.output.results.file <- paste0("Data/Demand_gamma_sat_initial_price_semester_boot_r_K.csv")
+  if (n.g == 2) {
+    fwrite(gamma, theta.output.results.file)
+  } else {
+    previous.data <- fread(theta.output.results.file)
+    previous.data <- rbind(previous.data, gamma)
+    fwrite(previous.data, theta.output.results.file)
+  }
+   
 }
 
 
@@ -166,39 +164,38 @@ for (rep in 1:100) {
     quantlab <- round(quantile(sampled.data$dm.L.ln_cpricei2, 
                                probs = seq(0, 1, by = 1/n.g), na.rm = T, 
                                weight = sampled.data$base.sales), digits = 4)
-      ## Do partial identification
-    for (K in (n.g + 1):10) {
-      
-      ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
-      # Get the empirical distribution of prices by quantile
-      sampled.data[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
-      sampled.data[, p_group := floor((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100)), by = .(quantile)]
-      sampled.data[, p_ll := p_group*((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
-      sampled.data[, p_ll := p_ll + min(dm.ln_cpricei2, na.rm = T), by = .(quantile)]
-      sampled.data[, p_ul := p_ll + ((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
-      
-      ed.price.quantile <- sampled.data[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
-      ed.price.quantile[, p_m := (p_ul+p_ll)/2]
-      
-      # Create the derivative of the polynomial of prices and multiplicate by weights
-      for (n in 1:K){
-        ed.price.quantile[, paste0("b",n) := (n)*w1*(p_m^(n-1))]
-      }
-      
-      # Calculate integral
-      gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",1:K)]
-      gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
-      
-      # Export Calculation
-      gamma[, n.groups := n.g]
-      gamma[, iter := rep]
-     
-      theta.output.results.file <- paste0("Data/Demand_gamma_sat_initial_price_semester_boot_r_K", K,".csv")
-      previous.data <- fread(theta.output.results.file)
-      previous.data <- rbind(previous.data, gamma)
-      fwrite(previous.data, theta.output.results.file)
-      
-    } 
-  }
+    ## Do partial identification
+    
+    ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
+    # Get the empirical distribution of prices by quantile
+    sampled.data[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
+    sampled.data[, p_group := floor((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100)), by = .(quantile)]
+    sampled.data[, p_ll := p_group*((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
+    sampled.data[, p_ll := p_ll + min(dm.ln_cpricei2, na.rm = T), by = .(quantile)]
+    sampled.data[, p_ul := p_ll + ((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
+    
+    ed.price.quantile <- sampled.data[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
+    ed.price.quantile[, p_m := (p_ul+p_ll)/2]
+    
+    # Create the derivative of the polynomial of prices and multiplicate by weights
+    for (n in 1:15){
+      ed.price.quantile[, paste0("b",n) := (n)*w1*(p_m^(n-1))]
+    }
+    
+    # Calculate integral
+    gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",1:K)]
+    gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
+    
+    # Export Calculation
+    gamma[, n.groups := n.g]
+    gamma[, iter := rep]
+   
+    theta.output.results.file <- paste0("Data/Demand_gamma_sat_initial_price_semester_boot_r_K.csv")
+    previous.data <- fread(theta.output.results.file)
+    previous.data <- rbind(previous.data, gamma)
+    fwrite(previous.data, theta.output.results.file)
+    
+  } 
+  
 }
 
