@@ -140,7 +140,7 @@ for (n.g in 1:7) {
   gamma[, n.groups := n.g]
   gamma[, iter := 0]
   
-  if (n.g == 2) {
+  if (n.g == 1) {
     fwrite(gamma, theta.output.results.file)
   } else {
     previous.data <- fread(theta.output.results.file)
