@@ -90,6 +90,7 @@ for (n.g in 1:7) {
         formula1 <- as.formula(paste0(
         Y, " ~ w.ln_sales_tax:quantile | ", FE, "+ quantile"
       ))
+      if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ w.ln_sales_tax | ", FE)) }
       res1 <- felm(formula = formula1, data = all_pi,
                    weights = all_pi$base.sales)
       
@@ -187,6 +188,7 @@ for (rep in 1:100) {
         formula1 <- as.formula(paste0(
           Y, " ~ w.ln_sales_tax:quantile | ", FE, "+ quantile"
         ))
+        if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ w.ln_sales_tax | ", FE)) }
         res1 <- felm(formula = formula1, data = sampled.data,
                      weights = sampled.data$base.sales)
         
