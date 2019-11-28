@@ -48,7 +48,7 @@ pasthrough.to.0 <- function(theta, data, d.p, p, weights, function.param, rho.ha
   }  
   
   # 3. Calculate the contribution of that observation
-  data[, integrand := (1-(theta/q1))/(1+theta*(1-(q1*(exp(get(p))-1)+q2/(q1^2)))) ]
+  data[, integrand := (1-(theta/q1))/(1+theta*(1-(q1*((exp(get(p))-1)+q2)/(q1^2)))) ]
   
   # 4. Calculate the integral as the (weighted) average
   integral <- data[, mean(integrand, weights = get(weights))]
