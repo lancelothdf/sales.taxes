@@ -60,6 +60,28 @@ for (bin.n in bins) {
   bin.range <- all_pi[, .(density = sum(base.sales)), by = .(p_ul, p_ll, p_group)]
   bin.range[, density := density/(sum(density))]
   bin.range[, n.bins := bin.n]
+  bin.range[, group := "all"]
+  
+  histogram.data <- rbind(histogram.data, bin.range)
+}
+
+
+## Now for the treated group
+all_pi_t <- all_pi[D.ln_sales_tax != 0,]
+
+for (bin.n in bins) {
+  
+  binwidth <- (max(all_pi_t$dm.ln_cpricei2, na.rm = T)-min(all_pi_t$dm.ln_cpricei2, na.rm = T))/bin.n
+  all_pi_t[, p_group := floor(((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/binwidth))]
+  all_pi_t[, p_ll := p_group*binwidth]
+  all_pi_t[, p_ll := p_ll + min(dm.ln_cpricei2, na.rm = T)]
+  all_pi_t[, p_ul := p_ll + binwidth]
+  
+  bin.range <- all_pi_t[, .(density = sum(base.sales)), by = .(p_ul, p_ll, p_group)]
+  bin.range[, density := density/(sum(density))]
+  bin.range[, n.bins := bin.n]
+  bin.range[, group := "treated"]
+  
   histogram.data <- rbind(histogram.data, bin.range)
 }
 
