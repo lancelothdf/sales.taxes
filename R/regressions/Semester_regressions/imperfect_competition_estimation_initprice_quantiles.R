@@ -30,6 +30,9 @@ pasthrough.to.0 <- function(theta, data, d.p, p, weights, function.param, rho.ha
   #' function.param: vector of coefficients of the polynomial demand function (beta_0, beta_1 ,..., beta_K) (vector) 
   #' rho.hat: the estimated pasthrough (number)
   #' theta: perfect competition parameter. Used in uniroot
+   
+  # 0. check data is data.table
+  data <- as.data.table(data)
   
   # 1. calculate the elasticity for each observation
   data[, q1 := 0]
@@ -71,9 +74,6 @@ output.results.file <- "Data/Comp_Demand_sat_initial_price_semester_.csv"
 
 ### Set up Semester Data ---------------------------------
 all_pi <- fread(data.semester)
-all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax), by = .(store_by_module)]
-all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2), by = .(store_by_module)]
-all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3), by = .(store_by_module)]
 
 # Need to demean
 all_pi[, module_by_time := .GRP, by = .(product_module_code, semester, year)]
