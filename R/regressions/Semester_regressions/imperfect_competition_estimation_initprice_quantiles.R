@@ -104,7 +104,7 @@ all_pi <- all_pi[cs_price == 1,]
 
 
 ## Keep the needed variables only
-all_pi_short <- all_pi[, c("dm.ln_cpricei2", "ln_cpricei2", "base.sales", "D.ln_sales_tax")]
+all_pi_short <- all_pi[, c("dm.ln_cpricei2", "ln_cpricei2", "base.sales", "D.ln_sales_tax"), with = FALSE]
 
 ## Treated
 all_pi_short_t <- all_pi_short[, D.ln_sales_tax == 0]
