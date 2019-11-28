@@ -38,13 +38,13 @@ pasthrough.to.0 <- function(theta, data, d.p, p, weights, function.param, rho.ha
   # 1. calculate the elasticity for each observation
   data[, q1 := 0]
   for (k in 2:length(function.param)) {
-    data[, q1 := q1 + (k-1)*function.param[k]*(get(d.p))^(k-1)]
+    data[, q1 := q1 + (k-1)*function.param[k]*(get(d.p))^(k-2)]
   }
   
   # 2. Calculate the second derivative for each observation
   data[, q2 := 0]
   for (k in 3:length(function.param)) {
-    data[, q2 := q2 + (k-1)*(k-2)*function.param[k]*(get(d.p))^(k-2)]
+    data[, q2 := q2 + (k-1)*(k-2)*function.param[k]*(get(d.p))^(k-3)]
   }  
   
   # 3. Calculate the contribution of that observation
