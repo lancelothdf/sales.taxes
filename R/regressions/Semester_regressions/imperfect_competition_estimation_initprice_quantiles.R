@@ -48,7 +48,7 @@ pasthrough.to.0 <- function(theta, data, d.p, p, weights, function.param, rho.ha
   }  
   
   # 3. Calculate the contribution of that observation
-  data[, integrand := (1-(theta/q1))/(1+theta*(1-(q1*((exp(get(p))-1)+q2)/(q1^2)))) ]
+  data[, integrand := (1-(theta/q1))/(1+theta*(1-((q1*(exp(get(p))-1)+q2)/(q1^2)))) ]
   
   # 4. Calculate the integral as the (weighted) average
   integral <- data[, mean(integrand, weights = get(weights))]
@@ -70,7 +70,7 @@ data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
 
 
 ## output filepaths ----------------------------------------------
-output.results.file <- "Data/Comp_Demand_sat_initial_price_semester_shrink.csv"
+output.results.file <- "Data/Comp_Demand_sat_initial_price_semester_.csv"
 
 
 ### Set up Semester Data ---------------------------------
@@ -129,105 +129,105 @@ rho <- 1.0567
 
 ## ---- plot problems ---------
 # 
-# ## K = 2
-# graphout <- "../../home/slacouture/NLP/ic_t_2.png"
-# data.plot <- data.table(NULL)
-# for (theta in seq(-0.5,1.5,0.025)) {
-#   value <- pasthrough.to.0(theta, data = all_pi_short_t, 
-#                            d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.2, rho.hat = rho)
-#   data.plot <- rbind(data.plot, data.table(theta, value))
-# }
-# ggplot(data.plot, aes(theta, value)) + geom_line() +
-#   theme_bw(base_size = 14) +
-#   labs(x = "theta", y = paste0("Evaluated Root"), color = NULL)
-# ggsave(graphout)
-# 
-# graphout <- "../../home/slacouture/NLP/ic_f_2.png"
-# data.plot <- data.table(NULL)
-# for (theta in seq(-0.5,1.5,0.025)) {
-#   value <- pasthrough.to.0(theta, data = all_pi_short, 
-#                            d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.2, rho.hat = rho)
-#   data.plot <- rbind(data.plot, data.table(theta, value))
-# }
-# ggplot(data.plot, aes(theta, value)) + geom_line() +
-#   theme_bw(base_size = 14) +
-#   labs(x = "theta", y = paste0("Evaluated Root"), color = NULL) 
-# ggsave(graphout)
-# 
-# ## K = 3
-# graphout <- "../../home/slacouture/NLP/ic_t_3.png"
-# data.plot <- data.table(NULL)
-# for (theta in seq(-0.5,1.5,0.025)) {
-#   value <- pasthrough.to.0(theta, data = all_pi_short_t, 
-#                            d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.3, rho.hat = rho)
-#   data.plot <- rbind(data.plot, data.table(theta, value))
-# }
-# ggplot(data.plot, aes(theta, value)) + geom_line() +
-#   theme_bw(base_size = 14) +
-#   labs(x = "theta", y = paste0("Evaluated Root"), color = NULL)
-# ggsave(graphout)
-# 
-# graphout <- "../../home/slacouture/NLP/ic_f_3.png"
-# data.plot <- data.table(NULL)
-# for (theta in seq(-0.5,1.5,0.025)) {
-#   value <- pasthrough.to.0(theta, data = all_pi_short, 
-#                            d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.3, rho.hat = rho)
-#   data.plot <- rbind(data.plot, data.table(theta, value))
-# }
-# ggplot(data.plot, aes(theta, value)) + geom_line() +
-#   theme_bw(base_size = 14) +
-#   labs(x = "theta", y = paste0("Evaluated Root"), color = NULL) 
-# ggsave(graphout)
-# 
-# ## K = 4
-# graphout <- "../../home/slacouture/NLP/ic_t_4.png"
-# data.plot <- data.table(NULL)
-# for (theta in seq(-0.5,1.5,0.025)) {
-#   value <- pasthrough.to.0(theta, data = all_pi_short_t, 
-#                            d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.4, rho.hat = rho)
-#   data.plot <- rbind(data.plot, data.table(theta, value))
-# }
-# ggplot(data.plot, aes(theta, value)) + geom_line() +
-#   theme_bw(base_size = 14) +
-#   labs(x = "theta", y = paste0("Evaluated Root"), color = NULL)
-# ggsave(graphout)
-# 
-# graphout <- "../../home/slacouture/NLP/ic_f_4.png"
-# data.plot <- data.table(NULL)
-# for (theta in seq(-0.5,1.5,0.025)) {
-#   value <- pasthrough.to.0(theta, data = all_pi_short, 
-#                            d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.4, rho.hat = rho)
-#   data.plot <- rbind(data.plot, data.table(theta, value))
-# }
-# ggplot(data.plot, aes(theta, value)) + geom_line() +
-#   theme_bw(base_size = 14) +
-#   labs(x = "theta", y = paste0("Evaluated Root"), color = NULL) 
-# ggsave(graphout)
-# 
-# ## K = 5
-# graphout <- "../../home/slacouture/NLP/ic_t_5.png"
-# data.plot <- data.table(NULL)
-# for (theta in seq(-0.5,1.5,0.025)) {
-#   value <- pasthrough.to.0(theta, data = all_pi_short_t, 
-#                            d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.5, rho.hat = rho)
-#   data.plot <- rbind(data.plot, data.table(theta, value))
-# }
-# ggplot(data.plot, aes(theta, value)) + geom_line() +
-#   theme_bw(base_size = 14) +
-#   labs(x = "theta", y = paste0("Evaluated Root"), color = NULL)
-# ggsave(graphout)
-# 
-# graphout <- "../../home/slacouture/NLP/ic_f_5.png"
-# data.plot <- data.table(NULL)
-# for (theta in seq(-0.5,1.5,0.025)) {
-#   value <- pasthrough.to.0(theta, data = all_pi_short, 
-#                            d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.5, rho.hat = rho)
-#   data.plot <- rbind(data.plot, data.table(theta, value))
-# }
-# ggplot(data.plot, aes(theta, value)) + geom_line() +
-#   theme_bw(base_size = 14) +
-#   labs(x = "theta", y = paste0("Evaluated Root"), color = NULL) 
-# ggsave(graphout)
+## K = 2
+graphout <- "../../home/slacouture/NLP/ic_t_2.png"
+data.plot <- data.table(NULL)
+for (theta in seq(-0.5,1.5,0.025)) {
+  value <- pasthrough.to.0(theta, data = all_pi_short_t,
+                           d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.2, rho.hat = rho)
+  data.plot <- rbind(data.plot, data.table(theta, value))
+}
+ggplot(data.plot, aes(theta, value)) + geom_line() +
+  theme_bw(base_size = 14) +
+  labs(x = "theta", y = paste0("Evaluated Root"), color = NULL)
+ggsave(graphout)
+
+graphout <- "../../home/slacouture/NLP/ic_f_2.png"
+data.plot <- data.table(NULL)
+for (theta in seq(-0.5,1.5,0.025)) {
+  value <- pasthrough.to.0(theta, data = all_pi_short,
+                           d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.2, rho.hat = rho)
+  data.plot <- rbind(data.plot, data.table(theta, value))
+}
+ggplot(data.plot, aes(theta, value)) + geom_line() +
+  theme_bw(base_size = 14) +
+  labs(x = "theta", y = paste0("Evaluated Root"), color = NULL)
+ggsave(graphout)
+
+## K = 3
+graphout <- "../../home/slacouture/NLP/ic_t_3.png"
+data.plot <- data.table(NULL)
+for (theta in seq(-0.5,1.5,0.025)) {
+  value <- pasthrough.to.0(theta, data = all_pi_short_t,
+                           d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.3, rho.hat = rho)
+  data.plot <- rbind(data.plot, data.table(theta, value))
+}
+ggplot(data.plot, aes(theta, value)) + geom_line() +
+  theme_bw(base_size = 14) +
+  labs(x = "theta", y = paste0("Evaluated Root"), color = NULL)
+ggsave(graphout)
+
+graphout <- "../../home/slacouture/NLP/ic_f_3.png"
+data.plot <- data.table(NULL)
+for (theta in seq(-0.5,1.5,0.025)) {
+  value <- pasthrough.to.0(theta, data = all_pi_short,
+                           d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.3, rho.hat = rho)
+  data.plot <- rbind(data.plot, data.table(theta, value))
+}
+ggplot(data.plot, aes(theta, value)) + geom_line() +
+  theme_bw(base_size = 14) +
+  labs(x = "theta", y = paste0("Evaluated Root"), color = NULL)
+ggsave(graphout)
+
+## K = 4
+graphout <- "../../home/slacouture/NLP/ic_t_4.png"
+data.plot <- data.table(NULL)
+for (theta in seq(-0.5,1.5,0.025)) {
+  value <- pasthrough.to.0(theta, data = all_pi_short_t,
+                           d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.4, rho.hat = rho)
+  data.plot <- rbind(data.plot, data.table(theta, value))
+}
+ggplot(data.plot, aes(theta, value)) + geom_line() +
+  theme_bw(base_size = 14) +
+  labs(x = "theta", y = paste0("Evaluated Root"), color = NULL)
+ggsave(graphout)
+
+graphout <- "../../home/slacouture/NLP/ic_f_4.png"
+data.plot <- data.table(NULL)
+for (theta in seq(-0.5,1.5,0.025)) {
+  value <- pasthrough.to.0(theta, data = all_pi_short,
+                           d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.4, rho.hat = rho)
+  data.plot <- rbind(data.plot, data.table(theta, value))
+}
+ggplot(data.plot, aes(theta, value)) + geom_line() +
+  theme_bw(base_size = 14) +
+  labs(x = "theta", y = paste0("Evaluated Root"), color = NULL)
+ggsave(graphout)
+
+## K = 5
+graphout <- "../../home/slacouture/NLP/ic_t_5.png"
+data.plot <- data.table(NULL)
+for (theta in seq(-0.5,1.5,0.025)) {
+  value <- pasthrough.to.0(theta, data = all_pi_short_t,
+                           d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.5, rho.hat = rho)
+  data.plot <- rbind(data.plot, data.table(theta, value))
+}
+ggplot(data.plot, aes(theta, value)) + geom_line() +
+  theme_bw(base_size = 14) +
+  labs(x = "theta", y = paste0("Evaluated Root"), color = NULL)
+ggsave(graphout)
+
+graphout <- "../../home/slacouture/NLP/ic_f_5.png"
+data.plot <- data.table(NULL)
+for (theta in seq(-0.5,1.5,0.025)) {
+  value <- pasthrough.to.0(theta, data = all_pi_short,
+                           d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.5, rho.hat = rho)
+  data.plot <- rbind(data.plot, data.table(theta, value))
+}
+ggplot(data.plot, aes(theta, value)) + geom_line() +
+  theme_bw(base_size = 14) +
+  labs(x = "theta", y = paste0("Evaluated Root"), color = NULL)
+ggsave(graphout)
 
 
 
@@ -238,7 +238,7 @@ rho <- 1.0567
 LRdiff_res <- data.table(NULL)
 ## K = 2
 # Treated
-root.problem <- uniroot(pasthrough.to.0, c(0.2,0.8), extendInt = "yes", data = all_pi_short_t, 
+root.problem <- uniroot(pasthrough.to.0, c(0,1), extendInt = "yes", data = all_pi_short_t, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.2, rho.hat = rho)
 theta <- root.problem$root
 results <- data.table(theta)
@@ -247,7 +247,7 @@ results[, sample := "treated"]
 LRdiff_res <- rbind(LRdiff_res, results)
 
 # Full
-root.problem <- uniroot(pasthrough.to.0, c(0.2,0.8), extendInt = "yes", data = all_pi_short, 
+root.problem <- uniroot(pasthrough.to.0, c(0,1), extendInt = "yes", data = all_pi_short, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.2, rho.hat = rho)
 theta <- root.problem$root
 results <- data.table(theta)
@@ -257,7 +257,7 @@ LRdiff_res <- rbind(LRdiff_res, results)
 
 ## K = 3
 # Treated
-root.problem <- uniroot(pasthrough.to.0, c(0.2,0.8), extendInt = "yes", data = all_pi_short_t, 
+root.problem <- uniroot(pasthrough.to.0, c(0,1), extendInt = "yes", data = all_pi_short_t, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.3, rho.hat = rho)
 theta <- root.problem$root
 results <- data.table(theta)
@@ -266,7 +266,7 @@ results[, sample := "treated"]
 LRdiff_res <- rbind(LRdiff_res, results)
 
 # Full
-root.problem <- uniroot(pasthrough.to.0, c(0.2,0.8), extendInt = "yes", data = all_pi_short, 
+root.problem <- uniroot(pasthrough.to.0, c(0,1), extendInt = "yes", data = all_pi_short, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.3, rho.hat = rho)
 theta <- root.problem$root
 results <- data.table(theta)
@@ -276,7 +276,7 @@ LRdiff_res <- rbind(LRdiff_res, results)
 
 ## K = 4
 # Treated
-root.problem <- uniroot(pasthrough.to.0, c(0.2,0.8), extendInt = "yes", data = all_pi_short_t, 
+root.problem <- uniroot(pasthrough.to.0, c(0,1), extendInt = "yes", data = all_pi_short_t, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.4, rho.hat = rho)
 theta <- root.problem$root
 results <- data.table(theta)
@@ -285,7 +285,7 @@ results[, sample := "treated"]
 LRdiff_res <- rbind(LRdiff_res, results)
 
 # Full
-root.problem <- uniroot(pasthrough.to.0, c(0.2,0.8), extendInt = "yes", data = all_pi_short, 
+root.problem <- uniroot(pasthrough.to.0, c(0,1), extendInt = "yes", data = all_pi_short, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.4, rho.hat = rho)
 theta <- root.problem$root
 results <- data.table(theta)
@@ -295,7 +295,7 @@ LRdiff_res <- rbind(LRdiff_res, results)
 
 ## K = 5
 # Treated
-root.problem <- uniroot(pasthrough.to.0, c(0.2,0.8), extendInt = "yes", data = all_pi_short_t, 
+root.problem <- uniroot(pasthrough.to.0, c(0,1), extendInt = "yes", data = all_pi_short_t, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.5, rho.hat = rho)
 theta <- root.problem$root
 results <- data.table(theta)
@@ -304,7 +304,7 @@ results[, sample := "treated"]
 LRdiff_res <- rbind(LRdiff_res, results)
 
 # Full
-root.problem <- uniroot(pasthrough.to.0, c(0.2,0.8), extendInt = "yes", data = all_pi_short, 
+root.problem <- uniroot(pasthrough.to.0, c(0,1), extendInt = "yes", data = all_pi_short, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.5, rho.hat = rho)
 theta <- root.problem$root
 results <- data.table(theta)
