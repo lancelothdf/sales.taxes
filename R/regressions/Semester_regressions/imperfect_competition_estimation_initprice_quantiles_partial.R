@@ -71,7 +71,7 @@ data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
 
 
 ## output filepaths ----------------------------------------------
-output.results.file <- "Data/Comp_Demand_sat_initial_price_semester_.csv"
+output.results.file <- "Data/Comp_Demand_sat_initial_price_semester_partial.csv"
 
 
 ### Set up Semester Data ---------------------------------
