@@ -266,7 +266,7 @@ results[, sample := "treated"]
 LRdiff_res <- rbind(LRdiff_res, results)
 
 # Full
-root.problem <- uniroot(pasthrough.to.0, c(-1,2), data = all_pi_short, 
+root.problem <- uniroot(pasthrough.to.0, c(0,1), extendInt = "yes", data = all_pi_short, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.3, rho.hat = rho)
 theta <- root.problem$root
 results <- data.table(theta)
