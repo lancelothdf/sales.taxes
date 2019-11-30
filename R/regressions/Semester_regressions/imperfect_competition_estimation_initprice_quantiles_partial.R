@@ -130,7 +130,7 @@ rho <- 1.0567
 
 ## ---- plot problems ---------
 # 
-
+LRdiff_res_full <- data.table(NULL)
 for (es.value in c(0.5, 1, 2, 5, 10, 50, 100)) {
   
   
@@ -322,8 +322,10 @@ for (es.value in c(0.5, 1, 2, 5, 10, 50, 100)) {
   
   LRdiff_res[, es := es.value]
 
+  ### Export
+  LRdiff_res_full <- rbind(LRdiff_res_full, LRdiff_res)
+  fwrite(LRdiff_res, output.results.file)
+  
 }
 
 
-### Export
-fwrite(LRdiff_res, output.results.file)
