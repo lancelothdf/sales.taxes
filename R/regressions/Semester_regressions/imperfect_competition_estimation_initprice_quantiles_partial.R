@@ -245,7 +245,7 @@ for (es.value in c(0.5, 1, 2, 5, 10, 50, 100)) {
   LRdiff_res <- data.table(NULL)
   ## K = 2
   # Treated
-  root.problem <- uniroot(pasthrough.to.0.es, c(0,1), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short_t, 
+  root.problem <- uniroot(pasthrough.to.0.es, c(0,1), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short_t, 
                           d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.2, rho.hat = rho, es = es.value)
   theta <- root.problem$root
   f <- root.problem$f.root
@@ -255,7 +255,7 @@ for (es.value in c(0.5, 1, 2, 5, 10, 50, 100)) {
   LRdiff_res <- rbind(LRdiff_res, results)
   
   # Full
-  root.problem <- uniroot(pasthrough.to.0.es, c(0,1), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short, 
+  root.problem <- uniroot(pasthrough.to.0.es, c(0,1), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short, 
                           d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.2, rho.hat = rho, es = es.value)
   theta <- root.problem$root
   f <- root.problem$f.root
@@ -266,7 +266,7 @@ for (es.value in c(0.5, 1, 2, 5, 10, 50, 100)) {
   
   ## K = 3
   # Treated
-  root.problem <- uniroot(pasthrough.to.0.es, c(0,1), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short_t, 
+  root.problem <- uniroot(pasthrough.to.0.es, c(0,1), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short_t, 
                           d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.3, rho.hat = rho, es = es.value)
   theta <- root.problem$root
   f <- root.problem$f.root
@@ -276,7 +276,7 @@ for (es.value in c(0.5, 1, 2, 5, 10, 50, 100)) {
   LRdiff_res <- rbind(LRdiff_res, results)
   
   # Full
-  root.problem <- uniroot(pasthrough.to.0.es, c(0,1), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short, 
+  root.problem <- uniroot(pasthrough.to.0.es, c(0,1), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short, 
                           d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.3, rho.hat = rho, es = es.value)
   theta <- root.problem$root
   f <- root.problem$f.root
@@ -287,7 +287,7 @@ for (es.value in c(0.5, 1, 2, 5, 10, 50, 100)) {
   
   ## K = 4
   # Treated
-  root.problem <- uniroot(pasthrough.to.0.es, c(0,1), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short_t, 
+  root.problem <- uniroot(pasthrough.to.0.es, c(0,1), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short_t, 
                           d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.4, rho.hat = rho, es = es.value)
   theta <- root.problem$root
   f <- root.problem$f.root
@@ -297,7 +297,7 @@ for (es.value in c(0.5, 1, 2, 5, 10, 50, 100)) {
   LRdiff_res <- rbind(LRdiff_res, results)
   
   # Full
-  root.problem <- uniroot(pasthrough.to.0.es, c(0,1), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short, 
+  root.problem <- uniroot(pasthrough.to.0.es, c(0,1), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short, 
                           d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.4, rho.hat = rho, es = es.value)
   theta <- root.problem$root
   f <- root.problem$f.root
@@ -308,7 +308,7 @@ for (es.value in c(0.5, 1, 2, 5, 10, 50, 100)) {
   
   ## K = 5
   # Treated
-  root.problem <- uniroot(pasthrough.to.0.es, c(0,1), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short_t, 
+  root.problem <- uniroot(pasthrough.to.0.es, c(0,1), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short_t, 
                           d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.5, rho.hat = rho, es = es.value)
   theta <- root.problem$root
   f <- root.problem$f.root
@@ -318,7 +318,7 @@ for (es.value in c(0.5, 1, 2, 5, 10, 50, 100)) {
   LRdiff_res <- rbind(LRdiff_res, results)
   
   # Full
-  root.problem <- uniroot(pasthrough.to.0.es, c(0,1), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short, 
+  root.problem <- uniroot(pasthrough.to.0.es, c(0,1), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short, 
                           d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.5, rho.hat = rho, es = es.value)
   theta <- root.problem$root
   f <- root.problem$f.root
