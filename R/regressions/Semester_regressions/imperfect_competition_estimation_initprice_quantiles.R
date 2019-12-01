@@ -238,7 +238,7 @@ rho <- 1.0567
 LRdiff_res <- data.table(NULL)
 ## K = 2
 # Treated
-root.problem <- uniroot(pasthrough.to.0, c(0.2,0.6), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short_t, 
+root.problem <- uniroot(pasthrough.to.0, c(0,1), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short_t, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.2, rho.hat = rho)
 theta <- root.problem$root
 f <- root.problem$f.root
@@ -248,7 +248,7 @@ results[, sample := "treated"]
 LRdiff_res <- rbind(LRdiff_res, results)
 
 # Full
-root.problem <- uniroot(pasthrough.to.0, c(0.2,0.6), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short, 
+root.problem <- uniroot(pasthrough.to.0, c(0,1), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.2, rho.hat = rho)
 theta <- root.problem$root
 f <- root.problem$f.root
@@ -259,7 +259,7 @@ LRdiff_res <- rbind(LRdiff_res, results)
 
 ## K = 3
 # Treated
-root.problem <- uniroot(pasthrough.to.0, c(0.2,0.6), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short_t, 
+root.problem <- uniroot(pasthrough.to.0, c(0,1), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short_t, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.3, rho.hat = rho)
 theta <- root.problem$root
 f <- root.problem$f.root
@@ -269,7 +269,7 @@ results[, sample := "treated"]
 LRdiff_res <- rbind(LRdiff_res, results)
 
 # Full
-root.problem <- uniroot(pasthrough.to.0, c(0.2,0.6), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short, 
+root.problem <- uniroot(pasthrough.to.0, c(0,1), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.3, rho.hat = rho)
 theta <- root.problem$root
 f <- root.problem$f.root
@@ -280,7 +280,7 @@ LRdiff_res <- rbind(LRdiff_res, results)
 
 ## K = 4
 # Treated
-root.problem <- uniroot(pasthrough.to.0, c(0.2,0.6), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short_t, 
+root.problem <- uniroot(pasthrough.to.0, c(0,1), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short_t, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.4, rho.hat = rho)
 theta <- root.problem$root
 f <- root.problem$f.root
@@ -290,7 +290,7 @@ results[, sample := "treated"]
 LRdiff_res <- rbind(LRdiff_res, results)
 
 # Full
-root.problem <- uniroot(pasthrough.to.0, c(0.2,0.6), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short, 
+root.problem <- uniroot(pasthrough.to.0, c(0,1), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.4, rho.hat = rho)
 theta <- root.problem$root
 f <- root.problem$f.root
@@ -301,7 +301,7 @@ LRdiff_res <- rbind(LRdiff_res, results)
 
 ## K = 5
 # Treated
-root.problem <- uniroot(pasthrough.to.0, c(0.2,0.6), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short_t, 
+root.problem <- uniroot(pasthrough.to.0, c(0,1), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short_t, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.5, rho.hat = rho)
 theta <- root.problem$root
 f <- root.problem$f.root
@@ -311,7 +311,7 @@ results[, sample := "treated"]
 LRdiff_res <- rbind(LRdiff_res, results)
 
 # Full
-root.problem <- uniroot(pasthrough.to.0, c(0.2,0.6), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short, 
+root.problem <- uniroot(pasthrough.to.0, c(0,1), extendInt = "yes", tol = .Machine$double.eps^0.4, data = all_pi_short, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.5, rho.hat = rho)
 theta <- root.problem$root
 f <- root.problem$f.root
