@@ -112,7 +112,7 @@ for (n.g in 1:7) {
   ed.price.quantile <- all_pi[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
   ed.price.quantile[, p_m := (p_ul+p_ll)/2]
     
-  for (K in 2:12) {
+  for (K in (n.g+1):12) {
 
     # Create the derivative of the polynomial of prices and multiplicate by weights
     for (n in 0:K){
