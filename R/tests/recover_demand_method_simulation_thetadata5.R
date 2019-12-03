@@ -66,7 +66,7 @@ for (rep in 1:100) {
   sampled.ids <- data.table(sample(ids, replace = T))
   setnames(sampled.ids, old= "V1", new = "store_by_module")
   # Compute random initial prices
-  sampled.ids$p0 <- rnorm(length(sampled.ids$store_by_module), -0.6, sigma_2)
+  sampled.ids$p0 <- rnorm(length(sampled.ids$store_by_module), -0.06, sigma_2)
   
   # Generate Prices
   for (time in 1:length(unique(all_pi$cal_time))) {
