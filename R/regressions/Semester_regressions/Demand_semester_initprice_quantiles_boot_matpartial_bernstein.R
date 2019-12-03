@@ -115,7 +115,7 @@ for (n.g in 1:7) {
   for (K in 2:12) {
 
     # Create the derivative of the polynomial of prices and multiplicate by weights
-    for (n in 1:K){
+    for (n in 0:K){
       ed.price.quantile[, paste0("b",n) := w1*(d.bernstein(p_m,n,K))]
     }
     
