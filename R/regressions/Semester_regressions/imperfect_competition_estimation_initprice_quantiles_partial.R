@@ -130,8 +130,7 @@ rho <- 1.0567
 
 ## ---- plot problems ---------
 # 
-LRdiff_res_full <- data.table(NULL)
-for (es.value in c(0.5, 1, 2, 5, 10, 50, 100)) {
+for (es.value in c(0.5, 1, 2, 5, 10, 25, 50, 100)) {
   
   ## K = 2
   graphout <- paste0("../../home/slacouture/NLP/ic_t_2_", es.value,".png")
@@ -233,9 +232,14 @@ for (es.value in c(0.5, 1, 2, 5, 10, 50, 100)) {
     labs(x = "theta", y = paste0("Evaluated Root"), color = NULL)
   ggsave(graphout)
   
-  
+}
+
+
+
   ## ---------- Solve the unique root program in each scenario program ----------------
   
+LRdiff_res_full <- data.table(NULL)
+for (es.value in c(0.5, 1, 2, 5, 10, 25, 50, 100)) {
   
   LRdiff_res <- data.table(NULL)
   ## K = 2
