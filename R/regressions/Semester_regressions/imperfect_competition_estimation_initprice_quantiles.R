@@ -132,7 +132,7 @@ rho <- 1.0567
 ## K = 2
 graphout <- "../../home/slacouture/NLP/ic_t_2.png"
 data.plot <- data.table(NULL)
-for (theta in seq(-0.5,1.5,0.025)) {
+for (theta in seq(-0.5,1.5,0.02)) {
   value <- pasthrough.to.0(theta, data = all_pi_short_t,
                            d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.2, rho.hat = rho)
   data.plot <- rbind(data.plot, data.table(theta, value))
@@ -144,7 +144,7 @@ ggsave(graphout)
 
 graphout <- "../../home/slacouture/NLP/ic_f_2.png"
 data.plot <- data.table(NULL)
-for (theta in seq(-0.5,1.5,0.025)) {
+for (theta in seq(-0.5,1.5,0.02)) {
   value <- pasthrough.to.0(theta, data = all_pi_short,
                            d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.2, rho.hat = rho)
   data.plot <- rbind(data.plot, data.table(theta, value))
@@ -157,7 +157,7 @@ ggsave(graphout)
 ## K = 3
 graphout <- "../../home/slacouture/NLP/ic_t_3.png"
 data.plot <- data.table(NULL)
-for (theta in seq(-0.5,1.5,0.025)) {
+for (theta in seq(-0.5,1.5,0.02)) {
   value <- pasthrough.to.0(theta, data = all_pi_short_t,
                            d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.3, rho.hat = rho)
   data.plot <- rbind(data.plot, data.table(theta, value))
@@ -169,7 +169,7 @@ ggsave(graphout)
 
 graphout <- "../../home/slacouture/NLP/ic_f_3.png"
 data.plot <- data.table(NULL)
-for (theta in seq(-0.5,1.5,0.025)) {
+for (theta in seq(-0.5,1.5,0.02)) {
   value <- pasthrough.to.0(theta, data = all_pi_short,
                            d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.3, rho.hat = rho)
   data.plot <- rbind(data.plot, data.table(theta, value))
@@ -182,7 +182,7 @@ ggsave(graphout)
 ## K = 4
 graphout <- "../../home/slacouture/NLP/ic_t_4.png"
 data.plot <- data.table(NULL)
-for (theta in seq(-0.5,1.5,0.025)) {
+for (theta in seq(-0.5,1.5,0.02)) {
   value <- pasthrough.to.0(theta, data = all_pi_short_t,
                            d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.4, rho.hat = rho)
   data.plot <- rbind(data.plot, data.table(theta, value))
@@ -194,7 +194,7 @@ ggsave(graphout)
 
 graphout <- "../../home/slacouture/NLP/ic_f_4.png"
 data.plot <- data.table(NULL)
-for (theta in seq(-0.5,1.5,0.025)) {
+for (theta in seq(-0.5,1.5,0.02)) {
   value <- pasthrough.to.0(theta, data = all_pi_short,
                            d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.4, rho.hat = rho)
   data.plot <- rbind(data.plot, data.table(theta, value))
@@ -207,7 +207,7 @@ ggsave(graphout)
 ## K = 5
 graphout <- "../../home/slacouture/NLP/ic_t_5.png"
 data.plot <- data.table(NULL)
-for (theta in seq(-0.5,1.5,0.025)) {
+for (theta in seq(-0.5,1.5,0.02)) {
   value <- pasthrough.to.0(theta, data = all_pi_short_t,
                            d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.5, rho.hat = rho)
   data.plot <- rbind(data.plot, data.table(theta, value))
@@ -219,7 +219,7 @@ ggsave(graphout)
 
 graphout <- "../../home/slacouture/NLP/ic_f_5.png"
 data.plot <- data.table(NULL)
-for (theta in seq(-0.5,1.5,0.025)) {
+for (theta in seq(-0.5,1.5,0.02)) {
   value <- pasthrough.to.0(theta, data = all_pi_short,
                            d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.5, rho.hat = rho)
   data.plot <- rbind(data.plot, data.table(theta, value))
@@ -238,7 +238,7 @@ ggsave(graphout)
 LRdiff_res <- data.table(NULL)
 ## K = 2
 # Treated
-root.problem <- uniroot(pasthrough.to.0, c(0,0.8), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short_t, 
+root.problem <- uniroot(pasthrough.to.0, c(-0.2,1.2), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short_t, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.2, rho.hat = rho)
 theta <- root.problem$root
 f <- root.problem$f.root
@@ -248,7 +248,7 @@ results[, sample := "treated"]
 LRdiff_res <- rbind(LRdiff_res, results)
 
 # Full
-root.problem <- uniroot(pasthrough.to.0, c(0,0.8), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short, 
+root.problem <- uniroot(pasthrough.to.0, c(-0.2,1.2), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.2, rho.hat = rho)
 theta <- root.problem$root
 f <- root.problem$f.root
@@ -259,7 +259,7 @@ LRdiff_res <- rbind(LRdiff_res, results)
 
 ## K = 3
 # Treated
-root.problem <- uniroot(pasthrough.to.0, c(0,0.8), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short_t, 
+root.problem <- uniroot(pasthrough.to.0, c(-0.2,1.2), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short_t, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.3, rho.hat = rho)
 theta <- root.problem$root
 f <- root.problem$f.root
@@ -269,7 +269,7 @@ results[, sample := "treated"]
 LRdiff_res <- rbind(LRdiff_res, results)
 
 # Full
-root.problem <- uniroot(pasthrough.to.0, c(0,0.8), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short, 
+root.problem <- uniroot(pasthrough.to.0, c(-0.2,1.2), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.3, rho.hat = rho)
 theta <- root.problem$root
 f <- root.problem$f.root
@@ -280,7 +280,7 @@ LRdiff_res <- rbind(LRdiff_res, results)
 
 ## K = 4
 # Treated
-root.problem <- uniroot(pasthrough.to.0, c(0,0.8), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short_t, 
+root.problem <- uniroot(pasthrough.to.0, c(-0.2,1.2), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short_t, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.4, rho.hat = rho)
 theta <- root.problem$root
 f <- root.problem$f.root
@@ -290,7 +290,7 @@ results[, sample := "treated"]
 LRdiff_res <- rbind(LRdiff_res, results)
 
 # Full
-root.problem <- uniroot(pasthrough.to.0, c(0,0.8), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short, 
+root.problem <- uniroot(pasthrough.to.0, c(-0.2,1.2), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.4, rho.hat = rho)
 theta <- root.problem$root
 f <- root.problem$f.root
@@ -301,7 +301,7 @@ LRdiff_res <- rbind(LRdiff_res, results)
 
 ## K = 5
 # Treated
-root.problem <- uniroot(pasthrough.to.0, c(0,0.8), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short_t, 
+root.problem <- uniroot(pasthrough.to.0, c(-0.2,1.2), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short_t, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.5, rho.hat = rho)
 theta <- root.problem$root
 f <- root.problem$f.root
@@ -311,7 +311,7 @@ results[, sample := "treated"]
 LRdiff_res <- rbind(LRdiff_res, results)
 
 # Full
-root.problem <- uniroot(pasthrough.to.0, c(0,0.8), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short, 
+root.problem <- uniroot(pasthrough.to.0, c(-0.2,1.2), extendInt = "yes", tol = .Machine$double.eps, data = all_pi_short, 
                         d.p = "dm.ln_cpricei2", p = "ln_cpricei2", weights = "base.sales", function.param = theta.function.5, rho.hat = rho)
 theta <- root.problem$root
 f <- root.problem$f.root
