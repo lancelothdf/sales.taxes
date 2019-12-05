@@ -5,7 +5,7 @@
 #' Here initial level means previous period and we divide by groups within the "common" support
 #' In this case, we run a fully saturated model (instead of splitting the sample)
 #' We do partial identification in this case, so we extract the gamma matrix plus the mean q and demean log p. 
-#' For now, we don't Bootstrap to get CIs
+#' For now, we don't Bootstrap to get CIs. In this case we use bernstein polynomials so we re-scale prices to lay in [0,1]
 
 
 library(data.table)
@@ -53,7 +53,6 @@ all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by 
 all_pi[, dm.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = module_by_time]
 
-
 # Defining common support
 control <- all_pi[D.ln_sales_tax == 0,]
 treated <- all_pi[D.ln_sales_tax != 0,]
@@ -73,6 +72,8 @@ all_pi[, cs_price := ifelse(is.na(dm.L.ln_cpricei2), 0, cs_price)]
 ## Keep within the common support
 all_pi <- all_pi[cs_price == 1,]
 
+## Define re-scaled prices to use Bernstein polynomials in that range
+all_pi[, r.dm.ln_cpricei2 := (dm.ln_cpricei2 - min(dm.ln_cpricei2))/(max(dm.ln_cpricei2) - min(dm.ln_cpricei2)) ]
 
 LRdiff_res <- data.table(NULL)
 pq_res <- data.table(NULL)
@@ -81,7 +82,7 @@ flog.info("Iteration 0")
 
 ## To estimate the intercept
 mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
-mean.p <- all_pi[, mean(dm.ln_cpricei2, weights = base.sales, na.rm = T)]
+mean.p <- all_pi[, mean(r.dm.ln_cpricei2, weights = base.sales, na.rm = T)]
 
 estimated.pq <- data.table(mean.q, mean.p)
 pq_res <- rbind(pq_res, estimated.pq)
@@ -104,10 +105,10 @@ for (n.g in 1:7) {
   ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
   # Get the empirical distribution of prices by quantile
   all_pi[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
-  all_pi[, p_group := floor((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100)), by = .(quantile)]
-  all_pi[, p_ll := p_group*((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
-  all_pi[, p_ll := p_ll + min(dm.ln_cpricei2, na.rm = T), by = .(quantile)]
-  all_pi[, p_ul := p_ll + ((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
+  all_pi[, p_group := floor((r.dm.ln_cpricei2 - min(r.dm.ln_cpricei2, na.rm = T))/((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/500)), by = .(quantile)]
+  all_pi[, p_ll := p_group*((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
+  all_pi[, p_ll := p_ll + min(r.dm.ln_cpricei2, na.rm = T), by = .(quantile)]
+  all_pi[, p_ul := p_ll + ((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
   
   ed.price.quantile <- all_pi[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
   ed.price.quantile[, p_m := (p_ul+p_ll)/2]
