@@ -83,8 +83,10 @@ flog.info("Iteration 0")
 ## To estimate the intercept
 mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
 mean.p <- all_pi[, mean(r.dm.ln_cpricei2, weights = base.sales, na.rm = T)]
+min.p <- all_pi[, min(dm.ln_cpricei2)]
+max.p <- all_pi[, max(dm.ln_cpricei2)]
 
-estimated.pq <- data.table(mean.q, mean.p)
+estimated.pq <- data.table(mean.q, mean.p, min.p, max.p)
 pq_res <- rbind(pq_res, estimated.pq)
 fwrite(pq_res, pq.output.results.file)
 
@@ -105,10 +107,10 @@ for (n.g in 1:7) {
   ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
   # Get the empirical distribution of prices by quantile
   all_pi[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
-  all_pi[, p_group := floor((r.dm.ln_cpricei2 - min(r.dm.ln_cpricei2, na.rm = T))/((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/500)), by = .(quantile)]
-  all_pi[, p_ll := p_group*((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/500), by = .(quantile)]
+  all_pi[, p_group := floor((r.dm.ln_cpricei2 - min(r.dm.ln_cpricei2, na.rm = T))/((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/100)), by = .(quantile)]
+  all_pi[, p_ll := p_group*((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
   all_pi[, p_ll := p_ll + min(r.dm.ln_cpricei2, na.rm = T), by = .(quantile)]
-  all_pi[, p_ul := p_ll + ((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/500), by = .(quantile)]
+  all_pi[, p_ul := p_ll + ((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
   
   ed.price.quantile <- all_pi[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
   ed.price.quantile[, p_m := (p_ul+p_ll)/2]
