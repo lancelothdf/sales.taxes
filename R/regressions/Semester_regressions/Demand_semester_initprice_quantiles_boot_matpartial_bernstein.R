@@ -73,7 +73,9 @@ all_pi[, cs_price := ifelse(is.na(dm.L.ln_cpricei2), 0, cs_price)]
 all_pi <- all_pi[cs_price == 1,]
 
 ## Define re-scaled prices to use Bernstein polynomials in that range
-all_pi[, r.dm.ln_cpricei2 := (dm.ln_cpricei2 - min(dm.ln_cpricei2))/(max(dm.ln_cpricei2) - min(dm.ln_cpricei2)) ]
+min.p <- all_pi[, min(dm.ln_cpricei2)]
+max.p <- all_pi[, max(dm.ln_cpricei2)]
+all_pi[, r.dm.ln_cpricei2 := (dm.ln_cpricei2 - min.p)/(max.p - min.p) ]
 
 LRdiff_res <- data.table(NULL)
 pq_res <- data.table(NULL)
@@ -83,8 +85,7 @@ flog.info("Iteration 0")
 ## To estimate the intercept
 mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
 mean.p <- all_pi[, mean(r.dm.ln_cpricei2, weights = base.sales, na.rm = T)]
-min.p <- all_pi[, min(dm.ln_cpricei2)]
-max.p <- all_pi[, max(dm.ln_cpricei2)]
+
 
 estimated.pq <- data.table(mean.q, mean.p, min.p, max.p)
 pq_res <- rbind(pq_res, estimated.pq)
