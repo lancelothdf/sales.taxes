@@ -111,8 +111,11 @@ purchases.full[, (household.cols) := lapply(.SD, as.numeric),
                .SDcols = household.cols][,(household.cols) := lapply(.SD, mean, na.rm = T),
                                          by = .(household_code, year), .SDcols = household.cols] 
 
-## Calculate total expenditures per consumer in each semester in a given module within a state
+## Calculate total expenditures across consumers in each semester in a given module within a state
 purchases.full[, sum_total_exp_month := sum(total_expenditures, weights = projection_factor),
-               by = .(household_code, year, semester, product_module_code, fips_state_code)]
+               by = .(year, semester, product_module_code, fips_state_code)]
+
+
+
 ## Export
 fwrite(purchases.full, "cleaning/consumer_sales_semester_state_2006-2016.csv")
