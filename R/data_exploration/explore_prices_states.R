@@ -61,10 +61,10 @@ setnames(hh.sales, old =c("fips_state_code"), new = c("fips_state"))
 all_pi<- merge(all_pi, hh.sales, all.x = T, by = c("year", "semester", "product_module_code", "fips_state"))
 
 ## Compute and extract the interesting data we want to plot
-state.prices <- all_pi[, .(av.dm.ln_cpricei2 = mean(dm.ln_cpricei2, weights = sum_total_exp_month),
-                          md.dm.ln_cpricei2 = median(dm.ln_cpricei2, weights = sum_total_exp_month),
-                          p25.dm.ln_cpricei2 = quantile(dm.ln_cpricei2, weights = sum_total_exp_month, probs = 0.25),
-                          p75.dm.ln_cpricei2 = quantile(dm.ln_cpricei2, weights = sum_total_exp_month, probs = 0.75)), by = .(fips_state)]
+state.prices <- all_pi[, .(av.dm.ln_cpricei2 = mean(dm.ln_cpricei2, weights = total_sales),
+                          md.dm.ln_cpricei2 = median(dm.ln_cpricei2, weights = total_sales),
+                          p25.dm.ln_cpricei2 = quantile(dm.ln_cpricei2, weights = total_sales, probs = 0.25),
+                          p75.dm.ln_cpricei2 = quantile(dm.ln_cpricei2, weights = total_sales, probs = 0.75)), by = .(fips_state)]
 
 ## Export that data
 fwrite(state.prices, output.results.file)
