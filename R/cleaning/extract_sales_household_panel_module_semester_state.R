@@ -112,7 +112,7 @@ purchases.full[, (household.cols) := lapply(.SD, as.numeric),
                                          by = .(household_code, year), .SDcols = household.cols] 
 
 ## Calculate total expenditures across consumers in each semester in a given module within a state
-purchases.full[, sum_total_exp_month := sum(total_expenditures, weights = projection_factor),
+purchases.full[, .(total_sales = sum(total_expenditures, weights = projection_factor)),
                by = .(year, semester, product_module_code, fips_state_code)]
 
 
