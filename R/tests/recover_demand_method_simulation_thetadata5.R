@@ -22,8 +22,8 @@ setwd("/project2/igaarder")
 
 ## input and output filepaths -----------------------------------------------
 data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
-output.results.file <- "Data/SimulationIV_100_thetadata5.csv"
-output.target.file <- "Data/SimulationTarget_100_thetadata5.csv"
+output.results.file <- "Data/SimulationIV_100_thetadata3.csv"
+output.target.file <- "Data/SimulationTarget_100_thetadata3.csv"
 
 
 ## input values ------------------------------
