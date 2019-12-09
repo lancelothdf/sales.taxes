@@ -190,7 +190,7 @@ for (rep in 1:100) {
       ## Read Previous and write
       theta.output.results.file <- paste0("Data/SimulationTarget_100_thetadata3_berns_K", K,".csv")
       
-      if (n.g == 1) {
+      if (n.g == 1 & rep == 1) {
         fwrite(gamma, theta.output.results.file)
       } else {
         previous.data <- fread(theta.output.results.file)
