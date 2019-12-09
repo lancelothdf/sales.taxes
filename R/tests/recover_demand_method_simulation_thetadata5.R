@@ -39,11 +39,11 @@ alpha <- 0.2
 sigma_d_2 <- 0.007
 
 # Also we set parameters we aim to recover
-beta <- c(7.712, -0.554, 5.174, -3.373, -110.691, 172.613)
+beta <- c(7.712, -0.554, 5.174, -3.373)
 
 # Finally we set the number of quantiles to implement the method. 
 # This will indicate the number of target parameters to retrieve 
-n.quantiles <- 5
+n.quantiles <- 3
   
 #### Open Real data -----------------
 all_pi <- fread(data.semester)
@@ -66,7 +66,7 @@ for (rep in 1:100) {
   sampled.ids <- data.table(sample(ids, replace = T))
   setnames(sampled.ids, old= "V1", new = "store_by_module")
   # Compute random initial prices
-  sampled.ids$p0 <- rnorm(length(sampled.ids$store_by_module), -0.06, sigma_2)
+  sampled.ids$p0 <- rnorm(length(sampled.ids$store_by_module), -0.11, sigma_2)
   
   # Generate Prices
   for (time in 1:length(unique(all_pi$cal_time))) {
