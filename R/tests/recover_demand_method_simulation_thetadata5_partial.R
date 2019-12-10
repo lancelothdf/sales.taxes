@@ -55,9 +55,6 @@ all_pi <- fread(data.semester)
 # Define level of sampling
 ids <- unique(all_pi$store_by_module)
 
-## Files Needed
-LRdiff_res <- data.table(NULL)
-target_res <- data.table(NULL)
 
 ## Iteration
 for (rep in 1:100) {
@@ -149,18 +146,18 @@ for (rep in 1:100) {
 
   ###### Estimation by initial price -----------------
   
-  # Create groups of initial values of tax rate
-  sampled.data_csprice <- sampled.data_csprice[, quantile := cut(L.p_t,
-                                                                 breaks = quantile(L.p_t, probs = seq(0, 1, by = 1/n.quantiles), na.rm = T, 
-                                                                                   weights = base.sales),
-                                                                 labels = 1:n.quantiles, right = FALSE)]
-  quantlab <- round(quantile(sampled.data_csprice$L.p_t, probs = seq(0, 1, by = 1/n.quantiles), na.rm = T, weights = sampled.data_cstax$base.sales), digits = 4)
-  
-  ## Don't estimate IV, we already have these results
-  
   ## Estimate the matrix of the implied system of equations by diff number of quantiles
   
   for (n.g in 1:7) {
+    # Create groups of initial values of tax rate
+    sampled.data_csprice <- sampled.data_csprice[, quantile := cut(L.p_t,
+                                                                 breaks = quantile(L.p_t, probs = seq(0, 1, by = 1/n.g), na.rm = T, 
+                                                                                   weights = base.sales),
+                                                                 labels = 1:n.g, right = FALSE)]
+    quantlab <- round(quantile(sampled.data_csprice$L.p_t, probs = seq(0, 1, by = 1/n.g), na.rm = T, weights = sampled.data_cstax$base.sales), digits = 4)
+  
+    ## Don't estimate IV, we already have these results
+  
     # Get the empirical distribution of prices by quantile
     sampled.data_csprice[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
     sampled.data_csprice[, p_group := floor((r.p_t - min(r.p_t, na.rm = T))/((max(r.p_t, na.rm = T)-min(r.p_t, na.rm = T))/100)), by = .(quantile)]
