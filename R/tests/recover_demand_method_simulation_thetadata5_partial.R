@@ -143,7 +143,7 @@ for (rep in 1:100) {
   max.p <- sampled.data_csprice[, max(p_t)]
   sampled.data_csprice[, r.p_t := (p_t - min.p)/(max.p - min.p) ]
   
-
+  flog.info("Data ready")
   ###### Estimation by initial price -----------------
   
   ## Estimate the matrix of the implied system of equations by diff number of quantiles
