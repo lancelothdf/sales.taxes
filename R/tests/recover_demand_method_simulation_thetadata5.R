@@ -97,7 +97,7 @@ for (rep in 1:100) {
   
   # Create consumer price
   sampled.data[, p_t := p + ln_sales_tax ]
-  
+
   # Create quantity based on demand function
   for (n in 0:(length(beta)-1)){
     sampled.data[, paste0("p_t_",n) := (beta[n+1])*(p_t^(n))]
