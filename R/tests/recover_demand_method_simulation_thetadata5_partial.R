@@ -142,9 +142,9 @@ for (rep in 1:100) {
   sampled.data_csprice <- sampled.data[cs_price == 1,]
   
   ## Define normalized price for bernstein polynomial
-  min.p <- all_pi[, min(dm.ln_cpricei2)]
-  max.p <- all_pi[, max(dm.ln_cpricei2)]
-  all_pi[, r.p_t := (p_t - min.p)/(max.p - min.p) ]
+  min.p <- sampled.data_csprice[, min(dm.ln_cpricei2)]
+  max.p <- sampled.data_csprice[, max(dm.ln_cpricei2)]
+  sampled.data_csprice[, r.p_t := (p_t - min.p)/(max.p - min.p) ]
   
 
   ###### Estimation by initial price -----------------
