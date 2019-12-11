@@ -122,7 +122,9 @@ for (rep in 1:100) {
   sampled.data[, L.t := ln_sales_tax - D.t]
   
   ######## Defining commo support --------------------
-
+  control <- sampled.data[D.t == 0,]
+  treated <- sampled.data[D.t != 0,]
+  
   # Price 
   pct1.control <- quantile(control$L.p_t, probs = 0.01, na.rm = T, weights = control$base.sales)
   pct1.treated <- quantile(treated$L.p_t, probs = 0.01, na.rm = T, weights = treated$base.sales)
@@ -143,7 +145,6 @@ for (rep in 1:100) {
   max.p <- sampled.data_csprice[, max(p_t)]
   sampled.data_csprice[, r.p_t := (p_t - min.p)/(max.p - min.p) ]
   
-  flog.info("Data ready")
   ###### Estimation by initial price -----------------
   
   ## Estimate the matrix of the implied system of equations by diff number of quantiles
