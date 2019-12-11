@@ -47,9 +47,9 @@ pasthrough <- function(theta, data, p, weights, function.param, es = Inf){
   
   # 3. Calculate the contribution of that observation
   if (is.infinite(es)) {
-    data[, integrand := (1+(theta/q1))/(1+theta*(1-((q1-q2)/(q1^2))))]
+    data[, integrand := (1+(theta/q1))/(1+theta*(1+((q1-q2)/(q1^2))))]
   } else {
-    data[, integrand := (1+(theta/q1))/(1+theta*(1-((q1-q2)/(q1^2)))+(1+theta/q1)*(q1/es)) ]
+    data[, integrand := (1+(theta/q1))/(1+theta*(1+((q1-q2)/(q1^2)))-(1+theta/q1)*(q1/es)) ]
   }
   
   # 4. Calculate the integral as the (weighted) average
