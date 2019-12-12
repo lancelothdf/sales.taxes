@@ -65,7 +65,7 @@ all_pi[, sales := exp(ln_cpricei2)*exp(ln_quantity3)]
 head(all_pi)
 all_pi[, .(ln_cpricei2 = mean(ln_cpricei2, weight = sales),
           dm.ln_cpricei2 = mean(dm.ln_cpricei2, weight = sales),
-          base.sales = mean(base.sales, weight = sales)), 
+          base.sales = sum(base.sales)), 
        by = .(store_code_uc, semester, year)]
 
 ## 3. Create demeaned prices at store
@@ -75,7 +75,8 @@ all_pi[, dm.s.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(
 ## 4. Export distribution plots
 graphout <- paste0(output.path,"/prices.png")
 hist <- ggplot(all_pi, aes(ln_cpricei2, weight = base.sales)) + 
-  geom_histogram(aes(y=..count../sum(..count..)), position="identity") +    
+  geom_histogram(aes(y=..count../sum(..count..)), position="identity") +
+  scale_x_continuous(limits = c(-1,1)) + 
   theme_classic(base_size = 24) +
   labs(x = "Store (log) prices", y = "Fraction", color = NULL) 
 ggsave(graphout)
@@ -84,6 +85,7 @@ graphout <- paste0(output.path,"/dm.prices.png")
 hist <- ggplot(all_pi, aes(dm.ln_cpricei2, weight = base.sales)) + 
   geom_histogram(aes(y=..count../sum(..count..)), position="identity") +    
   theme_classic(base_size = 24) +
+  scale_x_continuous(limits = c(-.5,.5)) + 
   labs(x = "Store (demeaned log) prices", y = "Fraction", color = NULL) 
 ggsave(graphout)
 
@@ -91,6 +93,7 @@ graphout <- paste0(output.path,"/dm.s.prices.png")
 hist <- ggplot(all_pi, aes(dm.s.ln_cpricei2, weight = base.sales)) + 
   geom_histogram(aes(y=..count../sum(..count..)), position="identity") +    
   theme_classic(base_size = 24) +
+  scale_x_continuous(limits = c(-.5,.5)) + 
   labs(x = "(Demeaned) Store (log) prices", y = "Fraction", color = NULL) 
 ggsave(graphout)
 
@@ -101,7 +104,7 @@ for (var in vars) {
   distr <- data.table(NULL)
   for (pc in percentiles) {
     
-    value <- quantile(all_pi[[get(var)]], probs = pc/100, na.rm = T, weight=all_pi$base.sales)
+    value <- quantile(all_pi[[(var)]], probs = pc/100, na.rm = T, weight=all_pi$base.sales)
     distr <- rbind(distr, data.table(value, pc))
     
   }
