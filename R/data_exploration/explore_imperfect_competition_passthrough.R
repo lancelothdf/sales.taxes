@@ -21,7 +21,7 @@ setwd("/project2/igaarder")
 ## Function to be used to solve the problem --------------
 
 
-pasthrough <- function(theta, data, p, weights, function.param, es = Inf){
+passthrough <- function(theta, data, p, weights, function.param, es = Inf){
   
   #' data: data set used (data.table)
   #' p: demeaned log price variable (character)
@@ -126,7 +126,7 @@ for (es.value in c(Inf, 0.5, 1, 2, 5, 10, 25, 50, 100)) {
   graphout <- paste0("../../home/slacouture/NLP/IC/ic_t_2_", es.value,".png")
   data.plot <- data.table(NULL)
   for (theta in seq(-0.5,1.5,0.025)) {
-    value <- pasthrough(theta, data = all_pi_short_t,
+    value <- passthrough(theta, data = all_pi_short_t,
                                 p = "dm.ln_cpricei2", weights = "base.sales", function.param = theta.function.2, es = es.value)
     data.plot <- rbind(data.plot, data.table(theta, value))
   }
@@ -138,7 +138,7 @@ for (es.value in c(Inf, 0.5, 1, 2, 5, 10, 25, 50, 100)) {
   graphout <- paste0("../../home/slacouture/NLP/IC/ic_f_2_", es.value,".png")
   data.plot <- data.table(NULL)
   for (theta in seq(-0.5,1.5,0.025)) {
-    value <- pasthrough(theta, data = all_pi_short,
+    value <- passthrough(theta, data = all_pi_short,
                                 p = "dm.ln_cpricei2", weights = "base.sales", function.param = theta.function.2, es = es.value)
     data.plot <- rbind(data.plot, data.table(theta, value))
   }
@@ -151,7 +151,7 @@ for (es.value in c(Inf, 0.5, 1, 2, 5, 10, 25, 50, 100)) {
   graphout <- paste0("../../home/slacouture/NLP/IC/ic_t_3_", es.value,".png")
   data.plot <- data.table(NULL)
   for (theta in seq(-0.5,1.5,0.025)) {
-    value <- pasthrough(theta, data = all_pi_short_t,
+    value <- passthrough(theta, data = all_pi_short_t,
                                 p = "dm.ln_cpricei2", weights = "base.sales", function.param = theta.function.3, es = es.value)
     data.plot <- rbind(data.plot, data.table(theta, value))
   }
@@ -163,7 +163,7 @@ for (es.value in c(Inf, 0.5, 1, 2, 5, 10, 25, 50, 100)) {
   graphout <- paste0("../../home/slacouture/NLP/IC/ic_f_3_", es.value,".png")
   data.plot <- data.table(NULL)
   for (theta in seq(-0.5,1.5,0.025)) {
-    value <- pasthrough(theta, data = all_pi_short,
+    value <- passthrough(theta, data = all_pi_short,
                                 p = "dm.ln_cpricei2", weights = "base.sales", function.param = theta.function.3, es = es.value)
     data.plot <- rbind(data.plot, data.table(theta, value))
   }
@@ -176,7 +176,7 @@ for (es.value in c(Inf, 0.5, 1, 2, 5, 10, 25, 50, 100)) {
   graphout <- paste0("../../home/slacouture/NLP/IC/ic_t_4_", es.value,".png")
   data.plot <- data.table(NULL)
   for (theta in seq(-0.5,1.5,0.025)) {
-    value <- pasthrough(theta, data = all_pi_short_t,
+    value <- passthrough(theta, data = all_pi_short_t,
                                 p = "dm.ln_cpricei2", weights = "base.sales", function.param = theta.function.4, es = es.value)
     data.plot <- rbind(data.plot, data.table(theta, value))
   }
@@ -188,7 +188,7 @@ for (es.value in c(Inf, 0.5, 1, 2, 5, 10, 25, 50, 100)) {
   graphout <- paste0("../../home/slacouture/NLP/IC/ic_f_4_", es.value,".png")
   data.plot <- data.table(NULL)
   for (theta in seq(-0.5,1.5,0.025)) {
-    value <- pasthrough(theta, data = all_pi_short,
+    value <- passthrough(theta, data = all_pi_short,
                                 p = "dm.ln_cpricei2", weights = "base.sales", function.param = theta.function.4, es = es.value)
     data.plot <- rbind(data.plot, data.table(theta, value))
   }
@@ -201,7 +201,7 @@ for (es.value in c(Inf, 0.5, 1, 2, 5, 10, 25, 50, 100)) {
   graphout <- paste0("../../home/slacouture/NLP/IC/ic_t_5_", es.value,".png")
   data.plot <- data.table(NULL)
   for (theta in seq(-0.5,1.5,0.025)) {
-    value <- pasthrough(theta, data = all_pi_short_t,
+    value <- passthrough(theta, data = all_pi_short_t,
                                 p = "dm.ln_cpricei2", weights = "base.sales", function.param = theta.function.5, es = es.value)
     data.plot <- rbind(data.plot, data.table(theta, value))
   }
@@ -213,7 +213,7 @@ for (es.value in c(Inf, 0.5, 1, 2, 5, 10, 25, 50, 100)) {
   graphout <- paste0("../../home/slacouture/NLP/IC/ic_f_5_", es.value,".png")
   data.plot <- data.table(NULL)
   for (theta in seq(-0.5,1.5,0.025)) {
-    value <- pasthrough(theta, data = all_pi_short,
+    value <- passthrough(theta, data = all_pi_short,
                                 p = "dm.ln_cpricei2", weights = "base.sales", function.param = theta.function.5, es = es.value)
     data.plot <- rbind(data.plot, data.table(theta, value))
   }
