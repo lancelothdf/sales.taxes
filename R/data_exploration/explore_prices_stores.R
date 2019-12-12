@@ -76,7 +76,7 @@ all_pi[, dm.s.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(
 graphout <- paste0(output.path,"/prices.png")
 hist <- ggplot(all_pi, aes(ln_cpricei2, weight = base.sales)) + 
   geom_histogram(aes(y=..count../sum(..count..)), position="identity") +
-  scale_x_continuous(limits = c(-1,1)) + 
+  scale_x_continuous(limits = c(-.5,.5)) + 
   theme_classic(base_size = 24) +
   labs(x = "Store (log) prices", y = "Fraction", color = NULL) 
 ggsave(graphout)
@@ -108,7 +108,7 @@ for (var in vars) {
     distr <- rbind(distr, data.table(value, pc))
     
   }
-  fwrite(paste0(output.path, "/distr_", var, ".csv"), distr)
+  fwrite(distr, paste0(output.path, "/distr_", var, ".csv"))
 }
 
 
