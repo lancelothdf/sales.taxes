@@ -66,7 +66,7 @@ head(all_pi)
 all_pi[, .(ln_cpricei2 = mean(ln_cpricei2, weight = sales),
           dm.ln_cpricei2 = mean(dm.ln_cpricei2, weight = sales),
           base.sales = mean(base.sales, weight = sales)), 
-       by = .(store_code, semester, year)]
+       by = .(store_code_uc, semester, year)]
 
 ## 3. Create demeaned prices at store
 all_pi[, dm.s.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(semester, year)]
