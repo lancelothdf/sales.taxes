@@ -108,7 +108,7 @@ for (var in vars) {
     distr <- rbind(distr, data.table(value, pc))
     
   }
-  fwrite(paste0(output.path, "/distr_", var, ".csv"))
+  fwrite(paste0(output.path, "/distr_", var, ".csv"), distr)
 }
 
 
