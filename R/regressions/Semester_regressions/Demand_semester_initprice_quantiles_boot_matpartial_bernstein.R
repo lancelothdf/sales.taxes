@@ -6,6 +6,7 @@
 #' In this case, we run a fully saturated model (instead of splitting the sample)
 #' We do partial identification in this case, so we extract the gamma matrix plus the mean q and demean log p. 
 #' For now, we don't Bootstrap to get CIs. In this case we use bernstein polynomials so we re-scale prices to lay in [0,1]
+#' new 12/12/19: Trim tails after defining common support, tails are so long they make partial id. infeasible (shape constraint)
 
 
 library(data.table)
@@ -71,6 +72,13 @@ all_pi[, cs_price := ifelse(is.na(dm.L.ln_cpricei2), 0, cs_price)]
 
 ## Keep within the common support
 all_pi <- all_pi[cs_price == 1,]
+
+## cut the tails (keep between 1st and 99th percentile)
+pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sales)
+pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
+all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
+
+
 
 ## Define re-scaled prices to use Bernstein polynomials in that range
 min.p <- all_pi[, min(dm.ln_cpricei2)]
