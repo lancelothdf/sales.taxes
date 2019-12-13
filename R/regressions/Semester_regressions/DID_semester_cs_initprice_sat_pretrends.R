@@ -5,6 +5,7 @@
 #' by quantiles increasing the number of groups.
 #' Here initial level means previous period and we divide by groups within the "common" support
 #' In this case, we run a fully saturated model (instead of splitting the sample)
+#' new 12/12/19: Trim tails after defining common support, tails are so long they make partial id. infeasible (shape constraint)
 
 
 library(data.table)
@@ -77,7 +78,10 @@ all_pi[, cs_price := ifelse(is.na(dm.L.ln_cpricei2), 0, cs_price)]
 ## Keep within the common support
 all_pi <- all_pi[cs_price == 1,]
 
-
+## cut the tails (keep between 1st and 99th percentile)
+pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sales)
+pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
+all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
 outcomes.changes <- c("L1.D.ln_cpricei2", "L2.D.ln_cpricei2", "L4.D.ln_cpricei2", 
                       "L5.3.D.ln_cpricei2", "L5.2.D.ln_cpricei2", "L4.2.D.ln_cpricei2", 
