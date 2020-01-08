@@ -120,7 +120,7 @@ for (n.g in 1:7) {
       res1.dt$N_county_modules <- uniqueN(all_pi, by = c("fips_state", "fips_county",
                                                          "product_module_code"))
       LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-      fwrite(LRdiff_res, iv.output.results.file)
+      fwrite(LRdiff_res, results.file)
     }
   }
   
@@ -168,7 +168,7 @@ for (n.g in 1:7) {
       res1.dt$N_county_modules <- uniqueN(groceries, by = c("fips_state", "fips_county",
                                                          "product_module_code"))
       LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-      fwrite(LRdiff_res, iv.output.results.file)
+      fwrite(LRdiff_res, results.file)
     }
   }
   
@@ -217,7 +217,7 @@ for (n.g in 1:7) {
       res1.dt$N_county_modules <- uniqueN(nonDGsample, by = c("fips_state", "fips_county",
                                                             "product_module_code"))
       LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-      fwrite(LRdiff_res, iv.output.results.file)
+      fwrite(LRdiff_res, results.file)
     }
   }  
 }
