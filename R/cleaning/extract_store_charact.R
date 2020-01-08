@@ -7,6 +7,7 @@ library(data.table)
 library(lfe)
 library(futile.logger)
 library(AER)
+library(readstata13)
 
 
 setwd("/project2/igaarder")
@@ -19,23 +20,30 @@ for (yr in 2006:2016) {
   path <- paste0("Data/Nielsen/stores_", yr, ".dta")
   
   ## Open year file
-  stores.yr <- read.dta13(path)
+  stores.yr <- as.data.table(read.dta13(path))
+  stores.yr[, year := yr]
   
   ## append to previous years
-  stores <- rbind(stores.all, stores.yr)
+  stores.all <- rbind(stores.all, stores.yr)
   rm(stores.yr)
 }
+
+## Keep only 3 big types of stores
+stores.all <- stores.all[channel_code %in% c("F", "M", "D")]
 
 length(unique(stores.all$store_code_uc))
 
 #### Follow DellaVigna and Gentzkow identification of Chains
 # Main difference:they focus in 2006 to 2014 period not 2006-2016
 
+### A. Stores Exclusion
+## 3. stores without any consumer purchases in the Homescan data. Identifyied w. blank retailer_code as said in Guide note of table
+# We start with this exclusion to avoid problems later. This is probably what they do, although they mention it in a different order
+stores.dg <- stores.all[!is.na(retailer_code)]
 
 ## 0.  Define a chain to be a unique combination of two identifiers in the Nielsen data: parent code and retailer code
-stores.dg <- stores.all[, chain := .GRP, by = .(retailer_code, parent_code)]
+stores.dg <- stores.dg[, chain := .GRP, by = .(retailer_code, parent_code)]
 
-### A. Stores Exclusion
 ## 1. Exclude stores that switch chains over time
 stores.dg[, chain.mn := mean(chain), by = .(store_code_uc)]
 stores.dg <- stores.dg[ chain == chain.mn]
@@ -44,11 +52,12 @@ stores.dg <- stores.dg[ chain == chain.mn]
 stores.dg[, years := .N, by = .(store_code_uc)]
 stores.dg <- stores.dg[ years > 2]
 
+
 ### B. Chain exclusions
 
-## 1. Exclude Chains that are present less than 8 years
-stores.dg[, years := .N, by = .(chain)]
-stores.dg <- stores.dg[ years > 7]
+## 1. Exclude Chains that are present less than 8 years (here 10)
+stores.dg[, years := uniqueN(year), by = .(chain)]
+stores.dg <- stores.dg[ years > 9]
 
 
 ## 2. Exclude cases where the same retailer code appears for stores with different parent codes, keep the parent code associated with the majority
@@ -69,10 +78,14 @@ stores.dg <- stores.dg[p.change < .6]
 length(unique(stores.dg$store_code_uc))
 
 #### Mark this sample and merge to all stores sample
-stores.dg[, c("year", "store_code_uc")]
+stores.dg <- stores.dg[, c("year", "store_code_uc")]
 stores.dg[, DGsample := 1]
 
 stores.all <- merge(stores.all, stores.dg, by = c("year", "store_code_uc"), all.x = T)
+
+## Simplify the file to avoid loading by amount of data
+stores.all <- stores.all[, c("year", "store_code_uc", "channel_code", "DGsample")]
+
 
 ## Save this File
 fwrite(stores.all, "Data/Nielsen/stores_all.csv")
