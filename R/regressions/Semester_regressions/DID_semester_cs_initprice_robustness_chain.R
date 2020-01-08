@@ -92,6 +92,14 @@ for (FE in FE_opts) {
     res1.dt[, controls := FE]
     res1.dt[, sample := "Full"]
     
+    ## Descriptives
+    res1.dt$N_obs <- nrow(all_pi)
+    res1.dt$N_stores <- uniqueN(all_pi, by = .(store_code_uc) )
+    res1.dt$N_modules <- length(unique(all_pi$product_module_code))
+    res1.dt$N_counties <- uniqueN(all_pi, by = c("fips_state", "fips_county"))
+    res1.dt$N_years <- uniqueN(all_pi, by = c("year")) # should be 6 (we lose one because we difference)
+    res1.dt$N_county_modules <- uniqueN(all_pi, by = c("fips_state", "fips_county",
+                                                          "product_module_code"))
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
     fwrite(LRdiff_res, results.file)
   }
@@ -114,6 +122,14 @@ for (FE in FE_opts) {
     res1.dt[, controls := FE]
     res1.dt[, sample := "Food"]
     
+    ## Descriptives
+    res1.dt$N_obs <- nrow(groceries)
+    res1.dt$N_stores <- uniqueN(groceries, by = .(store_code_uc) )
+    res1.dt$N_modules <- length(unique(groceries$product_module_code))
+    res1.dt$N_counties <- uniqueN(groceries, by = c("fips_state", "fips_county"))
+    res1.dt$N_years <- uniqueN(groceries, by = c("year")) # should be 6 (we lose one because we difference)
+    res1.dt$N_county_modules <- uniqueN(groceries, by = c("fips_state", "fips_county",
+                                                          "product_module_code"))
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
     fwrite(LRdiff_res, results.file)
   }
@@ -136,6 +152,14 @@ for (FE in FE_opts) {
     res1.dt[, controls := FE]
     res1.dt[, sample := "DG"]
     
+    ## Descriptives
+    res1.dt$N_obs <- nrow(DGsample)
+    res1.dt$N_stores <- uniqueN(DGsample, by = .(store_code_uc) )
+    res1.dt$N_modules <- length(unique(DGsample$product_module_code))
+    res1.dt$N_counties <- uniqueN(DGsample, by = c("fips_state", "fips_county"))
+    res1.dt$N_years <- uniqueN(DGsample, by = c("year")) # should be 6 (we lose one because we difference)
+    res1.dt$N_county_modules <- uniqueN(DGsample, by = c("fips_state", "fips_county",
+                                                          "product_module_code"))
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
     fwrite(LRdiff_res, results.file)
   }
