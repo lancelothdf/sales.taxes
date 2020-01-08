@@ -94,7 +94,7 @@ for (FE in FE_opts) {
     
     ## Descriptives
     res1.dt$N_obs <- nrow(all_pi)
-    res1.dt$N_stores <- uniqueN(all_pi, by = .(store_code_uc) )
+    res1.dt$N_stores <- uniqueN(all_pi, by = c("store_code_uc") )
     res1.dt$N_modules <- length(unique(all_pi$product_module_code))
     res1.dt$N_counties <- uniqueN(all_pi, by = c("fips_state", "fips_county"))
     res1.dt$N_years <- uniqueN(all_pi, by = c("year")) # should be 6 (we lose one because we difference)
@@ -124,7 +124,7 @@ for (FE in FE_opts) {
     
     ## Descriptives
     res1.dt$N_obs <- nrow(groceries)
-    res1.dt$N_stores <- uniqueN(groceries, by = .(store_code_uc) )
+    res1.dt$N_stores <- uniqueN(groceries, by = c("store_code_uc") )
     res1.dt$N_modules <- length(unique(groceries$product_module_code))
     res1.dt$N_counties <- uniqueN(groceries, by = c("fips_state", "fips_county"))
     res1.dt$N_years <- uniqueN(groceries, by = c("year")) # should be 6 (we lose one because we difference)
@@ -154,7 +154,7 @@ for (FE in FE_opts) {
     
     ## Descriptives
     res1.dt$N_obs <- nrow(DGsample)
-    res1.dt$N_stores <- uniqueN(DGsample, by = .(store_code_uc) )
+    res1.dt$N_stores <- uniqueN(DGsample, by = c("store_code_uc") )
     res1.dt$N_modules <- length(unique(DGsample$product_module_code))
     res1.dt$N_counties <- uniqueN(DGsample, by = c("fips_state", "fips_county"))
     res1.dt$N_years <- uniqueN(DGsample, by = c("year")) # should be 6 (we lose one because we difference)
