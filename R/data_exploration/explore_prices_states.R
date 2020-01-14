@@ -13,9 +13,10 @@ setwd("/project2/igaarder")
 #' This data is the same as all_goods_pi_path, except it has 2015-2016 data as well.
 data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
 hhsales.semester <- "Data/Nielsen/Household_panel/cleaning/consumer_sales_semester_state_2006-2016.csv"
+rurality <- "Data/PctUrbanRural_County.csv"
 
 ## output filepaths ----------------------------------------------
-output.results.file <- "Data/prices_state_hhsalesweighted.csv"
+output.results.file <- "Data/prices_state_hhsalesweighted_2014.csv"
 
 ### Set up Semester Data ---------------------------------
 all_pi <- fread(data.semester)
@@ -52,6 +53,18 @@ all_pi <- all_pi[cs_price == 1,]
 
 ### Calculate measures of interest --------------------
 
+## Add rurality
+rural.data <- fread(rurality)
+setnames(rural.data, old = c("STATE", "COUNTY"), new = c("fips_state", "fips_county") )
+md <- rural.data[median(POPPCT_URBAN)]
+av <- rural.data[mean(POPPCT_URBAN)]
+rural.data[, urban_md := POPPCT_URBAN >= md ]
+rural.data[, urban_av := POPPCT_URBAN >= av ]
+rural.data <- rural.data[, c("fips_state", "fips_county" , "urban_md", "urban_av")]
+## Merge this data to the store
+all_pi<- merge(all_pi, rural.data, all.x = T, by = c("fips_state", "fips_county"))
+
+
 ## Merge sales by module
 hh.sales <- fread(hhsales.semester)
 ## Rename
@@ -61,10 +74,16 @@ setnames(hh.sales, old =c("fips_state_code"), new = c("fips_state"))
 all_pi<- merge(all_pi, hh.sales, all.x = T, by = c("year", "semester", "product_module_code", "fips_state"))
 
 ## Compute and extract the interesting data we want to plot
-state.prices <- all_pi[, .(av.dm.ln_cpricei2 = mean(dm.ln_cpricei2, weights = total_sales),
-                          md.dm.ln_cpricei2 = median(dm.ln_cpricei2, weights = total_sales),
-                          p25.dm.ln_cpricei2 = quantile(dm.ln_cpricei2, weights = total_sales, probs = 0.25),
-                          p75.dm.ln_cpricei2 = quantile(dm.ln_cpricei2, weights = total_sales, probs = 0.75)), by = .(fips_state)]
+state.prices.av <- all_pi[year ==  2014, 
+                          .(av.total.tax = mean(exp(ln_sales_tax-1), weights = total_sales),
+                            av.dm.ln_cpricei2 = mean(dm.ln_cpricei2, weights = total_sales),
+                            md.dm.ln_cpricei2 = median(dm.ln_cpricei2, weights = total_sales),
+                            p25.dm.ln_cpricei2 = quantile(dm.ln_cpricei2, weights = total_sales, probs = 0.25),
+                            p75.dm.ln_cpricei2 = quantile(dm.ln_cpricei2, weights = total_sales, probs = 0.75),
+                            av.dm.ln_cpricei2.urb.av = mean(dm.ln_cpricei2, weights = total_sales*urban_av),
+                            av.dm.ln_cpricei2.urb.md = mean(dm.ln_cpricei2, weights = total_sales*urban_md),
+                            av.dm.ln_cpricei2.rur.av = mean(dm.ln_cpricei2, weights = total_sales*(1-urban_av)),
+                            av.dm.ln_cpricei2.rur.md = mean(dm.ln_cpricei2, weights = total_sales*(1-urban_md))), by = .(fips_state)]
 
 ## Export that data
 fwrite(state.prices, output.results.file)
