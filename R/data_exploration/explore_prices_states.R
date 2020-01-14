@@ -56,8 +56,8 @@ all_pi <- all_pi[cs_price == 1,]
 ## Add rurality
 rural.data <- fread(rurality)
 setnames(rural.data, old = c("STATE", "COUNTY"), new = c("fips_state", "fips_county") )
-md <- rural.data[median(POPPCT_URBAN)]
-av <- rural.data[mean(POPPCT_URBAN)]
+md <- rural.data[, median(POPPCT_URBAN)]
+av <- rural.data[, mean(POPPCT_URBAN)]
 rural.data[, urban_md := POPPCT_URBAN >= md ]
 rural.data[, urban_av := POPPCT_URBAN >= av ]
 rural.data <- rural.data[, c("fips_state", "fips_county" , "urban_md", "urban_av")]
