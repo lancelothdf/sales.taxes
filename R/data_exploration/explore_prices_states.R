@@ -70,16 +70,23 @@ setnames(hh.sales, old =c("fips_state_code"), new = c("fips_state"))
 all_pi<- merge(all_pi, hh.sales, all.x = T, by = c("year", "semester", "product_module_code", "fips_state"))
 
 ## Compute and extract the interesting data we want to plot
-state.prices.av <- all_pi[year ==  2014, 
-                          .(av.total.tax = mean(exp(ln_sales_tax-1), weights = total_sales),
-                            av.dm.ln_cpricei2 = mean(dm.ln_cpricei2, weights = total_sales),
-                            md.dm.ln_cpricei2 = median(dm.ln_cpricei2, weights = total_sales),
-                            p25.dm.ln_cpricei2 = quantile(dm.ln_cpricei2, weights = total_sales, probs = 0.25),
-                            p75.dm.ln_cpricei2 = quantile(dm.ln_cpricei2, weights = total_sales, probs = 0.75),
-                            av.dm.ln_cpricei2.urb.av = mean(dm.ln_cpricei2, weights = total_sales*urban_av),
-                            av.dm.ln_cpricei2.urb.md = mean(dm.ln_cpricei2, weights = total_sales*urban_md),
-                            av.dm.ln_cpricei2.rur.av = mean(dm.ln_cpricei2, weights = total_sales*(1-urban_av)),
-                            av.dm.ln_cpricei2.rur.md = mean(dm.ln_cpricei2, weights = total_sales*(1-urban_md))), by = .(fips_state, md.urb.pop, av.urb.pop)]
+
+## First average across stores
+states.prices <- all_pi[year ==  2014 & semester == 1, .(av.total.tax = mean(exp(ln_sales_tax-1)),
+                                         av.dm.ln_cpricei2 = mean(dm.ln_cpricei2),
+                                         av.dm.ln_cpricei2.urb.av = mean(dm.ln_cpricei2, weights = urban_av),
+                                         av.dm.ln_cpricei2.urb.md = mean(dm.ln_cpricei2, weights = urban_md),
+                                         av.dm.ln_cpricei2.rur.av = mean(dm.ln_cpricei2, weights = (1-urban_av)),
+                                         av.dm.ln_cpricei2.rur.md = mean(dm.ln_cpricei2, weights = (1-urban_md))
+                                         ), by = .(fips_state, product_module_code, md.urb.pop, av.urb.pop, total_sales)]
+
+state.prices.av <- states.prices[, .(av.total.tax = mean(exp(ln_sales_tax-1), weights = total_sales),
+                                     av.dm.ln_cpricei2 = mean(dm.ln_cpricei2, weights = total_sales),
+                                     av.dm.ln_cpricei2.urb.av = mean(dm.ln_cpricei2, weights = total_sales),
+                                     av.dm.ln_cpricei2.urb.md = mean(dm.ln_cpricei2, weights = total_sales),
+                                     av.dm.ln_cpricei2.rur.av = mean(dm.ln_cpricei2, weights = total_sales),
+                                     av.dm.ln_cpricei2.rur.md = mean(dm.ln_cpricei2, weights = total_sales)
+                                     ), by = .(fips_state, md.urb.pop, av.urb.pop)]
 
 ## Export that data
 fwrite(state.prices.av, output.results.file)
