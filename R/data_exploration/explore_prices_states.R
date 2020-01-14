@@ -20,16 +20,12 @@ output.results.file <- "Data/prices_state_hhsalesweighted_2014.csv"
 
 ### Set up Semester Data ---------------------------------
 all_pi <- fread(data.semester)
-all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax), by = .(store_by_module)]
-all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2), by = .(store_by_module)]
-all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3), by = .(store_by_module)]
 
 # Need to demean
 all_pi[, module_by_time := .GRP, by = .(product_module_code, semester, year)]
 all_pi[, L.ln_cpricei2 := ln_cpricei2 - D.ln_cpricei2]
 all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = module_by_time]
-all_pi[, dm.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = module_by_time]
 
 
 # Defining common support
@@ -56,8 +52,8 @@ all_pi <- all_pi[cs_price == 1,]
 ## Add rurality
 rural.data <- fread(rurality)
 setnames(rural.data, old = c("STATE", "COUNTY"), new = c("fips_state", "fips_county") )
-md <- rural.data[, median(POPPCT_URBAN)]
-av <- rural.data[, mean(POPPCT_URBAN)]
+rural.data[, md.urb.pop := median(POPPCT_URBAN)]
+rural.data[, av.urb.pop := mean(POPPCT_URBAN)]
 rural.data[, urban_md := POPPCT_URBAN >= md ]
 rural.data[, urban_av := POPPCT_URBAN >= av ]
 rural.data <- rural.data[, c("fips_state", "fips_county" , "urban_md", "urban_av")]
@@ -83,10 +79,10 @@ state.prices.av <- all_pi[year ==  2014,
                             av.dm.ln_cpricei2.urb.av = mean(dm.ln_cpricei2, weights = total_sales*urban_av),
                             av.dm.ln_cpricei2.urb.md = mean(dm.ln_cpricei2, weights = total_sales*urban_md),
                             av.dm.ln_cpricei2.rur.av = mean(dm.ln_cpricei2, weights = total_sales*(1-urban_av)),
-                            av.dm.ln_cpricei2.rur.md = mean(dm.ln_cpricei2, weights = total_sales*(1-urban_md))), by = .(fips_state)]
+                            av.dm.ln_cpricei2.rur.md = mean(dm.ln_cpricei2, weights = total_sales*(1-urban_md))), by = .(fips_state, md.urb.pop, av.urb.pop)]
 
 ## Export that data
-fwrite(state.prices, output.results.file)
+fwrite(state.prices.av, output.results.file)
 
 
 
