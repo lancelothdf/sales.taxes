@@ -82,12 +82,12 @@ states.prices <- all_pi[year ==  2014 & semester == 1, .(av.total.tax = mean(exp
                                          av.por.urb = mean(urban_av),
                                          ), by = .(fips_state, product_module_code, md.urb.pop, av.urb.pop, total_sales)]
 
-state.prices.av <- states.prices[, .(av.total.tax = mean(av.total.tax, weights = total_sales),
+state.prices.av <- states.prices[, .(av.total.tax = mean(av.total.tax, weights = sales),
                                      av.dm.ln_cpricei2 = mean(av.dm.ln_cpricei2, weights = sales),
-                                     av.dm.ln_cpricei2.urb.av = mean(av.dm.ln_cpricei2.urb.av, weights = total_sales),
-                                     av.dm.ln_cpricei2.urb.md = mean(av.dm.ln_cpricei2.urb.md, weights = total_sales),
-                                     av.dm.ln_cpricei2.rur.av = mean(av.dm.ln_cpricei2.rur.av, weights = total_sales),
-                                     av.dm.ln_cpricei2.rur.md = mean(av.dm.ln_cpricei2.rur.md, weights = total_sales),
+                                     av.dm.ln_cpricei2.urb.av = mean(av.dm.ln_cpricei2.urb.av, weights = sales),
+                                     av.dm.ln_cpricei2.urb.md = mean(av.dm.ln_cpricei2.urb.md, weights = sales),
+                                     av.dm.ln_cpricei2.rur.av = mean(av.dm.ln_cpricei2.rur.av, weights = sales),
+                                     av.dm.ln_cpricei2.rur.md = mean(av.dm.ln_cpricei2.rur.md, weights = sales),
                                      md.por.urb = mean(md.por.urb),
                                      av.por.urb = mean(av.por.urb)
                                      ), by = .(fips_state, md.urb.pop, av.urb.pop)]
