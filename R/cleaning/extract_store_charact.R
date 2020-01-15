@@ -161,12 +161,12 @@ full.purchases <- merge(full.purchases, zip_data, by = "zip_code")
 rm(zip_data)
 
 ## Collapse at the store level
-store_costumer_ch <- full.purchases[, .(av_hh_income_sales = mean(av_hh_income, na.rm = T, weights = total_expenditures),
-                                        per_bachelor_25_sales = mean(per_bachelor_25, na.rm = T, weights = total_expenditures),
-                                        median_age_sales = mean(median_age, na.rm = T, weights = total_expenditures),
-                                        av_hh_income_trips = mean(av_hh_income, na.rm = T, weights = n_trips),
-                                        per_bachelor_25_trips = mean(per_bachelor_25, na.rm = T, weights = n_trips),
-                                        median_age_trips = mean(median_age, na.rm = T, weights = n_trips),
+store_costumer_ch <- full.purchases[, .(av_hh_income_sales = weighted.mean(av_hh_income, na.rm = T, w = total_expenditures),
+                                        per_bachelor_25_sales = weighted.mean(per_bachelor_25, na.rm = T, w = total_expenditures),
+                                        median_age_sales = weighted.mean(median_age, na.rm = T, w = total_expenditures),
+                                        av_hh_income_trips = weighted.mean(av_hh_income, na.rm = T, w = n_trips),
+                                        per_bachelor_25_trips = weighted.mean(per_bachelor_25, na.rm = T, w = n_trips),
+                                        median_age_trips = weighted.mean(median_age, na.rm = T, w = n_trips),
                                         n_households = .N,
                                         n_trips = sum(n_trips)
                                         ), by = c("store_code_uc")]
