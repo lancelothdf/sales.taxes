@@ -95,7 +95,7 @@ stores.all <- stores.all[, c("year", "store_code_uc", "channel_code", "DGsample"
 # Reset working directory to work with the Consumer PAnel
 setwd("/project2/igaarder/Data/Nielsen/Household_panel")
 
-full.purchases
+full.purchases <- data.table(NULL)
 for (yr in 2006:2016) {
   ## necessary filepaths
   folderpath <- paste0("HMS/", yr, "/Annual_Files/")
