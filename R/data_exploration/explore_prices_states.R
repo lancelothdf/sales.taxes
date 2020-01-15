@@ -52,7 +52,7 @@ all_pi <- all_pi[cs_price == 1,]
 ## Add rurality
 rural.data <- fread(rurality)
 setnames(rural.data, old = c("STATE", "COUNTY"), new = c("fips_state", "fips_county") )
-rural.data[, md.urb.pop := median(POPPCT_URBAN), by]
+rural.data[, md.urb.pop := median(POPPCT_URBAN)]
 rural.data[, urban_md := POPPCT_URBAN >= md.urb.pop ]
 rural.data <- rural.data[, c("fips_state", "fips_county" , "urban_md", "urban_av", "md.urb.pop", "av.urb.pop")]
 ## Merge this data to the store

@@ -154,6 +154,8 @@ for (yr in 2006:2016) {
 full.purchases <- full.purchases[, .(total_expenditures = sum(total_expenditures),
                                      n_trips = sum(n_trips)),
                                  by = .(household_code, store_code_uc, zip_code)]
+## Make this compatible
+full.purchases[, zip_code := as.integer(zip_code)]
 
 ## Merge zip code info to the household
 zip_data <- fread("../../consumer_zip_code_data.csv") 
