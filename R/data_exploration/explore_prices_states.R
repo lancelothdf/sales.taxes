@@ -74,23 +74,22 @@ all_pi<- merge(all_pi, hh.sales, all.x = T, by = c("year", "semester", "product_
 ## First average across stores
 states.prices <- all_pi[year ==  2014 & semester == 1, .(av.total.tax = mean(exp(ln_sales_tax)-1),
                                          av.dm.ln_cpricei2 = mean(dm.ln_cpricei2),
-                                         av.dm.ln_cpricei2.urb.av = mean(dm.ln_cpricei2, weights = urban_av),
-                                         av.dm.ln_cpricei2.urb.md = mean(dm.ln_cpricei2, weights = urban_md),
-                                         av.dm.ln_cpricei2.rur.av = mean(dm.ln_cpricei2, weights = (1-urban_av)),
-                                         av.dm.ln_cpricei2.rur.md = mean(dm.ln_cpricei2, weights = (1-urban_md)),
+                                         av.dm.ln_cpricei2.urb = mean(dm.ln_cpricei2, weights = urban_md),
+                                         av.dm.ln_cpricei2.rur = mean(dm.ln_cpricei2, weights = (1-urban_md)),
                                          md.por.urb = mean(urban_md),
                                          av.por.urb = mean(urban_av)
-                                         ), by = .(fips_state, product_module_code, md.urb.pop, av.urb.pop, total_sales)]
+                                         ), by = .(fips_state, product_module_code, sales, total_sales, md.urb.pop)]
 
 state.prices.av <- states.prices[, .(av.total.tax = mean(av.total.tax, weights = sales),
+                                     av.total.tax.home = mean(av.total.tax, weights = total_sales),
                                      av.dm.ln_cpricei2 = mean(av.dm.ln_cpricei2, weights = sales),
-                                     av.dm.ln_cpricei2.urb.av = mean(av.dm.ln_cpricei2.urb.av, weights = sales),
-                                     av.dm.ln_cpricei2.urb.md = mean(av.dm.ln_cpricei2.urb.md, weights = total_sales),
-                                     av.dm.ln_cpricei2.rur.av = mean(av.dm.ln_cpricei2.rur.av, weights = sales),
-                                     av.dm.ln_cpricei2.rur.md = mean(av.dm.ln_cpricei2.rur.md, weights = total_sales),
-                                     md.por.urb = mean(md.por.urb),
-                                     av.por.urb = mean(av.por.urb)
-                                     ), by = .(fips_state, md.urb.pop, av.urb.pop)]
+                                     av.dm.ln_cpricei2.home = mean(av.dm.ln_cpricei2, weights = total_sales),
+                                     av.dm.ln_cpricei2.urb = mean(av.dm.ln_cpricei2.urb, weights = sales),
+                                     av.dm.ln_cpricei2.urb.home = mean(av.dm.ln_cpricei2.urb, weights = total_sales),
+                                     av.dm.ln_cpricei2.rur = mean(av.dm.ln_cpricei2.urb, weights = sales),
+                                     av.dm.ln_cpricei2.rur.home = mean(av.dm.ln_cpricei2.urb, weights = total_sales),
+                                     md.por.urb = mean(md.por.urb)
+                                     ), by = .(fips_state, md.urb.pop )]
 
 ## Export that data
 fwrite(state.prices.av, output.results.file)
