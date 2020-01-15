@@ -175,4 +175,4 @@ store_costumer_ch <- full.purchases[, .(av_hh_income_sales = mean(av_hh_income, 
 stores_all <- merge(stores_all, store_costumer_ch, by = "store_code_uc", all.x = T)
 
 ## Save this File
-fwrite(stores.all, "Data/Nielsen/stores_all.csv")
+fwrite(stores.all, "../stores_all.csv")
