@@ -58,8 +58,8 @@ for (ch in chains) {
   ## Keep interest chain
   stores.chain <- stores.dg[chain == ch]
   ## Merge to skel and replace missing
-  head(stores.chain)
-  head(county.skel)
+  print(colnames(stores.chain))
+  print(colnames(county.skel))
   stores.chain <- merge(stores.chain, county.skel, by = "fips_county_full", all = T)
   stores.chain[, n_stores:= ifelse(is.na(n_stores), 0, n_stores)]
   ## Merge data to plot
