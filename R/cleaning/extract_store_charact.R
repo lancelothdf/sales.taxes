@@ -176,7 +176,7 @@ store_costumer_ch <- full.purchases[, .(av_hh_income_sales = weighted.mean(av_hh
                                         ), by = c("store_code_uc")]
 
 ## Merge info to store data
-stores_all <- merge(stores_all, store_costumer_ch, by = "store_code_uc", all.x = T)
+stores.all <- merge(stores.all, store_costumer_ch, by = "store_code_uc", all.x = T)
 
 ## Save this File
 fwrite(stores.all, "../stores_all.csv")
