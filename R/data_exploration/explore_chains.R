@@ -41,7 +41,7 @@ stores.dg <- stores.all[DGsample == 1]
 stores.dg <- stores.dg[, .(n_stores = 1), by = .(fips_county_full, chain, store_code_uc)]
 # Collapse at the county level and chain to plot
 stores.dg <- stores.dg[, .(n_stores = .N), by = .(fips_county_full, chain)]
-breaks <- c(0,quantile(stores.dg$n_stores, probs = seq(0, 1, by = 1/10), na.rm = T)[-1])
+breaks <- c(0,unique(quantile(stores.dg$n_stores, probs = seq(0, 1, by = 1/10), na.rm = T)[-1]))
 # Identify each chains to plot each chain geographically
 chains <- unique(stores.dg$chain)
 
