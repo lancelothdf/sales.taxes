@@ -84,8 +84,8 @@ state.prices.av <- states.prices[, .(av.total.tax = weighted.mean(av.total.tax, 
                                      av.dm.ln_cpricei2.home = weighted.mean(av.dm.ln_cpricei2, w = total_sales),
                                      av.dm.ln_cpricei2.urb = weighted.mean(av.dm.ln_cpricei2.urb, w = sales),
                                      av.dm.ln_cpricei2.urb.home = weighted.mean(av.dm.ln_cpricei2.urb, w = total_sales),
-                                     av.dm.ln_cpricei2.rur = weighted.mean(av.dm.ln_cpricei2.urb, w = sales),
-                                     av.dm.ln_cpricei2.rur.home = weighted.mean(av.dm.ln_cpricei2.urb, w = total_sales),
+                                     av.dm.ln_cpricei2.rur = weighted.mean(av.dm.ln_cpricei2.rur, w = sales),
+                                     av.dm.ln_cpricei2.rur.home = weighted.mean(av.dm.ln_cpricei2.rur, w = total_sales),
                                      md.por.urb = mean(md.por.urb)
                                      ), by = .(fips_state, md.urb.pop )]
 
