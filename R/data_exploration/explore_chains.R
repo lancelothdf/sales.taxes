@@ -64,7 +64,7 @@ for (ch in chains) {
   counties.plot <- merge(counties, stores.chain, by = "fips_county_full")
 
   ## Create Plot
-  plot.name <- paste0(folder.plots, "/map_stores_chain_", ch)
+  plot.name <- paste0(folder.maps, "/map_stores_chain_", ch, ".png")
   plot <- spplot(counties.plot, "n_stores", main = paste("Stores Distribution Chain ", ch))
   
   ## Export
