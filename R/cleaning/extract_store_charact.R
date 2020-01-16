@@ -75,6 +75,9 @@ stores.dg[, change := ifelse(parent_code == mn.parent & retailer_code == mn.reta
 stores.dg[, p.change := mean(change), by = .(chain)]
 stores.dg <- stores.dg[p.change < .6]
 
+## Make these exclusions clearer
+stores.dg <- stores.dg[, n_year := .N, by = .(store_code_uc)]
+
 length(unique(stores.dg$store_code_uc))
 
 #### Mark this sample and merge to all stores sample
@@ -85,7 +88,7 @@ stores.all <- merge(stores.all, stores.dg, by = c("year", "store_code_uc"), all.
 rm(stores.dg)
 
 ## Simplify the file to avoid loading by amount of data
-stores.all <- stores.all[, c("year", "store_code_uc", "channel_code", "DGsample")]
+stores.all <- stores.all[, c("year", "store_code_uc", "channel_code", "DGsample", "retailer_code", "parent_code", "chain", "fips_state_code", "fips_county_code")]
 
 
 
