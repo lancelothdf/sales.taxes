@@ -72,19 +72,19 @@ all_pi<- merge(all_pi, hh.sales, all.x = T, by = c("year", "semester", "product_
 ## First average across stores
 states.prices <- all_pi[year ==  2014 & semester == 1, .(av.total.tax = mean(exp(ln_sales_tax)-1),
                                          av.dm.ln_cpricei2 = mean(dm.ln_cpricei2),
-                                         av.dm.ln_cpricei2.urb = weigthed.mean(dm.ln_cpricei2, w = urban_md),
-                                         av.dm.ln_cpricei2.rur = weigthed.mean(dm.ln_cpricei2, w = (1-urban_md)),
+                                         av.dm.ln_cpricei2.urb = weighted.mean(dm.ln_cpricei2, w = urban_md),
+                                         av.dm.ln_cpricei2.rur = weighted.mean(dm.ln_cpricei2, w = (1-urban_md)),
                                          md.por.urb = mean(urban_md)
                                          ), by = .(fips_state, product_module_code, sales, total_sales, md.urb.pop)]
 
-state.prices.av <- states.prices[, .(av.total.tax = weigthed.mean(av.total.tax, w = sales),
-                                     av.total.tax.home = weigthed.mean(av.total.tax, w = total_sales),
-                                     av.dm.ln_cpricei2 = weigthed.mean(av.dm.ln_cpricei2, w = sales),
-                                     av.dm.ln_cpricei2.home = weigthed.mean(av.dm.ln_cpricei2, w = total_sales),
-                                     av.dm.ln_cpricei2.urb = weigthed.mean(av.dm.ln_cpricei2.urb, w = sales),
-                                     av.dm.ln_cpricei2.urb.home = weigthed.mean(av.dm.ln_cpricei2.urb, w = total_sales),
-                                     av.dm.ln_cpricei2.rur = weigthed.mean(av.dm.ln_cpricei2.urb, w = sales),
-                                     av.dm.ln_cpricei2.rur.home = weigthed.mean(av.dm.ln_cpricei2.urb, w = total_sales),
+state.prices.av <- states.prices[, .(av.total.tax = weighted.mean(av.total.tax, w = sales),
+                                     av.total.tax.home = weighted.mean(av.total.tax, w = total_sales),
+                                     av.dm.ln_cpricei2 = weighted.mean(av.dm.ln_cpricei2, w = sales),
+                                     av.dm.ln_cpricei2.home = weighted.mean(av.dm.ln_cpricei2, w = total_sales),
+                                     av.dm.ln_cpricei2.urb = weighted.mean(av.dm.ln_cpricei2.urb, w = sales),
+                                     av.dm.ln_cpricei2.urb.home = weighted.mean(av.dm.ln_cpricei2.urb, w = total_sales),
+                                     av.dm.ln_cpricei2.rur = weighted.mean(av.dm.ln_cpricei2.urb, w = sales),
+                                     av.dm.ln_cpricei2.rur.home = weighted.mean(av.dm.ln_cpricei2.urb, w = total_sales),
                                      md.por.urb = mean(md.por.urb)
                                      ), by = .(fips_state, md.urb.pop )]
 
