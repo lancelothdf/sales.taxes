@@ -49,7 +49,7 @@ counties@data$fips_state <- floor(counties@data$fips_county_full/1000)
 # Drop uninteresting states
 counties <- counties[counties@data$fips_state != 2 & counties@data$fips_state != 15 & counties@data$fips_state < 57,]
 # Extract county skeleton
-county.skel <- counties@data
+county.skel <- data.table(counties@data)
 county.skel <- county.skel[, c("fips_county_full") ]
 
 ## Loop across Chains and Plot
@@ -58,8 +58,6 @@ for (ch in chains) {
   ## Keep interest chain
   stores.chain <- stores.dg[chain == ch]
   ## Merge to skel and replace missing
-  print(colnames(stores.chain))
-  print(colnames(county.skel))
   stores.chain <- merge(stores.chain, county.skel, by = "fips_county_full", all = T)
   stores.chain[, n_stores:= ifelse(is.na(n_stores), 0, n_stores)]
   ## Merge data to plot
