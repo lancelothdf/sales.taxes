@@ -156,7 +156,7 @@ full.purchases <- full.purchases[, .(total_expenditures = sum(total_expenditures
 full.purchases[, zip_code := as.integer(zip_code)]
 
 ## Merge zip code info to the household
-zip_data <- fread("../../consumer_zip_code_data.csv")
+zip_data <- fread("Data/consumer_zip_code_data.csv")
 zip_data[, zip_code := as.integer(zip_code)]
 zip_data[, av_hh_income := as.integer(av_hh_income)]
 zip_data[, per_bachelor_25 := as.double(per_bachelor_25)]
