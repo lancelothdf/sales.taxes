@@ -41,6 +41,7 @@ stores.dg <- stores.all[DGsample == 1]
 stores.dg <- stores.dg[, .(n_stores = 1), by = .(fips_county_full, chain, store_code_uc)]
 # Collapse at the county level and chain to plot
 stores.dg <- stores.dg[, .(n_stores = .N), by = .(fips_county_full, chain)]
+breaks <- quantile(stores.dg$n_stores, probs = seq(0, 1, by = 1/10), na.rm = T)
 # Identify each chains to plot each chain geographically
 chains <- unique(stores.dg$chain)
 
@@ -62,12 +63,13 @@ for (ch in chains) {
   ## Merge to skel and replace missing
   stores.chain <- merge(stores.chain, county.skel, by = "fips_county_full", all = T)
   stores.chain[, n_stores:= ifelse(is.na(n_stores), 0, n_stores)]
+  
   ## Merge data to plot
   counties.plot <- merge(counties, stores.chain, by = "fips_county_full")
 
   ## Create Plot
   plot.name <- paste0(folder.maps, "/map_stores_chain_", ch, ".png")
-  plot <- spplot(counties.plot, "n_stores", main = paste("Stores Distribution Chain ", ch))
+  plot <- spplot(counties.plot, "n_stores", main = paste("Stores Distribution Chain ", ch), at = breaks)
   
   ## Export
   png(plot.name)
