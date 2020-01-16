@@ -47,7 +47,7 @@ counties <- readOGR(county.shp.path, "tl_2019_us_county")
 counties@data$fips_county_full <- as.integer(as.character(counties@data$GEOID))
 counties@data$fips_state <- floor(counties@data$fips_county_full/1000)
 # Drop uninteresting states
-counties <- counties[counties@data$fips_state != 2 & counties@data$fips_state != 15 & counties@data$fips_state < 57]
+counties <- counties[counties@data$fips_state != 2 & counties@data$fips_state != 15 & counties@data$fips_state < 57,]
 # Extract county skeleton
 county.skel <- counties@data
 county.skel <- county.skel[, c("fips_county_full") ]
