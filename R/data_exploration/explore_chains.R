@@ -26,7 +26,7 @@ county.shp.path <- "Data/Spatial_Data_LODES/US county shape file"
 
 ## output filepaths -----------------
 folder.plots <- "/home/slacouture/Stores/Price"
-folder.maps <- "/home/slacouture/Stores/Price"
+folder.maps <- "/home/slacouture/Stores/Maps"
 
 
 ####### 1. Describe Chains Geographically -------------------------
@@ -37,6 +37,8 @@ stores.all <- fread("Data/Nielsen/stores_all.csv")
 stores.all[, fips_county_full := fips_state_code*1000 + fips_county_code]
 # Extract the identified sample to plot chains
 stores.dg <- stores.all[DGsample == 1]
+# Collapse at the store level
+stores.dg <- stores.dg[, .(n_stores = 1), by = .(fips_county_full, chain, store_code_uc)]
 # Collapse at the county level and chain to plot
 stores.dg <- stores.dg[, .(n_stores = .N), by = .(fips_county_full, chain)]
 # Identify each chains to plot each chain geographically
