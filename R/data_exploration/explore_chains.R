@@ -66,10 +66,14 @@ for (ch in chains) {
   
   ## Merge data to plot
   counties.plot <- merge(counties, stores.chain, by = "fips_county_full")
+  
+  ## Arrange variable to plot uniformly across chains
+  counties.plot@data$n_stores_cut <- cut(counties.plot@data$V3, breaks = c(breaks, Inf))
 
   ## Create Plot
   plot.name <- paste0(folder.maps, "/map_stores_chain_", ch, ".png")
-  plot <- spplot(counties.plot, "n_stores", main = paste("Stores Distribution Chain ", ch), at = breaks)
+  plot <- spplot(counties.plot, "n_stores_cut", main = paste("Stores Distribution Chain ", ch), col = "transparent", 
+                 colorkey = list(height = 1, labels = list(at = seq(0.5, length(breaks) -0.5), labels = breaks)))
   
   ## Export
   png(plot.name)
