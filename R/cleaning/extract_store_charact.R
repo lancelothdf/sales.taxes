@@ -93,16 +93,14 @@ stores.all <- stores.all[, c("year", "store_code_uc", "channel_code", "DGsample"
 
 ## Need to identify consumers for each store
 # Reset working directory to work with the Consumer PAnel
-setwd("/project2/igaarder/Data/Nielsen/Household_panel")
-
 full.purchases <- data.table(NULL)
 for (yr in 2006:2016) {
   ## necessary filepaths
-  folderpath <- paste0("HMS/", yr, "/Annual_Files/")
+  folderpath <- paste0("Data/Nielsen/Household_panel/HMS/", yr, "/Annual_Files/")
   panelists_file <- paste0(folderpath, "panelists_", yr, ".tsv")
   purchases_file <- paste0(folderpath, "purchases_", yr, ".tsv")
   trips_file <- paste0(folderpath, "trips_", yr, ".tsv")
-  store_file <- paste0("/project2/igaarder/Data/Nielsen/stores_", yr, ".dta")
+  store_file <- paste0("Data/Nielsen/stores_", yr, ".dta")
 
   ## start with purchases data
   flog.info("Loading in purchases data for %s", yr)

@@ -74,8 +74,9 @@ states.prices <- all_pi[year ==  2014 & semester == 1, .(av.total.tax = mean(exp
                                          av.dm.ln_cpricei2 = mean(dm.ln_cpricei2),
                                          av.dm.ln_cpricei2.urb = weighted.mean(dm.ln_cpricei2, w = urban_md),
                                          av.dm.ln_cpricei2.rur = weighted.mean(dm.ln_cpricei2, w = (1-urban_md)),
-                                         md.por.urb = mean(urban_md)
-                                         ), by = .(fips_state, product_module_code, sales, total_sales, md.urb.pop)]
+                                         md.por.urb = mean(urban_md),
+                                         sales = sum(sales)
+                                         ), by = .(fips_state, product_module_code, total_sales, md.urb.pop)]
 
 state.prices.av <- states.prices[, .(av.total.tax = weighted.mean(av.total.tax, w = sales),
                                      av.total.tax.home = weighted.mean(av.total.tax, w = total_sales),
