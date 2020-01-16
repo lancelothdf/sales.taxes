@@ -81,7 +81,7 @@ stores.dg <- stores.dg[, n_year := .N, by = .(store_code_uc)]
 length(unique(stores.dg$store_code_uc))
 
 #### Mark this sample and merge to all stores sample
-stores.dg <- stores.dg[, c("year", "store_code_uc")]
+stores.dg <- stores.dg[, c("year", "store_code_uc", "chain")]
 stores.dg[, DGsample := 1]
 
 stores.all <- merge(stores.all, stores.dg, by = c("year", "store_code_uc"), all.x = T)
