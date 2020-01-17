@@ -179,7 +179,7 @@ chains.dg <- stores.dg[, .(n_stores = sum(n_stores)), by = .(chain)]
 
 graphout <- paste0(folder.maps,"/n_stores_hist.png")
 hist <- ggplot(data=chains.dg, aes(n_stores)) + 
-  geom_histogram(alpha = 0.5, aes(y=..density..), position="identity") +    
+  geom_histogram(alpha = 0.5, aes(y=..density..)) +    
   theme_classic(base_size = 24) +
   labs(x = "No. stores per chain", y = "Fraction", color = NULL) +
 ggsave(graphout)
@@ -188,7 +188,7 @@ chains.dg <- stores.dg[, .(n_counties = .N), by = .(chain)]
 
 graphout <- paste0(folder.maps,"/n_counties_hist.png")
 hist <- ggplot(data=chains.dg, aes(n_counties)) + 
-  geom_histogram(alpha = 0.5, aes(y=..density..), position="identity") +    
+  geom_histogram(alpha = 0.5, aes(y=..density..)) +    
   theme_classic(base_size = 24) +
   labs(x = "No. counties per chain", y = "Fraction", color = NULL) +
   ggsave(graphout)
