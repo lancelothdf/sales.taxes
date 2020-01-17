@@ -48,13 +48,18 @@ all_pi[, cs_price := ifelse(is.na(dm.L.ln_cpricei2), 0, cs_price)]
 ## Keep within the common support
 all_pi <- all_pi[cs_price == 1,]
 
+## cut the tails (keep between 1st and 99th percentile)
+pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sales)
+pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
+all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
+
 ### Calculate measures of interest --------------------
 
 ## Add rurality
 rural.data <- fread(rurality)
 setnames(rural.data, old = c("STATE", "COUNTY"), new = c("fips_state", "fips_county") )
-rural.data[, md.urb.pop := median(POPPCT_URBAN)]
-rural.data[, urban_md := POPPCT_URBAN >= md.urb.pop , by = .(fips_state)]
+rural.data[, md.urb.pop := median(POPPCT_URBAN) , by = .(fips_state)]
+rural.data[, urban_md := POPPCT_URBAN >= md.urb.pop]
 rural.data <- rural.data[, c("fips_state", "fips_county" , "urban_md", "md.urb.pop")]
 ## Merge this data to the store
 all_pi<- merge(all_pi, rural.data, all.x = T, by = c("fips_state", "fips_county"))
