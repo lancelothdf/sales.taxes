@@ -227,7 +227,7 @@ for (pr in products) {
       geom_raster(aes(fill(price_plot))) +
       labs(x=NULL, y="Stores, sorted by income", title = paste0("chain", ch)) +
       scale_x_continuous(breaks = 2008:2014) +
-      guide_colorbar(title = NULL, ticks = F, label = F)
+      guides(fill = guide_colorbar(title = NULL, ticks = F, label = F))
     ggsave(graphout)
     
     # Plot by tax and export
@@ -236,7 +236,7 @@ for (pr in products) {
       geom_raster(aes(fill(price_plot))) +
       labs(x=NULL, y="Stores, sorted by income", title = paste0("chain", ch)) +
       scale_x_continuous(breaks = 2008:2014) +
-      guide_colorbar(title = NULL, ticks = F, label = F)
+      guides(fill = guide_colorbar(title = NULL, ticks = F, label = F))
     ggsave(graphout)
 
   }
