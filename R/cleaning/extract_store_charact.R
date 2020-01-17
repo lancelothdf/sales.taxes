@@ -181,5 +181,19 @@ store_costumer_ch <- full.purchases[, .(av_hh_income_sales = weighted.mean(av_hh
 ## Merge info to store data
 stores.all <- merge(stores.all, store_costumer_ch, by = "store_code_uc", all.x = T)
 
+
+### 4. Identify Our stores -----------------
+data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
+
+our.data <- fread(data.semester)
+
+## Collapse to the store level
+our.data <- our.data[, .(N_years = .N), by = .(store_code_uc, product_module_code)] ## First across years
+our.data <- our.data[, .(N_modules = .N,
+                         N_years = max(N_years)), by = .(store_code_uc)]
+
+## Merge info to store data
+stores.all <- merge(stores.all, our.data, by = "store_code_uc", all.x = T)
+
 ## Save this File
 fwrite(stores.all, "Data/Nielsen/stores_all.csv")
