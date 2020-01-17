@@ -1,7 +1,7 @@
 ##' Sales Taxes Project
 ##' Extract state average, median, p25 and p75 demeaned prices (pooling time)
 ##' We weight modules by sales using hh data
-##' 
+##'
 
 library(data.table)
 library(futile.logger)
@@ -17,6 +17,7 @@ rurality <- "Data/PctUrbanRural_County.csv"
 
 ## output filepaths ----------------------------------------------
 output.results.file <- "Data/prices_state_hhsalesweighted_2014.csv"
+output.results.file.tax <- "Data/prices_state_hhsalesweighted_taxable_2014.csv"
 
 ### Set up Semester Data ---------------------------------
 all_pi <- fread(data.semester)
@@ -53,7 +54,7 @@ all_pi <- all_pi[cs_price == 1,]
 rural.data <- fread(rurality)
 setnames(rural.data, old = c("STATE", "COUNTY"), new = c("fips_state", "fips_county") )
 rural.data[, md.urb.pop := median(POPPCT_URBAN)]
-rural.data[, urban_md := POPPCT_URBAN >= md.urb.pop ]
+rural.data[, urban_md := POPPCT_URBAN >= md.urb.pop , by = .(fips_state)]
 rural.data <- rural.data[, c("fips_state", "fips_county" , "urban_md", "md.urb.pop")]
 ## Merge this data to the store
 all_pi<- merge(all_pi, rural.data, all.x = T, by = c("fips_state", "fips_county"))
@@ -89,8 +90,28 @@ state.prices.av <- states.prices[, .(av.total.tax = weighted.mean(av.total.tax, 
                                      md.por.urb = mean(md.por.urb)
                                      ), by = .(fips_state, md.urb.pop )]
 
+## Repeat using only taxable items
+states.prices <- all_pi[year ==  2014 & semester == 1 & ln_sales_tax > 1, .(av.total.tax = mean(exp(ln_sales_tax)-1),
+                                                         av.dm.ln_cpricei2 = mean(dm.ln_cpricei2),
+                                                         av.dm.ln_cpricei2.urb = weighted.mean(dm.ln_cpricei2, w = urban_md),
+                                                         av.dm.ln_cpricei2.rur = weighted.mean(dm.ln_cpricei2, w = (1-urban_md)),
+                                                         md.por.urb = mean(urban_md),
+                                                         sales = sum(sales)
+), by = .(fips_state, product_module_code, total_sales, md.urb.pop)]
+
+state.prices.av.tax <- states.prices[, .(av.total.tax = weighted.mean(av.total.tax, w = sales, na.rm = T),
+                                     av.total.tax.home = weighted.mean(av.total.tax, w = total_sales, na.rm = T),
+                                     av.dm.ln_cpricei2 = weighted.mean(av.dm.ln_cpricei2, w = sales, na.rm = T),
+                                     av.dm.ln_cpricei2.home = weighted.mean(av.dm.ln_cpricei2, w = total_sales, na.rm = T),
+                                     av.dm.ln_cpricei2.urb = weighted.mean(av.dm.ln_cpricei2.urb, w = sales, na.rm = T),
+                                     av.dm.ln_cpricei2.urb.home = weighted.mean(av.dm.ln_cpricei2.urb, w = total_sales, na.rm = T),
+                                     av.dm.ln_cpricei2.rur = weighted.mean(av.dm.ln_cpricei2.rur, w = sales, na.rm = T),
+                                     av.dm.ln_cpricei2.rur.home = weighted.mean(av.dm.ln_cpricei2.rur, w = total_sales, na.rm = T),
+                                     md.por.urb = mean(md.por.urb)
+), by = .(fips_state, md.urb.pop )]
+
 ## Export that data
 fwrite(state.prices.av, output.results.file)
-
+fwrite(state.prices.av.tax, output.results.file.tax)
 
 
