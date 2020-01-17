@@ -96,7 +96,7 @@ state.prices.av <- states.prices[, .(av.total.tax = weighted.mean(av.total.tax, 
                                      ), by = .(fips_state, md.urb.pop )]
 
 ## Repeat using only taxable items
-states.prices <- all_pi[year ==  2014 & semester == 1 & ln_sales_tax > 1, .(av.total.tax = mean(exp(ln_sales_tax)-1),
+states.prices <- all_pi[year ==  2014 & semester == 1 & ln_sales_tax > 0, .(av.total.tax = mean(exp(ln_sales_tax)-1),
                                                          av.dm.ln_cpricei2 = mean(dm.ln_cpricei2),
                                                          av.dm.ln_cpricei2.urb = weighted.mean(dm.ln_cpricei2, w = urban_md),
                                                          av.dm.ln_cpricei2.rur = weighted.mean(dm.ln_cpricei2, w = (1-urban_md)),
