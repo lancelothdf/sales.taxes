@@ -153,24 +153,26 @@ for (pr in products) {
     # Restrict data to plot
     chain_product <- all_pi[chain == ch & product_module_code == pr]
     
-    # Plot by income and export
-    graphout <- paste0(folder.price,"/", pr,"/price_income_chain_", ch,".png")
-    ggplot(data = chain_product, aes(x  = time, y = av_hh_income_sales)) +
-      geom_raster(aes(fill = price_plot)) +
-      labs(x=NULL, y="Stores, sorted by income", title = paste0("chain", ch)) +
-      scale_x_continuous(breaks = 2008:2014) +
-      guides(fill = guide_colorbar(title = NULL, ticks = F, label = F))
-    ggsave(graphout)
-    
-    # Plot by tax and export
-    graphout <- paste0(folder.price,"/", pr,"/price_tax_chain_", ch,".png")
-    ggplot(data = chain_product, aes(x  = time, y = av_sales_tax)) +
-      geom_raster(aes(fill = price_plot)) +
-      labs(x=NULL, y="Stores, sorted by income", title = paste0("chain", ch)) +
-      scale_x_continuous(breaks = 2008:2014) +
-      guides(fill = guide_colorbar(title = NULL, ticks = F, label = F))
-    ggsave(graphout)
-
+    # Plot if enough data
+    if (nrow(chain_product[!is.na(av_hh_income_sales)]) > 10) {
+      
+      # Plot by income and export
+      graphout <- paste0(folder.price,"/", pr,"/price_income_chain_", ch,".png")
+      ggplot(data = chain_product, aes(x  = time, y = av_hh_income_sales)) +
+        geom_raster(aes(fill = price_plot)) +
+        labs(x=NULL, y="Stores, sorted by income", title = paste0("chain", ch)) +
+        scale_x_continuous(breaks = 2008:2014) 
+      ggsave(graphout)
+      
+      # Plot by tax and export
+      graphout <- paste0(folder.price,"/", pr,"/price_tax_chain_", ch,".png")
+      ggplot(data = chain_product, aes(x  = time, y = av_sales_tax)) +
+        geom_raster(aes(fill = price_plot)) +
+        labs(x=NULL, y="Stores, sorted by income", title = paste0("chain", ch)) +
+        scale_x_continuous(breaks = 2008:2014) 
+      ggsave(graphout)
+      
+    }
   }
 }
 
