@@ -39,7 +39,7 @@ stores.all[, fips_county_full := fips_state_code*1000 + fips_county_code]
 # Extract the identified sample to plot chains
 stores.dg <- stores.all[DGsample == 1]
 # Collapse at the store level
-stores.dg <- stores.dg[, .(n_stores = 1), by = .(fips_county_full, chain, store_code_uc)]
+stores.dg <- stores.dg[, .(n_stores = 1), by = .(fips_county_full, chain, store_code_uc, fips_state_code)]
 # Collapse at the county level and chain to plot
 stores.dg <- stores.dg[, .(n_stores = .N), by = .(fips_county_full, chain, fips_state_code)]
 breaks <- c(0, unique(quantile(stores.dg$n_stores, probs = seq(0, 1, by = 1/30), na.rm = T)))
