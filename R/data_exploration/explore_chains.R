@@ -179,7 +179,7 @@ for (pr in products) {
       nstores <- unique(plot1.data$store_code_uc)
       # Plot by income and export
       graphout <- paste0(folder.price,"/", pr,"/price_income_chain_", ch,".png")
-      ggplot(data = chain_product, aes(x  = time, y = Y)) +
+      ggplot(data = plot1.data, aes(x  = time, y = Y)) +
         geom_tile(aes(fill = price_plot)) +
         labs(x=NULL, y="Stores, sorted by income", title = paste0("Chain ", ch, ": ", nstores, " Stores"),  fill = NULL) +
         scale_x_continuous(breaks = 2008:2014) 
@@ -194,7 +194,7 @@ for (pr in products) {
       nstores <- unique(plot2.data$store_code_uc)
       # Plot by tax and export
       graphout <- paste0(folder.price,"/", pr,"/price_tax_chain_", ch,".png")
-      ggplot(data = chain_product, aes(x  = time, y = Y)) +
+      ggplot(data = plot2.data, aes(x  = time, y = Y)) +
         geom_tile(aes(fill = price_plot)) +
         labs(x=NULL, y="Stores, sorted by average tax rate", title = paste0("chain ", ch, ": ", nstores, " Stores"), fill = NULL) +
         scale_x_continuous(breaks = 2008:2014) 
