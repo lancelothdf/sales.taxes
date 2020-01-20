@@ -41,7 +41,7 @@ stores.dg <- stores.all[DGsample == 1]
 # Collapse at the store level
 stores.dg <- stores.dg[, .(n_stores = 1), by = .(fips_county_full, chain, store_code_uc)]
 # Collapse at the county level and chain to plot
-stores.dg <- stores.dg[, .(n_stores = .N), by = .(fips_county_full, chain)]
+stores.dg <- stores.dg[, .(n_stores = .N), by = .(fips_county_full, chain, fips_state_code)]
 breaks <- c(0, unique(quantile(stores.dg$n_stores, probs = seq(0, 1, by = 1/30), na.rm = T)))
 # Identify each chains to plot each chain geographically
 chains <- unique(stores.dg$chain)
@@ -125,6 +125,16 @@ hist <- ggplot(data=chains.dg, aes(n_counties)) +
   labs(x = "No. counties per chain", y = "Density", color = NULL) +
   ggsave(graphout)
 
+## Chains by state
+chains.dg <- stores.dg[, .(n_stores = sum(n_stores)), by = .(chain, fips_state_code)]
+chains.dg <- chains.dg[, .(n_states = .N,
+                           n_stores = sum(n_stores)), by = .(chain)]
+
+chains.dg[, state_gr := cut(n_states, c(0,1,2,3,4,5, Inf))]
+chains.dg <- chains.dg[, .(n_chains = .N, n_stores = sum(n_stores)), by = .(state_gr)]
+fwrite(chains.dg, paste0(folder.maps,"/n_states.csv"))
+
+
 ### 2. Explore Price uniformity in our sample with our measures of prices ------
 
 ## Open Final data
@@ -145,13 +155,15 @@ all_pi[, price_plot := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = product_
 ## Products to plot: Orange juice (1040), chocolate (1293), cat food (1306) as they do. 
 ## Use both income (their argument) and taxes (our argument)
 products <- c(1040, 1293, 1306)
-all_pi[, time := year + (semester-1)*0.5 + 0.25] #
+all_pi[, time := year + (semester-1)*0.5] #
+head(all_pi)
 
 for (pr in products) {
   for (ch in chains) {
     
     # Restrict data to plot
     chain_product <- all_pi[chain == ch & product_module_code == pr]
+    print(head(chain_product))
     
     # Plot if enough data
     if (nrow(chain_product[!is.na(av_hh_income_sales)]) > 10) {
@@ -160,7 +172,7 @@ for (pr in products) {
       graphout <- paste0(folder.price,"/", pr,"/price_income_chain_", ch,".png")
       ggplot(data = chain_product, aes(x  = time, y = av_hh_income_sales)) +
         geom_raster(aes(fill = price_plot)) +
-        labs(x=NULL, y="Stores, sorted by income", title = paste0("chain", ch)) +
+        labs(x=NULL, y="Stores, sorted by income", title = paste0("chain", ch),  fill = NUL) +
         scale_x_continuous(breaks = 2008:2014) 
       ggsave(graphout)
       
@@ -168,7 +180,7 @@ for (pr in products) {
       graphout <- paste0(folder.price,"/", pr,"/price_tax_chain_", ch,".png")
       ggplot(data = chain_product, aes(x  = time, y = av_sales_tax)) +
         geom_raster(aes(fill = price_plot)) +
-        labs(x=NULL, y="Stores, sorted by income", title = paste0("chain", ch)) +
+        labs(x=NULL, y="Stores, sorted by income", title = paste0("chain", ch), fill = NULL) +
         scale_x_continuous(breaks = 2008:2014) 
       ggsave(graphout)
       
