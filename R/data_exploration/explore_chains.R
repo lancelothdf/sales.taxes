@@ -155,7 +155,7 @@ all_pi[, price_plot := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = product_
 ## Products to plot: Orange juice (1040), chocolate (1293), cat food (1306) as they do. 
 ## Use both income (their argument) and taxes (our argument)
 products <- c(1040, 1293, 1306)
-all_pi[, time := year + (semester-1)*0.5] #
+all_pi[, time := year + (semester-1)*0.5+0.25] #
 
 for (pr in products) {
   for (ch in chains) {
@@ -165,22 +165,38 @@ for (pr in products) {
     print(nrow(chain_product))
     print(nrow(chain_product[year == 2008]))
     
-    # Plot if enough data
-    if (nrow(chain_product[!is.na(av_hh_income_sales)]) > 10) {
+    # Restrict data to have nice plots
+    plot1.data <- chain_product[!is.na(av_hh_income_sales)]
+    plot2.data <- chain_product[!is.na(av_sales_tax)]
+    
+    # Plot if enough data (more than 3 complete stores)
+    if (nrow(plot1.data) > 39) {
       
+      # Order stores
+      plot1.data <- plot1.data[order(av_hh_income_sales),]
+      plot1.data[, Y := .I]
+
+      nstores <- unique(plot1.data$store_code_uc)
       # Plot by income and export
       graphout <- paste0(folder.price,"/", pr,"/price_income_chain_", ch,".png")
-      ggplot(data = chain_product, aes(x  = time, y = av_hh_income_sales)) +
+      ggplot(data = chain_product, aes(x  = time, y = Y)) +
         geom_tile(aes(fill = price_plot)) +
-        labs(x=NULL, y="Stores, sorted by income", title = paste0("chain", ch),  fill = NULL) +
+        labs(x=NULL, y="Stores, sorted by income", title = paste0("Chain ", ch, ": ", nstores, " Stores"),  fill = NULL) +
         scale_x_continuous(breaks = 2008:2014) 
       ggsave(graphout)
+    }
+    
+    if (nrow(plot2.data) > 39) {
+      # Order stores
+      plot1.data <- plot1.data[order(av_hh_income_sales),]
+      plot1.data[, Y := .I]
       
+      nstores <- unique(plot2.data$store_code_uc)
       # Plot by tax and export
       graphout <- paste0(folder.price,"/", pr,"/price_tax_chain_", ch,".png")
-      ggplot(data = chain_product, aes(x  = time, y = av_sales_tax)) +
+      ggplot(data = chain_product, aes(x  = time, y = Y)) +
         geom_tile(aes(fill = price_plot)) +
-        labs(x=NULL, y="Stores, sorted by income", title = paste0("chain", ch), fill = NULL) +
+        labs(x=NULL, y="Stores, sorted by average tax rate", title = paste0("chain ", ch, ": ", nstores, " Stores"), fill = NULL) +
         scale_x_continuous(breaks = 2008:2014) 
       ggsave(graphout)
       
