@@ -172,30 +172,38 @@ for (pr in products) {
       
       # Order stores
       plot1.data <- plot1.data[order(time, av_hh_income_sales),]
-      plot1.data[, Y := .I, by = .(time)]
+      plot1.data[, Y := seq_len(.N), by = .(time)]
 
       nstores <- unique(plot1.data$store_code_uc)
+      max <- max(plot1.data$Y, na.rm = T)
+      min.lab <- min(plot1.data$av_sales_tax, na.rm = T)
+      max.lab <- max(plot1.data$av_sales_tax, na.rm = T)
       # Plot by income and export
       graphout <- paste0(folder.price,"/", pr,"/price_income_chain_", ch,".png")
       ggplot(data = plot1.data, aes(x  = time, y = Y)) +
         geom_tile(aes(fill = price_plot)) +
         labs(x=NULL, y="Stores, sorted by income", title = paste0("Chain ", ch, ": ", nstores, " Stores"),  fill = NULL) +
-        scale_x_continuous(breaks = 2008:2014) 
+        scale_x_continuous(breaks = 2008:2014) +
+        scale_y_continuous(breaks = c(1,max), labels = c(min.lab, max.lab))
       ggsave(graphout)
     }
     
     if (nrow(plot2.data) > 39) {
       # Order stores
       plot2.data <- plot2.data[order(time, av_sales_tax),]
-      plot2.data[, Y := .I, by = .(time)]
+      plot2.data[, Y := seq_len(.N), by = .(time)]
       
       nstores <- unique(plot2.data$store_code_uc)
+      max <- max(plot2.data$Y, na.rm = T)
+      min.lab <- min(plot2.data$av_sales_tax, na.rm = T)
+      max.lab <- max(plot2.data$av_sales_tax, na.rm = T)
       # Plot by tax and export
       graphout <- paste0(folder.price,"/", pr,"/price_tax_chain_", ch,".png")
       ggplot(data = plot2.data, aes(x  = time, y = Y)) +
         geom_tile(aes(fill = price_plot)) +
         labs(x=NULL, y="Stores, sorted by average tax rate", title = paste0("chain ", ch, ": ", nstores, " Stores"), fill = NULL) +
-        scale_x_continuous(breaks = 2008:2014) 
+        scale_x_continuous(breaks = 2008:2014) +
+        scale_y_continuous(breaks = c(1,max), labels = c(min.lab, max.lab))
       ggsave(graphout)
       
     }
