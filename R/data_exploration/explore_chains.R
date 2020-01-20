@@ -162,9 +162,7 @@ for (pr in products) {
     
     # Restrict data to plot
     chain_product <- all_pi[chain == ch & product_module_code == pr]
-    print(nrow(chain_product))
-    print(nrow(chain_product[year == 2008]))
-    
+
     # Restrict data to have nice plots
     plot1.data <- chain_product[!is.na(av_hh_income_sales)]
     plot2.data <- chain_product[!is.na(av_sales_tax)]
@@ -173,8 +171,8 @@ for (pr in products) {
     if (nrow(plot1.data) > 39) {
       
       # Order stores
-      plot1.data <- plot1.data[order(av_hh_income_sales),]
-      plot1.data[, Y := .I]
+      plot1.data <- plot1.data[order(time, av_hh_income_sales),]
+      plot1.data[, Y := .I, by = .(time)]
 
       nstores <- unique(plot1.data$store_code_uc)
       # Plot by income and export
@@ -188,8 +186,8 @@ for (pr in products) {
     
     if (nrow(plot2.data) > 39) {
       # Order stores
-      plot2.data <- plot1.data[order(av_sales_tax),]
-      plot2.data[, Y := .I]
+      plot2.data <- plot2.data[order(time, av_sales_tax),]
+      plot2.data[, Y := .I, by = .(time)]
       
       nstores <- unique(plot2.data$store_code_uc)
       # Plot by tax and export
