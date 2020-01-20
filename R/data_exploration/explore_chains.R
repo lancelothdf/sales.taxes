@@ -156,14 +156,14 @@ all_pi[, price_plot := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = product_
 ## Use both income (their argument) and taxes (our argument)
 products <- c(1040, 1293, 1306)
 all_pi[, time := year + (semester-1)*0.5] #
-head(all_pi)
 
 for (pr in products) {
   for (ch in chains) {
     
     # Restrict data to plot
     chain_product <- all_pi[chain == ch & product_module_code == pr]
-    print(head(chain_product))
+    print(nrow(chain_product))
+    print(nrow(chain_product[year == 2008]))
     
     # Plot if enough data
     if (nrow(chain_product[!is.na(av_hh_income_sales)]) > 10) {
@@ -172,7 +172,7 @@ for (pr in products) {
       graphout <- paste0(folder.price,"/", pr,"/price_income_chain_", ch,".png")
       ggplot(data = chain_product, aes(x  = time, y = av_hh_income_sales)) +
         geom_tile(aes(fill = price_plot)) +
-        labs(x=NULL, y="Stores, sorted by income", title = paste0("chain", ch),  fill = NUL) +
+        labs(x=NULL, y="Stores, sorted by income", title = paste0("chain", ch),  fill = NULL) +
         scale_x_continuous(breaks = 2008:2014) 
       ggsave(graphout)
       
