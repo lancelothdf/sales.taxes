@@ -188,8 +188,8 @@ for (pr in products) {
     
     if (nrow(plot2.data) > 39) {
       # Order stores
-      plot1.data <- plot1.data[order(av_hh_income_sales),]
-      plot1.data[, Y := .I]
+      plot2.data <- plot1.data[order(av_sales_tax),]
+      plot2.data[, Y := .I]
       
       nstores <- unique(plot2.data$store_code_uc)
       # Plot by tax and export
