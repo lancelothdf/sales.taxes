@@ -256,7 +256,7 @@ variances <- all_pi[, .(w.chain.tax.l = sum(base.sales*(w.chain.tax.l^2), na.rm 
 # Compute between as deviations from the grand mean
 variances[, b.chain.tax.l := b.chain.tax.l - weighted.mean(b.chain.tax.l, w = base.sales, na.rm = T), by = .(module_by_time)]
 variances[, b.chain.tax.d := b.chain.tax.d - weighted.mean(b.chain.tax.d, w = base.sales, na.rm = T), by = .(module_by_time)]
-variances[, b.chain.tax.ds := b.chain.tax.ds - weighted.mean(b.chain.tax.ds, w = base.sales, na.rm = T), by = .(module_by_time)]
+variances[, b.chain.tax.ds := b.chain.tax.dd - weighted.mean(b.chain.tax.dd, w = base.sales, na.rm = T), by = .(module_by_time)]
 
 # Compute final SSs
 variances <- variances[, .(ss.w.chain.tax.l = sum(w.chain.tax.l)/sum(base.sales),
@@ -267,6 +267,19 @@ variances <- variances[, .(ss.w.chain.tax.l = sum(w.chain.tax.l)/sum(base.sales)
                            ss.b.chain.tax.dd = sum(base.sales*n_k*(b.chain.tax.dd)^2)/sum(base.sales),
                            base.sales = sum(base.sales)
 ), by = .(module_by_time)]
+
+# Divide by SST
+variances[, ss.t.chain.tax.l := ss.w.chain.tax.l + ss.b.chain.tax.l]
+variances[, ss.t.chain.tax.d := ss.w.chain.tax.d + ss.w.chain.tax.d]
+variances[, ss.t.chain.tax.dd := ss.w.chain.tax.dd + ss.w.chain.tax.dd]
+
+variances[, ss.w.chain.tax.l := ss.w.chain.tax.l / ss.t.chain.tax.l]
+variances[, ss.w.chain.tax.d := ss.w.chain.tax.d / ss.t.chain.tax.d]
+variances[, ss.w.chain.tax.dd := ss.w.chain.tax.dd / ss.t.chain.tax.dd]
+variances[, ss.b.chain.tax.l := ss.b.chain.tax.l / ss.t.chain.tax.l]
+variances[, ss.b.chain.tax.d := ss.b.chain.tax.d / ss.t.chain.tax.d]
+variances[, ss.b.chain.tax.dd := ss.b.chain.tax.dd /+ ss.t.chain.tax.dd]
+
 
 ### e. produce histograms of these measures
 variances.plot <- melt(variances, id.vars = c("module_by_time", "base.sales"),
