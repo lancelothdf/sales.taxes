@@ -145,7 +145,7 @@ stores.dg <- stores.all[DGsample == 1][, -c("fips_county_full", "fips_state_code
 all_pi <- merge(all_pi, stores.dg, by = c("store_code_uc", "year"))
 
 ## Create "average sales tax across time" for these plots
-all_pi[, av_sales_tax := mean(exp(ln_sales_tax)), by = c("store_code_uc", "product_module_code") ]
+all_pi[, av_sales_tax := mean(exp(ln_sales_tax)-1), by = c("store_code_uc", "product_module_code") ]
 
 ## de-mean log prices by the module mean across stores
 all_pi[, price_plot := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = product_module_code]
@@ -174,17 +174,17 @@ for (pr in products) {
       plot1.data <- plot1.data[order(time, av_hh_income_sales),]
       plot1.data[, Y := seq_len(.N), by = .(time)]
 
-      nstores <- unique(plot1.data$store_code_uc)
+      nstores <- length(unique(plot1.data$store_code_uc))
       max <- max(plot1.data$Y, na.rm = T)
-      min.lab <- min(plot1.data$av_sales_tax, na.rm = T)
-      max.lab <- max(plot1.data$av_sales_tax, na.rm = T)
+      min.lab <- as.character(floor(min(plot1.data$av_sales_tax, na.rm = T)/5000))
+      max.lab <- as.character(floor(max(plot1.data$av_sales_tax, na.rm = T)/5000))
       # Plot by income and export
       graphout <- paste0(folder.price,"/", pr,"/price_income_chain_", ch,".png")
       ggplot(data = plot1.data, aes(x  = time, y = Y)) +
         geom_tile(aes(fill = price_plot)) +
         labs(x=NULL, y="Stores, sorted by income", title = paste0("Chain ", ch, ": ", nstores, " Stores"),  fill = NULL) +
         scale_x_continuous(breaks = 2008:2014) +
-        scale_y_continuous(breaks = c(1,max), labels = c(min.lab, max.lab))
+        scale_y_continuous(breaks = c(1, max), labels = c(min.lab, max.lab))
       ggsave(graphout)
     }
     
@@ -193,17 +193,17 @@ for (pr in products) {
       plot2.data <- plot2.data[order(time, av_sales_tax),]
       plot2.data[, Y := seq_len(.N), by = .(time)]
       
-      nstores <- unique(plot2.data$store_code_uc)
+      nstores <- length(unique(plot2.data$store_code_uc))
       max <- max(plot2.data$Y, na.rm = T)
-      min.lab <- min(plot2.data$av_sales_tax, na.rm = T)
-      max.lab <- max(plot2.data$av_sales_tax, na.rm = T)
+      min.lab <- as.character(round(min(plot2.data$av_sales_tax, na.rm = T), 2))
+      max.lab <- as.character(round(max(plot2.data$av_sales_tax, na.rm = T), 2))
       # Plot by tax and export
       graphout <- paste0(folder.price,"/", pr,"/price_tax_chain_", ch,".png")
       ggplot(data = plot2.data, aes(x  = time, y = Y)) +
         geom_tile(aes(fill = price_plot)) +
         labs(x=NULL, y="Stores, sorted by average tax rate", title = paste0("chain ", ch, ": ", nstores, " Stores"), fill = NULL) +
         scale_x_continuous(breaks = 2008:2014) +
-        scale_y_continuous(breaks = c(1,max), labels = c(min.lab, max.lab))
+        scale_y_continuous(breaks = c(1, max), labels = c(min.lab, max.lab))
       ggsave(graphout)
       
     }
