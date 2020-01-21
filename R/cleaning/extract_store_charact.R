@@ -198,7 +198,6 @@ for (store in stores) {
   x_trips <- stores_loc[store_code_uc == store, mean(x_trips)]
   y_trips <- stores_loc[store_code_uc == store, mean(y_trips)]
   
-  chain_ <- stores_loc[store_code_uc == store, mean(chain)]
   ## Loop across the rest of stores with competition data
   others <- stores[-i]
   
