@@ -181,6 +181,7 @@ for (pr in products) {
       # Plot by income and export
       graphout <- paste0(folder.price,"/", pr,"/price_income_chain_", ch,".png")
       ggplot(data = plot1.data, aes(x  = time, y = Y)) +
+        scale_fill_distiller(direction = 1) +
         geom_tile(aes(fill = price_plot)) +
         labs(x=NULL, y="Stores, sorted by income", title = paste0("Chain ", ch, ": ", nstores, " Stores"),  fill = NULL) +
         scale_x_continuous(breaks = 2008:2014) +
@@ -200,6 +201,7 @@ for (pr in products) {
       # Plot by tax and export
       graphout <- paste0(folder.price,"/", pr,"/price_tax_chain_", ch,".png")
       ggplot(data = plot2.data, aes(x  = time, y = Y)) +
+        scale_fill_distiller(direction = 1) +
         geom_tile(aes(fill = price_plot)) +
         labs(x=NULL, y="Stores, sorted by average tax rate", title = paste0("chain ", ch, ": ", nstores, " Stores"), fill = NULL) +
         scale_x_continuous(breaks = 2008:2014) +
