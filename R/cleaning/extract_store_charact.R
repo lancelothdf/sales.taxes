@@ -8,7 +8,7 @@ library(lfe)
 library(futile.logger)
 library(AER)
 library(readstata13)
-
+library(geosphere)
 
 setwd("/project2/igaarder")
 
@@ -171,15 +171,74 @@ rm(zip_data)
 store_costumer_ch <- full.purchases[, .(av_hh_income_sales = weighted.mean(av_hh_income, na.rm = T, w = total_expenditures),
                                         per_bachelor_25_sales = weighted.mean(per_bachelor_25, na.rm = T, w = total_expenditures),
                                         median_age_sales = weighted.mean(median_age, na.rm = T, w = total_expenditures),
+                                        x_sales = weighted.mean(x, na.rm = T, w = total_expenditures),
+                                        y_sales = weighted.mean(y, na.rm = T, w = total_expenditures),
                                         av_hh_income_trips = weighted.mean(av_hh_income, na.rm = T, w = n_trips),
                                         per_bachelor_25_trips = weighted.mean(per_bachelor_25, na.rm = T, w = n_trips),
                                         median_age_trips = weighted.mean(median_age, na.rm = T, w = n_trips),
+                                        x_trips = weighted.mean(x, na.rm = T, w = n_trips),
+                                        y_trips = weighted.mean(y, na.rm = T, w = n_trips),
                                         n_households = .N,
                                         n_trips = sum(n_trips)
                                         ), by = c("store_code_uc")]
 
-## Merge info to store data
+#### Competition measures
+## identify stores with location for efficiency
+stores_loc <- store_costumer_ch[!is.nan(x_sales) & !is.na(x_sales)]
+stores <- unique(stores_loc$store_code_uc)
+
+comp.data <- data.table(NULL) # Create outcome data
+# Loop across stores
+i <- 0
+for (store in stores) {
+  i <- i + 1
+  ## Capture store coordinates
+  x_sales <- stores_loc[store_code_uc == store, mean(x_sales)]
+  y_sales <- stores_loc[store_code_uc == store, mean(y_sales)]
+  x_trips <- stores_loc[store_code_uc == store, mean(x_trips)]
+  y_trips <- stores_loc[store_code_uc == store, mean(y_trips)]
+  
+  chain_ <- stores_loc[store_code_uc == store, mean(chain)]
+  ## Loop across the rest of stores with competition data
+  others <- stores[-i]
+  
+  n.competitiors.5.sales <- 0 # create variable 
+  n.competitiors.10.sales <- 0 # create variable 
+  n.competitiors.5.trips <- 0 # create variable 
+  n.competitiors.10.trips <- 0 # create variable 
+  for (other in others) {
+    
+    x_sales_oth <- stores_loc[store_code_uc == other, mean(x_sales)]
+    y_sales_oth <- stores_loc[store_code_uc == other, mean(y_sales)]
+    x_trips_oth <- stores_loc[store_code_uc == other, mean(x_trips)]
+    y_trips_oth <- stores_loc[store_code_uc == other, mean(y_trips)]
+    
+    chain_oth <- stores_loc[store_code_uc == other, mean(chain)]
+
+    distance_sales <- distm(c(x_sales, y_sales), c(x_sales_oth, y_sales_oth), fun = distHaversine)
+    distance_trips <- distm(c(x_trips, y_trips), c(x_trips_oth, y_trips_oth), fun = distHaversine)
+    
+    ## Compute interest variables
+    n.competitiors.10.sales <- n.competitiors.10.sales + (distance_sales <= 10000)
+    n.competitiors.5.sales <- n.competitiors.5.sales + (distance_sales <= 5000)
+    
+    n.competitiors.10.sales <- n.competitiors.10.sales + (distance_sales <= 10000)
+    n.competitiors.5.sales <- n.competitiors.5.sales + (distance_sales <= 5000)
+
+  }
+  
+  ## add to data
+  store.data <- data.table(store, n.competitiors.5.sales, n.competitiors.10.sales, n.competitiors.5.trips, n.competitiors.10.trips)
+  comp.data <- rbind(comp.data, store.data)
+  
+}
+# Change name to merge
+setnames(comp.data, "store", "store_code_uc")
+
+
+##### Merge all info to store data
 stores.all <- merge(stores.all, store_costumer_ch, by = "store_code_uc", all.x = T)
+stores.all <- merge(stores.all, comp.data, by = "store_code_uc", all.x = T)
 
 
 ### 4. Identify Our stores -----------------
@@ -188,7 +247,7 @@ data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
 our.data <- fread(data.semester)
 
 ## Collapse to the store level
-our.data <- our.data[, .(N_years = .N), by = .(store_code_uc, product_module_code)] ## First across years
+our.data <- our.data[, .(N_semesters = .N), by = .(store_code_uc, product_module_code)] ## First across years
 our.data <- our.data[, .(N_modules = .N,
                          N_years = max(N_years)), by = .(store_code_uc)]
 
