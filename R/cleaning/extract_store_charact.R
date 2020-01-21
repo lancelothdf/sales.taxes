@@ -212,8 +212,6 @@ for (store in stores) {
     x_trips_oth <- stores_loc[store_code_uc == other, mean(x_trips)]
     y_trips_oth <- stores_loc[store_code_uc == other, mean(y_trips)]
     
-    chain_oth <- stores_loc[store_code_uc == other, mean(chain)]
-
     distance_sales <- distm(c(x_sales, y_sales), c(x_sales_oth, y_sales_oth), fun = distHaversine)
     distance_trips <- distm(c(x_trips, y_trips), c(x_trips_oth, y_trips_oth), fun = distHaversine)
     
