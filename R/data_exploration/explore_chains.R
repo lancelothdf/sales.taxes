@@ -176,8 +176,8 @@ for (pr in products) {
 
       nstores <- length(unique(plot1.data$store_code_uc))
       max <- max(plot1.data$Y, na.rm = T)
-      min.lab <- as.character(floor(min(plot1.data$av_hh_income_sales, na.rm = T)/2500))
-      max.lab <- as.character(floor(max(plot1.data$av_hh_income_sales, na.rm = T)/2500))
+      min.lab <- as.character(floor(min(plot1.data$av_hh_income_sales, na.rm = T)/2500)*2500)
+      max.lab <- as.character(floor(max(plot1.data$av_hh_income_sales, na.rm = T)/2500)*2500)
       # Plot by income and export
       graphout <- paste0(folder.price,"/", pr,"/price_income_chain_", ch,".png")
       ggplot(data = plot1.data, aes(x  = time, y = Y)) +
