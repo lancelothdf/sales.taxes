@@ -75,6 +75,8 @@ all_pi <- all_pi[!is.na(av_hh_income_sales)]
 
 FE_opts <- c("group_region_by_module_by_time", "group_division_by_module_by_time")
 outcomes <- c("w.ln_cpricei2", "w.ln_quantity3")
+demographics <- c("av_hh_income_trips", 'per_bachelor_25_trips', 'median_age_trips')
+
 
 LRdiff_res <- data.table(NULL)
 target_res <- data.table(NULL)
@@ -139,81 +141,81 @@ for (dem in demographics) {
         LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
         fwrite(LRdiff_res, results.file)
       }
-    }
-    ## Estimate IVs and retrieve in vector
-    b_0_q <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
-                        spec == "Intercept" & het == dem & rn == "w.ln_sales_tax:D0",][["Estimate"]]
-    b_1_q <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
-                        spec == "Intercept" & het == dem & rn == "w.ln_sales_tax:D1",][["Estimate"]]
     
-    b_0_p <- LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE &
+      ## Estimate IVs and retrieve in vector
+      b_0_q <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
                           spec == "Intercept" & het == dem & rn == "w.ln_sales_tax:D0",][["Estimate"]]
-    b_1_p <- LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE &
+      b_1_q <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
                           spec == "Intercept" & het == dem & rn == "w.ln_sales_tax:D1",][["Estimate"]]
-
+      
+      b_0_p <- LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE &
+                            spec == "Intercept" & het == dem & rn == "w.ln_sales_tax:D0",][["Estimate"]]
+      b_1_p <- LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE &
+                            spec == "Intercept" & het == dem & rn == "w.ln_sales_tax:D1",][["Estimate"]]
     
-    IV0 <- (LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
-                        spec == "Intercept" & het == dem & rn != "w.ln_sales_tax:D0" & rn != "w.ln_sales_tax:D1" ,][["Estimate"]] + b_0_q
-              )/(LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE & 
-                             spec == "Intercept" & het == dem & rn != "w.ln_sales_tax:D0" & rn != "w.ln_sales_tax:D1" ,][["Estimate"]] + b_0_p)
-    IV1 <- (LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
-                         spec == "Intercept" & het == dem & rn != "w.ln_sales_tax:D0" & rn != "w.ln_sales_tax:D1" ,][["Estimate"]] + b_1_q
-    )/(LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE & 
-                    spec == "Intercept" & het == dem & rn != "w.ln_sales_tax:D0" & rn != "w.ln_sales_tax:D1" ,][["Estimate"]] + b_1_p)
-    
-    ## Estimate the matrix of the implied system of equations
-    if (n.g > 1) {
-      # Get the empirical distribution of prices by quantile
-      all_pi[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
-      all_pi[, p_group := floor((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500)), by = .(quantile)]
-      all_pi[, p_ll := p_group*((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500), by = .(quantile)]
-      all_pi[, p_ll := p_ll + min(dm.ln_cpricei2, na.rm = T), by = .(quantile)]
-      all_pi[, p_ul := p_ll + ((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500), by = .(quantile)]
       
-      ed.price.quantile <- all_pi[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
-      ed.price.quantile[, p_m := (p_ul+p_ll)/2]
+      IV0 <- (LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
+                          spec == "Intercept" & het == dem & rn != "w.ln_sales_tax:D0" & rn != "w.ln_sales_tax:D1" ,][["Estimate"]] + b_0_q
+                )/(LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE & 
+                               spec == "Intercept" & het == dem & rn != "w.ln_sales_tax:D0" & rn != "w.ln_sales_tax:D1" ,][["Estimate"]] + b_0_p)
+      IV1 <- (LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
+                           spec == "Intercept" & het == dem & rn != "w.ln_sales_tax:D0" & rn != "w.ln_sales_tax:D1" ,][["Estimate"]] + b_1_q
+      )/(LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE & 
+                      spec == "Intercept" & het == dem & rn != "w.ln_sales_tax:D0" & rn != "w.ln_sales_tax:D1" ,][["Estimate"]] + b_1_p)
       
-      
-      # Create the derivative of the polynomial of prices and multiplicate by weights
-      for (n in 1:n.g){
-        ed.price.quantile[, paste0("b",n) := (n)*w1*(p_m^(n-1))]
+      ## Estimate the matrix of the implied system of equations
+      if (n.g > 1) {
+        # Get the empirical distribution of prices by quantile
+        all_pi[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
+        all_pi[, p_group := floor((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500)), by = .(quantile)]
+        all_pi[, p_ll := p_group*((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500), by = .(quantile)]
+        all_pi[, p_ll := p_ll + min(dm.ln_cpricei2, na.rm = T), by = .(quantile)]
+        all_pi[, p_ul := p_ll + ((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500), by = .(quantile)]
+        
+        ed.price.quantile <- all_pi[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
+        ed.price.quantile[, p_m := (p_ul+p_ll)/2]
+        
+        
+        # Create the derivative of the polynomial of prices and multiplicate by weights
+        for (n in 1:n.g){
+          ed.price.quantile[, paste0("b",n) := (n)*w1*(p_m^(n-1))]
+        }
+        # Calculate integral
+        gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",1:n.g)]
+        gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
+        
+        ## Retrieve target parameters
+        beta_hat_0 <- as.vector(solve(as.matrix(gamma))%*%(as.matrix(IV0)))
+        beta_hat_1 <- as.vector(solve(as.matrix(gamma))%*%(as.matrix(IV1)))
+        # Estimate intercept
+        mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales)]
+        mean.p <- all_pi[, mean(dm.ln_cpricei2, weights = base.sales)]
+        beta_0_hat_0 <- mean.q - sum((beta_hat_0)*(mean.p^(1:n.g)))
+        beta_0_hat_1 <- mean.q - sum((beta_hat_1)*(mean.p^(1:n.g)))
+        beta_hat_0 <- c(beta_0_hat_0, beta_hat_0)
+        beta_hat_1 <- c(beta_0_hat_1, beta_hat_1)
+        
+        ## Export estimated target parameters
+        estimated.target_0 <- data.table(beta_hat_0)
+        estimated.target_0[, beta_n := .I-1]
+        estimated.target_0[, n.groups := n.g]
+        estimated.target_0[, controls := FE]
+        estimated.target_0[, spec := "Intercept"]
+        estimated.target_0[, het := dem]
+        estimated.target_0[, het.g := 0]
+        
+        estimated.target_1 <- data.table(beta_hat_1)
+        estimated.target_1[, beta_n := .I-1]
+        estimated.target_1[, n.groups := n.g]
+        estimated.target_1[, controls := FE]
+        estimated.target_1[, spec := "Intercept"]
+        estimated.target_1[, het := dem]
+        estimated.target_1[, het.g := 1]
+        
+        target_res <- rbind(target_res, estimated.target_0, estimated.target_1)
+        fwrite(target_res, theta.results.file)
       }
-      # Calculate integral
-      gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",1:n.g)]
-      gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
-      
-      ## Retrieve target parameters
-      beta_hat_0 <- as.vector(solve(as.matrix(gamma))%*%(as.matrix(IV0)))
-      beta_hat_1 <- as.vector(solve(as.matrix(gamma))%*%(as.matrix(IV1)))
-      # Estimate intercept
-      mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales)]
-      mean.p <- all_pi[, mean(dm.ln_cpricei2, weights = base.sales)]
-      beta_0_hat_0 <- mean.q - sum((beta_hat_0)*(mean.p^(1:n.g)))
-      beta_0_hat_1 <- mean.q - sum((beta_hat_1)*(mean.p^(1:n.g)))
-      beta_hat_0 <- c(beta_0_hat_0, beta_hat_0)
-      beta_hat_1 <- c(beta_0_hat_1, beta_hat_1)
-      
-      ## Export estimated target parameters
-      estimated.target_0 <- data.table(beta_hat_0)
-      estimated.target_0[, beta_n := .I-1]
-      estimated.target_0[, n.groups := n.g]
-      estimated.target_0[, controls := FE]
-      estimated.target_0[, spec := "Intercept"]
-      estimated.target_0[, het := dem]
-      estimated.target_0[, het.g := 0]
-      
-      estimated.target_1 <- data.table(beta_hat_1)
-      estimated.target_1[, beta_n := .I-1]
-      estimated.target_1[, n.groups := n.g]
-      estimated.target_1[, controls := FE]
-      estimated.target_1[, spec := "Intercept"]
-      estimated.target_1[, het := dem]
-      estimated.target_1[, het.g := 1]
-      
-      target_res <- rbind(target_res, estimated.target_0, estimated.target_1)
-      fwrite(target_res, theta.results.file)
     }
-    
     ##### Run fully saturated: split sample
     
     for (d in c(0,1)) {
@@ -226,7 +228,7 @@ for (dem in demographics) {
           formula1 <- as.formula(paste0(
             Y, " ~ w.ln_sales_tax:quantile | ", FE, "+ quantile"
           ))
-          if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ w.ln_sales_tax  | ", FE) }
+          if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ w.ln_sales_tax  | ", FE)) }
           res1 <- felm(formula = formula1, data = sample,
                        weights = sample$base.sales)
           
@@ -252,58 +254,58 @@ for (dem in demographics) {
           LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
           fwrite(LRdiff_res, results.file)
         }
-      }
-      ## Estimate IVs and retrieve in vector
-      IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
-                          spec == "Slope" & het == dem & het.g == d,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" &
-                                                                                           n.groups == n.g & controls == FE & spec == "Slope" & het == dem & het.g == d,][["Estimate"]]
-
-      ## Estimate the matrix of the implied system of equations
-      if (n.g > 1) {
-        # Get the empirical distribution of prices by quantile
-        sample[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
-        sample[, p_group := floor((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500)), by = .(quantile)]
-        sample[, p_ll := p_group*((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500), by = .(quantile)]
-        sample[, p_ll := p_ll + min(dm.ln_cpricei2, na.rm = T), by = .(quantile)]
-        sample[, p_ul := p_ll + ((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500), by = .(quantile)]
-        
-        ed.price.quantile <- sample[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
-        ed.price.quantile[, p_m := (p_ul+p_ll)/2]
-        
-        
-        # Create the derivative of the polynomial of prices and multiplicate by weights
-        for (n in 1:n.g){
-          ed.price.quantile[, paste0("b",n) := (n)*w1*(p_m^(n-1))]
+      
+        ## Estimate IVs and retrieve in vector
+        IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
+                            spec == "Slope" & het == dem & het.g == d,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" &
+                                                                                             n.groups == n.g & controls == FE & spec == "Slope" & het == dem & het.g == d,][["Estimate"]]
+  
+        ## Estimate the matrix of the implied system of equations
+        if (n.g > 1) {
+          # Get the empirical distribution of prices by quantile
+          sample[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
+          sample[, p_group := floor((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500)), by = .(quantile)]
+          sample[, p_ll := p_group*((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500), by = .(quantile)]
+          sample[, p_ll := p_ll + min(dm.ln_cpricei2, na.rm = T), by = .(quantile)]
+          sample[, p_ul := p_ll + ((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500), by = .(quantile)]
+          
+          ed.price.quantile <- sample[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
+          ed.price.quantile[, p_m := (p_ul+p_ll)/2]
+          
+          
+          # Create the derivative of the polynomial of prices and multiplicate by weights
+          for (n in 1:n.g){
+            ed.price.quantile[, paste0("b",n) := (n)*w1*(p_m^(n-1))]
+          }
+          # Calculate integral
+          gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",1:n.g)]
+          gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
+          
+          ## Retrieve target parameters
+          beta_hat <- as.vector(solve(as.matrix(gamma))%*%(as.matrix(IV)))
+          # Estimate intercept
+          mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales)]
+          mean.p <- all_pi[, mean(dm.ln_cpricei2, weights = base.sales)]
+          beta_0_hat <- mean.q - sum((beta_hat)*(mean.p^(1:n.g)))
+          beta_hat <- c(beta_0_hat, beta_hat)
+          
+          ## Export estimated target parameters
+          estimated.target <- data.table(beta_hat)
+          estimated.target[, beta_n := .I-1]
+          estimated.target[, n.groups := n.g]
+          estimated.target[, controls := FE]
+          estimated.target[, spec := "Slope"]
+          estimated.target[, het := dem]
+          estimated.target[, het.g := d]
+          
+  
+          target_res <- rbind(target_res, estimated.target)
+          fwrite(target_res, theta.results.file)
         }
-        # Calculate integral
-        gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",1:n.g)]
-        gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
-        
-        ## Retrieve target parameters
-        beta_hat <- as.vector(solve(as.matrix(gamma))%*%(as.matrix(IV)))
-        # Estimate intercept
-        mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales)]
-        mean.p <- all_pi[, mean(dm.ln_cpricei2, weights = base.sales)]
-        beta_0_hat <- mean.q - sum((beta_hat)*(mean.p^(1:n.g)))
-        beta_hat <- c(beta_0_hat, beta_hat)
-        
-        ## Export estimated target parameters
-        estimated.target <- data.table(beta_hat)
-        estimated.target[, beta_n := .I-1]
-        estimated.target[, n.groups := n.g]
-        estimated.target[, controls := FE]
-        estimated.target[, spec := "Slope"]
-        estimated.target[, het := dem]
-        estimated.target[, het.g := d]
-        
-
-        target_res <- rbind(target_res, estimated.target)
-        fwrite(target_res, theta.results.file)
-      }
+      }  
     }
   }
 }
-
 
   
 
