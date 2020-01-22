@@ -57,30 +57,30 @@ county.skel <- data.table(counties@data)
 county.skel <- county.skel[, c("fips_county_full") ]
 
 ## Loop across Chains and Plot
-for (ch in chains) {
-
-  ## Keep interest chain
-  stores.chain <- stores.dg[chain == ch]
-  ## Merge to skel and replace missing
-  stores.chain <- merge(stores.chain, county.skel, by = "fips_county_full", all = T)
-  stores.chain[, n_stores:= ifelse(is.na(n_stores), 0, n_stores)]
-
-  ## Merge data to plot
-  counties.plot <- merge(counties, stores.chain, by = "fips_county_full")
-
-  ## Arrange variable to plot uniformly across chains
-  counties.plot@data$n_stores_cut <- cut(counties.plot@data$n_stores, breaks = c(breaks, Inf), right = F)
-
-  ## Create Plot
-  plot.name <- paste0(folder.maps, "/map_stores_chain_", ch, ".png")
-  plot <- spplot(counties.plot, "n_stores_cut", main = paste("Stores Distribution Chain ", ch), col = "transparent",
-                 colorkey = list(height = 1, labels = list(at = seq(0.5, length(breaks) -0.5), labels = breaks)))
-
-  ## Export
-  png(plot.name)
-  print(plot)
-  dev.off()
-}
+# for (ch in chains) {
+# 
+#   ## Keep interest chain
+#   stores.chain <- stores.dg[chain == ch]
+#   ## Merge to skel and replace missing
+#   stores.chain <- merge(stores.chain, county.skel, by = "fips_county_full", all = T)
+#   stores.chain[, n_stores:= ifelse(is.na(n_stores), 0, n_stores)]
+# 
+#   ## Merge data to plot
+#   counties.plot <- merge(counties, stores.chain, by = "fips_county_full")
+# 
+#   ## Arrange variable to plot uniformly across chains
+#   counties.plot@data$n_stores_cut <- cut(counties.plot@data$n_stores, breaks = c(breaks, Inf), right = F)
+# 
+#   ## Create Plot
+#   plot.name <- paste0(folder.maps, "/map_stores_chain_", ch, ".png")
+#   plot <- spplot(counties.plot, "n_stores_cut", main = paste("Stores Distribution Chain ", ch), col = "transparent",
+#                  colorkey = list(height = 1, labels = list(at = seq(0.5, length(breaks) -0.5), labels = breaks)))
+# 
+#   ## Export
+#   png(plot.name)
+#   print(plot)
+#   dev.off()
+# }
 
 ## Explore # stores distribution across chains and # counties with presence across chains
 
@@ -130,7 +130,7 @@ chains.dg <- stores.dg[, .(n_stores = sum(n_stores)), by = .(chain, fips_state_c
 chains.dg <- chains.dg[, .(n_states = .N,
                            n_stores = sum(n_stores)), by = .(chain)]
 
-chains.dg[, state_gr := cut(n_states, c(0,1,2,3,4,5, Inf))]
+chains.dg[, state_gr := cut(n_states, c(0,1,2,3,4,5,6, Inf))]
 chains.dg <- chains.dg[, .(n_chains = .N, n_stores = sum(n_stores)), by = .(state_gr)]
 fwrite(chains.dg, paste0(folder.maps,"/n_states.csv"))
 
