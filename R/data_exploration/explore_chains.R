@@ -176,8 +176,8 @@ for (pr in products) {
 
       nstores <- length(unique(plot1.data$store_code_uc))
       max <- max(plot1.data$Y, na.rm = T)
-      min.lab <- as.character(floor(min(plot1.data$av_sales_tax, na.rm = T)/2500))
-      max.lab <- as.character(floor(max(plot1.data$av_sales_tax, na.rm = T)/2500))
+      min.lab <- as.character(floor(min(plot1.data$av_hh_income_sales, na.rm = T)/2500))
+      max.lab <- as.character(floor(max(plot1.data$av_hh_income_sales, na.rm = T)/2500))
       # Plot by income and export
       graphout <- paste0(folder.price,"/", pr,"/price_income_chain_", ch,".png")
       ggplot(data = plot1.data, aes(x  = time, y = Y)) +
@@ -292,7 +292,7 @@ variances.plot <- melt(variances, id.vars = c("module_by_time", "base.sales"),
 # Weigthed
 graphout <- paste0(folder.price,"/within_betwwen_tax_l_module_time.png")
 hist <- ggplot(data=variances.plot, aes(tax.l, fill = type, weight = base.sales)) + 
-  geom_histogram(alpha = 0.5, aes(y=..density.., fill = type), position="identity") +    
+  geom_histogram(alpha = 0.5, aes(y=..ndensity.., fill = type), position="identity") +    
   theme_classic(base_size = 24) + stat_bin(binwidth = 0.05) +
   theme(legend.position="bottom") +
   labs(x = "SS/SST", y = "Density", color = NULL) +
@@ -301,7 +301,7 @@ ggsave(graphout)
 
 graphout <- paste0(folder.price,"/within_betwwen_tax_d_module_time.png")
 hist <- ggplot(data=variances.plot, aes(tax.d, fill = type, weight = base.sales)) + 
-  geom_histogram(alpha = 0.5, aes(y=..density.., fill = type), position="identity") +    
+  geom_histogram(alpha = 0.5, aes(y=..ndensity.., fill = type), position="identity") +    
   theme_classic(base_size = 24) + stat_bin(binwidth = 0.05) +
   theme(legend.position="bottom") +
   labs(x = "SS/SST", y = "Density", color = NULL) +
@@ -310,7 +310,7 @@ ggsave(graphout)
 
 graphout <- paste0(folder.price,"/within_betwwen_tax_dd_module_time.png")
 hist <- ggplot(data=variances.plot, aes(tax.d, fill = type, weight = base.sales)) + 
-  geom_histogram(alpha = 0.5, aes(y=..density.., fill = type), position="identity") +    
+  geom_histogram(alpha = 0.5, aes(y=..ndensity.., fill = type), position="identity") +    
   theme_classic(base_size = 24) + stat_bin(binwidth = 0.05) +
   theme(legend.position="bottom") +
   labs(x = "SS/SST", y = "Density", color = NULL) +
@@ -320,7 +320,7 @@ ggsave(graphout)
 # Unweigthed
 graphout <- paste0(folder.price,"/within_betwwen_tax_l_module_time_unw.png")
 hist <- ggplot(data=variances.plot, aes(tax.l, fill = type)) + 
-  geom_histogram(alpha = 0.5, aes(y=..density.., fill = type), position="identity") +    
+  geom_histogram(alpha = 0.5, aes(y=..ndensity.., fill = type), position="identity") +    
   theme_classic(base_size = 24) + stat_bin(binwidth = 0.05) +
   theme(legend.position="bottom") +
   labs(x = "SS/SST", y = "Density", color = NULL) +
@@ -329,7 +329,7 @@ ggsave(graphout)
 
 graphout <- paste0(folder.price,"/within_betwwen_tax_d_module_time_unw.png")
 hist <- ggplot(data=variances.plot, aes(tax.d, fill = type)) + 
-  geom_histogram(alpha = 0.5, aes(y=..density.., fill = type), position="identity") +    
+  geom_histogram(alpha = 0.5, aes(y=..ndensity.., fill = type), position="identity") +    
   theme_classic(base_size = 24) + stat_bin(binwidth = 0.05) +
   theme(legend.position="bottom") +
   labs(x = "SS/SST", y = "Density", color = NULL) +
@@ -338,7 +338,7 @@ ggsave(graphout)
 
 graphout <- paste0(folder.price,"/within_betwwen_tax_dd_module_time_unw.png")
 hist <- ggplot(data=variances.plot, aes(tax.d, fill = type)) + 
-  geom_histogram(alpha = 0.5, aes(y=..density.., fill = type), position="identity") +    
+  geom_histogram(alpha = 0.5, aes(y=..ndensity.., fill = type), position="identity") +    
   theme_classic(base_size = 24) + stat_bin(binwidth = 0.05) +
   theme(legend.position="bottom") +
   labs(x = "SS/SST", y = "Density", color = NULL) +
