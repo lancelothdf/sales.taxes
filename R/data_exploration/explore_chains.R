@@ -292,30 +292,27 @@ variances.plot <- melt(variances, id.vars = c("module_by_time", "base.sales"),
 
 graphout <- paste0(folder.price,"/within_betwwen_tax_l_module_time.png")
 hist <- ggplot(data=variances.plot, aes(tax.l, fill = type, weight = base.sales)) + 
-  geom_histogram(alpha = 0.3, aes(y=..count../sum(..count..), fill = type, bins = 50), position="identity") +    
-  theme_classic(base_size = 24) +
+  geom_histogram(alpha = 0.3, aes(y=..count../sum(..count..), fill = type), position="identity") +    
+  theme_classic(base_size = 24) + stat_bin(bins = 100) +
   theme(legend.position="bottom") +
   labs(x = "SS", y = "Density", color = NULL) +
   scale_fill_discrete(name = "Type", labels = c("Within", "Between"))
-#scale_fill_discrete(name = "Type", labels = c("Within", "Between"))
 ggsave(graphout)
 
 graphout <- paste0(folder.price,"/within_betwwen_tax_d_module_time.png")
 hist <- ggplot(data=variances.plot, aes(tax.d, fill = type, weight = base.sales)) + 
-  geom_histogram(alpha = 0.3, aes(y=..count../sum(..count..), fill = type, bins = 50), position="identity") +    
-  theme_classic(base_size = 24) +
+  geom_histogram(alpha = 0.3, aes(y=..count../sum(..count..), fill = type), position="identity") +    
+  theme_classic(base_size = 24) + stat_bin(bins = 100) +
   theme(legend.position="bottom") +
   labs(x = "SS", y = "Density", color = NULL) +
-  scale_fill_discrete(name = "Type")
-#scale_fill_discrete(name = "Type", labels = c("Within", "Between"))
+  scale_fill_discrete(name = "Type", labels = c("Within", "Between"))
 ggsave(graphout)
 
 graphout <- paste0(folder.price,"/within_betwwen_tax_dd_module_time.png")
 hist <- ggplot(data=variances.plot, aes(tax.d, fill = type, weight = base.sales)) + 
-  geom_histogram(alpha = 0.3, aes(y=..count../sum(..count..), fill = type, bins = 50), position="identity") +    
-  theme_classic(base_size = 24) +
+  geom_histogram(alpha = 0.3, aes(y=..count../sum(..count..), fill = type), position="identity") +    
+  theme_classic(base_size = 24) + stat_bin(bins = 100) +
   theme(legend.position="bottom") +
   labs(x = "SS", y = "Density", color = NULL) +
-  scale_fill_discrete(name = "Type")
-#scale_fill_discrete(name = "Type", labels = c("Within", "Between"))
+  scale_fill_discrete(name = "Type", labels = c("Within", "Between"))
 ggsave(graphout)
