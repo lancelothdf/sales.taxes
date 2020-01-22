@@ -23,7 +23,7 @@ data.stores <- "Data/Nielsen/stores_all.csv"
 
 ## output filepaths ----------------------------------------------
 results.file <- "Data/robust_demog_het_estimates_initial_price_semester.csv"
-theta.results.file <- "Data/Demand_theta_robust_demog_het_initial_price_semester_boot_r.csv"
+theta.results.file <- "Data/Demand_theta_robust_demog_het_initial_price_semester.csv"
 
 ### Set up Semester Data ---------------------------------
 all_pi <- fread(data.semester)
@@ -84,7 +84,7 @@ target_res <- data.table(NULL)
 for (dem in demographics) {
   
   # Divide the sample by the demographic's median (at the level store)
-  median <- all_pi[, .(D = mean(get(dem), na.rm = T), by = .(store_code_uc)]
+  median <- all_pi[, .(D = mean(get(dem), na.rm = T)), by = .(store_code_uc)]
   median <- all_pi[, median(D)]
   all_pi[, D := get(dem) >= median]
   
