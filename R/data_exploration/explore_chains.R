@@ -262,9 +262,9 @@ variances[, b.chain.tax.ds := b.chain.tax.dd - weighted.mean(b.chain.tax.dd, w =
 variances <- variances[, .(ss.w.chain.tax.l = sum(w.chain.tax.l)/sum(base.sales),
                            ss.w.chain.tax.d = sum(w.chain.tax.d)/sum(base.sales),
                            ss.w.chain.tax.dd = sum(w.chain.tax.dd)/sum(base.sales),
-                           ss.b.chain.tax.l = sum(base.sales*n_k*(b.chain.tax.l)^2)/sum(base.sales),
-                           ss.b.chain.tax.d = sum(base.sales*n_k*(b.chain.tax.d)^2)/sum(base.sales),
-                           ss.b.chain.tax.dd = sum(base.sales*n_k*(b.chain.tax.dd)^2)/sum(base.sales),
+                           ss.b.chain.tax.l = sum(base.sales*(b.chain.tax.l)^2)/sum(base.sales),
+                           ss.b.chain.tax.d = sum(base.sales*(b.chain.tax.d)^2)/sum(base.sales),
+                           ss.b.chain.tax.dd = sum(base.sales*(b.chain.tax.dd)^2)/sum(base.sales),
                            base.sales = sum(base.sales)
 ), by = .(module_by_time)]
 
