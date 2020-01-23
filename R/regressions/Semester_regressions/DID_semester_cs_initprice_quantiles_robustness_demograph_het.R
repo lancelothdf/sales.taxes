@@ -129,6 +129,7 @@ for (dem in demographics) {
         res1.dt[, lev := c(quantlab[-1], "D")]
         res1.dt[, spec := "Intercept"]
         res1.dt[, het := dem]
+        res1.dt[, het.g := NA]
         
         ## Descriptives
         res1.dt$N_obs <- nrow(all_pi)
@@ -191,7 +192,8 @@ for (dem in demographics) {
         beta_hat_1 <- c(beta_0_hat_1, beta_hat_1)
         
         ## Export estimated target parameters
-        estimated.target_0 <- data.table(beta_hat_0)
+        beta_hat <- beta_hat_0
+        estimated.target_0 <- data.table(beta_hat)
         estimated.target_0[, beta_n := .I-1]
         estimated.target_0[, n.groups := n.g]
         estimated.target_0[, controls := FE]
@@ -199,7 +201,8 @@ for (dem in demographics) {
         estimated.target_0[, het := dem]
         estimated.target_0[, het.g := 0]
         
-        estimated.target_1 <- data.table(beta_hat_1)
+        beta_hat <- beta_hat_1
+        estimated.target_1 <- data.table(beta_hat)
         estimated.target_1[, beta_n := .I-1]
         estimated.target_1[, n.groups := n.g]
         estimated.target_1[, controls := FE]
