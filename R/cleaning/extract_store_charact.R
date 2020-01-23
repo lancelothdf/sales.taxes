@@ -184,11 +184,16 @@ store_costumer_ch <- full.purchases[, .(av_hh_income_sales = weighted.mean(av_hh
 
 #### Competition measures
 ## identify stores with location for efficiency
+# Also, do not repeat calculations
 stores_loc <- store_costumer_ch[!is.nan(x_sales) & !is.na(x_sales)]
 stores <- unique(stores_loc$store_code_uc)
 
 comp.data <- data.table(NULL) # Create outcome data
-# Loop across stores
+n.competitiors.5.sales <- rep(0,length(stores)) # create variable 
+n.competitiors.10.sales <- rep(0,length(stores)) # create variable 
+n.competitiors.5.trips <- rep(0,length(stores)) # create variable 
+n.competitiors.10.trips <- rep(0,length(stores)) # create variable 
+# Loop across stores. 
 i <- 0
 for (store in stores) {
   i <- i + 1
@@ -199,14 +204,12 @@ for (store in stores) {
   y_trips <- stores_loc[store_code_uc == store, mean(y_trips)]
   
   ## Loop across the rest of stores with competition data
-  others <- stores[-i]
+  others <- stores[(i+1):length(stores)]
   
-  n.competitiors.5.sales <- 0 # create variable 
-  n.competitiors.10.sales <- 0 # create variable 
-  n.competitiors.5.trips <- 0 # create variable 
-  n.competitiors.10.trips <- 0 # create variable 
+  j <- 0
   for (other in others) {
     
+    j <- j+1
     x_sales_oth <- stores_loc[store_code_uc == other, mean(x_sales)]
     y_sales_oth <- stores_loc[store_code_uc == other, mean(y_sales)]
     x_trips_oth <- stores_loc[store_code_uc == other, mean(x_trips)]
@@ -216,21 +219,25 @@ for (store in stores) {
     distance_trips <- distm(c(x_trips, y_trips), c(x_trips_oth, y_trips_oth), fun = distHaversine)
     
     ## Compute interest variables
-    n.competitiors.10.sales <- n.competitiors.10.sales + (distance_sales <= 10000)
-    n.competitiors.5.sales <- n.competitiors.5.sales + (distance_sales <= 5000)
+    n.competitiors.10.sales[i] <- n.competitiors.10.sales[i] + (distance_sales <= 10000)
+    n.competitiors.5.sales[i] <- n.competitiors.5.sales[i] + (distance_sales <= 5000)
+    n.competitiors.10.sales[i+j] <- n.competitiors.10.sales[i+j] + (distance_sales <= 10000)
+    n.competitiors.5.sales[i+j] <- n.competitiors.5.sales[i+j] + (distance_sales <= 5000)
     
-    n.competitiors.10.sales <- n.competitiors.10.sales + (distance_sales <= 10000)
-    n.competitiors.5.sales <- n.competitiors.5.sales + (distance_sales <= 5000)
-
+    n.competitiors.10.trips[i] <- n.competitiors.10.trips[i] + (distance_trips <= 10000)
+    n.competitiors.5.trips[i] <- n.competitiors.5.trips[i] + (distance_trips <= 5000)
+    n.competitiors.10.trips[i+j] <- n.competitiors.10.trips[i+j] + (distance_trips <= 10000)
+    n.competitiors.5.trips[i+j] <- n.competitiors.5.trips[i+j] + (distance_trips <= 5000)
+    
   }
-  
-  ## add to data
-  store.data <- data.table(store, n.competitiors.5.sales, n.competitiors.10.sales, n.competitiors.5.trips, n.competitiors.10.trips)
-  comp.data <- rbind(comp.data, store.data)
-  
+  if (i/100 == floor(i/100)) flog.info("Done %s stores", i)
+
 }
+# Put data together
+comp.data <- data.table(stores, n.competitiors.5.sales, n.competitiors.10.sales, n.competitiors.5.trips, n.competitiors.10.trips)
+
 # Change name to merge
-setnames(comp.data, "store", "store_code_uc")
+setnames(comp.data, "stores", "store_code_uc")
 
 
 ##### Merge all info to store data
