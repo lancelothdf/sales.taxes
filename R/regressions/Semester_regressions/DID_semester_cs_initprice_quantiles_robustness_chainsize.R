@@ -118,7 +118,7 @@ for (Y in outcomes) {
 ##### A2. Estimate pass-thorugh by chain size ------
 
 ## Identify number of states for each chain
-chains <- stores[, .(n_stores = 1), by = .(fips_county, chain, store_code_uc, fips_state)]
+chains <- stores[, .(n_stores = 1), by = .(chain, store_code_uc, fips_state_code)]
 chains <- chains[, .(n_stores = sum(n_stores)), by = .(chain, fips_state_code)]
 chains <- chains[, .(n_states = .N, n_stores = sum(n_stores)), by = .(chain)]
 all_pi <- merge(all_pi, chains, by = "chain")
