@@ -126,7 +126,7 @@ for (dem in demographics) {
         res1.dt[, outcome := Y]
         res1.dt[, controls := FE]
         res1.dt[, n.groups := n.g]
-        res1.dt[, lev := quantlab[-1]]
+        res1.dt[, lev := c(quantlab[-1], "D")]
         res1.dt[, spec := "Intercept"]
         res1.dt[, het := dem]
         
