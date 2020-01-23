@@ -8,7 +8,7 @@ library(lfe)
 library(futile.logger)
 library(AER)
 library(readstata13)
-library(geosphere)
+library(geodist)
 
 setwd("/project2/igaarder")
 
@@ -184,61 +184,34 @@ store_costumer_ch <- full.purchases[, .(av_hh_income_sales = weighted.mean(av_hh
 
 #### Competition measures
 ## identify stores with location for efficiency
-# Also, do not repeat calculations
 stores_loc <- store_costumer_ch[!is.nan(x_sales) & !is.na(x_sales)]
-stores <- unique(stores_loc$store_code_uc)
+stores_loc_data_sales <- as.matrix(stores_loc[, c("x_sales", "y_sales")])
+stores_loc_data_trips <- as.matrix(stores_loc[, c("x_trips", "y_trips")])
 
-comp.data <- data.table(NULL) # Create outcome data
-n.competitiors.5.sales <- rep(0,length(stores)) # create variable 
-n.competitiors.10.sales <- rep(0,length(stores)) # create variable 
-n.competitiors.5.trips <- rep(0,length(stores)) # create variable 
-n.competitiors.10.trips <- rep(0,length(stores)) # create variable 
-# Loop across stores. 
-i <- 0
-for (store in stores) {
-  i <- i + 1
-  ## Capture store coordinates
-  x_sales <- stores_loc[store_code_uc == store, mean(x_sales)]
-  y_sales <- stores_loc[store_code_uc == store, mean(y_sales)]
-  x_trips <- stores_loc[store_code_uc == store, mean(x_trips)]
-  y_trips <- stores_loc[store_code_uc == store, mean(y_trips)]
-  
-  ## Loop across the rest of stores with competition data
-  others <- stores[(i+1):length(stores)]
-  
-  j <- 0
-  for (other in others) {
-    
-    j <- j+1
-    x_sales_oth <- stores_loc[store_code_uc == other, mean(x_sales)]
-    y_sales_oth <- stores_loc[store_code_uc == other, mean(y_sales)]
-    x_trips_oth <- stores_loc[store_code_uc == other, mean(x_trips)]
-    y_trips_oth <- stores_loc[store_code_uc == other, mean(y_trips)]
-    
-    distance_sales <- distm(c(x_sales, y_sales), c(x_sales_oth, y_sales_oth), fun = distHaversine)
-    distance_trips <- distm(c(x_trips, y_trips), c(x_trips_oth, y_trips_oth), fun = distHaversine)
-    
-    ## Compute interest variables
-    n.competitiors.10.sales[i] <- n.competitiors.10.sales[i] + (distance_sales <= 10000)
-    n.competitiors.5.sales[i] <- n.competitiors.5.sales[i] + (distance_sales <= 5000)
-    n.competitiors.10.sales[i+j] <- n.competitiors.10.sales[i+j] + (distance_sales <= 10000)
-    n.competitiors.5.sales[i+j] <- n.competitiors.5.sales[i+j] + (distance_sales <= 5000)
-    
-    n.competitiors.10.trips[i] <- n.competitiors.10.trips[i] + (distance_trips <= 10000)
-    n.competitiors.5.trips[i] <- n.competitiors.5.trips[i] + (distance_trips <= 5000)
-    n.competitiors.10.trips[i+j] <- n.competitiors.10.trips[i+j] + (distance_trips <= 10000)
-    n.competitiors.5.trips[i+j] <- n.competitiors.5.trips[i+j] + (distance_trips <= 5000)
-    
-  }
-  if (i/100 == floor(i/100)) flog.info("Done %s stores", i)
+# Calculate distances
+distances_sales <- geodist(stores_loc_data_sales)
+distances_trips <- geodist(stores_loc_data_trips)
 
-}
+# Check thresholds
+distances_10_sales <- distances_sales <= 10000
+distances_5_sales <- distances_sales <= 5000
+
+distances_10_trips <- distances_trips <= 10000
+distances_5_trips <- distances_trips <= 5000
+
+# sum across columns (substract 1 for diagonal)
+distances_10_sales <- colSums(distances_10_sales) - 1
+distances_5_sales <- colSums(distances_5_sales) - 1
+distances_10_trips <- colSums(distances_10_trips) - 1
+distances_5_trips <- colSums(distances_5_trips) - 1
+
+# Put all data together, should have preserved order
+distances <- data.table(distances_10_sales, distances_5_sales, distances_10_trips, distances_5_trips)
+
+stores_loc <- cbind(stores_loc, distances)
+
 # Put data together
 comp.data <- data.table(stores, n.competitiors.5.sales, n.competitiors.10.sales, n.competitiors.5.trips, n.competitiors.10.trips)
-
-# Change name to merge
-setnames(comp.data, "stores", "store_code_uc")
-
 
 ##### Merge all info to store data
 stores.all <- merge(stores.all, store_costumer_ch, by = "store_code_uc", all.x = T)
