@@ -84,8 +84,8 @@ target_res <- data.table(NULL)
 for (dem in demographics) {
   
   # Divide the sample by the demographic's median (at the level store)
-  median <- all_pi[, .(D = mean(dem, na.rm = T)), by = .(store_code_uc)]
-  median <- all_pi[, median(D, na.rm = T)]
+  median <- all_pi[, .(D = mean(get(dem), na.rm = T)), by = .(store_code_uc)]
+  median <- median[, median(D, na.rm = T)]
   all_pi[, D := get(dem) >= median]
   
   # Saturate fixed effects
