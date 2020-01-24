@@ -208,14 +208,12 @@ distances_5_trips <- colSums(distances_5_trips) - 1
 # Put all data together, should have preserved order
 distances <- data.table(distances_10_sales, distances_5_sales, distances_10_trips, distances_5_trips)
 
-stores_loc <- cbind(stores_loc, distances)
-
 # Put data together
-comp.data <- data.table(stores, n.competitiors.5.sales, n.competitiors.10.sales, n.competitiors.5.trips, n.competitiors.10.trips)
+stores_loc <- cbind(stores_loc, distances)
 
 ##### Merge all info to store data
 stores.all <- merge(stores.all, store_costumer_ch, by = "store_code_uc", all.x = T)
-stores.all <- merge(stores.all, comp.data, by = "store_code_uc", all.x = T)
+stores.all <- merge(stores.all, stores_loc, by = "store_code_uc", all.x = T)
 
 
 ### 4. Identify Our stores -----------------
