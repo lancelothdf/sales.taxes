@@ -210,7 +210,7 @@ distances <- data.table(distances_10_sales, distances_5_sales, distances_10_trip
 
 # Put data together
 stores_loc <- cbind(data.table(stores_loc$store_code_uc), distances)
-setnames(stores_loc, "V1", "stores_loc")
+setnames(stores_loc, "V1", "store_code_uc")
 
 ##### Merge all info to store data
 stores.all <- merge(stores.all, store_costumer_ch, by = "store_code_uc", all.x = T)
