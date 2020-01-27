@@ -223,8 +223,7 @@ our.data <- fread(data.semester)
 
 ## Collapse to the store level
 our.data <- our.data[, .(N_semesters = .N), by = .(store_code_uc, product_module_code)] ## First across years
-our.data <- our.data[, .(N_modules = .N,
-                         N_years = max(N_years)), by = .(store_code_uc)]
+our.data <- our.data[, .(N_modules = .N), by = .(store_code_uc)]
 
 ## Merge info to store data
 stores.all <- merge(stores.all, our.data, by = "store_code_uc", all.x = T)
