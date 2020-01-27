@@ -20,7 +20,7 @@ data.stores <- "Data/Nielsen/stores_all.csv"
 
 
 ## output filepaths ----------------------------------------------
-results.file <- "Data/robust_demog_het_fullsat_estimates_initrice_semester.csv"
+results.file <- "Data/robust_demog_het_fullsat_estimates_initprice_semester.csv"
 theta.results.file <- "Data/Demand_theta_robust_demog_het_fullsat_initprice_semester.csv"
 
 ### Set up Semester Data ---------------------------------
@@ -109,7 +109,7 @@ for (dem in demographics) {
       
       ##### Run fully saturated: split sample
       
-      for (d in unique(all_pi$het)) {
+      for (d in 1:sat.groups) {
         
         # Keep sample we use for estimation
         sample <- all_pi[het == d]
@@ -202,7 +202,6 @@ for (dem in demographics) {
         }  
       }
     }
-    
   }
 }
 
