@@ -86,36 +86,36 @@ for (dem in demographics) {
     median <- all_pi[, .(D = mean(get(dem), na.rm = T)), by = .(store_code_uc)]
     median <- median[, het := cut(D, breaks = quantile(D, probs = seq(0, 1, by = 1/sat.groups), na.rm = T),
                                        labels = 1:sat.groups, right = FALSE)]
-    all_pi <- merge(all_pi, median, by = "store_code_uc")
+    all_pi_het <- merge(all_pi, median, by = "store_code_uc")
 
     # Saturate fixed effects
-    all_pi[, dem_group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, het)]
-    all_pi[, dem_group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, het)]
+    all_pi_het[, dem_group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, het)]
+    all_pi_het[, dem_group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, het)]
     
     ## Loop over number of quantiles of initial prices
-    for (n.g in 1:7) {
+    for (n.g in 1:5) {
       
       # Create groups of initial values of tax rate
       # We use the full weighted distribution
-      all_pi <- all_pi[, quantile := cut(dm.L.ln_cpricei2,
+      all_pi_het <- all_pi_het[, quantile := cut(dm.L.ln_cpricei2,
                                          breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
                                          labels = 1:n.g, right = FALSE)]
-      quantlab <- round(quantile(all_pi$dm.L.ln_cpricei2, 
+      quantlab <- round(quantile(all_pi_het$dm.L.ln_cpricei2, 
                                  probs = seq(0, 1, by = 1/n.g), na.rm = T, 
-                                 weight = all_pi$base.sales), digits = 4)
+                                 weight = all_pi_het$base.sales), digits = 4)
       # Saturate fixed effects
-      all_pi[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
-      all_pi[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
+      all_pi_het[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
+      all_pi_het[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
       
       ##### Run fully saturated: split sample
       
       for (d in 1:sat.groups) {
         
         # Keep sample we use for estimation
-        sample <- all_pi[het == d]
+        sample <- all_pi_het[het == d]
         
         # Capture sample proportion
-        prop <- nrow(sample)/nrow(all_pi)
+        prop <- nrow(sample)/nrow(all_pi[!is.na(dem)])
         
         
         ## Estimate RF and FS
