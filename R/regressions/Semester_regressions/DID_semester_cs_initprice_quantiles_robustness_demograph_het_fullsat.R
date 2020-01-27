@@ -1,7 +1,7 @@
 #' Sales Taxes Project
 #' Robustness Check Heterogeneity: After checking our estimates don't really change when looking at the 
 #' sample w. observed demographics, we start running the robustness checks by groups defined by different demographics.
-#' We run the second spec (fully interacted) but we now play furthermore with the number of categories: terciles, quartiles, etc
+#' We run the second spec (fully sat) but we now play furthermore with the number of categories: terciles, quartiles, etc
 
 
 library(data.table)
@@ -153,8 +153,8 @@ for (dem in demographics) {
           
           ## Estimate IVs and retrieve in vector
           IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
-                             spec == "Slope" & het == dem & het.g == d,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" &
-                                                                                                    n.groups == n.g & controls == FE & spec == "Slope" & het == dem & het.g == d,][["Estimate"]]
+                             n.het.g == sat.groups & het == dem & het.g == d,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" &
+                                                                                                    n.groups == n.g & controls == FE & n.het.g == sat.groups & het == dem & het.g == d,][["Estimate"]]
           
           ## Estimate the matrix of the implied system of equations
           if (n.g > 1) {
