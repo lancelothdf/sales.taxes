@@ -68,18 +68,14 @@ all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
 ## Merge characteristics
 stores <- fread(data.stores)
-# Collapse at the store level and calculate the median of the competition measure
-
-
-## Keep only the stores with observed characteristics 
-all_pi_store <- all_pi[!is.na(comp_high)]
 
 ## To the full data merge county HHIs
 hhi <- fread(data.hhi)
 stores[, fips_county := fips_state_code*1000 +fips_county_code]
 hhi <- merge(hhi, stores, by = c("fips_county"), all.y = T)
 
-stores <- stores[, .(distances_10_trips = mean(distances_10_trips, na.rm = T)
+# Collapse at the store level and calculate the median of the competition measure
+stores <- stores[, .(distances_10_trips = mean(distances_10_trips, na.rm = T),
                      hh.clev.index = mean(hh.clev.index, na.rm = T)), by = .(store_code_uc)]
 stores[, comp_high := median(distances_10_trips, na.rm = T)]
 stores[, comp_high := distances_10_trips >= comp_high]
