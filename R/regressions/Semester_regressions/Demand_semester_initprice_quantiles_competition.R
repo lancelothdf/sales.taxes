@@ -162,7 +162,7 @@ for (n.g in 1:5) {
       
       ## Estimate IVs and retrieve in vector
       IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
-                         & het.sam == "comp" & het.g == d,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" &
+                         het.sam == "comp" & het.g == d,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" &
                                                                                                       n.groups == n.g & controls == FE & het.sam == "comp" & het.g == d,][["Estimate"]]
       
       ## Estimate the matrix of the implied system of equations
@@ -281,8 +281,8 @@ for (n.g in 1:5) {
       
       ## Estimate IVs and retrieve in vector
       IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
-                         & het.sam == "comp" & het.g == d,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" &
-                                                                                       n.groups == n.g & controls == FE & het.sam == "comp" & het.g == d,][["Estimate"]]
+                         het.sam == "hhi" & het.g == d,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" &
+                                                                                       n.groups == n.g & controls == FE & het.sam == "hhi" & het.g == d,][["Estimate"]]
       
       ## Estimate the matrix of the implied system of equations
       if (n.g > 1) {
