@@ -243,10 +243,6 @@ for (n.g in 1:5) {
     # Keep sample we use for estimation
     sample <- all_pi[comp_high == d]
     
-    # Capture sample proportion
-    prop <- nrow(sample)/nrow(all_pi[!is.na(dem)])
-    
-    
     ## Estimate RF and FS
     for (FE in FE_opts) {
       for (Y in outcomes) {
