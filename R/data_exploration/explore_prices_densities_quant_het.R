@@ -74,7 +74,7 @@ for (dem in demographics) {
   ## Treat this by N quantiles
   for (n.quantiles in 2:5) {
     
-    all_pi[, quantile := cut(dem, breaks = quantile(dem, probs = seq(0, 1, by = 1/n.quantiles), 
+    all_pi[, quantile := cut(get(dem), breaks = quantile(get(dem), probs = seq(0, 1, by = 1/n.quantiles), 
                                                     na.rm = T, weight = base.sales),
                              labels = 1:n.quantiles, right = FALSE)]
     all_pi <- all_pi[!is.na(quantile)]
