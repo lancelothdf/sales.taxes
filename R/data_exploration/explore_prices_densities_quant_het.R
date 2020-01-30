@@ -107,7 +107,7 @@ for (dem in demographics) {
       labs(x = "Normalized (log) Price (mod x t)", y = "Cumulative K-Density", 
            title = paste0("CDF by ", dem))+
       scale_x_continuous(limits = c(-0.3,0.3), breaks = seq(-0.3, 0.3, 0.15), labels = as.character( seq(-0.3, 0.3, 0.15))) +
-      scale_color_discrete(name = "Quintile", labels = quantlab)
+      scale_color_discrete(name = "Quintile", labels = 1:n.quantiles)
     
     ggsave(graphout)
     
