@@ -138,11 +138,15 @@ for (yr in 2006:2016) {
   ## merge on some individual info
   flog.info("Loading in panelists data for %s", yr)
   panelists <- fread(panelists_file)
-  panelists <- panelists[, .(Household_Cd, Panelist_ZipCd)]
+  panelists <- panelists[, .(Household_Cd, Panelist_ZipCd, Projection_Factor)]
   setnames(panelists,
-           old = c("Household_Cd", "Panelist_ZipCd"),
-           new = c("household_code", "zip_code"))
+           old = c("Household_Cd", "Panelist_ZipCd", "Projection_Factor"),
+           new = c("household_code", "zip_code", "projection"))
   flog.info("Merging panelists data to purchases for %s", yr)
+  
+  # Normalize projection factor within year
+  panelists[, projection := projection/sum(projection)]
+  
   purchases <- merge(purchases, panelists, by = c("household_code"), all.x = T)
   rm(panelists)
   
@@ -151,9 +155,11 @@ for (yr in 2006:2016) {
   rm(purchases)
 }
 
-## Finally, collapse across years
-full.purchases <- full.purchases[, .(total_expenditures = sum(total_expenditures),
-                                     n_trips = sum(n_trips)),
+
+## Finally, collapse across years sum, weigthing by projection factor
+full.purchases <- full.purchases[, .(total_expenditures = sum(total_expenditures*projection),
+                                     n_trips = sum(n_trips*projection),
+                                     r_n_trips= sum(n_trips)),
                                  by = .(household_code, store_code_uc, zip_code)]
 ## Make this compatible
 full.purchases[, zip_code := as.integer(zip_code)]
@@ -179,7 +185,7 @@ store_costumer_ch <- full.purchases[, .(av_hh_income_sales = weighted.mean(av_hh
                                         x_trips = weighted.mean(x, na.rm = T, w = n_trips),
                                         y_trips = weighted.mean(y, na.rm = T, w = n_trips),
                                         n_households = .N,
-                                        n_trips = sum(n_trips)
+                                        n_trips = sum(r_n_trips)
                                         ), by = c("store_code_uc")]
 
 #### Competition measures
