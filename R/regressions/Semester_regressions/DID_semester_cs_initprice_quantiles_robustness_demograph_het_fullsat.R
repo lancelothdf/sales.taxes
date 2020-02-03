@@ -2,6 +2,7 @@
 #' Robustness Check Heterogeneity: After checking our estimates don't really change when looking at the 
 #' sample w. observed demographics, we start running the robustness checks by groups defined by different demographics.
 #' We run the second spec (fully sat) but we now play furthermore with the number of categories: terciles, quartiles, etc
+#' Update Demographics and add some others
 
 
 library(data.table)
@@ -73,7 +74,8 @@ all_pi <- all_pi[!is.na(av_hh_income_sales)]
 
 FE_opts <- c("group_region_by_module_by_time", "group_division_by_module_by_time")
 outcomes <- c("w.ln_cpricei2", "w.ln_quantity3")
-demographics <- c("av_hh_income_trips", 'per_bachelor_25_trips', 'median_age_trips')
+demographics <- c("av_hh_income_trips", 'per_bachelor_25_trips', 'median_age_trips',
+                  'per_hisp_trips', 'per_black_trips', 'per65_trips')
 
 
 LRdiff_res <- data.table(NULL)
