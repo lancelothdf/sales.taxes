@@ -2,6 +2,7 @@
 #' First we retrieve the channel type of the store to restrict only to groceries
 #' Second we try to identify "chains" as in DellaVigna and Gentzkow (2019) to exclude these
 #' Third, we extract a store characteristics based on their consumers. Similarly to DellaVigna and Gentzkow (2019)
+#' Update 31-1-19: The Number of trips is itself weigthed by the projection factor of the household
 
 library(data.table)
 library(lfe)
@@ -177,11 +178,17 @@ rm(zip_data)
 store_costumer_ch <- full.purchases[, .(av_hh_income_sales = weighted.mean(av_hh_income, na.rm = T, w = total_expenditures),
                                         per_bachelor_25_sales = weighted.mean(per_bachelor_25, na.rm = T, w = total_expenditures),
                                         median_age_sales = weighted.mean(median_age, na.rm = T, w = total_expenditures),
+                                        per65_sales = weighted.mean(per65, na.rm = T, w = total_expenditures),
+                                        per_black_sales = weighted.mean(per_black, na.rm = T, w = total_expenditures),
+                                        per_hisp_sales = weighted.mean(per_hisp, na.rm = T, w = total_expenditures),
                                         x_sales = weighted.mean(x, na.rm = T, w = total_expenditures),
                                         y_sales = weighted.mean(y, na.rm = T, w = total_expenditures),
                                         av_hh_income_trips = weighted.mean(av_hh_income, na.rm = T, w = n_trips),
                                         per_bachelor_25_trips = weighted.mean(per_bachelor_25, na.rm = T, w = n_trips),
                                         median_age_trips = weighted.mean(median_age, na.rm = T, w = n_trips),
+                                        per65_trips = weighted.mean(per65, na.rm = T, w = n_trips),
+                                        per_black_trips = weighted.mean(per_black, na.rm = T, w = n_trips),
+                                        per_hisp_trips = weighted.mean(per_hisp, na.rm = T, w = n_trips),
                                         x_trips = weighted.mean(x, na.rm = T, w = n_trips),
                                         y_trips = weighted.mean(y, na.rm = T, w = n_trips),
                                         n_households = .N,
