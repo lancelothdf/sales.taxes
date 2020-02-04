@@ -80,9 +80,9 @@ all_pi[, T_tax_exempt := sum(tax_exempt), by = .(store_by_module)]
 all_pi[, T_taxable := sum(1-tax_exempt), by = .(store_by_module)]
 all_pi[, T_total := .N, by = .(store_by_module)]
 
-all_pi[, all_taxable:= ifelse(T_taxable/T_total == 1,1,0)]
-all_pi[, all_taxexempt:= ifelse(T_tax_exempt/T_total == 1,1,0)]
-all_pi[, change_taxab:= ifelse(T_tax_exempt/T_total != 1 & T_taxable/T_total != 1,1,0)]
+all_pi[, all_taxable:= ifelse(T_taxable == T_total,1,0)]
+all_pi[, all_taxexempt:= ifelse(T_tax_exempt == T_total,1,0)]
+all_pi[, change_taxab:= ifelse(T_tax_exempt != T_total & T_taxable != T_total, 1, 0)]
 
 ## Run estimations -----------------
 
@@ -95,7 +95,8 @@ LRdiff_res <- data.table(NULL)
 ## Loop over the sample we look at
 ## Estimate RF and FS
 for (sam in samples) {
-  sample <- all_pi[sam == 1]
+  all_pi[, sample := sam]
+  sample <- all_pi[sample == 1]
   for (FE in FE_opts) {
     for (Y in outcomes) {
       formula1 <- as.formula(paste0(

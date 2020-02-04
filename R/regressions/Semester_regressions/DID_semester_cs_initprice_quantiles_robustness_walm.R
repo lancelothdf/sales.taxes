@@ -68,7 +68,9 @@ w.counties <- fread(data.walmart)
 all_pi <- merge(all_pi, w.counties, by = c("fips_state","fips_county"), all.x = T)
 
 ## Modify variable
-all_pi[, D := ifelse(walmart_sample== 1,1,0)]
+all_pi[, D := ifelse(walmart_sample == 1,1,0)]
+all_pi[, sum(D)]/nrow(all_pi)
+
 
 # Saturate fixed effects
 all_pi[, dem_group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, D)]
