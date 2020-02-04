@@ -20,7 +20,7 @@ data.taxes <- "Data/county_monthly_tax_rates_2008_2014.csv"
 
 
 ## output filepaths ----------------------------------------------
-results.file <- "Data/robust_spillover_estimates_initprice_semester.csv"
+results.file <- "Data/DiD_spillover_estimates_csinitprice_semester.csv"
 
 ## Open all data and merge statutory tax rate -----
 all_pi <- fread(data.semester)
