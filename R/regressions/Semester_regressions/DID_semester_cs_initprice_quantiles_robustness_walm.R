@@ -69,7 +69,8 @@ all_pi <- merge(all_pi, w.counties, by = c("fips_state","fips_county"), all.x = 
 
 ## Modify variable
 all_pi[, D := ifelse(walmart_sample == 1,1,0)]
-all_pi[, sum(D)]/nrow(all_pi)
+all_pi[, sum(D)]
+head(all_pi)
 
 
 # Saturate fixed effects
@@ -139,19 +140,19 @@ for (n.g in 1:5) {
   
     ## Estimate IVs and retrieve in vector
     b_1_q <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
-                        spec == "Intercept" & het == dem & rn == "w.ln_sales_tax:DTRUE",][["Estimate"]]
+                        spec == "Intercept" & rn == "w.ln_sales_tax:DTRUE",][["Estimate"]]
     
     b_1_p <- LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE &
-                          spec == "Intercept" & het == dem & rn == "w.ln_sales_tax:DTRUE",][["Estimate"]]
+                          spec == "Intercept" & rn == "w.ln_sales_tax:DTRUE",][["Estimate"]]
   
     
     IV0 <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
-                        spec == "Intercept" & het == dem & rn != "w.ln_sales_tax:DTRUE" ,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE & 
-                             spec == "Intercept" & het == dem & rn != "w.ln_sales_tax:DTRUE" ,][["Estimate"]]
+                        spec == "Intercept" & rn != "w.ln_sales_tax:DTRUE" ,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE & 
+                             spec == "Intercept" & rn != "w.ln_sales_tax:DTRUE" ,][["Estimate"]]
     IV1 <- (LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
-                         spec == "Intercept" & het == dem & rn != "w.ln_sales_tax:DTRUE" ,][["Estimate"]] + b_1_q
+                         spec == "Intercept" & rn != "w.ln_sales_tax:DTRUE" ,][["Estimate"]] + b_1_q
     )/(LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE & 
-                    spec == "Intercept" & het == dem & rn != "w.ln_sales_tax:DTRUE",][["Estimate"]] + b_1_p)
+                    spec == "Intercept" & rn != "w.ln_sales_tax:DTRUE",][["Estimate"]] + b_1_p)
     
     ## Estimate the matrix of the implied system of equations
     if (n.g > 1) {

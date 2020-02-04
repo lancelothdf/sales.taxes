@@ -84,9 +84,8 @@ all_pi[, all_taxable:= ifelse(T_taxable == T_total,1,0)]
 all_pi[, all_taxexempt:= ifelse(T_tax_exempt == T_total,1,0)]
 all_pi[, change_taxab:= ifelse(T_tax_exempt != T_total & T_taxable != T_total, 1, 0)]
 
-all_pi[, sum(all_taxable)]
-all_pi[, sum(all_taxexempt)]
-all_pi[, sum(change_taxab)]
+all_pi[, sd(w.ln_statutory_tax, na.rm = T)]
+head(all_pi)
 
 ## Run estimations -----------------
 
@@ -104,7 +103,7 @@ for (sam in samples) {
   for (FE in FE_opts) {
     for (Y in outcomes) {
       formula1 <- as.formula(paste0(
-        Y, " ~ w.ln_statutory_tax | ", FE, "| 0 | module_by_state"
+        Y, " ~ w.ln_statutory_tax | ", FE, "| 0 | state_by_module"
       ))
       res1 <- felm(formula = formula1, data = sample,
                    weights = sample$base.sales)
