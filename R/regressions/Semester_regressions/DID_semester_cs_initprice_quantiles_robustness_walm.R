@@ -65,7 +65,7 @@ all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
 ## Merge with identified counties
 w.counties <- fread(data.walmart)
-all_pi <- merge(all_pi, w.counties, by = "fips_county", all.x = T)
+all_pi <- merge(all_pi, w.counties, by = c("fips_state","fips_county"), all.x = T)
 
 ## Modify variable
 all_pi[, D := ifelse(walmart_sample== 1,1,0)]
