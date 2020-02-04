@@ -84,6 +84,10 @@ all_pi[, all_taxable:= ifelse(T_taxable == T_total,1,0)]
 all_pi[, all_taxexempt:= ifelse(T_tax_exempt == T_total,1,0)]
 all_pi[, change_taxab:= ifelse(T_tax_exempt != T_total & T_taxable != T_total, 1, 0)]
 
+all_pi[, sum(all_taxable)]
+all_pi[, sum(all_taxexempt)]
+all_pi[, sum(change_taxab)]
+
 ## Run estimations -----------------
 
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
