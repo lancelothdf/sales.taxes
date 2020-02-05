@@ -224,7 +224,7 @@ for (sam in samples) {
       res1.dt$N_county_modules <- uniqueN(sample, by = c("fips_state", "fips_county",
                                                          "product_module_code"))
       LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-      fwrite(LRdiff_res, output.results.file)
+      fwrite(LRdiff_res, results.file)
       
       ## sum leads
       flog.info("Summing leads...")
@@ -267,7 +267,7 @@ for (sam in samples) {
       
       
       LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
-      fwrite(LRdiff_res, output.results.file)
+      fwrite(LRdiff_res, results.file)
       
       
       ##### Add the cumulative effect at each lead/lag (relative to -1)
@@ -346,7 +346,7 @@ for (sam in samples) {
                                                        "product_module_code"))
       
       LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
-      fwrite(LRdiff_res, output.results.file)
+      fwrite(LRdiff_res, results.file)
       
       
       
@@ -399,7 +399,7 @@ for (sam in samples) {
       res1.dt$N_county_modules <- uniqueN(sample, by = c("fips_state", "fips_county",
                                                          "product_module_code"))
       LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-      fwrite(LRdiff_res, output.results.file)
+      fwrite(LRdiff_res, results.file)
       
       ## sum leads
       flog.info("Summing leads...")
@@ -442,7 +442,7 @@ for (sam in samples) {
       
       
       LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
-      fwrite(LRdiff_res, output.results.file)
+      fwrite(LRdiff_res, results.file)
       
       
       ##### Add the cumulative effect at each lead/lag (relative to -1)
@@ -521,9 +521,7 @@ for (sam in samples) {
                                                        "product_module_code"))
       
       LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
-      fwrite(LRdiff_res, output.results.file)
-      
-      
+      fwrite(LRdiff_res, results.file)
       
     
   }
