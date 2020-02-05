@@ -87,7 +87,7 @@ LRdiff_res <- data.table(NULL)
 ## Loop over the sample we look at
 ## Estimate RF and FS
 for (sam in samples) {
-  all_pi[, sample := sam]
+  all_pi[, sample := get(sam)]
   sample <- all_pi[sample == 1]
   print(nrow(sample))
   print(nrow(sample[!is.na(w.ln_statutory_tax)]))
