@@ -192,8 +192,7 @@ for (n.g in 1:5) {
       estimated.target_0[, n.groups := n.g]
       estimated.target_0[, controls := FE]
       estimated.target_0[, spec := "Intercept"]
-      estimated.target_0[, het := dem]
-      estimated.target_0[, het.g := 0]
+      estimated.target_0[, walm := NA]
       
       beta_hat <- beta_hat_1
       estimated.target_1 <- data.table(beta_hat)
@@ -201,8 +200,7 @@ for (n.g in 1:5) {
       estimated.target_1[, n.groups := n.g]
       estimated.target_1[, controls := FE]
       estimated.target_1[, spec := "Intercept"]
-      estimated.target_1[, het := dem]
-      estimated.target_1[, het.g := 1]
+      estimated.target_1[, walm := NA]
       
       target_res <- rbind(target_res, estimated.target_0, estimated.target_1)
       fwrite(target_res, theta.results.file)
@@ -248,8 +246,8 @@ for (n.g in 1:5) {
     
       ## Estimate IVs and retrieve in vector
       IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
-                          spec == "Slope" & het == dem & het.g == d,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" &
-                                                                                           n.groups == n.g & controls == FE & spec == "Slope" & het == dem & het.g == d,][["Estimate"]]
+                          spec == "Slope" & walm == d,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" &
+                                                                                           n.groups == n.g & controls == FE & spec == "Slope" & walm == d,][["Estimate"]]
 
       ## Estimate the matrix of the implied system of equations
       if (n.g > 1) {
