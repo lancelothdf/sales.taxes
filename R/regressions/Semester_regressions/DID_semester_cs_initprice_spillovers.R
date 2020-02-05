@@ -23,6 +23,7 @@ data.taxes <- "Data/county_monthly_tax_rates_2008_2014.csv"
 results.file <- "Data/DiD_spillover_estimates_csinitprice_semester.csv"
 
 ## Open all data and compute statutory tax rate -----
+all_pi <- fread(data.semester)
 all_pi[, ln_statutory_tax := max(ln_sales_tax, na.rm = T), by = .(fips_state, fips_county)]
 
 ### Set up Semester Data ---------------------------------
