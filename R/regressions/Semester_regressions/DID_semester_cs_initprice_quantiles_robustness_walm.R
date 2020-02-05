@@ -146,7 +146,7 @@ for (n.g in 1:5) {
   
     
     IV0 <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
-                        spec == "Intercept" & rn != "w.ln_sales_tax:DTRUE" ,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE & 
+                        spec == "Intercept" & rn != "w.ln_sales_tax:D" ,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE & 
                              spec == "Intercept" & rn != "w.ln_sales_tax:D" ,][["Estimate"]]
     IV1 <- (LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
                          spec == "Intercept" & rn != "w.ln_sales_tax:D" ,][["Estimate"]] + b_1_q

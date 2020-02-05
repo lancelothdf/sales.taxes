@@ -8,8 +8,6 @@ library(data.table)
 library(futile.logger)
 library(lfe)
 library(multcomp)
-library(mice)
-library(miceadds)
 
 setwd("/project2/igaarder")
 
@@ -141,9 +139,9 @@ for (sam in samples) {
   sample <- all_pi[sample == 1]
   for (Y in outcomes.dd) {
     formula1 <- as.formula(paste0(
-      Y, " ~ dd.ln_statutory_tax"
+      Y, " ~ dd.ln_statutory_tax| 0 | 0 | module_by_state"
     ))
-    res1 <- lm.cluster(formula = formula1, data = sample, cluster = "mobule_by_state",
+    res1 <- felm(formula = formula1, data = sample, 
                  weights = sample$base.sales)
     
     
