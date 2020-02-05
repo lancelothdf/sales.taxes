@@ -8,7 +8,8 @@ library(data.table)
 library(futile.logger)
 library(lfe)
 library(multcomp)
-
+library(mice)
+library(miceadds)
 
 setwd("/project2/igaarder")
 
@@ -31,6 +32,18 @@ all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax), by = .(store_by_mo
 all_pi[, w.ln_statutory_tax := ln_statutory_tax - mean(ln_statutory_tax), by = .(store_by_module)]
 all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2), by = .(store_by_module)]
 all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3), by = .(store_by_module)]
+
+# Try double demeaning
+all_pi[, mi.ln_statutory_tax := mean(ln_sales_tax), by = .(store_by_module)]
+all_pi[, mi.ln_cpricei2 := mean(ln_cpricei2), by = .(store_by_module)]
+all_pi[, mi.ln_quantity3 := mean(ln_quantity3), by = .(store_by_module)]
+all_pi[, mfe.ln_statutory_tax := weighted.mean(ln_sales_tax, w = base.sales), by = .(division_by_module_by_time)]
+all_pi[, mfe.ln_cpricei2 := weighted.mean(ln_cpricei2, w = base.sales), by = .(division_by_module_by_time)]
+all_pi[, mfe.ln_quantity3 := weighted.mean(ln_quantity3, w = base.sales), by = .(division_by_module_by_time)]
+all_pi[, dd.ln_statutory_tax := ln_statutory_tax - mi.ln_statutory_tax - mfe.ln_statutory_tax + weighted.mean(ln_statutory_tax, w = base.sales)]
+all_pi[, dd.ln_cpricei2 := ln_cpricei2 - mi.ln_cpricei2 - mfe.ln_cpricei2 + weighted.mean(ln_cpricei2, w = base.sales)]
+all_pi[, dd.ln_quantity3 := ln_quantity3 - mi.ln_quantity3 - mfe.ln_quantity3 + weighted.mean(ln_quantity3, w = base.sales)]
+
 
 # Need to demean
 all_pi[, module_by_time := .GRP, by = .(product_module_code, semester, year)]
@@ -89,8 +102,6 @@ LRdiff_res <- data.table(NULL)
 for (sam in samples) {
   all_pi[, sample := get(sam)]
   sample <- all_pi[sample == 1]
-  print(nrow(sample))
-  print(nrow(sample[!is.na(w.ln_statutory_tax)]))
   for (FE in FE_opts) {
     for (Y in outcomes) {
       formula1 <- as.formula(paste0(
@@ -121,6 +132,37 @@ for (sam in samples) {
 }
 
 
-  
+## Run double demeaned estimations
+outcomes.dd <- c("dd.ln_cpricei2", "dd.ln_quantity3")
 
+
+for (sam in samples) {
+  all_pi[, sample := get(sam)]
+  sample <- all_pi[sample == 1]
+  for (Y in outcomes.dd) {
+    formula1 <- as.formula(paste0(
+      Y, " ~ dd.ln_statutory_tax"
+    ))
+    res1 <- lm.cluster(formula = formula1, data = sample, cluster = "mobule_by_state",
+                 weights = sample$base.sales)
+    
+    
+    ## attach results
+    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+    res1.dt[, outcome := Y]
+    res1.dt[, controls := NA]
+    res1.dt[, sample := sam]
+    
+    ## Descriptives
+    res1.dt$N_obs <- nrow(sample)
+    res1.dt$N_stores <- uniqueN(sample, by = c("store_code_uc") )
+    res1.dt$N_modules <- length(unique(sample$product_module_code))
+    res1.dt$N_counties <- uniqueN(sample, by = c("fips_state", "fips_county"))
+    res1.dt$N_years <- uniqueN(sample, by = c("year"))
+    res1.dt$N_county_modules <- uniqueN(sample, by = c("fips_state", "fips_county",
+                                                       "product_module_code"))
+    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+    fwrite(LRdiff_res, results.file)
+  }
+}
 
