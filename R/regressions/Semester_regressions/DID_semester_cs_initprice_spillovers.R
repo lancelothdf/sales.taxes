@@ -139,7 +139,7 @@ for (sam in samples) {
   sample <- all_pi[sample == 1]
   for (Y in outcomes.dd) {
     formula1 <- as.formula(paste0(
-      Y, " ~ dd.ln_statutory_tax| 0 | 0 | module_by_state"
+      Y, " ~ dd.ln_statutory_tax -1| 0 | 0 | module_by_state"
     ))
     res1 <- felm(formula = formula1, data = sample, 
                  weights = sample$base.sales)
