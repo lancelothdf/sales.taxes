@@ -68,9 +68,8 @@ w.counties <- fread(data.walmart)
 all_pi <- merge(all_pi, w.counties, by = c("fips_state","fips_county"), all.x = T)
 
 ## Modify variable
-all_pi[, D := ifelse(walmart_sample == 1,1,0)]
+all_pi[, D := ifelse(is.na(walmart_sample), 0,walmart_sample)]
 all_pi[, sum(D)]
-head(all_pi)
 
 
 # Saturate fixed effects

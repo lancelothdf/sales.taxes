@@ -22,18 +22,8 @@ data.taxes <- "Data/county_monthly_tax_rates_2008_2014.csv"
 ## output filepaths ----------------------------------------------
 results.file <- "Data/DiD_spillover_estimates_csinitprice_semester.csv"
 
-## Open all data and merge statutory tax rate -----
-all_pi <- fread(data.semester)
-
-taxes <- fread(data.taxes)
-# Compute mean to the quarter. Take log and collapse to the semester mean.
-taxes[, quarter:= floor(month/4) + 1]
-taxes <- taxes[, .(sales_tax = mean(1+sales_tax)), by = .(fips_state, fips_county, year, quarter)]
-taxes[, semester:= floor(quarter/3) + 1]
-taxes <- taxes[, .(ln_statutory_tax = mean(log(sales_tax))), by = .(fips_state, fips_county, year, semester)]
-# merge to goods data
-all_pi <- merge(all_pi, taxes, by = c("fips_state", "fips_county", "year", "semester"), all.x = T)
-
+## Open all data and compute statutory tax rate -----
+all_pi[, ln_statutory_tax := max(ln_sales_tax, na.rm = T), by = .(fips_state, fips_county)]
 
 ### Set up Semester Data ---------------------------------
 all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax), by = .(store_by_module)]
@@ -84,8 +74,6 @@ all_pi[, all_taxable:= ifelse(T_taxable == T_total,1,0)]
 all_pi[, all_taxexempt:= ifelse(T_tax_exempt == T_total,1,0)]
 all_pi[, change_taxab:= ifelse(T_tax_exempt != T_total & T_taxable != T_total, 1, 0)]
 
-all_pi[, sd(w.ln_statutory_tax, na.rm = T)]
-head(all_pi)
 
 ## Run estimations -----------------
 
@@ -100,10 +88,12 @@ LRdiff_res <- data.table(NULL)
 for (sam in samples) {
   all_pi[, sample := sam]
   sample <- all_pi[sample == 1]
+  print(nrow(sample))
+  print(nrow(sample[!is.na(w.ln_statutory_tax)]))
   for (FE in FE_opts) {
     for (Y in outcomes) {
       formula1 <- as.formula(paste0(
-        Y, " ~ w.ln_statutory_tax | ", FE, "| 0 | state_by_module"
+        Y, " ~ w.ln_statutory_tax | ", FE, "| 0 | module_by_state"
       ))
       res1 <- felm(formula = formula1, data = sample,
                    weights = sample$base.sales)
