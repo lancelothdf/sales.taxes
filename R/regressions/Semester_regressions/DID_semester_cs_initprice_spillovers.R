@@ -32,10 +32,10 @@ all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2), by = .(store_by_modul
 all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3), by = .(store_by_module)]
 
 # Try double demeaning
-all_pi[, mi.ln_statutory_tax := mean(ln_sales_tax), by = .(store_by_module)]
+all_pi[, mi.ln_statutory_tax := mean(ln_statutory_tax), by = .(store_by_module)]
 all_pi[, mi.ln_cpricei2 := mean(ln_cpricei2), by = .(store_by_module)]
 all_pi[, mi.ln_quantity3 := mean(ln_quantity3), by = .(store_by_module)]
-all_pi[, mfe.ln_statutory_tax := weighted.mean(ln_sales_tax, w = base.sales), by = .(division_by_module_by_time)]
+all_pi[, mfe.ln_statutory_tax := weighted.mean(ln_statutory_tax, w = base.sales), by = .(division_by_module_by_time)]
 all_pi[, mfe.ln_cpricei2 := weighted.mean(ln_cpricei2, w = base.sales), by = .(division_by_module_by_time)]
 all_pi[, mfe.ln_quantity3 := weighted.mean(ln_quantity3, w = base.sales), by = .(division_by_module_by_time)]
 all_pi[, dd.ln_statutory_tax := ln_statutory_tax - mi.ln_statutory_tax - mfe.ln_statutory_tax + weighted.mean(ln_statutory_tax, w = base.sales)]
@@ -47,10 +47,10 @@ all_pi[, dd.ln_quantity3 := ln_quantity3 - mi.ln_quantity3 - mfe.ln_quantity3 + 
 LLs <- c(paste0("L", 1:4, ".D"), paste0("F", 1:4, ".D"), "D")
 for (Td in LLs) {
   
-  sales <- paste0(Td, ".ln_sales_tax")
+  actual <- paste0(Td, ".ln_sales_tax")
   statu <- paste0(Td, ".ln_statutory_tax")
   
-  all_pi[, (statu) := max(get(sales), na.rm = T), by = .(fips_state, fips_county, year, semester)]
+  all_pi[, (statu) := max(get(actual), na.rm = T), by = .(fips_state, fips_county, year, semester)]
   
 }
 
