@@ -42,8 +42,21 @@ all_pi[, dd.ln_statutory_tax := ln_statutory_tax - mi.ln_statutory_tax - mfe.ln_
 all_pi[, dd.ln_cpricei2 := ln_cpricei2 - mi.ln_cpricei2 - mfe.ln_cpricei2 + weighted.mean(ln_cpricei2, w = base.sales)]
 all_pi[, dd.ln_quantity3 := ln_quantity3 - mi.ln_quantity3 - mfe.ln_quantity3 + weighted.mean(ln_quantity3, w = base.sales)]
 
+
+## Create statutory leads and lags
+LLs <- c(paste0("L", 1:4, ".D"), paste0("F", 1:4, ".D"), "D")
+for (Td in LLs) {
+  
+  sales <- paste0(Td, ".ln_sales_tax")
+  statu <- paste0(Td, ".ln_statutory_tax")
+  
+  all_pi[, (statu) := max(get(sales), na.rm = T), by = .(fips_state, fips_county, year, semester)]
+  
+}
+
+
 ## De-mean First Differences and Leads and Lags (the same as residualizing FE)
-FDs <- c(paste0("L", 1:4, ".D.ln_sales_tax"), paste0("F", 1:4, ".D.ln_sales_tax"), "D.ln_sales_tax", "D.ln_quantity3","D.ln_cpricei2")
+FDs <- c(paste0("L", 1:4, ".D.ln_statutory_tax"), paste0("F", 1:4, ".D.ln_statutory_tax"), "D.ln_statutory_tax", "D.ln_quantity3","D.ln_cpricei2")
 for (var in FDs) {
   
   name <- paste0("d.", var)
@@ -177,20 +190,20 @@ for (sam in samples) {
 
 ## Run Distributed Lag Model estimations  --------------
 
-formula_lags <- paste0("L", 1:4, ".D.ln_sales_tax", collapse = "+")
-formula_leads <- paste0("F", 1:4, ".D.ln_sales_tax", collapse = "+")
-formula_RHS <- paste0("D.ln_sales_tax + ", formula_lags, "+", formula_leads)
+formula_lags <- paste0("L", 1:4, ".D.ln_statutory_tax", collapse = "+")
+formula_leads <- paste0("F", 1:4, ".D.ln_statutory_tax", collapse = "+")
+formula_RHS <- paste0("D.ln_statutory_tax + ", formula_lags, "+", formula_leads)
 
 outcomes <- c("D.ln_cpricei2",  "D.ln_quantity3")
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 
 ## for linear hypothesis tests
-lead.vars <- paste(paste0("F", 4:1, ".D.ln_sales_tax"), collapse = " + ")
-lag.vars <- paste(paste0("L", 4:1, ".D.ln_sales_tax"), collapse = " + ")
+lead.vars <- paste(paste0("F", 4:1, ".D.ln_statutory_tax"), collapse = " + ")
+lag.vars <- paste(paste0("L", 4:1, ".D.ln_statutory_tax"), collapse = " + ")
 lead.lp.restr <- paste(lead.vars, "= 0")
-lag.lp.restr <- paste(lag.vars, "+ D.ln_sales_tax = 0")
-total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
+lag.lp.restr <- paste(lag.vars, "+ D.ln_statutory_tax = 0")
+total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_statutory_tax = 0")
 
 
 ## FE vary across samples
@@ -249,7 +262,7 @@ for (sam in samples) {
       
       ## linear hypothesis results
       lp.dt <- data.table(
-        rn = c("Pre.D.ln_sales_tax", "Post.D.ln_sales_tax", "All.D.ln_sales_tax"),
+        rn = c("Pre.D.ln_statutory_tax", "Post.D.ln_statutory_tax", "All.D.ln_statutory_tax"),
         Estimate = c(lead.test.est, lag.test.est, total.test.est),
         `Cluster s.e.` = c(lead.test.se, lag.test.se, total.test.se),
         `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
@@ -276,9 +289,9 @@ for (sam in samples) {
       cumul.lead1.pval <- NA
       
       #cumul.lead2.est is just equal to minus the change between -2 and -1
-      cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_sales_tax", "Estimate"]
-      cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Cluster s.e."]
-      cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Pr(>|t|)"]
+      cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_statutory_tax", "Estimate"]
+      cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_statutory_tax", "Cluster s.e."]
+      cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_statutory_tax", "Pr(>|t|)"]
       
       ##LEADS
       for(j in 3:5) {
@@ -289,7 +302,7 @@ for (sam in samples) {
         cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
         
         ## Create the formula to compute cumulative estimate at each lead/lag
-        cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_sales_tax"), collapse = " - "))
+        cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_statutory_tax"), collapse = " - "))
         cumul.test.form <- paste(cumul.test.form, " = 0")
         
         ## Compute estimate and store in variables names
@@ -303,9 +316,9 @@ for (sam in samples) {
       
       ##LAGS
       ## On Impact --> Effect = coefficient on D.ln_sales_tax
-      cumul.lag0.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
-      cumul.lag0.se <- coef(summary(res1))[ "D.ln_sales_tax", "Cluster s.e."]
-      cumul.lag0.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
+      cumul.lag0.est <- coef(summary(res1))[ "D.ln_statutory_tax", "Estimate"]
+      cumul.lag0.se <- coef(summary(res1))[ "D.ln_statutory_tax", "Cluster s.e."]
+      cumul.lag0.pval <- coef(summary(res1))[ "D.ln_statutory_tax", "Pr(>|t|)"]
       
       for(j in 1:4) {
         
@@ -315,7 +328,7 @@ for (sam in samples) {
         cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
         
         ## Create the formula to compute cumulative estimate at each lead/lag
-        cumul.test.form <- paste("D.ln_sales_tax + ", paste(paste0("L", 1:j, ".D.ln_sales_tax"), collapse = " + "), sep = "")
+        cumul.test.form <- paste("D.ln_statutory_tax + ", paste(paste0("L", 1:j, ".D.ln_statutory_tax"), collapse = " + "), sep = "")
         cumul.test.form <- paste(cumul.test.form, " = 0")
         
         ## Compute estimate and store in variables names
@@ -329,7 +342,8 @@ for (sam in samples) {
       
       ## linear hypothesis results
       lp.dt <- data.table(
-        rn = c("cumul.lead5.D.ln_sales_tax", "cumul.lead4.D.ln_sales_tax", "cumul.lead3.D.ln_sales_tax", "cumul.lead2.D.ln_sales_tax", "cumul.lead1.D.ln_sales_tax", "cumul.lag0.D.ln_sales_tax", "cumul.lag1.D.ln_sales_tax", "cumul.lag2.D.ln_sales_tax", "cumul.lag3.D.ln_sales_tax", "cumul.lag4.D.ln_sales_tax"),
+        rn = c("cumul.lead5.D.ln_statutory_tax", "cumul.lead4.D.ln_statutory_tax", "cumul.lead3.D.ln_statutory_tax", "cumul.lead2.D.ln_statutory_tax", 
+               "cumul.lead1.D.ln_statutory_tax", "cumul.lag0.D.ln_statutory_tax", "cumul.lag1.D.ln_statutory_tax", "cumul.lag2.D.ln_statutory_tax", "cumul.lag3.D.ln_statutory_tax", "cumul.lag4.D.ln_statutory_tax"),
         Estimate = c(cumul.lead5.est, cumul.lead4.est, cumul.lead3.est, cumul.lead2.est, cumul.lead1.est, cumul.lag0.est, cumul.lag1.est, cumul.lag2.est, cumul.lag3.est, cumul.lag4.est),
         `Cluster s.e.` = c(cumul.lead5.se, cumul.lead4.se, cumul.lead3.se, cumul.lead2.se, cumul.lead1.se, cumul.lag0.se, cumul.lag1.se, cumul.lag2.se, cumul.lag3.se, cumul.lag4.se),
         `Pr(>|t|)` = c(cumul.lead5.pval, cumul.lead4.pval, cumul.lead3.pval, cumul.lead2.pval, cumul.lead1.pval, cumul.lag0.pval, cumul.lag1.pval, cumul.lag2.pval, cumul.lag3.pval, cumul.lag4.pval),
@@ -354,19 +368,19 @@ for (sam in samples) {
   }
 }
 
-formula_lags <- paste0("d.L", 1:4, ".D.ln_sales_tax", collapse = "+")
-formula_leads <- paste0("d.F", 1:4, ".D.ln_sales_tax", collapse = "+")
-formula_RHS <- paste0("d.D.ln_sales_tax + ", formula_lags, "+", formula_leads)
+formula_lags <- paste0("d.L", 1:4, ".D.ln_statutory_tax", collapse = "+")
+formula_leads <- paste0("d.F", 1:4, ".D.ln_statutory_tax", collapse = "+")
+formula_RHS <- paste0("d.D.ln_statutory_tax + ", formula_lags, "+", formula_leads)
 
 outcomes <- c("d.D.ln_cpricei2",  "d.D.ln_quantity3")
 
 
 ## for linear hypothesis tests
-lead.vars <- paste(paste0("d.F", 4:1, ".D.ln_sales_tax"), collapse = " + ")
-lag.vars <- paste(paste0("d.L", 4:1, ".D.ln_sales_tax"), collapse = " + ")
+lead.vars <- paste(paste0("d.F", 4:1, ".D.ln_statutory_tax"), collapse = " + ")
+lag.vars <- paste(paste0("d.L", 4:1, ".D.ln_statutory_tax"), collapse = " + ")
 lead.lp.restr <- paste(lead.vars, "= 0")
-lag.lp.restr <- paste(lag.vars, "+ d.D.ln_sales_tax = 0")
-total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ d.D.ln_sales_tax = 0")
+lag.lp.restr <- paste(lag.vars, "+ d.D.ln_statutory_tax = 0")
+total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ d.D.ln_statutory_tax = 0")
 
 
 ## FE vary across samples
@@ -424,7 +438,7 @@ for (sam in samples) {
       
       ## linear hypothesis results
       lp.dt <- data.table(
-        rn = c("Pre.D.ln_sales_tax", "Post.D.ln_sales_tax", "All.D.ln_sales_tax"),
+        rn = c("Pre.D.ln_statutory_tax", "Post.D.ln_statutory_tax", "All.D.ln_statutory_tax"),
         Estimate = c(lead.test.est, lag.test.est, total.test.est),
         `Cluster s.e.` = c(lead.test.se, lag.test.se, total.test.se),
         `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
@@ -451,9 +465,9 @@ for (sam in samples) {
       cumul.lead1.pval <- NA
       
       #cumul.lead2.est is just equal to minus the change between -2 and -1
-      cumul.lead2.est <- - coef(summary(res1))[ "d.F1.D.ln_sales_tax", "Estimate"]
-      cumul.lead2.se <- coef(summary(res1))[ "d.F1.D.ln_sales_tax", "Cluster s.e."]
-      cumul.lead2.pval <- coef(summary(res1))[ "d.F1.D.ln_sales_tax", "Pr(>|t|)"]
+      cumul.lead2.est <- - coef(summary(res1))[ "d.F1.D.ln_statutory_tax", "Estimate"]
+      cumul.lead2.se <- coef(summary(res1))[ "d.F1.D.ln_statutory_tax", "Cluster s.e."]
+      cumul.lead2.pval <- coef(summary(res1))[ "d.F1.D.ln_statutory_tax", "Pr(>|t|)"]
       
       ##LEADS
       for(j in 3:5) {
@@ -464,7 +478,7 @@ for (sam in samples) {
         cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
         
         ## Create the formula to compute cumulative estimate at each lead/lag
-        cumul.test.form <- paste0("-", paste(paste0("d.F", (j-1):1, ".D.ln_sales_tax"), collapse = " - "))
+        cumul.test.form <- paste0("-", paste(paste0("d.F", (j-1):1, ".D.ln_statutory_tax"), collapse = " - "))
         cumul.test.form <- paste(cumul.test.form, " = 0")
         
         ## Compute estimate and store in variables names
@@ -478,9 +492,9 @@ for (sam in samples) {
       
       ##LAGS
       ## On Impact --> Effect = coefficient on D.ln_sales_tax
-      cumul.lag0.est <- coef(summary(res1))[ "d.D.ln_sales_tax", "Estimate"]
-      cumul.lag0.se <- coef(summary(res1))[ "d.D.ln_sales_tax", "Cluster s.e."]
-      cumul.lag0.pval <- coef(summary(res1))[ "d.D.ln_sales_tax", "Pr(>|t|)"]
+      cumul.lag0.est <- coef(summary(res1))[ "d.D.ln_statutory_tax", "Estimate"]
+      cumul.lag0.se <- coef(summary(res1))[ "d.D.ln_statutory_tax", "Cluster s.e."]
+      cumul.lag0.pval <- coef(summary(res1))[ "d.D.ln_statutory_tax", "Pr(>|t|)"]
       
       for(j in 1:4) {
         
@@ -490,7 +504,7 @@ for (sam in samples) {
         cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
         
         ## Create the formula to compute cumulative estimate at each lead/lag
-        cumul.test.form <- paste("d.D.ln_sales_tax + ", paste(paste0("d.L", 1:j, ".D.ln_sales_tax"), collapse = " + "), sep = "")
+        cumul.test.form <- paste("d.D.ln_statutory_tax + ", paste(paste0("d.L", 1:j, ".D.ln_statutory_tax"), collapse = " + "), sep = "")
         cumul.test.form <- paste(cumul.test.form, " = 0")
         
         ## Compute estimate and store in variables names
@@ -504,7 +518,8 @@ for (sam in samples) {
       
       ## linear hypothesis results
       lp.dt <- data.table(
-        rn = c("cumul.lead5.D.ln_sales_tax", "cumul.lead4.D.ln_sales_tax", "cumul.lead3.D.ln_sales_tax", "cumul.lead2.D.ln_sales_tax", "cumul.lead1.D.ln_sales_tax", "cumul.lag0.D.ln_sales_tax", "cumul.lag1.D.ln_sales_tax", "cumul.lag2.D.ln_sales_tax", "cumul.lag3.D.ln_sales_tax", "cumul.lag4.D.ln_sales_tax"),
+        rn = c("cumul.lead5.D.ln_statutory_tax", "cumul.lead4.D.ln_statutory_tax", "cumul.lead3.D.ln_statutory_tax", "cumul.lead2.D.ln_statutory_tax", "cumul.lead1.D.ln_statutory_tax", "cumul.lag0.D.ln_statutory_tax",
+               "cumul.lag1.D.ln_statutory_tax", "cumul.lag2.D.ln_statutory_tax", "cumul.lag3.D.ln_statutory_tax", "cumul.lag4.D.ln_statutory_tax"),
         Estimate = c(cumul.lead5.est, cumul.lead4.est, cumul.lead3.est, cumul.lead2.est, cumul.lead1.est, cumul.lag0.est, cumul.lag1.est, cumul.lag2.est, cumul.lag3.est, cumul.lag4.est),
         `Cluster s.e.` = c(cumul.lead5.se, cumul.lead4.se, cumul.lead3.se, cumul.lead2.se, cumul.lead1.se, cumul.lag0.se, cumul.lag1.se, cumul.lag2.se, cumul.lag3.se, cumul.lag4.se),
         `Pr(>|t|)` = c(cumul.lead5.pval, cumul.lead4.pval, cumul.lead3.pval, cumul.lead2.pval, cumul.lead1.pval, cumul.lag0.pval, cumul.lag1.pval, cumul.lag2.pval, cumul.lag3.pval, cumul.lag4.pval),
