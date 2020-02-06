@@ -210,6 +210,9 @@ stores_loc_data_trips <- as.matrix(stores_loc[, c("x_trips", "y_trips")])
 distances_sales <- geodist(stores_loc_data_sales)
 distances_trips <- geodist(stores_loc_data_trips)
 
+dim(stores_loc_data_sales)
+dim(distances_sales)
+
 # Check thresholds
 distances_10_sales <- distances_sales <= 10000
 distances_5_sales <- distances_sales <= 5000
