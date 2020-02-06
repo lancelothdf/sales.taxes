@@ -221,7 +221,7 @@ distances_10_trips <- distances_trips <= 10000
 distances_5_trips <- distances_trips <= 5000
 
 # Chain matrix: 1 if same chain
-chains <- as.vector(stores_loc[, c("chain")])
+chains <- stores_loc[["chain"]]
 length(chains)
 same_chain <- matrix(0, length(chains), length(chains))
 for (i in 1:length(chains)) {
