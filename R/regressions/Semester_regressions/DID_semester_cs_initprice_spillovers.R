@@ -98,22 +98,25 @@ pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sa
 all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
 
-## Divide samples: always tax-exempt, always taxable, change taxability ------
+## Divide samples: always tax-exempt, always taxable, change taxability and reduced rate ------
 all_pi[, tax_exempt := ln_sales_tax == 0]
+all_pi[, reduced_rate := ln_sales_tax != ln_statutory_tax & tax_exempt != 0]
 all_pi[, T_tax_exempt := sum(tax_exempt), by = .(store_by_module)]
-all_pi[, T_taxable := sum(1-tax_exempt), by = .(store_by_module)]
+all_pi[, T_reduced := sum(reduced_rate), by = .(store_by_module)]
+all_pi[, T_taxable := sum(1- tax_exempt - reduced_rate), by = .(store_by_module)]
 all_pi[, T_total := .N, by = .(store_by_module)]
 
 all_pi[, all_taxable:= ifelse(T_taxable == T_total,1,0)]
 all_pi[, all_taxexempt:= ifelse(T_tax_exempt == T_total,1,0)]
-all_pi[, change_taxab:= ifelse(T_tax_exempt != T_total & T_taxable != T_total, 1, 0)]
+all_pi[, all_reduced:= ifelse(T_reduced == T_total,1,0)]
+all_pi[, change_taxab:= ifelse(T_tax_exempt != T_total & T_taxable != T_total & T_reduced != T_total, 1, 0)]
 
 
 ## Run estimations DiD -----------------
 
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 outcomes <- c("w.ln_cpricei2", "w.ln_quantity3")
-samples <- c("all_taxable", "all_taxexempt", "change_taxab")
+samples <- c("all_taxable", "all_taxexempt", "all_reduced", "change_taxab")
 
 
 LRdiff_res <- data.table(NULL)
