@@ -200,6 +200,7 @@ store_costumer_ch <- full.purchases[, .(av_hh_income_sales = weighted.mean(av_hh
 stores_loc <- store_costumer_ch[!is.nan(x_sales) & !is.na(x_sales)]
 
 chain.data <- stores.all[, .(chain = max(chain, na.rm = T)), by = c("store_code_uc")]
+chain.data[, chain := ifelse(is.infinite(chain), max(chain, na.rm = T) + .I, chain)] # Create fake chain number for unidentified stores
 stores_loc <- merge(stores_loc, chain.data, by = c("store_code_uc"), all.x = T)
   
   
@@ -210,7 +211,6 @@ stores_loc_data_trips <- as.matrix(stores_loc[, c("x_trips", "y_trips")])
 distances_sales <- geodist(stores_loc_data_sales)
 distances_trips <- geodist(stores_loc_data_trips)
 
-dim(stores_loc_data_sales)
 dim(distances_sales)
 
 # Check thresholds
@@ -222,6 +222,7 @@ distances_5_trips <- distances_trips <= 5000
 
 # Chain matrix: 1 if same chain
 chains <- as.vector(stores_loc[, c("chain")])
+length(chains)
 same_chain <- matrix(0, length(chains), length(chains))
 for (i in 1:length(chains)) {
   val.i <- chains[i]
