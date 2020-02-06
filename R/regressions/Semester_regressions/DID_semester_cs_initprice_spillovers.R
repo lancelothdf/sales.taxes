@@ -100,7 +100,7 @@ all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
 ## Divide samples: always tax-exempt, always taxable, change taxability and reduced rate ------
 all_pi[, tax_exempt := ln_sales_tax == 0]
-all_pi[, reduced_rate := ln_sales_tax != ln_statutory_tax & tax_exempt != 0]
+all_pi[, reduced_rate := (ln_sales_tax != ln_statutory_tax) - tax_exempt]
 all_pi[, T_tax_exempt := sum(tax_exempt), by = .(store_by_module)]
 all_pi[, T_reduced := sum(reduced_rate), by = .(store_by_module)]
 all_pi[, T_taxable := sum(1- tax_exempt - reduced_rate), by = .(store_by_module)]
