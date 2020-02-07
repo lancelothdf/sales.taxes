@@ -15,7 +15,7 @@ setwd("/project2/igaarder")
 ## input filepaths -----------------------------------------------
 #' This data is the same as all_goods_pi_path, except it has 2015-2016 data as well.
 data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
-data.taxes <- "Data/county_monthly_tax_rates_2008_2014.csv"
+data.taxability <- "Data/taxability_state_panel.csv"
 
 
 ## output filepaths ----------------------------------------------
@@ -23,7 +23,33 @@ results.file <- "Data/DiD_spillover_estimates_csinitprice_semester.csv"
 
 ## Open all data and compute statutory tax rate -----
 all_pi <- fread(data.semester)
+
+## Divide samples: just focus on always tax-exempt and always taxable  ------
+
+## Open Taxability panel
+taxability <- fread(data.taxability)
+# collapse to the semester
+taxability[, semester := ceiling(month/6)]
+taxability <- taxability[, .(taxability = mean(taxability),
+                             reduced_rate = mean(reduced_rate, na.rm = T)), 
+                         by = .(product_module_code, semester, year, fips_state)]
+taxability[, taxability := ifelse(!is.nan(reduced_rate), 2, taxability)]
+# Merge to our data
+all_pi <- merge(all_pi, taxability, by = c("year", "semester", "fips_state", "product_module_code"), all.x = T)
+
+# Identify always taxxable and always tax-exempt
+all_pi[, tax_exempt := taxability == 0]
+all_pi[, taxable := taxability == 1]
+all_pi[, T_tax_exempt := sum(tax_exempt), by = .(store_by_module)]
+all_pi[, T_taxable := sum(taxable), by = .(store_by_module)]
+all_pi[, T_total := .N, by = .(store_by_module)]
+
+all_pi[, all_taxable:= ifelse(T_taxable == T_total,1,0)]
+all_pi[, all_taxexempt:= ifelse(T_tax_exempt == T_total,1,0)]
+
+# Identify statutory tax rate
 all_pi[, ln_statutory_tax := max(ln_sales_tax, na.rm = T), by = .(fips_state, fips_county, year, semester)]
+all_pi[, ln_statutory_tax := ifelse(taxability == 1, ln_sales_tax, ln_statutory_tax)]
 
 ### Set up Semester Data ---------------------------------
 all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax), by = .(store_by_module)]
@@ -51,7 +77,7 @@ for (Td in LLs) {
   statu <- paste0(Td, ".ln_statutory_tax")
   
   all_pi[, (statu) := max(get(actual), na.rm = T), by = .(fips_state, fips_county, year, semester)]
-  
+  all_pi[, (statu) := ifelse(taxability == 1, get(actual), get(statu))]
 }
 
 
@@ -98,25 +124,12 @@ pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sa
 all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
 
-## Divide samples: always tax-exempt, always taxable, change taxability and reduced rate ------
-all_pi[, tax_exempt := ln_sales_tax == 0]
-all_pi[, reduced_rate := (ln_sales_tax != ln_statutory_tax) - tax_exempt]
-all_pi[, T_tax_exempt := sum(tax_exempt), by = .(store_by_module)]
-all_pi[, T_reduced := sum(reduced_rate), by = .(store_by_module)]
-all_pi[, T_taxable := sum(1- tax_exempt - reduced_rate), by = .(store_by_module)]
-all_pi[, T_total := .N, by = .(store_by_module)]
-
-all_pi[, all_taxable:= ifelse(T_taxable == T_total,1,0)]
-all_pi[, all_taxexempt:= ifelse(T_tax_exempt == T_total,1,0)]
-all_pi[, all_reduced:= ifelse(T_reduced == T_total,1,0)]
-all_pi[, change_taxab:= ifelse(T_tax_exempt != T_total & T_taxable != T_total & T_reduced != T_total, 1, 0)]
-
 
 ## Run estimations DiD -----------------
 
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 outcomes <- c("w.ln_cpricei2", "w.ln_quantity3")
-samples <- c("all_taxable", "all_taxexempt", "all_reduced", "change_taxab")
+samples <- c("all_taxable", "all_taxexempt")
 
 
 LRdiff_res <- data.table(NULL)
