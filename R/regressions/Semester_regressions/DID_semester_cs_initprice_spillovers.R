@@ -299,18 +299,18 @@ for (sam in samples) {
       fwrite(LRdiff_res, results.file)
       
       
-      ##### Add the cumulative effect at each lead/lag (relative to -1)
-      cumul.lead1.est <- 0
-      cumul.lead1.se <- NA
-      cumul.lead1.pval <- NA
+      ##### Add the cumulative effect at each lead/lag (relative to -2)
+      cumul.lead2.est <- 0
+      cumul.lead2.se <- NA
+      cumul.lead2.pval <- NA
       
-      #cumul.lead2.est is just equal to minus the change between -2 and -1
-      cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_statutory_tax", "Estimate"]
-      cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_statutory_tax", "Cluster s.e."]
-      cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_statutory_tax", "Pr(>|t|)"]
+      #cumul.lead3.est is just equal to minus the change between -3 and -2
+      cumul.lead3.est <- - coef(summary(res1))[ "F2.D.ln_statutory_tax", "Estimate"]
+      cumul.lead3.se <- coef(summary(res1))[ "F2.D.ln_statutory_tax", "Cluster s.e."]
+      cumul.lead3.pval <- coef(summary(res1))[ "F2.D.ln_statutory_tax", "Pr(>|t|)"]
       
       ##LEADS
-      for(j in 3:5) {
+      for(j in 4:5) {
         
         ## Create a name for estimate, se and pval of each lead
         cumul.test.est.name <- paste("cumul.lead", j, ".est", sep = "")
@@ -318,7 +318,7 @@ for (sam in samples) {
         cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
         
         ## Create the formula to compute cumulative estimate at each lead/lag
-        cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_statutory_tax"), collapse = " - "))
+        cumul.test.form <- paste0("-", paste(paste0("F", (j-1):2, ".D.ln_statutory_tax"), collapse = " - "))
         cumul.test.form <- paste(cumul.test.form, " = 0")
         
         ## Compute estimate and store in variables names
@@ -330,11 +330,21 @@ for (sam in samples) {
       }
       
       
+      ##First lead
+      ## First lead --> Effect = coefficient on F1.D.ln_statutory_tax
+      cumul.lead1.est <- coef(summary(res1))[ "F1.D.ln_statutory_tax", "Estimate"]
+      cumul.lead1.se <- coef(summary(res1))[ "F1.D.ln_statutory_tax", "Cluster s.e."]
+      cumul.lead1.pval <- coef(summary(res1))[ "F1.D.ln_statutory_tax", "Pr(>|t|)"]
+
       ##LAGS
-      ## On Impact --> Effect = coefficient on D.ln_sales_tax
-      cumul.lag0.est <- coef(summary(res1))[ "D.ln_statutory_tax", "Estimate"]
-      cumul.lag0.se <- coef(summary(res1))[ "D.ln_statutory_tax", "Cluster s.e."]
-      cumul.lag0.pval <- coef(summary(res1))[ "D.ln_statutory_tax", "Pr(>|t|)"]
+      ## On Impact --> Effect = coefficient on D.ln_statutory_tax + F1.D.ln_statutory_tax
+      cumul.test.form <- "F1.D.ln_statutory_tax + D.ln_statutory_tax = 0"
+      
+      ## Compute estimate and store in variables names
+      cumul.test <- glht(res1, linfct = cumul.test.form)
+      cumul.lag0.est <- coef(summary(cumul.test))[[1]]
+      cumul.lag0.se <- sqrt(vcov(summary(cumul.test)))[[1]]
+      cumul.lag0.pval <- 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]])))
       
       for(j in 1:4) {
         
@@ -344,7 +354,7 @@ for (sam in samples) {
         cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
         
         ## Create the formula to compute cumulative estimate at each lead/lag
-        cumul.test.form <- paste("D.ln_statutory_tax + ", paste(paste0("L", 1:j, ".D.ln_statutory_tax"), collapse = " + "), sep = "")
+        cumul.test.form <- paste("F1.D.ln_statutory_tax + D.ln_statutory_tax + ", paste(paste0("L", 1:j, ".D.ln_statutory_tax"), collapse = " + "), sep = "")
         cumul.test.form <- paste(cumul.test.form, " = 0")
         
         ## Compute estimate and store in variables names
@@ -399,7 +409,7 @@ lag.lp.restr <- paste(lag.vars, "+ d.D.ln_statutory_tax = 0")
 total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ d.D.ln_statutory_tax = 0")
 
 
-## FE vary across samples
+## FE constant across samples
 for (sam in samples) {
   all_pi[, sample := get(sam)]
   sample <- all_pi[sample == 1]
