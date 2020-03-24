@@ -16,6 +16,10 @@ setwd("/project2/igaarder")
 #' This data is the same as all_goods_pi_path, except it has 2015-2016 data as well.
 data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
 data.taxability <- "Data/taxability_state_panel.csv"
+zillow_path <- "Data/covariates/zillow_long_by_county_clean.csv"
+zillow_state_path <- "Data/covariates/zillow_long_by_state_clean.csv"
+unemp.path <- "Data/covariates/county_monthly_unemp_clean.csv"
+wage.path <- "Data/covariates/qcew_quarterly_clean.csv"
 
 
 ## output filepaths ----------------------------------------------
@@ -206,25 +210,15 @@ pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sa
 all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
 
-
-## Run estimations DiD -----------------
-
-FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
-outcomes <- c("D.ln_cpricei2", "D.ln_quantity3")
-samples <- c("all_taxable", "all_taxexempt")
-
-
-LRdiff_res <- data.table(NULL)
-
-
 ## Run Distributed Lag Model estimations  --------------
 
 formula_lags <- paste0("L", 1:4, ".D.ln_statutory_tax", collapse = "+")
 formula_leads <- paste0("F", 1:4, ".D.ln_statutory_tax", collapse = "+")
 formula_RHS <- paste0("D.ln_statutory_tax + ", formula_lags, "+", formula_leads)
 
-outcomes <- c("D.ln_cpricei2",  "D.ln_quantity3")
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
+outcomes <- c("D.ln_cpricei2", "D.ln_quantity3")
+samples <- c("all_taxable", "all_taxexempt")
 
 
 ## for linear hypothesis tests
@@ -235,6 +229,7 @@ lag.lp.restr <- paste(lag.vars, "+ D.ln_statutory_tax = 0")
 total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_statutory_tax = 0")
 
 
+LRdiff_res <- data.table(NULL)
 ## FE vary across samples
 for (sam in samples) {
   all_pi[, sample := get(sam)]
