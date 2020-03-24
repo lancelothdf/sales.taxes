@@ -38,6 +38,6 @@ taxability[, taxability := ifelse(!is.nan(reduced_rate), 2, taxability)]
 all_pi <- merge(all_pi, taxability, by = c("year", "semester", "fips_state", "product_module_code"), all.x = T)
 
 # Collapse Sales
-all_pi <- all_pi[, .(sales = sum(exp(ln_quantity3 + ln_cprice2))), by = .(year, semester, fips_state, taxability)]
+all_pi <- all_pi[, .(sales = sum(exp(ln_quantity3 + ln_cpricei2))), by = .(year, semester, fips_state, taxability)]
 
 fwrite(all_pi, results)
