@@ -24,6 +24,116 @@ results.file <- "Data/DiD_spillover_estimates_csinitprice_semester.csv"
 ## Open all data and compute statutory tax rate -----
 all_pi <- fread(data.semester)
 
+all_counties <- unique(all_pi[, .(fips_state, fips_county)])
+county_skeleton <- data.table(NULL)
+for (X in 2006:2016) {
+  for (Y in 1:12) {
+    all_counties[, year := X]
+    all_counties[, month := Y]
+    county_skeleton <- rbind(county_skeleton, all_counties)
+  }
+}
+
+## prep house price data
+zillow_dt <- fread(zillow_path)
+zillow_dt <- zillow_dt[between(year, 2006, 2016)]
+zillow_dt <- zillow_dt[, .(fips_state, fips_county, median_home_price, year, month)]
+zillow_dt <- merge(county_skeleton, zillow_dt, all.x = T,
+                   by = c("fips_state", "fips_county", "year", "month"))
+
+## prep state-level house prices (for when county-level is missing)
+zillow_state_dt <- fread(zillow_state_path)
+zillow_state_dt <- zillow_state_dt[between(year, 2006, 2016)]
+zillow_state_dt <- zillow_state_dt[, .(fips_state, median_home_price, year, month)]
+setnames(zillow_state_dt, "median_home_price", "state_median_home_price")
+zillow_state_dt$month <- as.integer(round(zillow_state_dt$month))
+
+zillow_dt <- merge(zillow_dt, zillow_state_dt, all.x = T,
+                   by = c("fips_state", "year", "month"))
+zillow_dt[is.na(median_home_price), median_home_price := state_median_home_price]
+zillow_dt[, state_median_home_price := NULL]
+
+
+## collapse to semesters
+zillow_dt <- zillow_dt[, semester := ceiling((month/12)*2)]
+zillow_dt <- zillow_dt[, list(ln_home_price = log(mean(median_home_price))),
+                       by = .(year, semester, fips_state, fips_county)]
+
+##
+
+
+### Unemployment data
+unemp.data <- fread(unemp.path)
+unemp.data <- unemp.data[, c("fips_state", "fips_county", "year", "month", "rate")]
+unemp.data <- unemp.data[, semester := ceiling((month/12)*2)]
+unemp.data <- unemp.data[, list(unemp = mean(rate)), by = .(year, semester, fips_state, fips_county)]
+unemp.data <- unemp.data[year >= 2006 & year <= 2016,]
+unemp.data <- unemp.data[, ln_unemp := log(unemp)]
+
+##
+zillow_dt <- merge(zillow_dt, unemp.data, by = c("fips_state", "fips_county", "year", "semester"), all.x = T)
+rm(unemp.data)
+
+
+
+### Wage data
+wage.data <- fread(wage.path)
+wage.data <- wage.data[, c("fips_state", "fips_county", "year", "quarter", "total_mean_wage", "total_employment")]
+wage.data <- wage.data[year >= 2006 & year <= 2016,]
+wage.data <- wage.data[, semester := ceiling(quarter/2)]
+wage.data <- wage.data[, list(total_mean_wage = weighted.mean(total_mean_wage, w = total_employment)), by = .(year, semester, fips_state, fips_county)]
+wage.data[, ln_wage := log(total_mean_wage)]
+wage.data <- wage.data[, c("fips_state", "fips_county", "year", "semester", "ln_wage")]
+
+##
+zillow_dt <- merge(zillow_dt, wage.data, by = c("fips_state", "fips_county", "year", "semester"), all.x = T)
+rm(wage.data)
+
+### Balance the sample
+zillow_dt <- zillow_dt[!is.na(ln_wage) & !is.na(ln_unemp) & !is.na(ln_home_price)]
+
+
+keep_counties <- zillow_dt[, list(n = .N),
+                           by = .(fips_state, fips_county)]
+keep_counties <- keep_counties[n == (2016 - 2005) * 2]
+
+setkey(zillow_dt, fips_state, fips_county)
+setkey(keep_counties, fips_state, fips_county)
+
+zillow_dt <- zillow_dt[keep_counties]
+setkey(zillow_dt, fips_state, fips_county, year, semester)
+
+### Difference the econ data + leads and lags
+zillow_dt <- zillow_dt[order(fips_state, fips_county, year, semester),]
+
+zillow_dt[, D.ln_home_price := ln_home_price - shift(ln_home_price, n=1, type="lag"),
+          by = .(fips_state, fips_county)]
+
+zillow_dt[, D.ln_unemp := ln_unemp - shift(ln_unemp, n=1, type="lag"),
+          by = .(fips_state, fips_county)]
+
+zillow_dt[, D.ln_wage := ln_wage - shift(ln_wage, n=1, type="lag"),
+          by = .(fips_state, fips_county)]
+
+## generate lags
+for (lag.val in 1:4) {
+  lag.X <- paste0("L", lag.val, ".D.ln_home_price")
+  zillow_dt[, (lag.X) := shift(D.ln_home_price, n=lag.val, type="lag"),
+            by = .(fips_state, fips_county)]
+  
+  lag.X <- paste0("L", lag.val, ".D.ln_unemp")
+  zillow_dt[, (lag.X) := shift(D.ln_unemp, n=lag.val, type="lag"),
+            by = .(fips_state, fips_county)]
+  
+  lag.X <- paste0("L", lag.val, ".D.ln_wage")
+  zillow_dt[, (lag.X) := shift(D.ln_wage, n=lag.val, type="lag"),
+            by = .(fips_state, fips_county)]
+  
+}
+### Merge econ data to price and quantity data then run estimations
+all_pi <- merge(all_pi, zillow_dt, by = c("fips_state", "fips_county", "year", "semester"))
+
+
 ## Divide samples: just focus on always tax-exempt and always taxable  ------
 
 ## Open Taxability panel
@@ -50,24 +160,6 @@ all_pi[, all_taxexempt:= ifelse(T_tax_exempt == T_total,1,0)]
 # Identify statutory tax rate
 all_pi[, ln_statutory_tax := max(ln_sales_tax, na.rm = T), by = .(fips_state, fips_county, year, semester)]
 all_pi[, ln_statutory_tax := ifelse(taxability == 1, ln_sales_tax, ln_statutory_tax)]
-
-### Set up Semester Data ---------------------------------
-all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax), by = .(store_by_module)]
-all_pi[, w.ln_statutory_tax := ln_statutory_tax - mean(ln_statutory_tax), by = .(store_by_module)]
-all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2), by = .(store_by_module)]
-all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3), by = .(store_by_module)]
-
-# Try double demeaning
-all_pi[, mi.ln_statutory_tax := mean(ln_statutory_tax), by = .(store_by_module)]
-all_pi[, mi.ln_cpricei2 := mean(ln_cpricei2), by = .(store_by_module)]
-all_pi[, mi.ln_quantity3 := mean(ln_quantity3), by = .(store_by_module)]
-all_pi[, mfe.ln_statutory_tax := weighted.mean(ln_statutory_tax, w = base.sales), by = .(division_by_module_by_time)]
-all_pi[, mfe.ln_cpricei2 := weighted.mean(ln_cpricei2, w = base.sales), by = .(division_by_module_by_time)]
-all_pi[, mfe.ln_quantity3 := weighted.mean(ln_quantity3, w = base.sales), by = .(division_by_module_by_time)]
-all_pi[, dd.ln_statutory_tax := ln_statutory_tax - mi.ln_statutory_tax - mfe.ln_statutory_tax + weighted.mean(ln_statutory_tax, w = base.sales)]
-all_pi[, dd.ln_cpricei2 := ln_cpricei2 - mi.ln_cpricei2 - mfe.ln_cpricei2 + weighted.mean(ln_cpricei2, w = base.sales)]
-all_pi[, dd.ln_quantity3 := ln_quantity3 - mi.ln_quantity3 - mfe.ln_quantity3 + weighted.mean(ln_quantity3, w = base.sales)]
-
 
 ## Create statutory leads and lags
 LLs <- c(paste0("L", 1:4, ".D"), paste0("F", 1:4, ".D"), "D")
