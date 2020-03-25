@@ -159,9 +159,6 @@ all_pi[, dm.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = m
 
 
 
-### Merge econ data to price and quantity data then run estimations
-all_pi <- merge(all_pi, zillow_dt, by = c("fips_state", "fips_county", "year", "semester"))
-
 
 # Defining common support
 control <- all_pi[D.ln_sales_tax == 0,]
@@ -186,6 +183,11 @@ all_pi <- all_pi[cs_price == 1,]
 pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sales)
 pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
 all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
+
+
+### Merge econ data to price and quantity data then run estimations
+all_pi_econ <- merge(all_pi, zillow_dt, by = c("fips_state", "fips_county", "year", "semester"))
+
 
 
 ## Setting up loop to estimate
@@ -226,8 +228,8 @@ for (Y in c(outcomes)) {
           Y, "~", formula_RHS, " + ", lag.econ, "| ", FE, " | 0 | module_by_state"
         ))
         flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
-        res1 <- felm(formula = formula1, data = all_pi,
-                     weights = all_pi$base.sales)
+        res1 <- felm(formula = formula1, data = all_pi_econ,
+                     weights = all_pi_econ$base.sales)
         flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
     
       } else {
@@ -251,13 +253,28 @@ for (Y in c(outcomes)) {
       res1.dt[, Rsq := summary(res1)$r.squared]
       res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
       # Add summary values
-      res1.dt[, N_obs := nrow(all_pi)]
-      res1.dt[, N_modules := length(unique(all_pi$product_module_code))]
-      res1.dt[, N_stores :=  length(unique(all_pi$store_code_uc))]
-      res1.dt[, N_counties := uniqueN(all_pi, by = c("fips_state", "fips_county"))]
-      res1.dt[, N_years := uniqueN(all_pi, by = c("year"))]
-      res1.dt[, N_county_modules := uniqueN(all_pi, by = c("fips_state", "fips_county",
-                                                              "product_module_code"))]
+      if (i > 0) {
+        res1.dt[, N_obs := nrow(all_pi_econ)]
+        res1.dt[, N_modules := length(unique(all_pi_econ$product_module_code))]
+        res1.dt[, N_stores :=  length(unique(all_pi_econ$store_code_uc))]
+        res1.dt[, N_counties := uniqueN(all_pi_econ, by = c("fips_state", "fips_county"))]
+        res1.dt[, N_years := uniqueN(all_pi_econ, by = c("year"))]
+        res1.dt[, N_county_modules := uniqueN(all_pi_econ, by = c("fips_state", "fips_county",
+                                                             "product_module_code"))]
+        
+      } else {
+        
+        res1.dt[, N_obs := nrow(all_pi)]
+        res1.dt[, N_modules := length(unique(all_pi$product_module_code))]
+        res1.dt[, N_stores :=  length(unique(all_pi$store_code_uc))]
+        res1.dt[, N_counties := uniqueN(all_pi, by = c("fips_state", "fips_county"))]
+        res1.dt[, N_years := uniqueN(all_pi, by = c("year"))]
+        res1.dt[, N_county_modules := uniqueN(all_pi, by = c("fips_state", "fips_county",
+                                                             "product_module_code"))]
+        
+      }
+      
+      
       
       LRdiff_res <- rbind(LRdiff_res, res1.dt)
       fwrite(LRdiff_res, output.results.file)

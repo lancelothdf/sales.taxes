@@ -23,7 +23,7 @@ wage.path <- "Data/covariates/qcew_quarterly_clean.csv"
 
 
 ## output filepaths ----------------------------------------------
-results.file <- "Data/DiD_spillover_estimates_csinitprice_semester.csv"
+results.file <- "Data/DiD_spillover_estimates_csinitprice_semester_1.csv"
 
 ## Open all data and compute statutory tax rate -----
 all_pi <- fread(data.semester)
@@ -134,8 +134,6 @@ for (lag.val in 1:4) {
             by = .(fips_state, fips_county)]
   
 }
-### Merge econ data to price and quantity data then run estimations
-all_pi <- merge(all_pi, zillow_dt, by = c("fips_state", "fips_county", "year", "semester"))
 
 
 ## Divide samples: just focus on always tax-exempt and always taxable  ------
@@ -209,6 +207,8 @@ pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sal
 pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
 all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
+### Merge econ data to price and quantity data then run estimations
+all_pi_econ <- merge(all_pi, zillow_dt, by = c("fips_state", "fips_county", "year", "semester"))
 
 ## Run Distributed Lag Model estimations  --------------
 
@@ -233,7 +233,7 @@ LRdiff_res <- data.table(NULL)
 ## FE vary across samples
 for (sam in samples) {
   all_pi[, sample := get(sam)]
-  sample <- all_pi[sample == 1]
+  all_pi_econ[, sample := get(sam)]
   for (Y in c(outcomes)) {
     for (FE in FE_opts) {
       
@@ -241,6 +241,7 @@ for (sam in samples) {
         
         if (i>0) {
           
+          sample <- all_pi_econ[sample == 1]
           # Create list of economic controls  
           lag.home <- paste(paste0("L", i:1, ".D.ln_home_price"), collapse = " + ")
           lag.unemp <- paste(paste0("L", i:1, ".D.ln_unemp"), collapse = " + ")
@@ -260,6 +261,7 @@ for (sam in samples) {
           
         } else {
           
+          sample <- all_pi[sample == 1]
           formula1 <- as.formula(paste0(
             Y, "~", formula_RHS, "| ", FE, " | 0 | module_by_state"
           ))
