@@ -319,7 +319,7 @@ for (sam in samples) {
           outcome = Y,
           controls = FE,
           sample = sam,
-          spec = "DLM FE vary")
+          econ = i)
         lp.dt$N_obs <- nrow(sample)
         lp.dt$N_stores <- uniqueN(sample, by = c("store_code_uc") )
         lp.dt$N_modules <- length(unique(sample$product_module_code))
@@ -410,7 +410,7 @@ for (sam in samples) {
           outcome = Y,
           controls = FE,
           sample = sam,
-          spec = "DLM FE vary")
+          econ = i)
         lp.dt$N_obs <- nrow(sample)
         lp.dt$N_stores <- uniqueN(sample, by = c("store_code_uc") )
         lp.dt$N_modules <- length(unique(sample$product_module_code))

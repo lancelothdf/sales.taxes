@@ -19,6 +19,10 @@ old_pi_path <- "Data/Nielsen/Quarterly_old_pi.csv"
 #' This data is the same as all_goods_pi_path, except it has 2015-2016 data as well.
 data.full.path <- "Data/Nielsen/semester_nielsen_data.csv"
 
+zillow_path <- "Data/covariates/zillow_long_by_county_clean.csv"
+zillow_state_path <- "Data/covariates/zillow_long_by_state_clean.csv"
+unemp.path <- "Data/covariates/county_monthly_unemp_clean.csv"
+wage.path <- "Data/covariates/qcew_quarterly_clean.csv"
 
 
 
@@ -29,6 +33,117 @@ output.results.file <- "Data/LRdiff_semesterly_main_commonsupport.csv"
 
 ##### 
 all_pi <- fread(data.full.path)
+
+#### Prep the unemployment, house price data and quarterly wage data
+### Start with house prices
+# First build a frame to make sure we can assign every county a home price
+all_counties <- unique(all_pi[, .(fips_state, fips_county)])
+county_skeleton <- data.table(NULL)
+for (X in 2006:2016) {
+  for (Y in 1:12) {
+    all_counties[, year := X]
+    all_counties[, month := Y]
+    county_skeleton <- rbind(county_skeleton, all_counties)
+  }
+}
+
+## prep house price data
+zillow_dt <- fread(zillow_path)
+zillow_dt <- zillow_dt[between(year, 2006, 2016)]
+zillow_dt <- zillow_dt[, .(fips_state, fips_county, median_home_price, year, month)]
+zillow_dt <- merge(county_skeleton, zillow_dt, all.x = T,
+                   by = c("fips_state", "fips_county", "year", "month"))
+
+## prep state-level house prices (for when county-level is missing)
+zillow_state_dt <- fread(zillow_state_path)
+zillow_state_dt <- zillow_state_dt[between(year, 2006, 2016)]
+zillow_state_dt <- zillow_state_dt[, .(fips_state, median_home_price, year, month)]
+setnames(zillow_state_dt, "median_home_price", "state_median_home_price")
+zillow_state_dt$month <- as.integer(round(zillow_state_dt$month))
+
+zillow_dt <- merge(zillow_dt, zillow_state_dt, all.x = T,
+                   by = c("fips_state", "year", "month"))
+zillow_dt[is.na(median_home_price), median_home_price := state_median_home_price]
+zillow_dt[, state_median_home_price := NULL]
+
+
+## collapse to semesters
+zillow_dt <- zillow_dt[, semester := ceiling((month/12)*2)]
+zillow_dt <- zillow_dt[, list(ln_home_price = log(mean(median_home_price))),
+                       by = .(year, semester, fips_state, fips_county)]
+
+##
+
+
+### Unemployment data
+unemp.data <- fread(unemp.path)
+unemp.data <- unemp.data[, c("fips_state", "fips_county", "year", "month", "rate")]
+unemp.data <- unemp.data[, semester := ceiling((month/12)*2)]
+unemp.data <- unemp.data[, list(unemp = mean(rate)), by = .(year, semester, fips_state, fips_county)]
+unemp.data <- unemp.data[year >= 2006 & year <= 2016,]
+unemp.data <- unemp.data[, ln_unemp := log(unemp)]
+
+##
+zillow_dt <- merge(zillow_dt, unemp.data, by = c("fips_state", "fips_county", "year", "semester"), all.x = T)
+rm(unemp.data)
+
+
+
+### Wage data
+wage.data <- fread(wage.path)
+wage.data <- wage.data[, c("fips_state", "fips_county", "year", "quarter", "total_mean_wage", "total_employment")]
+wage.data <- wage.data[year >= 2006 & year <= 2016,]
+wage.data <- wage.data[, semester := ceiling(quarter/2)]
+wage.data <- wage.data[, list(total_mean_wage = weighted.mean(total_mean_wage, w = total_employment)), by = .(year, semester, fips_state, fips_county)]
+wage.data[, ln_wage := log(total_mean_wage)]
+wage.data <- wage.data[, c("fips_state", "fips_county", "year", "semester", "ln_wage")]
+
+##
+zillow_dt <- merge(zillow_dt, wage.data, by = c("fips_state", "fips_county", "year", "semester"), all.x = T)
+rm(wage.data)
+
+### Balance the sample
+zillow_dt <- zillow_dt[!is.na(ln_wage) & !is.na(ln_unemp) & !is.na(ln_home_price)]
+
+
+keep_counties <- zillow_dt[, list(n = .N),
+                           by = .(fips_state, fips_county)]
+keep_counties <- keep_counties[n == (2016 - 2005) * 2]
+
+setkey(zillow_dt, fips_state, fips_county)
+setkey(keep_counties, fips_state, fips_county)
+
+zillow_dt <- zillow_dt[keep_counties]
+setkey(zillow_dt, fips_state, fips_county, year, semester)
+
+### Difference the econ data + leads and lags
+zillow_dt <- zillow_dt[order(fips_state, fips_county, year, semester),]
+
+zillow_dt[, D.ln_home_price := ln_home_price - shift(ln_home_price, n=1, type="lag"),
+          by = .(fips_state, fips_county)]
+
+zillow_dt[, D.ln_unemp := ln_unemp - shift(ln_unemp, n=1, type="lag"),
+          by = .(fips_state, fips_county)]
+
+zillow_dt[, D.ln_wage := ln_wage - shift(ln_wage, n=1, type="lag"),
+          by = .(fips_state, fips_county)]
+
+## generate lags
+for (lag.val in 1:4) {
+  lag.X <- paste0("L", lag.val, ".D.ln_home_price")
+  zillow_dt[, (lag.X) := shift(D.ln_home_price, n=lag.val, type="lag"),
+            by = .(fips_state, fips_county)]
+  
+  lag.X <- paste0("L", lag.val, ".D.ln_unemp")
+  zillow_dt[, (lag.X) := shift(D.ln_unemp, n=lag.val, type="lag"),
+            by = .(fips_state, fips_county)]
+  
+  lag.X <- paste0("L", lag.val, ".D.ln_wage")
+  zillow_dt[, (lag.X) := shift(D.ln_wage, n=lag.val, type="lag"),
+            by = .(fips_state, fips_county)]
+  
+}
+
 
 
 # Create lagged value (initial)
@@ -41,35 +156,35 @@ all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by 
 
 
 
+
+### Merge econ data to price and quantity data then run estimations
+all_pi <- merge(all_pi, zillow_dt, by = c("fips_state", "fips_county", "year", "semester"))
+
+
 # Defining common support
 control <- all_pi[D.ln_sales_tax == 0,]
 treated <- all_pi[D.ln_sales_tax != 0,]
 
-# Tax rate
-pct1.control <- quantile(control$L.ln_sales_tax, probs = 0.01, na.rm = T, weight=all_pi$base.sales)
-pct1.treated <- quantile(treated$L.ln_sales_tax, probs = 0.01, na.rm = T, weight=all_pi$base.sales)
+# Price 
+pct1.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=control$base.sales)
+pct1.treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=treated$base.sales)
 
-pct99.control <- quantile(control$L.ln_sales_tax, probs = 0.99, na.rm = T, weight=all_pi$base.sales)
-pct99treated <- quantile(treated$L.ln_sales_tax, probs = 0.99, na.rm = T, weight=all_pi$base.sales)
-
-all_pi[, cs_tax := ifelse(L.ln_sales_tax > max(pct1.treated, pct1.control) & 
-                            L.ln_sales_tax < min(pct99treated, pct99.control), 1, 0)]
-# Make sure missings are 0s
-all_pi[, cs_tax := ifelse(is.na(L.ln_sales_tax), 0, cs_tax)]
-
-
-
-# Price: 
-pct1.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=all_pi$base.sales)
-pct1.treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=all_pi$base.sales)
-
-pct99.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=all_pi$base.sales)
-pct99treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=all_pi$base.sales)
+pct99.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=control$base.sales)
+pct99treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=treated$base.sales)
 
 all_pi[, cs_price := ifelse(dm.L.ln_cpricei2 > max(pct1.treated, pct1.control) & 
                               dm.L.ln_cpricei2 < min(pct99treated, pct99.control), 1, 0)]
 # Make sure missings are 0s
 all_pi[, cs_price := ifelse(is.na(dm.L.ln_cpricei2), 0, cs_price)]
+
+## Keep within the common support
+all_pi <- all_pi[cs_price == 1,]
+
+## cut the tails (keep between 1st and 99th percentile)
+pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sales)
+pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
+all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
+
 
 ## Setting up loop to estimate
 
@@ -78,10 +193,8 @@ formula_leads <- paste0("F", 1:4, ".D.ln_sales_tax", collapse = "+")
 formula_RHS <- paste0("D.ln_sales_tax + ", formula_lags, "+", formula_leads)
 
 
-outcomes <- c("D.ln_cpricei", "D.ln_cpricei2", "D.ln_quantity", "D.ln_quantity2", "D.ln_quantity3", "D.ln_UPC", "D.ln_raw_quant")
+outcomes <- c("D.ln_cpricei", "D.ln_cpricei2", "D.ln_quantity", "D.ln_quantity2", "D.ln_quantity3")
 FE_opts <- c("module_by_time", "region_by_module_by_time", "division_by_module_by_time")
-common.supports <- c("cs_price", "cs_tax")
-
 
 ## for linear hypothesis tests
 lead.vars <- paste(paste0("F", 4:1, ".D.ln_sales_tax"), collapse = " + ")
@@ -95,24 +208,38 @@ total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 ## No Econ controls (but we run the placebos)
 LRdiff_res <- data.table(NULL)
 
-
-## Start loop
-
-for (cs in common.supports) {
-  
-  all_pi_cs <- all_pi[get(cs) == 1,]
-  for (Y in c(outcomes)) {
-    for (FE in FE_opts) {
-  
-      formula1 <- as.formula(paste0(
-        Y, "~", formula_RHS, "| ", FE, " | 0 | module_by_state"
-      ))
-      flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
-      res1 <- felm(formula = formula1, data = all_pi_cs,
-                   weights = all_pi_cs$base.sales)
-      flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
-  
-  
+for (Y in c(outcomes)) {
+  for (FE in FE_opts) {
+    for(i in 0:4) {
+      
+      if (i > 0) {
+        # Create list of economic controls  
+        lag.home <- paste(paste0("L", i:1, ".D.ln_home_price"), collapse = " + ")
+        lag.unemp <- paste(paste0("L", i:1, ".D.ln_unemp"), collapse = " + ")
+        lag.wage <- paste(paste0("L", i:1, ".D.ln_wage"), collapse = " + ")
+        lag.econ <- paste(lag.home, lag.unemp, lag.wage, sep = " + ")
+        
+        
+        formula1 <- as.formula(paste0(
+          Y, "~", formula_RHS, " + ", lag.econ, "| ", FE, " | 0 | module_by_state"
+        ))
+        flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
+        res1 <- felm(formula = formula1, data = all_pi,
+                     weights = all_pi$base.sales)
+        flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
+    
+      } else {
+        
+        formula1 <- as.formula(paste0(
+          Y, "~", formula_RHS, "| ", FE, " | 0 | module_by_state"
+        ))
+        flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
+        res1 <- felm(formula = formula1, data = all_pi,
+                     weights = all_pi$base.sales)
+        flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
+        
+      }
+      
       ## attach results
       flog.info("Writing results...")
       res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
@@ -142,21 +269,21 @@ for (cs in common.supports) {
       lead.test.est <- coef(summary(lead.test))[[1]]
       lead.test.se <- sqrt(vcov(summary(lead.test)))[[1]]
       lead.test.pval <- 2*(1 - pnorm(abs(lead.test.est/lead.test.se)))
-  
+      
       ## sum lags
       flog.info("Summing lags...")
       lag.test <- glht(res1, linfct = lag.lp.restr)
       lag.test.est <- coef(summary(lag.test))[[1]]
       lag.test.se <- sqrt(vcov(summary(lag.test)))[[1]]
       lag.test.pval <- 2*(1 - pnorm(abs(lag.test.est/lag.test.se)))
-  
+      
       ## sum all
       flog.info("Summing all...")
       total.test <- glht(res1, linfct = total.lp.restr)
       total.test.est <- coef(summary(total.test))[[1]]
       total.test.se <- sqrt(vcov(summary(total.test)))[[1]]
       total.test.pval <- 2*(1 - pnorm(abs(total.test.est/total.test.se)))
-  
+      
       ## linear hypothesis results
       lp.dt <- data.table(
         rn = c("Pre.D.ln_sales_tax", "Post.D.ln_sales_tax", "All.D.ln_sales_tax"),
@@ -165,71 +292,81 @@ for (cs in common.supports) {
         `Pr(>|t|)` = c(lead.test.pval, lag.test.pval, total.test.pval),
         outcome = Y,
         controls = FE,
-        econ = "none",
-        support = cs,
+        econ = i,
         Rsq = summary(res1)$r.squared,
         adj.Rsq = summary(res1)$adj.r.squared)
       LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
       fwrite(LRdiff_res, output.results.file)
-  
-  
-      ##### Add the cumulative effect at each lead/lag (relative to -1)
-      cumul.lead1.est <- 0
-      cumul.lead1.se <- NA
-      cumul.lead1.pval <- NA
       
-      #cumul.lead2.est is just equal to minus the change between -2 and -1
-      cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_sales_tax", "Estimate"]
-      cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Cluster s.e."]
-      cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Pr(>|t|)"]
+      
+      ##### Add the cumulative effect at each lead/lag (relative to -2)
+      cumul.lead2.est <- 0
+      cumul.lead2.se <- NA
+      cumul.lead2.pval <- NA
+      
+      #cumul.lead3.est is just equal to minus the change between -3 and -2
+      cumul.lead3.est <- - coef(summary(res1))[ "F2.D.ln_sales_tax", "Estimate"]
+      cumul.lead3.se <- coef(summary(res1))[ "F2.D.ln_sales_tax", "Cluster s.e."]
+      cumul.lead3.pval <- coef(summary(res1))[ "F2.D.ln_sales_tax", "Pr(>|t|)"]
       
       ##LEADS
-      for(j in 3:5) {
-  
+      for(j in 4:5) {
+        
         ## Create a name for estimate, se and pval of each lead
         cumul.test.est.name <- paste("cumul.lead", j, ".est", sep = "")
         cumul.test.se.name <- paste("cumul.lead", j, ".se", sep = "")
         cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
-  
+        
         ## Create the formula to compute cumulative estimate at each lead/lag
-        cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_sales_tax"), collapse = " - "))
+        cumul.test.form <- paste0("-", paste(paste0("F", (j-1):2, ".D.ln_sales_tax"), collapse = " - "))
         cumul.test.form <- paste(cumul.test.form, " = 0")
-  
+        
         ## Compute estimate and store in variables names
         cumul.test <- glht(res1, linfct = cumul.test.form)
-  
+        
         assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
         assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
         assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
       }
-  
-  
+      
+      
+      ##First lead
+      ## First lead --> Effect = coefficient on F1.D.ln_sales_tax
+      cumul.lead1.est <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Estimate"]
+      cumul.lead1.se <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Cluster s.e."]
+      cumul.lead1.pval <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Pr(>|t|)"]
+      
       ##LAGS
-      ## On Impact --> Effect = coefficient on D.ln_sales_tax
-      cumul.lag0.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
-      cumul.lag0.se <- coef(summary(res1))[ "D.ln_sales_tax", "Cluster s.e."]
-      cumul.lag0.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
-  
+      ## On Impact --> Effect = coefficient on D.ln_sales_tax + F1.D.ln_sales_tax
+      cumul.test.form <- "F1.D.ln_sales_tax + D.ln_sales_tax = 0"
+      
+      ## Compute estimate and store in variables names
+      cumul.test <- glht(res1, linfct = cumul.test.form)
+      cumul.lag0.est <- coef(summary(cumul.test))[[1]]
+      cumul.lag0.se <- sqrt(vcov(summary(cumul.test)))[[1]]
+      cumul.lag0.pval <- 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]])))
+      
+      
       for(j in 1:4) {
-  
+        
         ## Create a name for estimate, se and pval of each lead
         cumul.test.est.name <- paste("cumul.lag", j, ".est", sep = "")
         cumul.test.se.name <- paste("cumul.lag", j, ".se", sep = "")
         cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
-  
+        
         ## Create the formula to compute cumulative estimate at each lead/lag
-        cumul.test.form <- paste("D.ln_sales_tax + ", paste(paste0("L", 1:j, ".D.ln_sales_tax"), collapse = " + "), sep = "")
+        cumul.test.form <- paste("F1.D.ln_sales_tax + D.ln_sales_tax + ", paste(paste0("L", 1:j, ".D.ln_sales_tax"), collapse = " + "), sep = "")
         cumul.test.form <- paste(cumul.test.form, " = 0")
-  
+        
         ## Compute estimate and store in variables names
         cumul.test <- glht(res1, linfct = cumul.test.form)
-  
+        
         assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
         assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
         assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
       }
-  
-  
+      
+      
       ## linear hypothesis results
       lp.dt <- data.table(
         rn = c("cumul.lead5.D.ln_sales_tax", "cumul.lead4.D.ln_sales_tax", "cumul.lead3.D.ln_sales_tax", "cumul.lead2.D.ln_sales_tax", "cumul.lead1.D.ln_sales_tax", "cumul.lag0.D.ln_sales_tax", "cumul.lag1.D.ln_sales_tax", "cumul.lag2.D.ln_sales_tax", "cumul.lag3.D.ln_sales_tax", "cumul.lag4.D.ln_sales_tax"),
@@ -238,17 +375,16 @@ for (cs in common.supports) {
         `Pr(>|t|)` = c(cumul.lead5.pval, cumul.lead4.pval, cumul.lead3.pval, cumul.lead2.pval, cumul.lead1.pval, cumul.lag0.pval, cumul.lag1.pval, cumul.lag2.pval, cumul.lag3.pval, cumul.lag4.pval),
         outcome = Y,
         controls = FE,
-        econ = "none",
-        support = cs,
+        econ = i,
         Rsq = summary(res1)$r.squared,
         adj.Rsq = summary(res1)$adj.r.squared)
       LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
       fwrite(LRdiff_res, output.results.file)
-  
-  
-      }
+      
+    }
   }
 }
+
 
 
 
