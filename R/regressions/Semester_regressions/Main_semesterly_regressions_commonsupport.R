@@ -247,19 +247,16 @@ for (Y in c(outcomes)) {
       res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
       res1.dt[, outcome := Y]
       res1.dt[, controls := FE]
-      res1.dt[, econ := "none"]
-      res1.dt[, support := cs]
+      res1.dt[, econ := i]
       res1.dt[, Rsq := summary(res1)$r.squared]
       res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
       # Add summary values
-      res1.dt[, Rsq := summary(res1)$r.squared]
-      res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-      res1.dt[, N_obs := nrow(all_pi_cs)]
-      res1.dt[, N_modules := length(unique(all_pi_cs$product_module_code))]
-      res1.dt[, N_stores :=  length(unique(all_pi_cs$store_code_uc))]
-      res1.dt[, N_counties := uniqueN(all_pi_cs, by = c("fips_state", "fips_county"))]
-      res1.dt[, N_years := uniqueN(all_pi_cs, by = c("year"))]
-      res1.dt[, N_county_modules := uniqueN(all_pi_cs, by = c("fips_state", "fips_county",
+      res1.dt[, N_obs := nrow(all_pi)]
+      res1.dt[, N_modules := length(unique(all_pi$product_module_code))]
+      res1.dt[, N_stores :=  length(unique(all_pi$store_code_uc))]
+      res1.dt[, N_counties := uniqueN(all_pi, by = c("fips_state", "fips_county"))]
+      res1.dt[, N_years := uniqueN(all_pi, by = c("year"))]
+      res1.dt[, N_county_modules := uniqueN(all_pi, by = c("fips_state", "fips_county",
                                                               "product_module_code"))]
       
       LRdiff_res <- rbind(LRdiff_res, res1.dt)
