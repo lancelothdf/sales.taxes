@@ -254,8 +254,8 @@ for (sam in samples) {
             Y, "~", formula_RHS, " + ", lag.econ, "| ", FE, " | 0 | module_by_state"
           ))
           flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
-          res1 <- felm(formula = formula1, data = all_pi,
-                       weights = all_pi$base.sales)
+          res1 <- felm(formula = formula1, data = sample,
+                       weights = sample$base.sales)
           flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
           
           
