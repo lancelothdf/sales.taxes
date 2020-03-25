@@ -404,7 +404,7 @@ for (sam in samples) {
           Rsq = summary(res1)$r.squared,
           adj.Rsq = summary(res1)$adj.r.squared)
         LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T)
-        fwrite(LRdiff_res, output.results.file)
+        fwrite(LRdiff_res, results.file)
         
       }
     }
