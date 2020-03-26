@@ -95,7 +95,7 @@ for (n.quantiles in 2:7) {
   d2[, dens.log.p := dens.n.log.p/sum(dens.n.log.p), by =.(quantile)]
   d2[, log.n.p := d.n.lp*step.n.log.p + min.n.log.p + step.n.log.p/2]
   
-  prices_densities <- merge(d1, d2, by.x = c("d.lp", "quantile"), by.y = c("d.n.lp", quintile))
+  prices_densities <- merge(d1, d2, by.x = c("d.lp", "quantile"), by.y = c("d.n.lp", "quantile"))
   fwrite(prices_densities, output.table)
   
   ##### Plot the kernel densities --------------------------
