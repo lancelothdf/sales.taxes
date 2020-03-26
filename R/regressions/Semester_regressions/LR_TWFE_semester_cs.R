@@ -37,7 +37,7 @@ all_pi <- all_pi[order(store_code_uc, product_module_code, year, semester),] ##S
 for (val in 1:4) {
 
   lead.X <- paste0("F", val, ".w.ln_sales_tax")
-  all_pi[, (lead.X) := shift(w.ln_sales_tax, n=lag.val, type="lead"),
+  all_pi[, (lead.X) := shift(w.ln_sales_tax, n=val, type="lead"),
          by = .(store_code_uc, product_module_code)]
 }
 
