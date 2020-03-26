@@ -21,7 +21,6 @@ data.year <- "Data/Nielsen/yearly_nielsen_data.csv"
 ## output filepaths ----------------------------------------------
 output.path <- "../../home/slacouture/NLP"
 output.results <- "../../home/slacouture/NLP/price_persistence.csv"
-output.table <- "../../home/slacouture/NLP/density.csv"
 
 ### Set up Semester Data ---------------------------------
 all_pi <- fread(data.semester)
@@ -80,6 +79,8 @@ for (n.quantiles in 2:7) {
                                           weight = all_pi_pcs$base.sales)[-(n.quantiles+1)], digits = 4))
   
   ## Export densities (n = 1500 steps by quantile)
+  output.table <- paste0(output.path, "density", n.quantiles, ".csv")
+  
   step.log.p <- (max(all_pi_pcs$ln_cpricei2, na.rm = T) - min(all_pi_pcs$ln_cpricei2, na.rm = T) )/1500
   step.n.log.p <- (max(all_pi_pcs$n.ln_cpricei2, na.rm = T) - min(all_pi_pcs$n.ln_cpricei2, na.rm = T)) /1500
   min.log.p <- min(all_pi_pcs$ln_cpricei2, na.rm = T)
