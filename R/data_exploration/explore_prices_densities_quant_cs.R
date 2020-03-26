@@ -93,7 +93,7 @@ for (n.quantiles in 2:7) {
   d1[, log.p := d.lp*step.log.p + min.log.p + step.log.p/2]
   d2 <- all_pi_pcs[, .(dens.n.log.p = sum(base.sales)), by = .(quantile, d.n.lp)]
   d2[, dens.log.p := dens.n.log.p/sum(dens.n.log.p), by =.(quantile)]
-  d1[, log.n.p := d.n.lp*step.n.log.p + min.n.log.p + step.n.log.p/2]
+  d2[, log.n.p := d.n.lp*step.n.log.p + min.n.log.p + step.n.log.p/2]
   
   prices_densities <- merge(d1, d2, by.x = c("d.lp", "quantile"), by.y = c("d.n.lp", quintile))
   fwrite(prices_densities, output.table)
