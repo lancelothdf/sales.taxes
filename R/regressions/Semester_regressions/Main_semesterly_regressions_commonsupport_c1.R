@@ -27,7 +27,7 @@ wage.path <- "Data/covariates/qcew_quarterly_clean.csv"
 
 
 ## output filepaths ----------------------------------------------
-output.results.file <- "Data/LRdiff_semesterly_main_commonsupport.csv"
+output.results.file <- "Data/LRdiff_semesterly_main_commonsupport_1.csv"
 
 
 
