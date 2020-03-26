@@ -282,6 +282,9 @@ for (sam in samples) {
         res1.dt[, controls := FE]
         res1.dt[, sample := sam]
         res1.dt[, econ := i]
+        res1.dt$Rsq <- summary(res1)$r.squared
+        res1.dt$adj.Rsq <- summary(res1)$adj.r.squared
+
         res1.dt$N_obs <- nrow(sample)
         res1.dt$N_stores <- uniqueN(sample, by = c("store_code_uc") )
         res1.dt$N_modules <- length(unique(sample$product_module_code))
@@ -322,7 +325,10 @@ for (sam in samples) {
           outcome = Y,
           controls = FE,
           sample = sam,
-          econ = i)
+          econ = i,
+          Rsq = summary(res1)$r.squared,
+          adj.Rsq = summary(res1)$adj.r.squared
+        )
         lp.dt$N_obs <- nrow(sample)
         lp.dt$N_stores <- uniqueN(sample, by = c("store_code_uc") )
         lp.dt$N_modules <- length(unique(sample$product_module_code))
@@ -413,7 +419,10 @@ for (sam in samples) {
           outcome = Y,
           controls = FE,
           sample = sam,
-          econ = i)
+          econ = i,
+          Rsq = summary(res1)$r.squared,
+          adj.Rsq = summary(res1)$adj.r.squared
+        )
         lp.dt$N_obs <- nrow(sample)
         lp.dt$N_stores <- uniqueN(sample, by = c("store_code_uc") )
         lp.dt$N_modules <- length(unique(sample$product_module_code))
