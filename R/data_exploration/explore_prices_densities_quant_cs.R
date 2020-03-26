@@ -21,6 +21,7 @@ data.year <- "Data/Nielsen/yearly_nielsen_data.csv"
 ## output filepaths ----------------------------------------------
 output.path <- "../../home/slacouture/NLP"
 output.results <- "../../home/slacouture/NLP/price_persistence.csv"
+output.table <- "../../home/slacouture/NLP/density.csv"
 
 ### Set up Semester Data ---------------------------------
 all_pi <- fread(data.semester)
@@ -77,6 +78,24 @@ for (n.quantiles in 2:7) {
   quantlab <- as.character(round(quantile(all_pi_pcs$dm.L.ln_cpricei2, 
                                           probs = seq(0, 1, by = 1/n.quantiles), na.rm = T, 
                                           weight = all_pi_pcs$base.sales)[-(n.quantiles+1)], digits = 4))
+  
+  ## Export densities (n = 1500 steps by quantile)
+  step.log.p <- (max(all_pi$ln_cpricei2, na.rm = T) - min(all_pi$ln_cpricei2, na.rm = T) )/1500
+  step.n.log.p <- (max(all_pi$n.ln_cpricei2, na.rm = T) - min(all_pi$n.ln_cpricei2, na.rm = T)) /1500
+  min.log.p <- min(all_pi$ln_cpricei2, na.rm = T)
+  min.n.log.p <- min(all_pi$n.ln_cpricei2, na.rm = T)
+  all_pi[, d.lp := floor((ln_cpricei2 - min.log.p)/step.log.p)]
+  all_pi[, d.n.lp := floor((n.ln_cpricei2 - min.n.log.p)/step.n.log.p)]
+  
+  d1 <- all_pi[, .(dens.log.p = sum(base.sales)), by = .(quantile, d.lp)]
+  d1[, dens.log.p := dens.log.p/sum(dens.log.p), by =.(quantile)]
+  d1[, log.p := d.lp*step.log.p + min.log.p + step.log.p/2]
+  d2 <- all_pi[, .(dens.n.log.p = sum(base.sales)), by = .(quantile, d.n.lp)]
+  d2[, dens.log.p := dens.n.log.p/sum(dens.n.log.p), by =.(quantile)]
+  d1[, log.n.p := d.n.lp*step.n.log.p + min.n.log.p + step.n.log.p/2]
+  
+  prices_densities <- merge(d1, d2, by.x = c("d.lp", "quantile"), by.y = c("d.n.lp", quintile))
+  fwrite(prices_densities, output.table)
   
   ##### Plot the kernel densities --------------------------
   graphout <- paste0(output.path,"/norm_prices_by_quant_csp_q", n.quantiles,".png")
