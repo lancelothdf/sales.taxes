@@ -79,7 +79,7 @@ for (n.quantiles in 2:7) {
                                           weight = all_pi_pcs$base.sales)[-(n.quantiles+1)], digits = 4))
   
   ## Export densities (n = 1500 steps by quantile)
-  output.table <- paste0(output.path, "density", n.quantiles, ".csv")
+  output.table <- paste0(output.path, "/Pdensity", n.quantiles, ".csv")
   
   step.log.p <- (max(all_pi_pcs$ln_cpricei2, na.rm = T) - min(all_pi_pcs$ln_cpricei2, na.rm = T) )/1500
   step.n.log.p <- (max(all_pi_pcs$n.ln_cpricei2, na.rm = T) - min(all_pi_pcs$n.ln_cpricei2, na.rm = T)) /1500
@@ -92,7 +92,7 @@ for (n.quantiles in 2:7) {
   d1[, dens.log.p := dens.log.p/sum(dens.log.p), by =.(quantile)]
   d1[, log.p := d.lp*step.log.p + min.log.p + step.log.p/2]
   d2 <- all_pi_pcs[, .(dens.n.log.p = sum(base.sales)), by = .(quantile, d.n.lp)]
-  d2[, dens.log.p := dens.n.log.p/sum(dens.n.log.p), by =.(quantile)]
+  d2[, dens.n.log.p := dens.n.log.p/sum(dens.n.log.p), by =.(quantile)]
   d2[, log.n.p := d.n.lp*step.n.log.p + min.n.log.p + step.n.log.p/2]
   
   prices_densities <- merge(d1, d2, by.x = c("d.lp", "quantile"), by.y = c("d.n.lp", "quantile"))

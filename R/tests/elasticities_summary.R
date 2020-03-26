@@ -63,6 +63,21 @@ pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sal
 pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
 all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
+## Open Taxability panel
+taxability <- fread(data.taxability)
+
+# collapse taxability to the semester
+taxability[, semester := ceiling(month/6)]
+taxability <- taxability[, .(taxability = mean(taxability),
+                             reduced_rate = mean(reduced_rate, na.rm = T)), 
+                         by = .(product_module_code, semester, year, fips_state)]
+taxability[, taxability := ifelse(!is.nan(reduced_rate), 2, taxability)]
+
+all_pi <- merge(all_pi, taxability, by = c("year", "semester", "fips_state", "product_module_code"), all.x = T)
+# Only keep taxable on calculations
+all_pi[, taxable := ifelse(taxability ==1, 1, 0)]
+
+
 
 ### Open estimated elasticities bounds
 bounds <- fread(bounds.data)
