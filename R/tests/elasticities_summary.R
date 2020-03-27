@@ -69,12 +69,11 @@ all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 bounds <- fread(bounds.data)
 
 ## Keep all bounds for d <=3 and K <= 7
-bounds <- bounds[ D <= 3 & K %in% c(2,7)]
+bounds <- bounds[ D <= 5 & K %in% seq(2,7,1)]
 
 ## dcast data (long to wide)
 bounds <- dcast(bounds, "p + D ~ K", value.var = c("elas.down", "elas.up"), fun = sum)
   
-head(bounds)
 ###### 1. Calculate eslaticities -------------
 
 ## Keep interest states
