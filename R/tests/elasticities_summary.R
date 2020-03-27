@@ -87,7 +87,7 @@ elasticities <- elasticities[ln_sales_tax > 0]
 elasticities[, p := round(dm.ln_cpricei2, 3)]
 
 ## Merge estimated bounds
-elasticities <- merge(elasticities, bounds, by = "p")
+elasticities <- merge(elasticities, bounds, by = "p", allow.cartesian=T)
 
 ## Calculate all elasticities
 elasticities <- elasticities[, .( av.elas_1 = linear.elas,
