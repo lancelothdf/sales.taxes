@@ -23,7 +23,8 @@ data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
 bounds.data <- "Data/elasticity_bounds_table_berns_monot_mincreterion_d.csv"
 linear.elas <- -0.5760/1.0508
 quad.elas <- c(-0.513, 2*1.746)
-cubic.elas <- c(-0.641, 2*1.705, + 3*8.423)
+cubic.elas <- c(-0.641, 2*1.705, 3*8.423)
+tetra.elas <- c(-0.627, 2*4.865, 3*8.869, -112.32*4)
 #states <- c()
 
 ## Outputs ----------------------------------------------
@@ -63,30 +64,15 @@ pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sal
 pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
 all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
-## Open Taxability panel
-taxability <- fread(data.taxability)
-
-# collapse taxability to the semester
-taxability[, semester := ceiling(month/6)]
-taxability <- taxability[, .(taxability = mean(taxability),
-                             reduced_rate = mean(reduced_rate, na.rm = T)), 
-                         by = .(product_module_code, semester, year, fips_state)]
-taxability[, taxability := ifelse(!is.nan(reduced_rate), 2, taxability)]
-
-all_pi <- merge(all_pi, taxability, by = c("year", "semester", "fips_state", "product_module_code"), all.x = T)
-# Only keep taxable on calculations
-all_pi[, taxable := ifelse(taxability ==1, 1, 0)]
-
-
 
 ### Open estimated elasticities bounds
 bounds <- fread(bounds.data)
 
-## Keep interest bounds
-bounds <- bounds[ D == 1 & K %in% c(2,3)][, -c("D")]
+## Keep all bounds for d <=5 and K <= 7
+bounds <- bounds[ D <= 5 & K %in% c(2,7)]
 
 ## dcast data (long to wide)
-bounds <- dcast(bounds, "p ~ K", value.var = c("elas.down", "elas.up"), fun = sum)
+bounds <- dcast(bounds, "p + D ~ K", value.var = c("elas.down", "elas.up"), fun = sum)
   
 ###### 1. Calculate eslaticities -------------
 
@@ -107,12 +93,21 @@ elasticities <- merge(elasticities, bounds, by = "p")
 elasticities <- elasticities[, .( av.elas_1 = linear.elas,
                                   av.elas_2 = weighted.mean(quad.elas[1] + quad.elas[2]*dm.ln_cpricei2, w = base.sales),
                                   av.elas_3 = weighted.mean(cubic.elas[1] + cubic.elas[2]*dm.ln_cpricei2 + cubic.elas[3]*dm.ln_cpricei2^2, w = base.sales),
+                                  av.elas_4 = weighted.mean(tetra.elas[1] + tetra.elas[2]*dm.ln_cpricei2 + tetra.elas[3]*dm.ln_cpricei2^2 + tetra.elas[4]*dm.ln_cpricei2^3, w = base.sales),
                                   av.elas.down_2 = weighted.mean(elas.down_2 , w = base.sales),
                                   av.elas.down_3 = weighted.mean(elas.down_3 , w = base.sales),
+                                  av.elas.down_4 = weighted.mean(elas.down_4 , w = base.sales),
+                                  av.elas.down_5 = weighted.mean(elas.down_5 , w = base.sales),
+                                  av.elas.down_6 = weighted.mean(elas.down_6 , w = base.sales),
+                                  av.elas.down_7 = weighted.mean(elas.down_7 , w = base.sales),
                                   av.elas.up_2 = weighted.mean(elas.up_2 , w = base.sales),
                                   av.elas.up_3 = weighted.mean(elas.up_3 , w = base.sales),
+                                  av.elas.up_4 = weighted.mean(elas.up_4 , w = base.sales),
+                                  av.elas.up_5 = weighted.mean(elas.up_5 , w = base.sales),
+                                  av.elas.up_6 = weighted.mean(elas.up_6 , w = base.sales),
+                                  av.elas.up_7 = weighted.mean(elas.up_7 , w = base.sales),
                                   N = .N
-                                  ) , by = .(fips_state)]
+                                  ) , by = .(fips_state, D)]
 
 ###### 2. Export Results ---------------------
 fwrite(elasticities, output.table)
