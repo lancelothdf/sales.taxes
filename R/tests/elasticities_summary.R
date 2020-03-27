@@ -74,6 +74,7 @@ bounds <- bounds[ D <= 3 & K %in% c(2,7)]
 ## dcast data (long to wide)
 bounds <- dcast(bounds, "p + D ~ K", value.var = c("elas.down", "elas.up"), fun = sum)
   
+head(bounds)
 ###### 1. Calculate eslaticities -------------
 
 ## Keep interest states
