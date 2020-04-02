@@ -88,22 +88,8 @@ zillow_dt <- merge(zillow_dt, unemp.data, by = c("fips_state", "fips_county", "y
 rm(unemp.data)
 
 
-
-### Wage data
-wage.data <- fread(wage.path)
-wage.data <- wage.data[, c("fips_state", "fips_county", "year", "quarter", "total_mean_wage", "total_employment")]
-wage.data <- wage.data[year >= 2006 & year <= 2016,]
-wage.data <- wage.data[, semester := ceiling(quarter/2)]
-wage.data <- wage.data[, list(total_mean_wage = weighted.mean(total_mean_wage, w = total_employment)), by = .(year, semester, fips_state, fips_county)]
-wage.data[, ln_wage := log(total_mean_wage)]
-wage.data <- wage.data[, c("fips_state", "fips_county", "year", "semester", "ln_wage")]
-
-##
-zillow_dt <- merge(zillow_dt, wage.data, by = c("fips_state", "fips_county", "year", "semester"), all.x = T)
-rm(wage.data)
-
 ### Balance the sample
-zillow_dt <- zillow_dt[!is.na(ln_wage) & !is.na(ln_unemp) & !is.na(ln_home_price)]
+zillow_dt <- zillow_dt[ !is.na(ln_unemp) & !is.na(ln_home_price)]
 
 
 keep_counties <- zillow_dt[, list(n = .N),
@@ -125,9 +111,6 @@ zillow_dt[, D.ln_home_price := ln_home_price - shift(ln_home_price, n=1, type="l
 zillow_dt[, D.ln_unemp := ln_unemp - shift(ln_unemp, n=1, type="lag"),
           by = .(fips_state, fips_county)]
 
-zillow_dt[, D.ln_wage := ln_wage - shift(ln_wage, n=1, type="lag"),
-          by = .(fips_state, fips_county)]
-
 ## generate lags
 for (lag.val in 1:4) {
   lag.X <- paste0("L", lag.val, ".D.ln_home_price")
@@ -138,10 +121,7 @@ for (lag.val in 1:4) {
   zillow_dt[, (lag.X) := shift(D.ln_unemp, n=lag.val, type="lag"),
             by = .(fips_state, fips_county)]
   
-  lag.X <- paste0("L", lag.val, ".D.ln_wage")
-  zillow_dt[, (lag.X) := shift(D.ln_wage, n=lag.val, type="lag"),
-            by = .(fips_state, fips_county)]
-  
+
 }
 
 
@@ -220,7 +200,6 @@ for (Y in c(outcomes)) {
         # Create list of economic controls  
         lag.home <- paste(paste0("L", i:1, ".D.ln_home_price"), collapse = " + ")
         lag.unemp <- paste(paste0("L", i:1, ".D.ln_unemp"), collapse = " + ")
-        lag.wage <- paste(paste0("L", i:1, ".D.ln_wage"), collapse = " + ")
         lag.econ <- paste(lag.home, lag.unemp, lag.wage, sep = " + ")
         
         
