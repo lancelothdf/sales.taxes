@@ -22,6 +22,15 @@ data.year <- "Data/Nielsen/yearly_nielsen_data.csv"
 
 ## output filepaths ----------------------------------------------
 iv.output.results.file <- "Data/DID_iv_sat_initial_price_pretax_semester.csv"
+theta.output.results.file <- "Data/Demand_theta_sat_initial_price_pretax_semester.csv"
+theta.partial.output.results.file <- "Data/Demand_gamma_sat_initial_price_pretax_semester_K"
+
+
+## Bernstein basis Function -------------------------------------------
+
+bernstein <- function(x, k, K){
+  choose(K, k) * x^k * (1 - x)^(K - k)
+}
 
 ### Set up Semester Data ---------------------------------
 all_pi <- fread(data.semester)
@@ -36,6 +45,7 @@ all_pi[, L.ln_pricei2 := ln_pricei2 - D.ln_pricei2]
 all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.L.ln_pricei2 := L.ln_pricei2 - mean(L.ln_pricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = module_by_time]
+all_pi[, dm.ln_pricei2 := ln_pricei2 - mean(ln_pricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = module_by_time]
 
 
@@ -66,6 +76,12 @@ all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
 outcomes <- c("w.ln_cpricei2", "w.ln_quantity3")
 FE_opts <- c("group_region_by_module_by_time", "group_division_by_module_by_time")
+
+
+## Define re-scaled prices to use Bernstein polynomials in that range
+min.p <- all_pi[, min(dm.ln_pricei2)]
+max.p <- all_pi[, max(dm.ln_pricei2)]
+all_pi[, r.dm.ln_pricei2 := (dm.ln_pricei2 - min.p)/(max.p - min.p) ]
 
 
 LRdiff_res <- data.table(NULL)
@@ -105,7 +121,88 @@ for (n.g in 2:5) {
       LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
       fwrite(LRdiff_res, iv.output.results.file)
     }
+
+    ## Estimate IVs and retrieve in vector
+    IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE,][["Estimate"]]
+    
+    ## Point Id
+    # Get the empirical distribution of prices by quantile
+    all_pi[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
+    all_pi[, p_group := floor((dm.ln_pricei2 - min(dm.ln_pricei2, na.rm = T))/((max(dm.ln_pricei2, na.rm = T)-min(dm.ln_pricei2, na.rm = T))/500)), by = .(quantile)]
+    all_pi[, p_ll := p_group*((max(dm.ln_pricei2, na.rm = T)-min(dm.ln_pricei2, na.rm = T))/500), by = .(quantile)]
+    all_pi[, p_ll := p_ll + min(dm.ln_pricei2, na.rm = T), by = .(quantile)]
+    all_pi[, p_ul := p_ll + ((max(dm.ln_pricei2, na.rm = T)-min(dm.ln_pricei2, na.rm = T))/500), by = .(quantile)]
+    
+    ed.price.quantile <- all_pi[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
+    ed.price.quantile[, p_m := (p_ul+p_ll)/2]
+    
+    
+    # Create the derivative of the polynomial of prices and multiplicate by weights
+    for (n in 1:n.g){
+      ed.price.quantile[, paste0("b",n) := (n)*w1*(p_m^(n-1))]
+    }
+    # Calculate integral
+    gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",1:n.g)]
+    gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
+    
+    ## Retrieve target parameters
+    beta_hat <- as.vector(solve(as.matrix(gamma))%*%(as.matrix(IV)))
+    # Estimate intercept
+    mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales)]
+    mean.p <- all_pi[, mean(dm.ln_cpricei2, weights = base.sales)]
+    beta_0_hat <- mean.q - sum((beta_hat)*(mean.p^(1:n.g)))
+    beta_hat <- c(beta_0_hat, beta_hat)
+    
+    ## Export estimated target parameters
+    estimated.target <- data.table(beta_hat)
+    estimated.target[, beta_n := .I-1]
+    estimated.target[, n.groups := n.g]
+    estimated.target[, controls := FE]
+    estimated.target[, iter := 0]
+    target_res <- rbind(target_res, estimated.target)
+    fwrite(target_res, theta.output.results.file)
+    
   } 
+    
+  ## Do partial identification: use normalized to 0-1
+  ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
+  # Get the empirical distribution of prices by quantile
+  all_pi[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
+  all_pi[, p_group := floor((r.dm.ln_pricei2 - min(r.dm.ln_pricei2, na.rm = T))/((max(r.dm.ln_pricei2, na.rm = T)-min(r.dm.ln_pricei2, na.rm = T))/100)), by = .(quantile)]
+  all_pi[, p_ll := p_group*((max(r.dm.ln_pricei2, na.rm = T)-min(r.dm.ln_pricei2, na.rm = T))/100), by = .(quantile)]
+  all_pi[, p_ll := p_ll + min(r.dm.ln_pricei2, na.rm = T), by = .(quantile)]
+  all_pi[, p_ul := p_ll + ((max(r.dm.ln_pricei2, na.rm = T)-min(r.dm.ln_pricei2, na.rm = T))/100), by = .(quantile)]
+  
+  ed.price.quantile <- all_pi[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
+  ed.price.quantile[, p_m := (p_ul+p_ll)/2]
+  
+  for (K in (n.g):12) {
+    
+    # Create the derivative of the polynomial of prices and multiplicate by weights
+    for (n in 0:(K-1)){
+      ed.price.quantile[, paste0("b",n) := w1*(bernstein(p_m,n,K-1))]
+    }
+    
+    # Calculate integral
+    gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",0:(K-1))]
+    gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
+    
+    # Export Calculation
+    gamma[, n.groups := n.g]
+    gamma[, iter := 0]
+    
+    ## Read Previous and write
+    theta.output.results.file.pi <- paste0(theta.partial.output.results.file, K,"_bern.csv")
+    
+    if (n.g == 2) {
+      fwrite(gamma, theta.output.results.file.pi)
+    } else {
+      previous.data <- fread(theta.output.results.file.pi)
+      previous.data <- rbind(previous.data, gamma)
+      fwrite(previous.data, theta.output.results.file.pi)
+    }
+    
+  }
 }
 
 
