@@ -26,7 +26,7 @@ data.year <- "Data/Nielsen/yearly_nielsen_data.csv"
 
 ## output filepaths ----------------------------------------------
 pq.output.results.file <- "Data/Demand_pq_sat_initial_price_semester_boot_r.csv"
-
+output.path <- "Data/Demand_gamma_sat_initial_price_semester_boot_r_K"
 
 
 ## Bernstein basis Function -------------------------------------------
@@ -102,7 +102,8 @@ fwrite(pq_res, pq.output.results.file)
 
 
 for (n.g in 1:7) {
-    
+  
+
   # Create groups of initial values of tax rate
   # We use the full weighted distribution
   all_pi <- all_pi[, quantile := cut(dm.L.ln_cpricei2,
@@ -123,7 +124,9 @@ for (n.g in 1:7) {
   
   ed.price.quantile <- all_pi[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
   ed.price.quantile[, p_m := (p_ul+p_ll)/2]
-    
+  
+  #### Matrices of Polynomials for Elasticity: elasticity is itself a bernstein Polynomial
+  
   for (K in (n.g):12) {
 
     # Create the derivative of the polynomial of prices and multiplicate by weights
@@ -140,7 +143,7 @@ for (n.g in 1:7) {
     gamma[, iter := 0]
     
     ## Read Previous and write
-    theta.output.results.file <- paste0("Data/Demand_gamma_sat_initial_price_semester_boot_r_K", K,"_bern.csv")
+    theta.output.results.file <- paste0(output.path, K,"_bern.csv")
     
     if (n.g == 1) {
       fwrite(gamma, theta.output.results.file)
@@ -151,6 +154,37 @@ for (n.g in 1:7) {
     }
      
   }
+  
+  
+  #### Matrices of Polynomials for Demand: now demand is a bernstein Polynomial. Thus we calculate restrictions on the derivative
+  
+  for (K in (n.g):12) {
+    
+    # Create the derivative of the polynomial of prices and multiplicate by weights
+    for (n in 1:(K)){
+      ed.price.quantile[, paste0("b",n) := w1*(d.bernstein(p_m,n,K))]
+    }
+    
+    # Calculate integral
+    gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",0:(K-1))]
+    gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
+    
+    # Export Calculation
+    gamma[, n.groups := n.g]
+    gamma[, iter := 0]
+    
+    ## Read Previous and write
+    theta.output.results.file <- paste0(output.path, K,"_dbern.csv")
+    
+    if (n.g == 1) {
+      fwrite(gamma, theta.output.results.file)
+    } else {
+      previous.data <- fread(theta.output.results.file)
+      previous.data <- rbind(previous.data, gamma)
+      fwrite(previous.data, theta.output.results.file)
+    }
+    
+  }  
   
 }
 
