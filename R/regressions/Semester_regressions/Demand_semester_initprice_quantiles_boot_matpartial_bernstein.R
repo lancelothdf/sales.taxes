@@ -161,12 +161,12 @@ for (n.g in 1:7) {
   for (K in (n.g):12) {
     
     # Create the derivative of the polynomial of prices and multiplicate by weights
-    for (n in 1:K){
+    for (n in 0:K){
       ed.price.quantile[, paste0("b",n) := w1*(d.bernstein(p_m,n,K))]
     }
     
     # Calculate integral
-    gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",1:K)]
+    gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",0:K)]
     gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
     
     # Export Calculation
