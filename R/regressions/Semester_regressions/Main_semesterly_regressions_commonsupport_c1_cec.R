@@ -1,6 +1,7 @@
 #' Author: Lancelot Henry de Frahan and John Bonney
 #'
-#'Same as Main_semesterly_regressions but we estimate only in the common supports and anchor at -1
+#'Same as Main_semesterly_regressions but we estimate only in the common supports, include current economic
+#' conditions and anchor at -1
 
 library(data.table)
 library(futile.logger)
@@ -27,7 +28,7 @@ wage.path <- "Data/covariates/qcew_quarterly_clean.csv"
 
 
 ## output filepaths ----------------------------------------------
-output.results.file <- "Data/LRdiff_semesterly_main_commonsupport_1.csv"
+output.results.file <- "Data/LRdiff_semesterly_main_commonsupport_1_cec.csv"
 
 
 
@@ -174,9 +175,10 @@ all_pi_econ <- merge(all_pi, zillow_dt, by = c("fips_state", "fips_county", "yea
 
 ## Setting up loop to estimate
 
+current.econ <- "D.ln_home_price + D.ln_unemp"
 formula_lags <- paste0("L", 1:4, ".D.ln_sales_tax", collapse = "+")
 formula_leads <- paste0("F", 1:4, ".D.ln_sales_tax", collapse = "+")
-formula_RHS <- paste0("D.ln_sales_tax + ", formula_lags, "+", formula_leads)
+formula_RHS <- paste0("D.ln_sales_tax + ", formula_lags, "+", formula_leads, "+", current.econ)
 
 
 outcomes <- c("D.ln_cpricei", "D.ln_cpricei2", "D.ln_quantity", "D.ln_quantity2", "D.ln_quantity3")
