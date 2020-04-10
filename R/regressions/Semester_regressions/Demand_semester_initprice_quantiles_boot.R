@@ -174,6 +174,7 @@ for (rep in 1:100) {
   
   # Merge data to actual data
   sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
+  sampled.data <- as.data.table(sampled.data)
   
   for (n.g in 1:7) {
     
