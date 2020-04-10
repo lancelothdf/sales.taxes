@@ -234,7 +234,7 @@ for (rep in 1:100) {
     sampled.data <- sampled.data[, quantile := cut(dm.L.ln_pricei2,
                                        breaks = quantile(dm.L.ln_pricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = sampled.data$base.sales),
                                        labels = 1:n.g, right = FALSE)]
-    sampled.data <- round(quantile(sampled.data$dm.L.ln_pricei2, 
+    quantlab <- round(quantile(sampled.data$dm.L.ln_pricei2, 
                                probs = seq(0, 1, by = 1/n.g), na.rm = T, 
                                weight = sampled.data$base.sales), digits = 4)
     # Saturate fixed effects
