@@ -230,15 +230,15 @@ for (rep in 1:100) {
     
     # Create groups of initial values of tax rate
     # We use the full weighted distribution
-    all_pi <- all_pi[, quantile := cut(dm.L.ln_pricei2,
-                                       breaks = quantile(dm.L.ln_pricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
+    sampled.data <- sampled.data[, quantile := cut(dm.L.ln_pricei2,
+                                       breaks = quantile(dm.L.ln_pricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = sampled.data$base.sales),
                                        labels = 1:n.g, right = FALSE)]
-    quantlab <- round(quantile(all_pi$dm.L.ln_pricei2, 
+    sampled.data <- round(quantile(sampled.data$dm.L.ln_pricei2, 
                                probs = seq(0, 1, by = 1/n.g), na.rm = T, 
-                               weight = all_pi$base.sales), digits = 4)
+                               weight = sampled.data$base.sales), digits = 4)
     # Saturate fixed effects
-    all_pi[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
-    all_pi[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
+    sampled.data[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
+    sampled.data[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
     
     ## Estimate RF and FS
     for (FE in FE_opts) {
@@ -268,13 +268,13 @@ for (rep in 1:100) {
       
       ## Point Id
       # Get the empirical distribution of prices by quantile
-      all_pi[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
-      all_pi[, p_group := floor((dm.ln_pricei2 - min(dm.ln_pricei2, na.rm = T))/((max(dm.ln_pricei2, na.rm = T)-min(dm.ln_pricei2, na.rm = T))/500)), by = .(quantile)]
-      all_pi[, p_ll := p_group*((max(dm.ln_pricei2, na.rm = T)-min(dm.ln_pricei2, na.rm = T))/500), by = .(quantile)]
-      all_pi[, p_ll := p_ll + min(dm.ln_pricei2, na.rm = T), by = .(quantile)]
-      all_pi[, p_ul := p_ll + ((max(dm.ln_pricei2, na.rm = T)-min(dm.ln_pricei2, na.rm = T))/500), by = .(quantile)]
+      sampled.data[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
+      sampled.data[, p_group := floor((dm.ln_pricei2 - min(dm.ln_pricei2, na.rm = T))/((max(dm.ln_pricei2, na.rm = T)-min(dm.ln_pricei2, na.rm = T))/500)), by = .(quantile)]
+      sampled.data[, p_ll := p_group*((max(dm.ln_pricei2, na.rm = T)-min(dm.ln_pricei2, na.rm = T))/500), by = .(quantile)]
+      sampled.data[, p_ll := p_ll + min(dm.ln_pricei2, na.rm = T), by = .(quantile)]
+      sampled.data[, p_ul := p_ll + ((max(dm.ln_pricei2, na.rm = T)-min(dm.ln_pricei2, na.rm = T))/500), by = .(quantile)]
       
-      ed.price.quantile <- all_pi[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
+      ed.price.quantile <- sampled.data[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
       ed.price.quantile[, p_m := (p_ul+p_ll)/2]
       
       # Create the derivative of the polynomial of prices and multiplicate by weights
@@ -288,8 +288,8 @@ for (rep in 1:100) {
       ## Retrieve target parameters
       beta_hat <- as.vector(solve(as.matrix(gamma))%*%(as.matrix(IV)))
       # Estimate intercept
-      mean.q <- sampled.data[, mean(ln_quantity3, weights = base.sales)]
-      mean.p <- sampled.data[, mean(dm.ln_cpricei2, weights = base.sales)]
+      mean.q <- sampled.data[, weighted.mean(ln_quantity3, w = base.sales)]
+      mean.p <- sampled.data[, weighted.mean(dm.ln_cpricei2, w = base.sales)]
       beta_0_hat <- mean.q - sum((beta_hat)*(mean.p^(1:n.g)))
       beta_hat <- c(beta_0_hat, beta_hat)
       
