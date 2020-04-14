@@ -26,6 +26,13 @@ output.results.file <- "Data/SimulationIV_100_partial.csv"
 partial.output.results.file <- "Data/SimulationMatrix_100_K"
 
 
+## Bernstein basis Function -------------------------------------------
+
+bernstein <- function(x, k, K){
+  choose(K, k) * x^k * (1 - x)^(K - k)
+}
+
+
 ## input values ------------------------------
 set.seed(1948)
 #set.seed(2019)
