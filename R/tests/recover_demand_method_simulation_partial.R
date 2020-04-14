@@ -174,38 +174,57 @@ for (rep in 1:100) {
   
   ###### Estimation by initial price -----------------
   for (L in 1:n.quantiles) {
-    
-    # Create groups of initial values of tax rate
-    sampled.data_csprice <- sampled.data_csprice[, quantile := cut(L.p_t,
-                                                                   breaks = quantile(L.p_t, probs = seq(0, 1, by = 1/L), na.rm = T, 
-                                                                                     weights = sampled.data_cstax$base.sales),
-                                                                   labels = 1:L, right = FALSE)]
-    quantlab <- round(quantile(sampled.data_csprice$L.p_t, probs = seq(0, 1, by = 1/L), na.rm = T, weights = sampled.data_cstax$base.sales), digits = 4)
-    
-    ## Estimate FS and RF
-    for (Y in outcomes) {
-      formula1 <- as.formula(paste0(
-        Y, " ~ D.t:quantile |  quantile "
-      ))
-      res1 <- felm(formula = formula1, data = sampled.data_csprice,
-                   weights = sampled.data_csprice$base.sales)
+    sampled.data_csprice[, quantile := 1]
+    if (L ==1) {
       
+      for (Y in outcomes) {
+        formula1 <- as.formula(paste0(
+          Y, " ~ D.t "
+        ))
+        res1 <- lm(formula = formula1, data = sampled.data_csprice,
+                     weights = sampled.data_csprice$base.sales)
+        
+        
+        ## attach results
+        res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+        res1.dt[, outcome := Y]
+        res1.dt[, n.groups := L]
+        res1.dt[, lev := 1]
+        res1.dt[, iter := rep]
+        
+        LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+        fwrite(LRdiff_res, output.results.file)
+      }
       
-      ## attach results
-      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-      res1.dt[, outcome := Y]
-      res1.dt[, n.groups := L]
-      res1.dt[, lev := quantlab[-1]]
-      res1.dt[, initial := "price"]
-      res1.dt[, iter := rep]
+    } else {
+      # Create groups of initial values of tax rate
+      sampled.data_csprice <- sampled.data_csprice[, quantile := cut(L.p_t,
+                                                                     breaks = quantile(L.p_t, probs = seq(0, 1, by = 1/L), na.rm = T, 
+                                                                                       weights = sampled.data_cstax$base.sales),
+                                                                     labels = 1:L, right = FALSE)]
+      quantlab <- round(quantile(sampled.data_csprice$L.p_t, probs = seq(0, 1, by = 1/L), na.rm = T, weights = sampled.data_cstax$base.sales), digits = 4)
       
-      LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-      fwrite(LRdiff_res, output.results.file)
+      ## Estimate FS and RF
+      for (Y in outcomes) {
+        formula1 <- as.formula(paste0(
+          Y, " ~ D.t:quantile |  quantile "
+        ))
+        res1 <- felm(formula = formula1, data = sampled.data_csprice,
+                     weights = sampled.data_csprice$base.sales)
+        
+        
+        ## attach results
+        res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+        res1.dt[, outcome := Y]
+        res1.dt[, n.groups := L]
+        res1.dt[, lev := quantlab[-1]]
+        res1.dt[, iter := rep]
+        
+        LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+        fwrite(LRdiff_res, output.results.file)
+      }
     }
     
-    ## Estimate IV and retrieve in vector
-    IV <- LRdiff_res[outcome == "D.q" & initial == "price" & iter == rep & n.groups == L,][["Estimate"]]/LRdiff_res[outcome == "D.p_t" & initial == "price" & iter == rep & n.groups == L,][["Estimate"]]
-  
     ## Do partial identification: use normalized to 0-1
     ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
     # Get the empirical distribution of prices by quantile
