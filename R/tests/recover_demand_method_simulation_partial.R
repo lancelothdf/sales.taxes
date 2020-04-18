@@ -24,6 +24,7 @@ setwd("/project2/igaarder")
 data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
 output.results.file <- "Data/SimulationIV_100_partial.csv"
 partial.output.results.file <- "Data/SimulationMatrix_100_K"
+distribution.file <- "Data/SimulationDist_100.csv"
 
 
 ## Bernstein basis Function -------------------------------------------
@@ -62,6 +63,7 @@ ids <- unique(all_pi$store_by_module)
 ## Files Needed
 LRdiff_res <- data.table(NULL)
 target_res <- data.table(NULL)
+dist_res <- data.table(NULL)
 
 ## Iteration
 for (rep in 1:100) {
@@ -171,6 +173,11 @@ for (rep in 1:100) {
   max.p <- sampled.data_csprice[, max(p_t)]
   sampled.data_csprice[, r.p_t := (p_t - min.p)/(max.p - min.p) ]
   
+  # Extract important distribution variables (min, max, mean)
+  mean.p <- sampled.data_csprice[, mean(p_t)]
+  mean.q <- sampled.data_csprice[, mean(q)]
+  dist_res <- rbind(dist_res, data.table(min.p, max.p, mean.p, mean.q, rep))
+  fwrite(dist_res, distribution.file)
   
   ###### Estimation by initial price -----------------
   for (L in 1:n.quantiles) {
