@@ -80,10 +80,10 @@ for (var in vars) {
   obs <- all_pi[[var]]
   step <- (max(obs, na.rm = T) - min(obs, na.rm = T) )/1500
   min <- min(obs, na.rm = T)
-  all_pi[, st := floor((var - min)/step)]
+  all_pi[, st := floor((get(var) - min)/step)]
   dens <-  all_pi[, .(dens.v = sum(base.sales)), by = .(st)]
   dens[, dens.v := dens.v/sum(dens.v)]
-  d1[, get(var) := st*step + min + step/2]
+  d1[, var := st*step + min + step/2]
   setnames(dens, "dens.v", paste0("dens.", var))
   if (is.null(dist)) {
     dist <- dens
@@ -95,10 +95,10 @@ for (var in vars) {
   obs <- treated[[var]]
   step <- (max(obs, na.rm = T) - min(obs, na.rm = T) )/1500
   min <- min(obs, na.rm = T)
-  treated[, st := floor((var - min)/step)]
+  treated[, st := floor((get(var) - min)/step)]
   dens <-  treated[, .(dens.v = sum(base.sales)), by = .(st)]
   dens[, dens.v := dens.v/sum(dens.v)]
-  d1[, get(var) := st*step + min + step/2]
+  d1[, paste0(var, ".T") := st*step + min + step/2]
   setnames(dens, "dens.v", paste0("dens.", var,".T"))
   dist <- merge(dist, dens, by = "st")
   
@@ -106,10 +106,10 @@ for (var in vars) {
   obs <- control[[var]]
   step <- (max(obs, na.rm = T) - min(obs, na.rm = T) )/1500
   min <- min(obs, na.rm = T)
-  control[, st := floor((var - min)/step)]
+  control[, st := floor((get(var) - min)/step)]
   dens <-  control[, .(dens.v = sum(base.sales)), by = .(st)]
   dens[, dens.v := dens.v/sum(dens.v)]
-  d1[, get(var) := st*step + min + step/2]
+  d1[, paste0(var, ".C") := st*step + min + step/2]
   setnames(dens, "dens.v", paste0("dens.", var,".C"))
   dist <- merge(dist, dens, by = "dens.v")
   
