@@ -65,7 +65,6 @@ all_pi[, dd.ln_sales_tax := w.ln_sales_tax - mean(w.ln_sales_tax), by = .(divisi
 all_pi[, dd.ln_cpricei2 := w.ln_cpricei2 - mean(w.ln_cpricei2), by = .(division_by_module_by_time)]
 all_pi[, dd.ln_quantity3 := w.ln_quantity3 - mean(w.ln_quantity3), by = .(division_by_module_by_time)]
 
-
 # Do this for each sample of interest
 control <- all_pi[D.ln_sales_tax == 0,]
 treated <- all_pi[D.ln_sales_tax != 0,]
@@ -78,12 +77,12 @@ for (var in vars) {
   
   ## Full sample
   obs <- all_pi[[var]]
-  step <- (max(obs, na.rm = T) - min(obs, na.rm = T) )/1500
+  step <- (max(obs, na.rm = T) - min(obs, na.rm = T) )/1000
   min <- min(obs, na.rm = T)
   all_pi[, st := floor((get(var) - min)/step)]
   dens <-  all_pi[, .(dens.v = sum(base.sales)), by = .(st)]
   dens[, dens.v := dens.v/sum(dens.v)]
-  dens[, var := st*step + min + step/2]
+  dens[, get(var) := st*step + min + step/2]
   setnames(dens, "dens.v", paste0("dens.", var))
   if (nrow(dist) == 0) {
     dist <- dens
@@ -93,7 +92,7 @@ for (var in vars) {
   
   # Treated
   obs <- treated[[var]]
-  step <- (max(obs, na.rm = T) - min(obs, na.rm = T) )/1500
+  step <- (max(obs, na.rm = T) - min(obs, na.rm = T) )/1000
   min <- min(obs, na.rm = T)
   treated[, st := floor((get(var) - min)/step)]
   dens <-  treated[, .(dens.v = sum(base.sales)), by = .(st)]
@@ -104,7 +103,7 @@ for (var in vars) {
   
   # Control
   obs <- control[[var]]
-  step <- (max(obs, na.rm = T) - min(obs, na.rm = T) )/1500
+  step <- (max(obs, na.rm = T) - min(obs, na.rm = T) )/1000
   min <- min(obs, na.rm = T)
   control[, st := floor((get(var) - min)/step)]
   dens <-  control[, .(dens.v = sum(base.sales)), by = .(st)]
