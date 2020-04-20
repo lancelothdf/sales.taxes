@@ -85,7 +85,7 @@ for (var in vars) {
   dens[, dens.v := dens.v/sum(dens.v)]
   dens[, var := st*step + min + step/2]
   setnames(dens, "dens.v", paste0("dens.", var))
-  if (is.null(dist)) {
+  if (nrow(dist) == 0) {
     dist <- dens
   } else {
     dist <- merge(dist, dens, by = "st")
@@ -111,7 +111,7 @@ for (var in vars) {
   dens[, dens.v := dens.v/sum(dens.v)]
   dens[, paste0(var, ".C") := st*step + min + step/2]
   setnames(dens, "dens.v", paste0("dens.", var,".C"))
-  dist <- merge(dist, dens, by = "dens.v")
+  dist <- merge(dist, dens, by = "st")
   
   
 }
