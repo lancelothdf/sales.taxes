@@ -82,7 +82,7 @@ for (var in vars) {
   all_pi[, st := floor((get(var) - min)/step)]
   dens <-  all_pi[, .(dens.v = sum(base.sales)), by = .(st)]
   dens[, dens.v := dens.v/sum(dens.v)]
-  dens[, get(var) := st*step + min + step/2]
+  dens[, (var) := st*step + min + step/2]
   setnames(dens, "dens.v", paste0("dens.", var))
   if (nrow(dist) == 0) {
     dist <- dens
