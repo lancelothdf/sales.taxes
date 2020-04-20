@@ -83,7 +83,7 @@ for (var in vars) {
   all_pi[, st := floor((get(var) - min)/step)]
   dens <-  all_pi[, .(dens.v = sum(base.sales)), by = .(st)]
   dens[, dens.v := dens.v/sum(dens.v)]
-  d1[, var := st*step + min + step/2]
+  dens[, var := st*step + min + step/2]
   setnames(dens, "dens.v", paste0("dens.", var))
   if (is.null(dist)) {
     dist <- dens
@@ -98,7 +98,7 @@ for (var in vars) {
   treated[, st := floor((get(var) - min)/step)]
   dens <-  treated[, .(dens.v = sum(base.sales)), by = .(st)]
   dens[, dens.v := dens.v/sum(dens.v)]
-  d1[, paste0(var, ".T") := st*step + min + step/2]
+  dens[, paste0(var, ".T") := st*step + min + step/2]
   setnames(dens, "dens.v", paste0("dens.", var,".T"))
   dist <- merge(dist, dens, by = "st")
   
@@ -109,7 +109,7 @@ for (var in vars) {
   control[, st := floor((get(var) - min)/step)]
   dens <-  control[, .(dens.v = sum(base.sales)), by = .(st)]
   dens[, dens.v := dens.v/sum(dens.v)]
-  d1[, paste0(var, ".C") := st*step + min + step/2]
+  dens[, paste0(var, ".C") := st*step + min + step/2]
   setnames(dens, "dens.v", paste0("dens.", var,".C"))
   dist <- merge(dist, dens, by = "dens.v")
   
