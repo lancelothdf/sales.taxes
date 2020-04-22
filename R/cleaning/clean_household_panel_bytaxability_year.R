@@ -19,8 +19,6 @@ taxability_panel[, taxability := ifelse(!is.na(reduced_rate), 2, taxability)]
 # We will use taxability as of December 2014
 taxability_panel <- taxability_panel[(month==12 & year==2014),][, .(product_module_code, product_group_code,
                                          fips_state, taxability)]
-head(taxability_panel)
-
 ## products file is same across years
 products_file <- "HMS/Master_Files/Latest/products.tsv"
 products <- fread(products_file)
@@ -105,7 +103,7 @@ for (yr in 2006:2016) {
   ## Identify purchases by taxability
   # merge By HH state. This will drop all other products
   flog.info("Merging taxability for %s", yr)
-  purchases <- merge(purchases, taxability_panel, by = "fips_state")
+  purchases <- merge(purchases, taxability_panel, by = c("fips_state", "product_module_code"))
   
   # Collapse to taxability
   purchases.tax <- purchases[, .(expenditures = sum(total_expenditures)),
