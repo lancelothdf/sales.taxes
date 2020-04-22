@@ -1,7 +1,7 @@
 #' Author: Santiago Lacouture
 #'
 #' Clean the Nielsen household panel data to create a data set on the
-#' consumer-year-taxability level. Match taxability to HH by their location. 
+#' consumer-year-taxability(food) level. Match taxability to HH by their location. 
 
 
 library(data.table)
@@ -48,26 +48,26 @@ for (yr in 2006:2016) {
   flog.info("Summing expenditures over UPCs for %s", yr)
   purchases <- purchases[, list(
     total_expenditures = sum(total_price_paid)
-  ), by = .(trip_code_uc, product_module_code, product_group_code)]
+  ), by = .(trip_code_uc, product_module_code, product_group_code, department_code)]
 
   ## merge on the trip data
   flog.info("Loading in trips data for %s", yr)
   trips <- fread(trips_file)
-  trips <- trips[, .(trip_code_uc, household_code, store_code_uc, panel_year)]
+  trips <- trips[, .(trip_code_uc, household_code, panel_year)]
 
   flog.info("Merging trips data to purchases for %s", yr)
   purchases <- merge(purchases, trips, by = "trip_code_uc")
 
-  ## Collapse by year (since is total there wont be problem)
+  ## Collapse by year (across stores: since is total there wont be problem)
   purchases <- purchases[, list(total_expenditures = sum(total_expenditures))
-                         , by = .(household_code, product_module_code, product_group_code,
-                                  store_code_uc, panel_year)]
+                         , by = .(household_code, product_module_code, product_group_code, department_code,
+                                  panel_year)]
 
   ## Keep purchases greater than 0 for efficiency
   purchases<-purchases[total_expenditures > 0]
 
   # To make valid inferences, drop magnet products
-  purchases<-purchases[product_group_code != 99]
+  purchases<-purchases[department_code != 99]
   
   
   ## merge on some individual information
@@ -82,23 +82,42 @@ for (yr in 2006:2016) {
            new = c("household_code", "panel_year", "projection_factor", "fips_state", "fips_county",
                    "household_income", "zip_code", "region_code"))
   flog.info("Merging panelists data to purchases for %s", yr)
-  purchases <- merge(purchases, panelists, by = c("household_code", "panel_year"), all.x = T)
+  purchases <- merge(purchases, panelists, by = c("household_code", "panel_year"))
   
   # Calculate household total expenditures
   purchases[, hh_expenditures := sum(total_expenditures), by = .(household_code, panel_year)]
   
-  # Identify taxability. By HH state. This will drop all other products
+  ## Identify purchases by type
+  
+  # Collapse by department and keep aside, before taxability
+  purchases[, food := ifelse(department_code <= 6 & department_code >= 1, 1, 0)]
+  purchases.food <- purchases[, .(expenditures = sum(total_expenditures)),
+                              by = .(household_code, panel_year, projection_factor, fips_state, fips_county, 
+                                     household_income, zip_code, region_code, food, hh_expenditures)]
+  purchases.food <- dcast(purchases.food, household_code +  fips_county + fips_state + zip_code + panel_year + 
+                           projection_factor + region_code + hh_expenditures + household_income ~ food, fun=sum,
+                         value.var = "expenditures")
+  # reshape to get a hh level data
+  setnames(purchases.food, c("expeditures_0", "expenditures_1"),
+           c("expenditures_food", "expenditures_nonfood"))
+  
+  
+  ## Identify purchases by taxability
+  # merge By HH state. This will drop all other products
   purchases <- merge(purchases, taxability_panel, by = "fips_state")
   
   # Collapse to taxability
-  purchases <- purchases[, .(expenditures = sum(total_expenditures)),
+  purchases.tax <- purchases[, .(expenditures = sum(total_expenditures)),
                          by = .(household_code, panel_year, projection_factor, fips_state, fips_county, 
                                 household_income, zip_code, region_code, taxability, hh_expenditures)]
-  
-  ## reshape to get a hh level data
-  purchases <- dcast(purchases, household_code +  fips_county + fips_state + zip_code + panel_year + 
+  # reshape to get a hh level data
+  purchases.tax <- dcast(purchases.tax, household_code +  fips_county + fips_state + zip_code + panel_year + 
                         projection_factor + region_code + hh_expenditures + household_income ~ taxability, fun=sum,
                         value.var = "expenditures")
+  
+  # Merge to get final data
+  purchases <- merge(purchases.tax, purchases.food, by = ("household_code, panel_year, projection_factor, 
+  fips_state, fips_county, household_income, zip_code, region_code, hh_expenditures"))
   
   ## save the final dataset: append to full
   flog.info("Saving cleaned dataset for panel year %s", yr)
