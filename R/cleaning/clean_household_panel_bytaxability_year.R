@@ -98,6 +98,7 @@ for (yr in 2006:2016) {
   purchases.food <- dcast(purchases.food, household_code +  fips_county + fips_state + zip_code + panel_year + 
                            projection_factor + region_code + hh_expenditures + household_income ~ food, fun=sum,
                          value.var = "expenditures")
+  print(head(purchases.food))
   setnames(purchases.food, c("expeditures0", "expenditures1"),
            c("expenditures_food", "expenditures_nonfood"))
   
@@ -118,8 +119,9 @@ for (yr in 2006:2016) {
            c("expenditures_exempt", "expenditures_taxable", "expenditures_reduced"))
   
   # Merge to get final data
-  purchases <- merge(purchases.tax, purchases.food, by = ("household_code", "panel_year", "projection_factor", 
-  "fips_state", "fips_county", "household_income", "zip_code", "region_code", "hh_expenditures""))
+  purchases <- merge(purchases.tax, purchases.food, by = c("household_code", "panel_year", "projection_factor", 
+                                                           "fips_state", "fips_county", "household_income", "zip_code",
+                                                           "region_code", "hh_expenditures"))
   
   ## save the final dataset: append to full
   flog.info("Saving cleaned dataset for panel year %s", yr)
