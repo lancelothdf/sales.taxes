@@ -17,9 +17,9 @@ taxability_panel <- fread("/project2/igaarder/Data/taxability_state_panel.csv")
 # For now, make reduced rate another category
 taxability_panel[, taxability := ifelse(!is.na(reduced_rate), 2, taxability)]
 # We will use taxability as of December 2014
-taxability_panel <- taxability_panel[(month==12 & year==2014), .(product_module_code, product_group_code,
+taxability_panel <- taxability_panel[(month==12 & year==2014),][, .(product_module_code, product_group_code,
                                          fips_state, taxability)]
-
+head(taxability_panel)
 
 ## products file is same across years
 products_file <- "HMS/Master_Files/Latest/products.tsv"
@@ -104,6 +104,7 @@ for (yr in 2006:2016) {
   
   ## Identify purchases by taxability
   # merge By HH state. This will drop all other products
+  flog.info("Merging taxability for %s", yr)
   purchases <- merge(purchases, taxability_panel, by = "fips_state")
   
   # Collapse to taxability
@@ -118,6 +119,7 @@ for (yr in 2006:2016) {
            c("expenditures_exempt", "expenditures_taxable", "expenditures_reduced"))
   
   # Merge to get final data
+  flog.info("Merging sources for %s", yr)
   purchases <- merge(purchases.tax, purchases.food, by = c("household_code", "panel_year", "projection_factor", 
                                                            "fips_state", "fips_county", "household_income", "zip_code",
                                                            "region_code", "hh_expenditures"))
