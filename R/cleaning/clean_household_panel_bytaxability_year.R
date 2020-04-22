@@ -118,8 +118,8 @@ for (yr in 2006:2016) {
            c("expenditures_exempt", "expenditures_taxable", "expenditures_reduced"))
   
   # Merge to get final data
-  purchases <- merge(purchases.tax, purchases.food, by = ("household_code, panel_year, projection_factor, 
-  fips_state, fips_county, household_income, zip_code, region_code, hh_expenditures"))
+  purchases <- merge(purchases.tax, purchases.food, by = ("household_code", "panel_year", "projection_factor", 
+  "fips_state", "fips_county", "household_income", "zip_code", "region_code", "hh_expenditures""))
   
   ## save the final dataset: append to full
   flog.info("Saving cleaned dataset for panel year %s", yr)
