@@ -46,6 +46,7 @@ for (yr in 2006:2016) {
 
   ## sum expenditures over UPCs to the product module level
   flog.info("Summing expenditures over UPCs for %s", yr)
+  print(head(purchases))
   purchases <- purchases[, list(
     total_expenditures = sum(total_price_paid)
   ), by = .(trip_code_uc, product_module_code, product_group_code, department_code)]
