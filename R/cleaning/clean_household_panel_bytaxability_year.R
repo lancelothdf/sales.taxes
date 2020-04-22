@@ -94,11 +94,11 @@ for (yr in 2006:2016) {
   purchases.food <- purchases[, .(expenditures = sum(total_expenditures)),
                               by = .(household_code, panel_year, projection_factor, fips_state, fips_county, 
                                      household_income, zip_code, region_code, food, hh_expenditures)]
+  # reshape to get a hh level data
   purchases.food <- dcast(purchases.food, household_code +  fips_county + fips_state + zip_code + panel_year + 
                            projection_factor + region_code + hh_expenditures + household_income ~ food, fun=sum,
                          value.var = "expenditures")
-  # reshape to get a hh level data
-  setnames(purchases.food, c("expeditures_0", "expenditures_1"),
+  setnames(purchases.food, c("expeditures0", "expenditures1"),
            c("expenditures_food", "expenditures_nonfood"))
   
   
@@ -114,6 +114,8 @@ for (yr in 2006:2016) {
   purchases.tax <- dcast(purchases.tax, household_code +  fips_county + fips_state + zip_code + panel_year + 
                         projection_factor + region_code + hh_expenditures + household_income ~ taxability, fun=sum,
                         value.var = "expenditures")
+  setnames(purchases.food, c("expeditures0", "expenditures1", "expenditures2"),
+           c("expenditures_exempt", "expenditures_taxable", "expenditures_reduced"))
   
   # Merge to get final data
   purchases <- merge(purchases.tax, purchases.food, by = ("household_code, panel_year, projection_factor, 
