@@ -98,8 +98,7 @@ for (yr in 2006:2016) {
   purchases.food <- dcast(purchases.food, household_code +  fips_county + fips_state + zip_code + panel_year + 
                            projection_factor + region_code + hh_expenditures + household_income ~ food, fun=sum,
                          value.var = "expenditures")
-  print(head(purchases.food))
-  setnames(purchases.food, c("expeditures0", "expenditures1"),
+  setnames(purchases.food, c("0", "1"),
            c("expenditures_food", "expenditures_nonfood"))
   
   
@@ -115,7 +114,7 @@ for (yr in 2006:2016) {
   purchases.tax <- dcast(purchases.tax, household_code +  fips_county + fips_state + zip_code + panel_year + 
                         projection_factor + region_code + hh_expenditures + household_income ~ taxability, fun=sum,
                         value.var = "expenditures")
-  setnames(purchases.food, c("expeditures0", "expenditures1", "expenditures2"),
+  setnames(purchases.food, c("0", "1", "2"),
            c("expenditures_exempt", "expenditures_taxable", "expenditures_reduced"))
   
   # Merge to get final data
