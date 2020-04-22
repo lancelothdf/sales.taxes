@@ -24,7 +24,7 @@ taxability_panel <- taxability_panel[(month==12 & year==2014), .(product_module_
 ## products file is same across years
 products_file <- "HMS/Master_Files/Latest/products.tsv"
 products <- fread(products_file)
-products <- products[, .(upc, upc_ver_uc, product_module_code, product_group_code)]
+products <- products[, .(upc, upc_ver_uc, product_module_code, product_group_code, department_code)]
 
 purchases.full <- data.table(NULL)
 for (yr in 2006:2016) {
@@ -46,7 +46,6 @@ for (yr in 2006:2016) {
 
   ## sum expenditures over UPCs to the product module level
   flog.info("Summing expenditures over UPCs for %s", yr)
-  print(head(purchases))
   purchases <- purchases[, list(
     total_expenditures = sum(total_price_paid)
   ), by = .(trip_code_uc, product_module_code, product_group_code, department_code)]
