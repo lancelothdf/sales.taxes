@@ -58,8 +58,7 @@ all_pi.nocons <- all_pi[cons_taxability == 0]
 
 
 # Collapse (use weights!)
-binscatter.1 <- all_pi.nocons[, .(lapply(.SD, weighted.mean, w = projection_factor),
-                                  N = .N),
+binscatter.1 <- all_pi.nocons[, c(lapply(.SD, weighted.mean, w = projection_factor), .N),
                               by = .(ln_hh_expenditures_bin), .SDcols = c("ln_expenditures_taxable", "ln_expenditures_exred")]
 binscatter.2 <- all_pi[, .(lapply(.SD, weighted.mean, w = projection_factor),
                            N = .N),
@@ -76,12 +75,10 @@ rm(binscatter, binscatter.1, binscatter.2)
 ### Graphs 3 to 6: income bins of logs as 1 and 2 and of shares
 
 # Collapse
-income.bins.1 <- all_pi.nocons[, .(lapply(.SD, weighted.mean, w = projection_factor),
-                                   N = .N),
+income.bins.1 <- all_pi.nocons[, c(lapply(.SD, weighted.mean, w = projection_factor), .N),
                                by = .(household_income), 
                                .SDcols = c("ln_expenditures_taxable", "ln_expenditures_exred", "sh_expenditures_taxable", "sh_expenditures_exred")]
-income.bins.2 <- all_pi[, .(lapply(.SD, weighted.mean, w = projection_factor),
-                            N = .N),
+income.bins.2 <- all_pi[, c(lapply(.SD, weighted.mean, w = projection_factor), .N),
                         by = .(household_income), 
                        .SDcols = c("ln_expenditures_food", "ln_expenditures_nonfood", "sh_expenditures_food", "sh_expenditures_nonfood")]
 
