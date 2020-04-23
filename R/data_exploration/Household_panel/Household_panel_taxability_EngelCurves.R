@@ -44,31 +44,46 @@ all_pi[, bin := floor(bins*(ln_hh_expenditures - min.exp)/(max.exp-min.exp))]
 all_pi[, ln_hh_expenditures_bin := 1.5*bin*(max.exp-min.exp)/bins + min.exp]
 
 ## Fix Income bins
-all_pi[household_income := ifelse(household_income > 27, 27, household_income)]
-
+all_pi[, household_income := ifelse(household_income > 27, 27, household_income)]
 
 # Identify households were everything is tax_exempt or taxable
 all_pi[, s1 := sd(expenditures_reduced), by = .(fips_state)]
 all_pi[, s2 := sd(expenditures_taxable), by = .(fips_state)]
 all_pi[, cons_taxability := ifelse((s1 == 0 | s2 == 0), 1, 0)]
 
+# Cretae separate data where Exclude states where everything is taxable or exempt
+all_pi.nocons <- all_pi[cons_taxability == 0]
+
 ### Graphs 1 and 2: Binscatter (log exempt/reduced and log taxable | log food or log nonfood) on log total ----
 
-# Exclude states where everything is taxable or exempt
-binscatter.1 <- all_pi[cons_taxability == 0]
 
 # Collapse (use weights!)
-binscatter.1 <- binscatter.1[, lapply(.SD, weighted.mean, w = projection_factor), 
-                       by = .(ln_hh_expenditures_bin), .SDcols = c("ln_expenditures_food", "ln_expenditures_nonfood") ]
+binscatter.1 <- all_pi.nocons[, lapply(.SD, weighted.mean, w = projection_factor), 
+                       by = .(ln_hh_expenditures_bin), .SDcols = c("ln_expenditures_taxable", "ln_expenditures_exred")]
 binscatter.2 <- all_pi[, lapply(.SD, weighted.mean, w = projection_factor), 
-                         by = .(ln_hh_expenditures_bin), .SDcols = c("ln_expenditures_taxable", "ln_expenditures_exred")]
+                         by = .(ln_hh_expenditures_bin), .SDcols = c("ln_expenditures_food", "ln_expenditures_nonfood")]
 # Merge
 binscatter <- merge(binscatter.1, binscatter.2, by = "ln_hh_expenditures_bin")
 
 # Export
 fwrite(binscatter, paste0(path.data.figures, "Binscatters_100.csv"))
 
-### Graphs 3 and 4: income bins
+rm(binscatter, binscatter.1, binscatter.2)
 
+
+### Graphs 3 and 4: income bins of logs as 1 and 2
+
+# Collapse
+income.bins.1 <- all_pi.nocons[, lapply(.SD, weighted.mean, w = projection_factor), 
+                               by = .(household_income), .SDcols = c("ln_expenditures_taxable", "ln_expenditures_exred")]
+income.bins.2 <- all_pi[, lapply(.SD, weighted.mean, w = projection_factor), 
+                       by = .(ln_hh_expenditures_bin), .SDcols = c("ln_expenditures_food", "ln_expenditures_nonfood")]
+
+# Merge
+income.bins <- merge(income.bins.1, income.bins.2, by = "ln_hh_expenditures_bin")
+
+# Export
+fwrite(income.bins, paste0(path.data.figures, "Bins_log.csv"))
+rm(income.bins, income.bins.1, income.bins.2)
 
 
