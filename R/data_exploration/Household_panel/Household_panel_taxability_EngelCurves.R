@@ -37,7 +37,7 @@ for (var in vars) {
 }
 
 ## Compute log consumption bins. I'll do 100 bins
-bins <- 100
+bins <- 80
 max.exp <- max(all_pi$ln_hh_expenditures)
 min.exp <- min(all_pi$ln_hh_expenditures)
 all_pi[, bin := floor(bins*(ln_hh_expenditures - min.exp)/(max.exp-min.exp))]
@@ -60,14 +60,13 @@ all_pi.nocons <- all_pi[cons_taxability == 0]
 # Collapse (use weights!)
 binscatter.1 <- all_pi.nocons[, c(lapply(.SD, weighted.mean, w = projection_factor), .N),
                               by = .(ln_hh_expenditures_bin), .SDcols = c("ln_expenditures_taxable", "ln_expenditures_exred")]
-binscatter.2 <- all_pi[, .(lapply(.SD, weighted.mean, w = projection_factor),
-                           N = .N),
+binscatter.2 <- all_pi[, c(lapply(.SD, weighted.mean, w = projection_factor), .N),
                        by = .(ln_hh_expenditures_bin), .SDcols = c("ln_expenditures_food", "ln_expenditures_nonfood")]
 # Merge
 binscatter <- merge(binscatter.1, binscatter.2, by = "ln_hh_expenditures_bin")
 
 # Export
-fwrite(binscatter, paste0(path.data.figures, "Binscatters_100.csv"))
+fwrite(binscatter, paste0(path.data.figures, "Binscatters_80.csv"))
 
 rm(binscatter, binscatter.1, binscatter.2)
 
