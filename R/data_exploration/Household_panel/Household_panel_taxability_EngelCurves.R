@@ -11,7 +11,7 @@ setwd("/project2/igaarder/Data")
 
 # useful paths
 hh.panel.clean <- "Nielsen/Household_panel/cleaning/consumer_panel_bytaxability_year_2006-2016.csv"
-path.data.figures <- "../../home/slacouture/NLP/HH_Food/"
+path.data.figures <- "/home/slacouture/NLP/HH_Food/"
 
 ## Open Data
 all_pi <- fread(hh.panel.clean)
@@ -71,19 +71,26 @@ fwrite(binscatter, paste0(path.data.figures, "Binscatters_100.csv"))
 rm(binscatter, binscatter.1, binscatter.2)
 
 
-### Graphs 3 and 4: income bins of logs as 1 and 2
+### Graphs 3 to 6: income bins of logs as 1 and 2 and of shares
 
 # Collapse
 income.bins.1 <- all_pi.nocons[, lapply(.SD, weighted.mean, w = projection_factor), 
-                               by = .(household_income), .SDcols = c("ln_expenditures_taxable", "ln_expenditures_exred")]
+                               by = .(household_income), 
+                               .SDcols = c("ln_expenditures_taxable", "ln_expenditures_exred", "sh_expenditures_taxable", "sh_expenditures_exred")]
 income.bins.2 <- all_pi[, lapply(.SD, weighted.mean, w = projection_factor), 
-                       by = .(ln_hh_expenditures_bin), .SDcols = c("ln_expenditures_food", "ln_expenditures_nonfood")]
+                       by = .(ln_hh_expenditures_bin), 
+                       .SDcols = c("ln_expenditures_food", "ln_expenditures_nonfood", "sh_expenditures_food", "sh_expenditures_nonfood")]
 
 # Merge
 income.bins <- merge(income.bins.1, income.bins.2, by = "ln_hh_expenditures_bin")
 
 # Export
-fwrite(income.bins, paste0(path.data.figures, "Bins_log.csv"))
+fwrite(income.bins, paste0(path.data.figures, "Bins_income.csv"))
 rm(income.bins, income.bins.1, income.bins.2)
+
+
+
+
+
 
 
