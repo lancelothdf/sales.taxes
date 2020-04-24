@@ -97,7 +97,7 @@ for (yr in 2006:2016) {
                            projection_factor + region_code + hh_expenditures + household_income ~ food, fun=sum,
                          value.var = "expenditures")
   setnames(purchases.food, c("0", "1"),
-           c("expenditures_food", "expenditures_nonfood"))
+           c("expenditures_nonfood", "expenditures_food"))
   
   
   ## Identify purchases by taxability
