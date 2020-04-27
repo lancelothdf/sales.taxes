@@ -21,10 +21,15 @@ setwd("/project2/igaarder")
 ## inputs -----------------------------------------------
 data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
 bounds.data <- "Data/elasticity_bounds_table_berns_monot_mincreterion_d.csv"
+bounds.data.pretax <- "Data/elasticity_bounds_table_berns_monot_mincreterion_d_pretax.csv"
 linear.elas <- -0.5760/1.0508
 quad.elas <- c(-0.513, 2*1.746)
 cubic.elas <- c(-0.641, 2*1.705, 3*8.423)
 tetra.elas <- c(-0.627, 2*4.865, 3*8.869, -112.32*4)
+linear.elas.pt <- linear.elas
+quad.elas.pt <- c(-0.5004, 2*0.9512)
+cubic.elas.pt <- c(-0.6709, 2*0.2974, 3*11.1323)
+tetra.elas.pt <- c(-0.5928, 2*5.0307, 3*9.2581, 4*-172.9887)
 #states <- c()
 
 ## Outputs ----------------------------------------------
@@ -64,24 +69,20 @@ pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sal
 pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
 all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
+###### 1. Calculate eslaticities: perfect salience -------------
 
 ### Open estimated elasticities bounds
 bounds <- fread(bounds.data)
 
-## Keep all bounds for d <=3 and K <= 7
-bounds <- bounds[ D <= 5 & K %in% seq(2,7,1)]
+## Keep all bounds for d <=3 and K <= 10
+bounds <- bounds[ D <= 3 & K %in% seq(2,10,1)]
 
 ## dcast data (long to wide)
 bounds <- dcast(bounds, "p + D ~ K", value.var = c("elas.down", "elas.up"), fun = sum)
   
-###### 1. Calculate eslaticities -------------
-
-## Keep interest states
-#elasticities <- all_pi[ fips_state %in% states]
-elasticities <- all_pi
 
 ## Keep only taxable items as those are whose responses we care
-elasticities <- elasticities[ln_sales_tax > 0]
+elasticities <- all_pi[ln_sales_tax > 0]
 
 ## Need to round to the third decimal point to match the bounds we have estimated
 elasticities[, p := round(dm.ln_cpricei2, 3)]
@@ -90,7 +91,7 @@ elasticities[, p := round(dm.ln_cpricei2, 3)]
 elasticities <- merge(elasticities, bounds, by = "p", allow.cartesian=T)
 
 ## Calculate all elasticities
-elasticities <- elasticities[, .( av.elas_1 = linear.elas,
+elasticities.1 <- elasticities[, .( av.elas_1 = linear.elas,
                                   av.elas_2 = weighted.mean(quad.elas[1] + quad.elas[2]*dm.ln_cpricei2, w = base.sales),
                                   av.elas_3 = weighted.mean(cubic.elas[1] + cubic.elas[2]*dm.ln_cpricei2 + cubic.elas[3]*dm.ln_cpricei2^2, w = base.sales),
                                   av.elas_4 = weighted.mean(tetra.elas[1] + tetra.elas[2]*dm.ln_cpricei2 + tetra.elas[3]*dm.ln_cpricei2^2 + tetra.elas[4]*dm.ln_cpricei2^3, w = base.sales),
@@ -100,16 +101,58 @@ elasticities <- elasticities[, .( av.elas_1 = linear.elas,
                                   av.elas.down_5 = weighted.mean(elas.down_5 , w = base.sales),
                                   av.elas.down_6 = weighted.mean(elas.down_6 , w = base.sales),
                                   av.elas.down_7 = weighted.mean(elas.down_7 , w = base.sales),
+                                  av.elas.down_10 = weighted.mean(elas.down_10 , w = base.sales),
                                   av.elas.up_2 = weighted.mean(elas.up_2 , w = base.sales),
                                   av.elas.up_3 = weighted.mean(elas.up_3 , w = base.sales),
                                   av.elas.up_4 = weighted.mean(elas.up_4 , w = base.sales),
                                   av.elas.up_5 = weighted.mean(elas.up_5 , w = base.sales),
                                   av.elas.up_6 = weighted.mean(elas.up_6 , w = base.sales),
                                   av.elas.up_7 = weighted.mean(elas.up_7 , w = base.sales),
+                                  av.elas.up_10 = weighted.mean(elas.up_10 , w = base.sales),
+                                  av.p = weighted.mean(dm.ln_cpricei2 , w = base.sales),
+                                  av.ln_sales_tax = weighted.mean(ln_sales_tax , w = base.sales),
                                   N = .N
                                   ) , by = .(fips_state, D)]
+elasticities.1[, weigth := "consumer price"]
 
-###### 2. Export Results ---------------------
+
+###### 2. Calculate eslaticities: imperfect salience -------------
+
+### Open estimated elasticities bounds
+bounds <- fread(bounds.data.pretax)
+
+
+## Merge estimated bounds
+elasticities.2 <- merge(elasticities, bounds, by = "p", allow.cartesian=T)
+
+## Calculate all elasticities
+elasticities.2 <- elasticities.2[, .( av.elas_1 = linear.elas.pt,
+                                    av.elas_2 = weighted.mean(quad.elas.pt[1] + quad.elas.pt[2]*dm.ln_cpricei2, w = base.sales),
+                                    av.elas_3 = weighted.mean(cubic.elas.pt[1] + cubic.elas.pt[2]*dm.ln_cpricei2 + cubic.elas.pt[3]*dm.ln_cpricei2^2, w = base.sales),
+                                    av.elas_4 = weighted.mean(tetra.elas.pt[1] + tetra.elas.pt[2]*dm.ln_cpricei2 + tetra.elas.pt[3]*dm.ln_cpricei2^2 + tetra.elas.pt[4]*dm.ln_cpricei2^3, w = base.sales),
+                                    av.elas.down_2 = weighted.mean(elas.down_2 , w = base.sales),
+                                    av.elas.down_3 = weighted.mean(elas.down_3 , w = base.sales),
+                                    av.elas.down_4 = weighted.mean(elas.down_4 , w = base.sales),
+                                    av.elas.down_5 = weighted.mean(elas.down_5 , w = base.sales),
+                                    av.elas.down_6 = weighted.mean(elas.down_6 , w = base.sales),
+                                    av.elas.down_7 = weighted.mean(elas.down_7 , w = base.sales),
+                                    av.elas.down_10 = weighted.mean(elas.down_10 , w = base.sales),
+                                    av.elas.up_2 = weighted.mean(elas.up_2 , w = base.sales),
+                                    av.elas.up_3 = weighted.mean(elas.up_3 , w = base.sales),
+                                    av.elas.up_4 = weighted.mean(elas.up_4 , w = base.sales),
+                                    av.elas.up_5 = weighted.mean(elas.up_5 , w = base.sales),
+                                    av.elas.up_6 = weighted.mean(elas.up_6 , w = base.sales),
+                                    av.elas.up_7 = weighted.mean(elas.up_7 , w = base.sales),
+                                    av.elas.up_10 = weighted.mean(elas.up_10 , w = base.sales),
+                                    av.dm.ln_cpricei2 = weighted.mean(dm.ln_cpricei2 , w = base.sales),
+                                    av.ln_sales_tax = weighted.mean(ln_sales_tax , w = base.sales),
+                                    N = .N
+) , by = .(fips_state, D)]
+
+elasticities.2[, weigth := "pretax price"]
+
+###### 3. Export Results ---------------------
+elasticities <- rbind(elasticities.1, elasticities.2)
 fwrite(elasticities, output.table)
 
 
