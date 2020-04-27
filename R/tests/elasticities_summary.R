@@ -69,6 +69,14 @@ pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sal
 pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
 all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
+
+## Keep only taxable items as those are whose responses we care
+elasticities <- all_pi[ln_sales_tax > 0]
+
+## Need to round to the third decimal point to match the bounds we have estimated
+elasticities[, p := round(dm.ln_cpricei2, 3)]
+
+
 ###### 1. Calculate eslaticities: perfect salience -------------
 
 ### Open estimated elasticities bounds
@@ -80,13 +88,6 @@ bounds <- bounds[ D <= 3 & K %in% seq(2,10,1)]
 ## dcast data (long to wide)
 bounds <- dcast(bounds, "p + D ~ K", value.var = c("elas.down", "elas.up"), fun = sum)
   
-
-## Keep only taxable items as those are whose responses we care
-elasticities <- all_pi[ln_sales_tax > 0]
-
-## Need to round to the third decimal point to match the bounds we have estimated
-elasticities[, p := round(dm.ln_cpricei2, 3)]
-
 ## Merge estimated bounds
 elasticities <- merge(elasticities, bounds, by = "p", allow.cartesian=T)
 
@@ -121,6 +122,11 @@ elasticities.1[, weigth := "consumer price"]
 ### Open estimated elasticities bounds
 bounds <- fread(bounds.data.pretax)
 
+## Keep all bounds for d <=3 and K <= 10
+bounds <- bounds[ D <= 3 & K %in% seq(2,10,1)]
+
+## dcast data (long to wide)
+bounds <- dcast(bounds, "p + D ~ K", value.var = c("elas.down", "elas.up"), fun = sum)
 
 ## Merge estimated bounds
 elasticities.2 <- merge(elasticities, bounds, by = "p", allow.cartesian=T)
