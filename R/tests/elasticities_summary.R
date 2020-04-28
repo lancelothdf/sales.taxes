@@ -90,10 +90,10 @@ bounds <- dcast(bounds, "p + D ~ K", value.var = c("elas.down", "elas.up"), fun 
 setnames(bounds, "D", "L")
   
 ## Merge estimated bounds
-elasticities <- merge(elasticities, bounds, by = "p", allow.cartesian=T)
+elasticities.1 <- merge(elasticities, bounds, by = "p", allow.cartesian=T)
 
 ## Calculate all elasticities
-elasticities.1 <- elasticities[, .( av.elas_1 = linear.elas,
+elasticities.1 <- elasticities.1[, .( av.elas_1 = linear.elas,
                                   av.elas_2 = weighted.mean(quad.elas[1] + quad.elas[2]*dm.ln_cpricei2, w = base.sales),
                                   av.elas_3 = weighted.mean(cubic.elas[1] + cubic.elas[2]*dm.ln_cpricei2 + cubic.elas[3]*dm.ln_cpricei2^2, w = base.sales),
                                   av.elas_4 = weighted.mean(tetra.elas[1] + tetra.elas[2]*dm.ln_cpricei2 + tetra.elas[3]*dm.ln_cpricei2^2 + tetra.elas[4]*dm.ln_cpricei2^3, w = base.sales),
