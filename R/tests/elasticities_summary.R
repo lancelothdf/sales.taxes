@@ -111,7 +111,7 @@ elasticities.1 <- elasticities.1[, .( av.elas_1 = linear.elas,
                                   av.elas.up_6 = weighted.mean(elas.up_6 , w = base.sales),
                                   av.elas.up_7 = weighted.mean(elas.up_7 , w = base.sales),
                                   av.elas.up_10 = weighted.mean(elas.up_10 , w = base.sales),
-                                  av.p = weighted.mean(dm.ln_cpricei2 , w = base.sales),
+                                  av.dm.ln_cpricei2 = weighted.mean(dm.ln_cpricei2 , w = base.sales),
                                   av.ln_sales_tax = weighted.mean(ln_sales_tax , w = base.sales),
                                   N = .N
                                   ) , by = .(fips_state, L)]
