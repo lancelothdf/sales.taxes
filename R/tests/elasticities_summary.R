@@ -87,6 +87,7 @@ bounds <- bounds[ D <= 3 & K %in% seq(2,10,1)]
 
 ## dcast data (long to wide)
 bounds <- dcast(bounds, "p + D ~ K", value.var = c("elas.down", "elas.up"), fun = sum)
+setnames(bounds, "D", "L")
   
 ## Merge estimated bounds
 elasticities <- merge(elasticities, bounds, by = "p", allow.cartesian=T)
@@ -113,7 +114,7 @@ elasticities.1 <- elasticities[, .( av.elas_1 = linear.elas,
                                   av.p = weighted.mean(dm.ln_cpricei2 , w = base.sales),
                                   av.ln_sales_tax = weighted.mean(ln_sales_tax , w = base.sales),
                                   N = .N
-                                  ) , by = .(fips_state, D)]
+                                  ) , by = .(fips_state, L)]
 elasticities.1[, weight := "consumer price"]
 
 
@@ -127,6 +128,7 @@ bounds <- bounds[ D <= 3 & K %in% seq(2,10,1)]
 
 ## dcast data (long to wide)
 bounds <- dcast(bounds, "p + D ~ K", value.var = c("elas.down", "elas.up"), fun = sum)
+setnames(bounds, "D", "L")
 
 ## Merge estimated bounds
 elasticities.2 <- merge(elasticities, bounds, by = "p", allow.cartesian=T)
@@ -152,7 +154,7 @@ elasticities.2 <- elasticities.2[, .(av.elas_1 = linear.elas.pt,
                                     av.elas.up_10 = weighted.mean(elas.up_10 , w = base.sales),
                                     av.dm.ln_cpricei2 = weighted.mean(dm.ln_cpricei2 , w = base.sales),
                                     av.ln_sales_tax = weighted.mean(ln_sales_tax , w = base.sales),
-                                    N = .N) , by = .(fips_state, D)]
+                                    N = .N) , by = .(fips_state, L)]
 
 elasticities.2[, weight := "pretax price"]
 
