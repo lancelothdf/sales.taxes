@@ -114,7 +114,7 @@ elasticities.1 <- elasticities[, .( av.elas_1 = linear.elas,
                                   av.ln_sales_tax = weighted.mean(ln_sales_tax , w = base.sales),
                                   N = .N
                                   ) , by = .(fips_state, D)]
-elasticities.1[, weigth := "consumer price"]
+elasticities.1[, weight := "consumer price"]
 
 
 ###### 2. Calculate eslaticities: imperfect salience -------------
@@ -132,7 +132,7 @@ bounds <- dcast(bounds, "p + D ~ K", value.var = c("elas.down", "elas.up"), fun 
 elasticities.2 <- merge(elasticities, bounds, by = "p", allow.cartesian=T)
 
 ## Calculate all elasticities
-elasticities.2 <- elasticities.2[, .( av.elas_1 = linear.elas.pt,
+elasticities.2 <- elasticities.2[, .(av.elas_1 = linear.elas.pt,
                                     av.elas_2 = weighted.mean(quad.elas.pt[1] + quad.elas.pt[2]*dm.ln_cpricei2, w = base.sales),
                                     av.elas_3 = weighted.mean(cubic.elas.pt[1] + cubic.elas.pt[2]*dm.ln_cpricei2 + cubic.elas.pt[3]*dm.ln_cpricei2^2, w = base.sales),
                                     av.elas_4 = weighted.mean(tetra.elas.pt[1] + tetra.elas.pt[2]*dm.ln_cpricei2 + tetra.elas.pt[3]*dm.ln_cpricei2^2 + tetra.elas.pt[4]*dm.ln_cpricei2^3, w = base.sales),
@@ -152,10 +152,9 @@ elasticities.2 <- elasticities.2[, .( av.elas_1 = linear.elas.pt,
                                     av.elas.up_10 = weighted.mean(elas.up_10 , w = base.sales),
                                     av.dm.ln_cpricei2 = weighted.mean(dm.ln_cpricei2 , w = base.sales),
                                     av.ln_sales_tax = weighted.mean(ln_sales_tax , w = base.sales),
-                                    N = .N
-) , by = .(fips_state, D)]
+                                    N = .N) , by = .(fips_state, D)]
 
-elasticities.2[, weigth := "pretax price"]
+elasticities.2[, weight := "pretax price"]
 
 ###### 3. Export Results ---------------------
 elasticities <- rbind(elasticities.1, elasticities.2)
