@@ -90,7 +90,7 @@ for (yr in 2006:2016) {
   
   purchases <- purchases[, .(total_expenditures = sum(total_expenditures),
                              hh_expenditures = sum(hh_expenditures),
-                             Projection_Factor = sum(Projection_Factor)), 
+                             projection_factor = sum(projection_factor)), 
                          by = .(fips_state, household_income, panel_year, product_module_code, product_group_code, department_code)]
   
   ## Identify purchases taxability
