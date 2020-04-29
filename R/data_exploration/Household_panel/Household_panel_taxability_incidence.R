@@ -57,13 +57,24 @@ hh_pi <- hh_pi[, .(total_expenditures = sum(total_expenditures),
 hh_pi <- hh_pi[!is.na(taxability)]
 
 
-## Compute distribution per module x state under different etas 
-module.data <- hh_pi[, .(incidence_m_02 = (eta_02)*projection_factor*total_expenditures/sum(total_expenditures*projection_factor),
-                         incidence_m_05 = (eta_05)*projection_factor*total_expenditures/sum(total_expenditures*projection_factor),
-                         incidence_m_10 = (eta_10)*projection_factor*total_expenditures/sum(total_expenditures*projection_factor),
-                         incidence_m_20 = (eta_20)*projection_factor*total_expenditures/sum(total_expenditures*projection_factor),
-                         sales_m_consumer = sum(total_expenditures*projection_factor)), 
-                  by = .(fips_state, product_module_code, taxability)]
+## Compute distribution per module x state x income bin under different etas 
+hh_pi[, incidence_m_02 := (eta_02)*projection_factor*total_expenditures/sum(total_expenditures*projection_factor),
+      by = .(fips_state, product_module_code, taxability)]
+hh_pi[, incidence_m_05 := (eta_05)*projection_factor*total_expenditures/sum(total_expenditures*projection_factor),
+      by = .(fips_state, product_module_code, taxability)]
+hh_pi[, incidence_m_10 := (eta_10)*projection_factor*total_expenditures/sum(total_expenditures*projection_factor),
+      by = .(fips_state, product_module_code, taxability)]
+hh_pi[, incidence_m_20 := (eta_20)*projection_factor*total_expenditures/sum(total_expenditures*projection_factor),
+      by = .(fips_state, product_module_code, taxability)]
+
+## collapse (sum)
+module.data <-  hh_pi[, .(incidence_m_02 = sum(incidence_m_02),
+                          incidence_m_05 = sum(incidence_m_05),
+                          incidence_m_10 = sum(incidence_m_10),
+                          incidence_m_20 = sum(incidence_m_20),
+                          sales_m_consumer = sum(total_expenditures*projection_factor)), 
+                      by = .(fips_state, product_module_code, taxability)]
+                 
 
 # merge module sales weights from retailer
 module.data <- merge(module.data, ret_pi, by = c("product_module_code", "fips_state"), all.x = T, alow.cartesian = T )
