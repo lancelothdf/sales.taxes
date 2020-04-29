@@ -19,7 +19,7 @@ hh_pi <- fread(hh.panel.clean)
 ret_pi <- fread(data.semester)
 
 ## Calculate weigths of modules from retailer data (use year 2014) by state (so sum across stores and semester)
-ret_pi <- ret_pi[year == 2014, .(sales_m_retailer = sum(sales)), by = .(product_module_code, fips_state)]
+ret_pi <- ret_pi[year == 2014, .(sales_m_retailer = sum(sales, na.rm = T)), by = .(product_module_code, fips_state)]
 
 # Fix bins for years
 weights <- fread(income_w)
