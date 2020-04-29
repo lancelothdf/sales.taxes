@@ -9,7 +9,7 @@ library(futile.logger)
 setwd("/project2/igaarder/Data")
 
 # useful paths
-data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
+data.semester <- "Nielsen/semester_nielsen_data.csv"
 hh.panel.clean <- "Nielsen/Household_panel/cleaning/consumer_panel_income_module_state_year_2006-2016.csv"
 path.data.figures <- "/home/slacouture/NLP/HH_Food/"
 
