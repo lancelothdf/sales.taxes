@@ -41,7 +41,7 @@ rm(yr.data, weights)
 
 # merge welfare weigths calculated separate by Lance 
 head(hh_pi)
-hh_pi <- merge(hh_pi, al.weights, by = "household_income", "panel_year")
+hh_pi <- merge(hh_pi, al.weights, by = c("household_income", "panel_year"))
 
 
 ## Now for household panel lets collapse across years: use projection factors here on the welfare weights
@@ -52,11 +52,9 @@ hh_pi <- hh_pi[, .(total_expenditures = sum(total_expenditures),
                    eta_05 = weighted.mean(eta_05, w = projection_factor),
                    eta_10 = weighted.mean(eta_10, w = projection_factor),
                    eta_20 = weighted.mean(eta_20, w = projection_factor)),
-               by = .(fips_state, household_income, panel_year, product_module_code, product_group_code, department_code, taxability, reduced_rate)]
+               by = .(fips_state, household_income, panel_year, product_module_code, taxability)]
 # Fix taxability to drop unidentified taxability
-hh_pi[, taxability := ifelse(!is.na(reduced_rate), 2, taxability)]
 hh_pi <- hh_pi[!is.na(taxability)]
-
 
 
 ## Compute distribution per module x state under different etas 
