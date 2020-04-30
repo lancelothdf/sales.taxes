@@ -20,14 +20,14 @@ taxability_panel <- fread("taxability_state_panel.csv")
 taxability_panel[, taxability := ifelse(!is.na(reduced_rate), 2, taxability)]
 # We will use taxability as of December 2014
 taxability_panel <- taxability_panel[(month==12 & year==2014),][, .(product_module_code, fips_state, taxability)]
-
+head(taxability_panel)
 # Read data (export before common support and estimation)
 
 all_pi <- fread(data.semester)
+head(all_pi)
 all_pi <- merge(all_pi, taxability_panel, by = c("product_module_code, fips_state"))
 
 # Collapse at module x store level
-head(all_pi)
 all_pi <- all_pi[, .(sales = sum(sales),
                      N_semesters = .N),
                  by = ..(product_module_code, fips_state, taxability, store_code_uc)]
