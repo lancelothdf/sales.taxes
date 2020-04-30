@@ -28,7 +28,7 @@ all_pi <- merge(all_pi, taxability_panel, by = c("product_module_code", "fips_st
 # Collapse at module x store level
 all_pi <- all_pi[, .(sales = sum(sales),
                      N_semesters = .N),
-                 by = ..(product_module_code, fips_state, taxability, store_code_uc)]
+                 by = .(product_module_code, fips_state, taxability, store_code_uc)]
 
 # Collapse at module level
 all_pi <- all_pi[, .(sales = sum(sales),
