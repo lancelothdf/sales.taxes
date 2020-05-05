@@ -52,7 +52,7 @@ hh_pi <- hh_pi[, .(total_expenditures = sum(total_expenditures),
                    eta_05 = weighted.mean(eta_05, w = projection_factor),
                    eta_10 = weighted.mean(eta_10, w = projection_factor),
                    eta_20 = weighted.mean(eta_20, w = projection_factor)),
-               by = .(fips_state, household_income, panel_year, product_module_code, taxability)]
+               by = .(fips_state, household_income, product_module_code, taxability)]
 # Fix taxability to drop unidentified taxability
 hh_pi <- hh_pi[!is.na(taxability)]
 
