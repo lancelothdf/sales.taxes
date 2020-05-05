@@ -51,7 +51,7 @@ hh_pi <- hh_pi[, .(expenditures_exempt = sum(expenditures_exempt),
 ## Now calculate the share of total expenditure in each type 
 
 # Calculate logs and shares
-vars <- c("expenditures_exempt", "expenditures_taxable", "expenditures_reduced", "expenditures_exred", 
+vars <- c("expenditures_exempt", "expenditures_taxable", "expenditures_reduced", 
           "expenditures_food", "expenditures_nonfood")
 for (var in vars) {
   
