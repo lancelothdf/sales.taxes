@@ -45,7 +45,7 @@ hh_pi <- hh_pi[, .(expenditures_exempt = sum(expenditures_exempt),
                    expenditures_nonfood	= sum(expenditures_nonfood),
                    expenditures_food = sum(expenditures_food),
                    hh_expenditures = sum(hh_expenditures),
-                   projection_factor = sum(projection_factor),
+                   projection_factor = sum(projection_factor)),
                by = .(fips_state, household_income, mean)]
 
 ## Now calculate the share of total expenditure in each type 
@@ -74,7 +74,7 @@ for (state in unique(hh_pi$fips_state)) {
     
     # Produce formula
     formula1 <- as.formula(paste0(
-      var, " ~ mean "
+      "sh_", var, " ~ mean "
     ))
     
     # Run Linear Regression
