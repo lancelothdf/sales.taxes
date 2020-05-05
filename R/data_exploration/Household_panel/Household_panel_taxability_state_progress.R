@@ -86,12 +86,13 @@ for (state in unique(hh_pi$fips_state)) {
     res1.dt[, fips_state := state]
     
     # Attach
-    regs <- rbind(regs, res1.dt)
+    regs <- rbind(regs, res1.dt, fill = T)
+    # Export file 
+    fwrite(regs, paste0(path.data.figures, "slope_coefs_state.csv"))
+    
   }
 }
 
-## Export file 
-fwrite(regs, paste0(path.data.figures, "slope_coefs_state.csv"))
 
 
 
