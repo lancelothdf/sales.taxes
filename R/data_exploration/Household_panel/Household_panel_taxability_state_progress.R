@@ -82,7 +82,7 @@ for (state in unique(hh_pi$fips_state)) {
     
     # Save results
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-    res1.dt[, outcome := Y]
+    res1.dt[, outcome := var]
     res1.dt[, fips_state := state]
     
     # Attach
