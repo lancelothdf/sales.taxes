@@ -9,6 +9,7 @@
 #'   iii) Elasticity in log-quadratic (log-cubic) using partial-id
 #' 1) and 2ii) are included as csv and 2i) and 2iii) are written
 #' We use the estimates to compute average elasticities under different scenarios for each State
+#' This version: extract also average Fiscal Externality to compute MVPF using actual tax rate
 
 library(data.table)
 library(futile.logger)
@@ -111,8 +112,29 @@ elasticities.1 <- elasticities.1[, .( av.elas_1 = linear.elas,
                                   av.elas.up_6 = weighted.mean(elas.up_6 , w = base.sales),
                                   av.elas.up_7 = weighted.mean(elas.up_7 , w = base.sales),
                                   av.elas.up_10 = weighted.mean(elas.up_10 , w = base.sales),
+                                  av.fe_2 = weighted.mean((quad.elas[1] + quad.elas[2]*dm.ln_cpricei2)*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.fe_3 = weighted.mean((cubic.elas[1] + cubic.elas[2]*dm.ln_cpricei2 + cubic.elas[3]*dm.ln_cpricei2^2)*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.fe_4 = weighted.mean((tetra.elas[1] + tetra.elas[2]*dm.ln_cpricei2 + tetra.elas[3]*dm.ln_cpricei2^2+ tetra.elas[4]*dm.ln_cpricei2^3)*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.fe.down_2 = weighted.mean(elas.down_2*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.fe.down_3 = weighted.mean(elas.down_3*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.fe.down_4 = weighted.mean(elas.down_4*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.fe.down_5 = weighted.mean(elas.down_5*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.fe.down_6 = weighted.mean(elas.down_6*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.fe.down_7 = weighted.mean(elas.down_7*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.fe.down_10 = weighted.mean(elas.down_10*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.fe.up_2 = weighted.mean(elas.up_2*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.fe.up_3 = weighted.mean(elas.up_3*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.fe.up_4 = weighted.mean(elas.up_4*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.fe.up_5 = weighted.mean(elas.up_5*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.fe.up_6 = weighted.mean(elas.up_6*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.fe.up_7 = weighted.mean(elas.up_7*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.fe.up_10 = weighted.mean(elas.up_10*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
                                   av.dm.ln_cpricei2 = weighted.mean(dm.ln_cpricei2 , w = base.sales),
                                   av.ln_sales_tax = weighted.mean(ln_sales_tax , w = base.sales),
+                                  av.d_sales_tax = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.d_sales_tax_theta0117 = weighted.mean((exp(ln_sales_tax)-1 + 0.117)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.d_sales_tax_theta0100 = weighted.mean((exp(ln_sales_tax)-1 + 0.1)/(exp(ln_sales_tax)), w = base.sales),
+                                  av.d_sales_tax_theta0050 = weighted.mean((exp(ln_sales_tax)-1 + 0.05)/(exp(ln_sales_tax)), w = base.sales),
                                   N = .N
                                   ) , by = .(fips_state, L)]
 elasticities.1[, weight := "consumer price"]
@@ -152,8 +174,26 @@ elasticities.2 <- elasticities.2[, .(av.elas_1 = linear.elas.pt,
                                     av.elas.up_6 = weighted.mean(elas.up_6 , w = base.sales),
                                     av.elas.up_7 = weighted.mean(elas.up_7 , w = base.sales),
                                     av.elas.up_10 = weighted.mean(elas.up_10 , w = base.sales),
+                                    av.fe_2 = weighted.mean((quad.elas.pt[1] + quad.elas.pt[2]*dm.ln_cpricei2)*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                    av.fe_3 = weighted.mean((cubic.elas.pt[1] + cubic.elas.pt[2]*dm.ln_cpricei2 + cubic.elas.pt[3]*dm.ln_cpricei2^2)*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                    av.fe_4 = weighted.mean((tetra.elas.pt[1] + tetra.elas.pt[2]*dm.ln_cpricei2 + tetra.elas.pt[3]*dm.ln_cpricei2^2+ tetra.elas.pt[4]*dm.ln_cpricei2^3)*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                    av.fe.down_2 = weighted.mean(elas.down_2*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                    av.fe.down_3 = weighted.mean(elas.down_3*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                    av.fe.down_4 = weighted.mean(elas.down_4*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                    av.fe.down_5 = weighted.mean(elas.down_5*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                    av.fe.down_6 = weighted.mean(elas.down_6*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                    av.fe.down_7 = weighted.mean(elas.down_7*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                    av.fe.down_10 = weighted.mean(elas.down_10*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                    av.fe.up_2 = weighted.mean(elas.up_2*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                    av.fe.up_3 = weighted.mean(elas.up_3*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                    av.fe.up_4 = weighted.mean(elas.up_4*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                    av.fe.up_5 = weighted.mean(elas.up_5*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                    av.fe.up_6 = weighted.mean(elas.up_6*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                    av.fe.up_7 = weighted.mean(elas.up_7*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                                    av.fe.up_10 = weighted.mean(elas.up_10*(exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
                                     av.dm.ln_cpricei2 = weighted.mean(dm.ln_cpricei2 , w = base.sales),
                                     av.ln_sales_tax = weighted.mean(ln_sales_tax , w = base.sales),
+                                    av.d_sales_tax = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
                                     N = .N) , by = .(fips_state, L)]
 
 elasticities.2[, weight := "pretax price"]
