@@ -215,23 +215,23 @@ for (rep in 1:100) {
 
     # Create groups of initial values of tax rate
     # We use the full weighted distribution
-    all_pi <- all_pi[, quantile := cut(dm.L.ln_cpricei2,
-                                       breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
+    sampled.data <- sampled.data[, quantile := cut(dm.L.ln_cpricei2,
+                                       breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = sampled.data$base.sales),
                                        labels = 1:n.g, right = FALSE)]
-    quantlab <- round(quantile(all_pi$dm.L.ln_cpricei2, 
+    quantlab <- round(quantile(sampled.data$dm.L.ln_cpricei2, 
                                probs = seq(0, 1, by = 1/n.g), na.rm = T, 
-                               weight = all_pi$base.sales), digits = 4)
+                               weight = sampled.data$base.sales), digits = 4)
     
     ## Do partial identification
     ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
     # Get the empirical distribution of prices by quantile
-    all_pi[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
-    all_pi[, p_group := floor((r.dm.ln_cpricei2 - min(r.dm.ln_cpricei2, na.rm = T))/((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/100)), by = .(quantile)]
-    all_pi[, p_ll := p_group*((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
-    all_pi[, p_ll := p_ll + min(r.dm.ln_cpricei2, na.rm = T), by = .(quantile)]
-    all_pi[, p_ul := p_ll + ((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
+    sampled.data[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
+    sampled.data[, p_group := floor((r.dm.ln_cpricei2 - min(r.dm.ln_cpricei2, na.rm = T))/((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/100)), by = .(quantile)]
+    sampled.data[, p_ll := p_group*((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
+    sampled.data[, p_ll := p_ll + min(r.dm.ln_cpricei2, na.rm = T), by = .(quantile)]
+    sampled.data[, p_ul := p_ll + ((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
     
-    ed.price.quantile <- all_pi[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
+    ed.price.quantile <- sampled.data[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
     ed.price.quantile[, p_m := (p_ul+p_ll)/2]
     
     #### Matrices of Polynomials for Elasticity: elasticity is itself a bernstein Polynomial
