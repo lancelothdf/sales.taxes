@@ -201,6 +201,3 @@ elasticities.2[, weight := "pretax price"]
 ###### 3. Export Results ---------------------
 elasticities <- rbind(elasticities.1, elasticities.2, fill = T)
 fwrite(elasticities, output.table)
-
-
-
