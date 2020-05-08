@@ -89,13 +89,13 @@ LRdiff_res <- data.table(NULL)
 pq_res <- data.table(NULL)
 ## Run within
 flog.info("Iteration 0")
-
+rep <- 0
 ## To estimate the intercept
 mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
 mean.p <- all_pi[, mean(r.dm.ln_cpricei2, weights = base.sales, na.rm = T)]
 
 
-estimated.pq <- data.table(mean.q, mean.p, min.p, max.p)
+estimated.pq <- data.table(mean.q, mean.p, min.p, max.p, rep)
 pq_res <- rbind(pq_res, estimated.pq)
 fwrite(pq_res, pq.output.results.file)
 
@@ -126,33 +126,36 @@ for (n.g in 1:5) {
   ed.price.quantile[, p_m := (p_ul+p_ll)/2]
   
   #### Matrices of Polynomials for Elasticity: elasticity is itself a bernstein Polynomial
-  
-  for (K in (n.g):12) {
-
-    # Create the derivative of the polynomial of prices and multiplicate by weights
-    for (n in 0:(K-1)){
-      ed.price.quantile[, paste0("b",n) := w1*(bernstein(p_m,n,K-1))]
+  if (n.g > 1) {
+    
+    for (K in (n.g):12) {
+      
+      if (K>1){
+        # Create the derivative of the polynomial of prices and multiplicate by weights
+        for (n in 0:(K-1)){
+          ed.price.quantile[, paste0("b",n) := w1*(bernstein(p_m,n,K-1))]
+        }
+        
+        # Calculate integral
+        gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",0:(K-1))]
+        gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
+        
+        # Export Calculation
+        gamma[, n.groups := n.g]
+        gamma[, iter := 0]
+        
+        ## Read Previous and write
+        theta.output.results.file <- paste0(output.path, K,"_bern.csv")
+        
+        if (n.g == 1) {
+          fwrite(gamma, theta.output.results.file)
+        } else {
+          previous.data <- fread(theta.output.results.file)
+          previous.data <- rbind(previous.data, gamma)
+          fwrite(previous.data, theta.output.results.file)
+        }
+      }
     }
-    
-    # Calculate integral
-    gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",0:(K-1))]
-    gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
-    
-    # Export Calculation
-    gamma[, n.groups := n.g]
-    gamma[, iter := 0]
-    
-    ## Read Previous and write
-    theta.output.results.file <- paste0(output.path, K,"_bern.csv")
-    
-    if (n.g == 1) {
-      fwrite(gamma, theta.output.results.file)
-    } else {
-      previous.data <- fread(theta.output.results.file)
-      previous.data <- rbind(previous.data, gamma)
-      fwrite(previous.data, theta.output.results.file)
-    }
-     
   }
   
   #### Matrices of Polynomials for Demand: now demand is a bernstein Polynomial. Thus we calculate restrictions on the derivative
@@ -201,14 +204,14 @@ for (rep in 1:100) {
 
   # Merge data to actual data
   sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
-
+  print(rownames(sampled.data))
 
   ## To estimate the intercept
   mean.q <- sampled.data[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
   mean.p <- sampled.data[, mean(dm.ln_cpricei2, weights = base.sales, na.rm = T)]
 
-  estimated.pq <- data.table(mean.q, mean.p)
-  pq_res <- rbind(pq_res, estimated.pq)
+  estimated.pq <- data.table(mean.q, mean.p, rep)
+  pq_res <- rbind(pq_res, estimated.pq, fill = T)
   fwrite(pq_res, pq.output.results.file)
 
   for (n.g in 1:5) {
@@ -235,31 +238,32 @@ for (rep in 1:100) {
     ed.price.quantile[, p_m := (p_ul+p_ll)/2]
     
     #### Matrices of Polynomials for Elasticity: elasticity is itself a bernstein Polynomial
-    
+
     for (K in (n.g):12) {
       
-      # Create the derivative of the polynomial of prices and multiplicate by weights
-      for (n in 0:(K-1)){
-        ed.price.quantile[, paste0("b",n) := w1*(bernstein(p_m,n,K-1))]
-      }
-      
-      # Calculate integral
-      gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",0:(K-1))]
-      gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
-      
-      # Export Calculation
-      gamma[, n.groups := n.g]
-      gamma[, iter := rep]
-      
-      ## Read Previous and write
-      theta.output.results.file <- paste0(output.path, K,"_bern.csv")
-      
-      previous.data <- fread(theta.output.results.file)
-      previous.data <- rbind(previous.data, gamma)
-      fwrite(previous.data, theta.output.results.file)
+      if (K>1){
+        # Create the derivative of the polynomial of prices and multiplicate by weights
+        for (n in 0:(K-1)){
+          ed.price.quantile[, paste0("b",n) := w1*(bernstein(p_m,n,K-1))]
+        }
+        
+        # Calculate integral
+        gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",0:(K-1))]
+        gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
+        
+        # Export Calculation
+        gamma[, n.groups := n.g]
+        gamma[, iter := rep]
+        
+        ## Read Previous and write
+        theta.output.results.file <- paste0(output.path, K,"_bern.csv")
+        
+        previous.data <- fread(theta.output.results.file)
+        previous.data <- rbind(previous.data, gamma)
+        fwrite(previous.data, theta.output.results.file)
 
+      } 
     }
   }
-    
 }
 
