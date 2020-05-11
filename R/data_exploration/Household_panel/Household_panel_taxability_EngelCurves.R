@@ -114,26 +114,26 @@ for (year in 2006:2014) {
 rm(yr.data, weights)
 
 # merge welfare weigths calculated separate by Lance 
-hh_pi <- merge(hh_pi, al.weights, by = c("household_income", "panel_year"))
+all_pi <- merge(all_pi, al.weights, by = c("household_income", "panel_year"))
 
 vars <- c("expenditures_exempt", "expenditures_taxable", "expenditures_reduced", 
           "expenditures_food", "expenditures_nonfood")
 
 
 ## Now for household panel lets collapse across years and households for graphs (separate data since the other will be used)  
-mean_pi <- hh_pi[, c(lapply(.SD, weighted.mean, w = projection_factor)),
+mean_pi <- all_pi[, c(lapply(.SD, weighted.mean, w = projection_factor)),
                     by = .(mean), 
                     .SDcols = vars]
 fwrite(mean_pi, paste0(path.data.figures, "av_expend_income.csv"))
 
 ## Run regression of the slope
 regs <- data.table(NULL)
-for (state in unique(hh_pi$fips_state)) {
+for (state in unique(all_pi$fips_state)) {
   
   flog.info("Running state %s", state)
   
   ## Identify data
-  data <- hh_pi[fips_state == state]
+  data <- all_pi[fips_state == state]
   for (var in vars) {
     
 
