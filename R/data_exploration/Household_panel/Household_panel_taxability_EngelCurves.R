@@ -12,6 +12,7 @@ setwd("/project2/igaarder/Data")
 # useful paths
 hh.panel.clean <- "Nielsen/Household_panel/cleaning/consumer_panel_bytaxability_year_2006-2016.csv"
 path.data.figures <- "/home/slacouture/NLP/HH_Food/"
+income_w <- "welfare_weights_by_income_bins.csv"
 
 ## Open Data
 all_pi <- fread(hh.panel.clean)
@@ -89,6 +90,73 @@ fwrite(income.bins, paste0(path.data.figures, "Bins_income.csv"))
 rm(income.bins, income.bins.1, income.bins.2)
 
 
+## New Graphs for May 11
+
+## Re-Open Data
+all_pi <- fread(hh.panel.clean)
+
+
+# Fix bins for years
+weights <- fread(income_w)
+al.weights <- data.table(NULL)
+for (year in 2006:2014) {
+  
+  if (year < 2010) {
+    yr.data <- weights[ Bin != "$100,000 +"]
+    
+  } else {
+    yr.data <- weights[ household_income <= 27 & Bin != "$100,000 - $124,999"]
+  }
+  yr.data[, panel_year := year]
+  al.weights <- rbind(al.weights, yr.data)
+  
+}
+rm(yr.data, weights)
+
+# merge welfare weigths calculated separate by Lance 
+hh_pi <- merge(hh_pi, al.weights, by = c("household_income", "panel_year"))
+
+vars <- c("expenditures_exempt", "expenditures_taxable", "expenditures_reduced", 
+          "expenditures_food", "expenditures_nonfood")
+
+
+## Now for household panel lets collapse across years and households for graphs (separate data since the other will be used)  
+mean_pi <- hh_pi[, c(lapply(.SD, weighted.mean, w = projection_factor)),
+                    by = .(mean), 
+                    .SDcols = vars]
+fwrite(mean_pi, paste0(path.data.figures, "av_expend_income.csv"))
+
+## Run regression of the slope
+regs <- data.table(NULL)
+for (state in unique(hh_pi$fips_state)) {
+  
+  flog.info("Running state %s", state)
+  
+  ## Identify data
+  data <- hh_pi[fips_state == state]
+  for (var in vars) {
+    
+
+    # Produce formula
+    formula1 <- as.formula(paste0(
+      var, " ~ mean "
+    ))
+    
+    # Run Linear Regression
+    res1 <- lm(formula1, data, weights = data$projection_factor )
+    
+    # Save results
+    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+    res1.dt[, outcome := var]
+    res1.dt[, fips_state := state]
+    
+    # Attach
+    regs <- rbind(regs, res1.dt, fill = T)
+    # Export file 
+    fwrite(regs, paste0(path.data.figures, "beta_expend_state.csv"))
+    
+  }
+}
 
 
 

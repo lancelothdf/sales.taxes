@@ -204,7 +204,6 @@ for (rep in 1:100) {
 
   # Merge data to actual data
   sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
-  print(rownames(sampled.data))
 
   ## To estimate the intercept
   mean.q <- sampled.data[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
