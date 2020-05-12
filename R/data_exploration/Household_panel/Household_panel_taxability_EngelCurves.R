@@ -114,8 +114,7 @@ mean_pi <- all_pi
 for (var in vars) {
   
   mean_pi[, paste0("sum_", var) := sum(get(var)), by = fips_state]
-  print("Problem is in 2")
-  mean_pi[ paste0("sum_", var) == 0, get(var) := NA]
+  mean_pi[ paste0("sum_", var) == 0, (var) := NA]
   
 }
 # Now collapse
