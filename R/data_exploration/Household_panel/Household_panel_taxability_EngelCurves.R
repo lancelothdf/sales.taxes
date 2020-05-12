@@ -117,7 +117,7 @@ for (var in vars) {
   mean_pi[c(paste0("sum_", var)) == 0, (var) := NA ]
   
 }
-head(mean_pi["fips_state" == 1])
+head(mean_pi[c("fips_state") == 1])
 
 # Now collapse
 mean_pi <- mean_pi[, c(lapply(.SD, weighted.mean, w = projection_factor, na.rm = T)),
