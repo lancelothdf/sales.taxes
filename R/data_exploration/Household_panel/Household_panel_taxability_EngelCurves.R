@@ -117,7 +117,6 @@ for (var in vars) {
   mean_pi[get(paste0("sum_", var)) == 0, (var) := NA ]
   
 }
-head(mean_pi[get("fips_state") == 1])
 
 # Now collapse
 mean_pi <- mean_pi[, c(lapply(.SD, weighted.mean, w = projection_factor, na.rm = T)),
@@ -141,25 +140,32 @@ for (state in unique(all_pi$fips_state)) {
     
     for (x in reg) {
       
-      # Produce formula
-      formula1 <- as.formula(paste0(
-        var, " ~", x
-      ))
+      # N non-NA (state were var applies)
+      N <- as.vector(data[!is.na(get(var))] , .N)
       
-      # Run Linear Regression
-      res1 <- lm(formula1, data, weights = data$projection_factor )
-      
-      # Save results
-      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-      res1.dt[, outcome := var]
-      res1.dt[, income := x]
-      res1.dt[, fips_state := state]
-      
-      # Attach
-      regs <- rbind(regs, res1.dt, fill = T)
-      # Export file 
-      fwrite(regs, paste0(path.data.figures, "beta_expend_state.csv"))
-      
+      if (N > 0) {
+        
+        # Produce formula
+        formula1 <- as.formula(paste0(
+          var, " ~", x
+        ))
+        
+        # Run Linear Regression
+        res1 <- lm(formula1, data, weights = data$projection_factor )
+        
+        # Save results
+        res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+        res1.dt[, outcome := var]
+        res1.dt[, income := x]
+        res1.dt[, fips_state := state]
+        
+        # Attach
+        regs <- rbind(regs, res1.dt, fill = T)
+        # Export file 
+        fwrite(regs, paste0(path.data.figures, "beta_expend_state.csv"))
+        
+        
+      }
     }
   }
 }
