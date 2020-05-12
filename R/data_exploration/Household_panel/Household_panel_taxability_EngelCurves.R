@@ -117,7 +117,7 @@ for (var in vars) {
   mean_pi[paste0("sum_", var) == 0, (var) := NA ]
   
 }
-head(mean_pi[is.na(expenditures_taxable)])
+colnames(mean_pi[is.na(expenditures_taxable)])
 
 # Now collapse
 mean_pi <- mean_pi[, c(lapply(.SD, weighted.mean, w = projection_factor, na.rm = T)),
