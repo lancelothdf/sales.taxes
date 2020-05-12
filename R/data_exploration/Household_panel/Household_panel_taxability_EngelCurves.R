@@ -113,8 +113,8 @@ vars <- c("expenditures_exempt", "expenditures_taxable", "expenditures_reduced",
 mean_pi <- all_pi
 for (var in vars) {
   
-  mean_pi[, paste0("sum_", var) := sum(get(var)), by = fips_state]
-  mean_pi[, var:= ifelse(get(paste0("sum_", var)) == 0, NA, get(var))]
+  mean_pi[, paste0("sum_", var) := sum((var)), by = fips_state]
+  mean_pi[, get(var) := ifelse((paste0("sum_", var)) == 0, NA, get(var))]
   
 }
 # Now collapse
