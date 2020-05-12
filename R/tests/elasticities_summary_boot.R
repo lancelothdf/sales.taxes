@@ -21,7 +21,7 @@ setwd("/project2/igaarder")
 
 ## inputs -----------------------------------------------
 data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
-bounds.data <- "Data/elasticity_bounds_table_berns_monot_mincreterion_d.csv"
+bounds.data <- "Data/elasticity_bounds_table_berns_monot_mincreterion_d_boot.csv"
 linear.elas <- -0.5760/1.0508
 quad.elas <- c(-0.513, 2*1.746)
 cubic.elas <- c(-0.641, 2*1.705, 3*8.423)
@@ -80,7 +80,7 @@ set.seed(2019)
 ids <- unique(all_pi$module_by_state)
 
 data.elas.boot <- data.table(NULL)
-for (rep in 0:77) {
+for (rep in 0:76) {
   
   
   flog.info("Iteration %s", rep)
@@ -164,7 +164,6 @@ for (rep in 0:77) {
   ### Export Results ---------------------
   data.elas.boot <- rbind(data.elas.boot, elasticities, fill = T)
   fwrite(data.elas.boot, output.table)
-  
   
 }
 
