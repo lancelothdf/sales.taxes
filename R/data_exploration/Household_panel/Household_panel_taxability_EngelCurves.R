@@ -111,6 +111,7 @@ vars <- c("expenditures_exempt", "expenditures_taxable", "expenditures_reduced",
 ## Now for household panel lets collapse across years and households for graphs (separate data since the other will be used) 
 # First, make cases = 0 by constuction as NA: those were consumption total is 0 at state
 mean_pi <- all_pi
+head(all_pi)
 for (var in vars) {
   
   mean_pi[, paste0("sum_", var) := sum(get(var)), by = fips_state]
