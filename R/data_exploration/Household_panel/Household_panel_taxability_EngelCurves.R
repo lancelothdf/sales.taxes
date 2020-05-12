@@ -114,9 +114,11 @@ mean_pi <- all_pi
 for (var in vars) {
   
   mean_pi[, paste0("sum_", var) := sum(get(var)), by = fips_state]
-  mean_pi[, (var) := ifelse(paste0("sum_", var) == 0, NA, get(var)) ]
+  mean_pi[paste0("sum_", var) == 0, (var) := NA ]
   
 }
+head(mean_pi[is.na(expenditures_taxable)])
+
 # Now collapse
 mean_pi <- mean_pi[, c(lapply(.SD, weighted.mean, w = projection_factor, na.rm = T)),
                     by = .(mean, meanlog, meanperc), 
