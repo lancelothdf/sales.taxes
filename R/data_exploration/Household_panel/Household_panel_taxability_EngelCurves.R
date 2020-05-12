@@ -141,7 +141,7 @@ for (state in unique(all_pi$fips_state)) {
     for (x in reg) {
       
       # N non-NA (state were var applies)
-      N <- row_number(data[!is.na(get(var))])
+      N <- nrow(data[!is.na(get(var))])
       
       if (N > 0) {
         
