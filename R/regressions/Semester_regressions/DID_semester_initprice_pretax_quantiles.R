@@ -87,7 +87,7 @@ all_pi[, r.dm.ln_pricei2 := (dm.ln_pricei2 - min.p)/(max.p - min.p) ]
 
 ## To estimate the intercept
 mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
-mean.p <- all_pi[, mean(r.dm.ln_cpricei2, weights = base.sales, na.rm = T)]
+mean.p <- all_pi[, mean(r.dm.ln_pricei2, weights = base.sales, na.rm = T)]
 
 
 estimated.pq <- data.table(mean.q, mean.p, min.p, max.p, rep)
@@ -240,7 +240,7 @@ for (rep in 1:100) {
   
   ## To estimate the intercept
   mean.q <- sampled.data[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
-  mean.p <- sampled.data[, mean(dm.ln_cpricei2, weights = base.sales, na.rm = T)]
+  mean.p <- sampled.data[, mean(r.dm.ln_pricei2, weights = base.sales, na.rm = T)]
   
   estimated.pq <- data.table(mean.q, mean.p, rep)
   pq_res <- rbind(pq_res, estimated.pq, fill = T)
