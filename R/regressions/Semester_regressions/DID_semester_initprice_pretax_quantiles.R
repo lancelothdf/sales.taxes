@@ -123,6 +123,7 @@ for (n.g in 1:3) {
         formula1 <- as.formula(paste0(
         Y, " ~ w.ln_sales_tax:quantile | ", FE, "+ quantile | 0 | module_by_state"
       ))
+      if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ w.ln_sales_tax | ", FE)) }
       res1 <- felm(formula = formula1, data = all_pi,
                    weights = all_pi$base.sales)
       
@@ -206,7 +207,7 @@ for (n.g in 1:3) {
     
     # Export Calculation
     gamma[, n.groups := n.g]
-    gamma[, iter := 0]
+    gamma[, iter := rep]
     
     ## Read Previous and write
     theta.output.results.file.pi <- paste0(theta.partial.output.results.file, K,"_bern.csv")
