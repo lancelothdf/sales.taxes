@@ -23,8 +23,8 @@ data.year <- "Data/Nielsen/yearly_nielsen_data.csv"
 ## output filepaths ----------------------------------------------
 iv.output.results.file <- "Data/DID_iv_sat_initial_price_pretax_semester_boot.csv"
 theta.output.results.file <- "Data/Demand_theta_sat_initial_price_pretax_semester_boot.csv"
-output.path <- "Data/Demand_gamma_sat_initial_price_Pretax_semester_boot_K"
-pq.output.results.file <- "Data/Demand_pq_sat_initial_price_semester_boot_r.csv"
+output.path <- "Data/Demand_gamma_sat_initial_price_pretax_semester_boot_K"
+pq.output.results.file <- "Data/Demand_pq_sat_initial_price_pretax_boot_r.csv"
 
 
 ## Bernstein basis Function -------------------------------------------
@@ -90,6 +90,10 @@ mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
 mean.p <- all_pi[, mean(r.dm.ln_pricei2, weights = base.sales, na.rm = T)]
 
 
+pq_res <- data.table(NULL)
+LRdiff_res <- data.table(NULL)
+target_res <- data.table(NULL)
+
 estimated.pq <- data.table(mean.q, mean.p, min.p, max.p, rep)
 pq_res <- rbind(pq_res, estimated.pq)
 fwrite(pq_res, pq.output.results.file)
@@ -98,8 +102,6 @@ flog.info("Iteration 0")
 rep <- 0
 
 
-LRdiff_res <- data.table(NULL)
-target_res <- data.table(NULL)
 ## Run within
 for (n.g in 1:3) {
     
