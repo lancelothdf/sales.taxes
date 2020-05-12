@@ -95,36 +95,36 @@ rm(income.bins, income.bins.1, income.bins.2)
 ## Re-Open Data
 all_pi <- fread(hh.panel.clean)
 
-
-# Fix bins for years
-weights <- fread(income_w)
-al.weights <- data.table(NULL)
-for (year in 2006:2014) {
-  
-  if (year < 2010) {
-    yr.data <- weights[ Bin != "$100,000 +"]
-    
-  } else {
-    yr.data <- weights[ household_income <= 27 & Bin != "$100,000 - $124,999"]
-  }
-  yr.data[, panel_year := year]
-  al.weights <- rbind(al.weights, yr.data)
-  
-}
-rm(yr.data, weights)
+## Fix Income bins: collapse all
+all_pi[, household_income := ifelse(household_income > 27, 27, household_income)]
+# Pool exempt and reduced
+all_pi[, expenditures_exred := expenditures_exempt + expenditures_reduced]
 
 # merge welfare weigths calculated separate by Lance 
-all_pi <- merge(all_pi, al.weights, by = c("household_income", "panel_year"))
+all_pi <- merge(all_pi, al.weights, by = "household_income")
 
-vars <- c("expenditures_exempt", "expenditures_taxable", "expenditures_reduced", 
+vars <- c("expenditures_exempt", "expenditures_taxable", "expenditures_reduced", "expenditures_exred",
           "expenditures_food", "expenditures_nonfood")
 
 
-## Now for household panel lets collapse across years and households for graphs (separate data since the other will be used)  
-mean_pi <- all_pi[, c(lapply(.SD, weighted.mean, w = projection_factor)),
-                    by = .(mean), 
+## Now for household panel lets collapse across years and households for graphs (separate data since the other will be used) 
+# First, make cases = 0 by constuction as NA: those were consumption total is 0 at state
+mean_pi <- all_pi
+for (var in vars) {
+  
+  mean_pi[, paste0("sum_", var) := sum(get(var)), by = fips_state]
+  mean_pi[, var:= ifelse(get(paste0("sum_", var)) == 0, NA, get(var))]
+  
+}
+# Now collapse
+mean_pi <- mean_pi[, c(lapply(.SD, weighted.mean, w = projection_factor, na.rm = T)),
+                    by = .(mean, meanlog, meanperc), 
                     .SDcols = vars]
 fwrite(mean_pi, paste0(path.data.figures, "av_expend_income.csv"))
+
+
+
+reg <- c("mean", "meanlog", "meanperc")
 
 ## Run regression of the slope
 regs <- data.table(NULL)
@@ -136,25 +136,28 @@ for (state in unique(all_pi$fips_state)) {
   data <- all_pi[fips_state == state]
   for (var in vars) {
     
-
-    # Produce formula
-    formula1 <- as.formula(paste0(
-      var, " ~ mean "
-    ))
-    
-    # Run Linear Regression
-    res1 <- lm(formula1, data, weights = data$projection_factor )
-    
-    # Save results
-    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-    res1.dt[, outcome := var]
-    res1.dt[, fips_state := state]
-    
-    # Attach
-    regs <- rbind(regs, res1.dt, fill = T)
-    # Export file 
-    fwrite(regs, paste0(path.data.figures, "beta_expend_state.csv"))
-    
+    for (x in reg) {
+      
+      # Produce formula
+      formula1 <- as.formula(paste0(
+        var, " ~", x
+      ))
+      
+      # Run Linear Regression
+      res1 <- lm(formula1, data, weights = data$projection_factor )
+      
+      # Save results
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, outcome := var]
+      res1.dt[, income := x]
+      res1.dt[, fips_state := state]
+      
+      # Attach
+      regs <- rbind(regs, res1.dt, fill = T)
+      # Export file 
+      fwrite(regs, paste0(path.data.figures, "beta_expend_state.csv"))
+      
+    }
   }
 }
 
