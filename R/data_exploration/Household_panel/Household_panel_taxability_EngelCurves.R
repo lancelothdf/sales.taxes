@@ -94,6 +94,7 @@ rm(income.bins, income.bins.1, income.bins.2)
 
 ## Re-Open Data
 all_pi <- fread(hh.panel.clean)
+al.weights <- fread(income_w)
 
 ## Fix Income bins: collapse all
 all_pi[, household_income := ifelse(household_income > 27, 27, household_income)]
