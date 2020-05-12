@@ -101,7 +101,7 @@ fwrite(pq_res, pq.output.results.file)
 
 
 
-for (n.g in 1:5) {
+for (n.g in 1:3) {
   
 
   # Create groups of initial values of tax rate
@@ -126,37 +126,35 @@ for (n.g in 1:5) {
   ed.price.quantile[, p_m := (p_ul+p_ll)/2]
   
   #### Matrices of Polynomials for Elasticity: elasticity is itself a bernstein Polynomial
-  if (n.g > 1) {
+  for (K in (n.g):12) {
     
-    for (K in (n.g):12) {
+    if (K>1){
+      # Create the derivative of the polynomial of prices and multiplicate by weights
+      for (n in 0:(K-1)){
+        ed.price.quantile[, paste0("b",n) := w1*(bernstein(p_m,n,K-1))]
+      }
       
-      if (K>1){
-        # Create the derivative of the polynomial of prices and multiplicate by weights
-        for (n in 0:(K-1)){
-          ed.price.quantile[, paste0("b",n) := w1*(bernstein(p_m,n,K-1))]
-        }
-        
-        # Calculate integral
-        gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",0:(K-1))]
-        gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
-        
-        # Export Calculation
-        gamma[, n.groups := n.g]
-        gamma[, iter := 0]
-        
-        ## Read Previous and write
-        theta.output.results.file <- paste0(output.path, K,"_bern.csv")
-        
-        if (n.g == 1) {
-          fwrite(gamma, theta.output.results.file)
-        } else {
-          previous.data <- fread(theta.output.results.file)
-          previous.data <- rbind(previous.data, gamma)
-          fwrite(previous.data, theta.output.results.file)
-        }
+      # Calculate integral
+      gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",0:(K-1))]
+      gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
+      
+      # Export Calculation
+      gamma[, n.groups := n.g]
+      gamma[, iter := 0]
+      
+      ## Read Previous and write
+      theta.output.results.file <- paste0(output.path, K,"_bern.csv")
+      
+      if (n.g == 1) {
+        fwrite(gamma, theta.output.results.file)
+      } else {
+        previous.data <- fread(theta.output.results.file)
+        previous.data <- rbind(previous.data, gamma)
+        fwrite(previous.data, theta.output.results.file)
       }
     }
   }
+  
   
   #### Matrices of Polynomials for Demand: now demand is a bernstein Polynomial. Thus we calculate restrictions on the derivative
   
@@ -213,7 +211,7 @@ for (rep in 1:100) {
   pq_res <- rbind(pq_res, estimated.pq, fill = T)
   fwrite(pq_res, pq.output.results.file)
 
-  for (n.g in 1:5) {
+  for (n.g in 1:3) {
 
     # Create groups of initial values of tax rate
     # We use the full weighted distribution

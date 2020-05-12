@@ -21,9 +21,10 @@ data.year <- "Data/Nielsen/yearly_nielsen_data.csv"
 
 
 ## output filepaths ----------------------------------------------
-iv.output.results.file <- "Data/DID_iv_sat_initial_price_pretax_semester.csv"
-theta.output.results.file <- "Data/Demand_theta_sat_initial_price_pretax_semester.csv"
-theta.partial.output.results.file <- "Data/Demand_gamma_sat_initial_price_pretax_semester_K"
+iv.output.results.file <- "Data/DID_iv_sat_initial_price_pretax_semester_boot.csv"
+theta.output.results.file <- "Data/Demand_theta_sat_initial_price_pretax_semester_boot.csv"
+output.path <- "Data/Demand_gamma_sat_initial_price_Pretax_semester_boot_K"
+pq.output.results.file <- "Data/Demand_pq_sat_initial_price_semester_boot_r.csv"
 
 
 ## Bernstein basis Function -------------------------------------------
@@ -84,10 +85,23 @@ max.p <- all_pi[, max(dm.ln_pricei2)]
 all_pi[, r.dm.ln_pricei2 := (dm.ln_pricei2 - min.p)/(max.p - min.p) ]
 
 
+## To estimate the intercept
+mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
+mean.p <- all_pi[, mean(r.dm.ln_cpricei2, weights = base.sales, na.rm = T)]
+
+
+estimated.pq <- data.table(mean.q, mean.p, min.p, max.p, rep)
+pq_res <- rbind(pq_res, estimated.pq)
+fwrite(pq_res, pq.output.results.file)
+
+flog.info("Iteration 0")
+rep <- 0
+
+
 LRdiff_res <- data.table(NULL)
 target_res <- data.table(NULL)
 ## Run within
-for (n.g in 2:5) {
+for (n.g in 1:3) {
     
   # Create groups of initial values of tax rate
   # We use the full weighted distribution
@@ -207,12 +221,9 @@ for (n.g in 2:5) {
 }
 
 
-
-
 ### Start manual bootstrap
 set.seed(2019)
 ids <- unique(all_pi$module_by_state)
-
 
 
 for (rep in 1:100) {
@@ -227,7 +238,15 @@ for (rep in 1:100) {
   sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
   sampled.data <- as.data.table(sampled.data)
   
-  for (n.g in 2:5) {
+  ## To estimate the intercept
+  mean.q <- sampled.data[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
+  mean.p <- sampled.data[, mean(dm.ln_cpricei2, weights = base.sales, na.rm = T)]
+  
+  estimated.pq <- data.table(mean.q, mean.p, rep)
+  pq_res <- rbind(pq_res, estimated.pq, fill = T)
+  fwrite(pq_res, pq.output.results.file)
+
+  for (n.g in 1:3) {
     
     # Create groups of initial values of tax rate
     # We use the full weighted distribution
@@ -303,7 +322,47 @@ for (rep in 1:100) {
       target_res <- rbind(target_res, estimated.target)
       fwrite(target_res, theta.output.results.file)
     
-    } 
+    }
+    
+    ## Do partial identification
+    ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
+    # Get the empirical distribution of prices by quantile
+    sampled.data[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
+    sampled.data[, p_group := floor((r.dm.ln_pricei2 - min(r.dm.ln_pricei2, na.rm = T))/((max(r.dm.ln_pricei2, na.rm = T)-min(r.dm.ln_pricei2, na.rm = T))/100)), by = .(quantile)]
+    sampled.data[, p_ll := p_group*((max(r.dm.ln_pricei2, na.rm = T)-min(r.dm.ln_pricei2, na.rm = T))/100), by = .(quantile)]
+    sampled.data[, p_ll := p_ll + min(r.dm.ln_pricei2, na.rm = T), by = .(quantile)]
+    sampled.data[, p_ul := p_ll + ((max(r.dm.ln_pricei2, na.rm = T)-min(r.dm.ln_pricei2, na.rm = T))/100), by = .(quantile)]
+    
+    ed.price.quantile <- sampled.data[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
+    ed.price.quantile[, p_m := (p_ul+p_ll)/2]
+    
+    #### Matrices of Polynomials for Elasticity: elasticity is itself a bernstein Polynomial
+    
+    for (K in (n.g):12) {
+      
+      if (K>1){
+        # Create the derivative of the polynomial of prices and multiplicate by weights
+        for (n in 0:(K-1)){
+          ed.price.quantile[, paste0("b",n) := w1*(bernstein(p_m,n,K-1))]
+        }
+        
+        # Calculate integral
+        gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",0:(K-1))]
+        gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
+        
+        # Export Calculation
+        gamma[, n.groups := n.g]
+        gamma[, iter := rep]
+        
+        ## Read Previous and write
+        theta.output.results.file <- paste0(output.path, K,"_bern.csv")
+        
+        previous.data <- fread(theta.output.results.file)
+        previous.data <- rbind(previous.data, gamma)
+        fwrite(previous.data, theta.output.results.file)
+        
+      } 
+    }
   }
 }
 
