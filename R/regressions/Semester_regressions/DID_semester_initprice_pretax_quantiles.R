@@ -89,6 +89,8 @@ all_pi[, r.dm.ln_pricei2 := (dm.ln_pricei2 - min.p)/(max.p - min.p) ]
 mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
 mean.p <- all_pi[, mean(r.dm.ln_pricei2, weights = base.sales, na.rm = T)]
 
+flog.info("Iteration 0")
+rep <- 0
 
 pq_res <- data.table(NULL)
 LRdiff_res <- data.table(NULL)
@@ -98,8 +100,6 @@ estimated.pq <- data.table(mean.q, mean.p, min.p, max.p, rep)
 pq_res <- rbind(pq_res, estimated.pq)
 fwrite(pq_res, pq.output.results.file)
 
-flog.info("Iteration 0")
-rep <- 0
 
 
 ## Run within
