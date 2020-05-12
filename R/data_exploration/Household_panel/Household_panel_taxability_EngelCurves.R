@@ -114,10 +114,10 @@ mean_pi <- all_pi
 for (var in vars) {
   
   mean_pi[, paste0("sum_", var) := sum(get(var)), by = .(fips_state)]
-  mean_pi[paste0("sum_", var) == 0, (var) := NA ]
+  mean_pi[c(paste0("sum_", var)) == 0, (var) := NA ]
   
 }
-head(mean_pi["sum_expenditures_reduced" == 0])
+head(mean_pi["fips_state" == 1])
 
 # Now collapse
 mean_pi <- mean_pi[, c(lapply(.SD, weighted.mean, w = projection_factor, na.rm = T)),
