@@ -104,7 +104,7 @@ for (rep in 0:76) {
   elasticities[, p := round(dm.ln_cpricei2, 3)]
   
   ## Bounds for iteration
-  bounds <- bounds.full[ rep == rep]
+  bounds <- bounds.full[iter == rep]
 
   ## dcast data (long to wide)
   bounds <- dcast(bounds, "p + D ~ K", value.var = c("elas.down", "elas.up"), fun = sum)

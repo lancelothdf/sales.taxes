@@ -154,9 +154,8 @@ for (x in reg) {
     res1 <- lm(formula1, data, weights = data$projection_factor )
     
     # Save results
-    res1.d <- data.table(coef(summary(res1)), keep.rownames=T)
-    res1.d <- res1.dt[, c("rn", "Estimate")]
-    res1.dt <- data.table(intercept = as.vector(res1.d[rn == "(Intercept)"][["Estimate"]]), slope = as.vector(res1.d[rn == var][["Estimate"]]))
+    res1.d <- data.table(coef(summary(res1)))$Estimate
+    res1.dt <- data.table(intercept = res1.d[1], slope = res1.d[2])
     res1.dt[, Rsq := summary(res1)$r.squared]
     res1.dt[, variable := var]
     res1.dt[, type := x]
