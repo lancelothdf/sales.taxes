@@ -150,7 +150,7 @@ for (x in reg) {
     ))
     
     # Run Linear Regression
-    res1 <- lm(formula1, data, weights = all_pi$projection_factor )
+    res1 <- lm(formula1, all_pi, weights = all_pi$projection_factor )
     
     # Save results
     res1.d <- data.table(coef(summary(res1)))$Estimate
