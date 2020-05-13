@@ -144,14 +144,13 @@ regs <- data.table(NULL)
 for (x in reg) {
   for (var in vars) {
   
-  
     # Produce formula
     formula1 <- as.formula(paste0(
       var, " ~", x
     ))
     
     # Run Linear Regression
-    res1 <- lm(formula1, data, weights = data$projection_factor )
+    res1 <- lm(formula1, data, weights = all_pi$projection_factor )
     
     # Save results
     res1.d <- data.table(coef(summary(res1)))$Estimate
