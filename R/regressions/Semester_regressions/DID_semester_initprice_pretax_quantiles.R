@@ -123,7 +123,7 @@ for (n.g in 1:3) {
         formula1 <- as.formula(paste0(
         Y, " ~ w.ln_sales_tax:quantile | ", FE, "+ quantile | 0 | module_by_state"
       ))
-      if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ w.ln_sales_tax | ", FE)) }
+      if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ w.ln_sales_tax | ", FE, "| 0 | module_by_state")) }
       res1 <- felm(formula = formula1, data = all_pi,
                    weights = all_pi$base.sales)
       
@@ -267,9 +267,9 @@ for (rep in 1:100) {
     for (FE in FE_opts) {
       for (Y in outcomes) {
         formula1 <- as.formula(paste0(
-          Y, " ~ w.ln_sales_tax:quantile | ", FE, "+ quantile"
+          Y, " ~ w.ln_sales_tax:quantile | ", FE, "+ quantile | 0 | module_by_state"
         ))
-        if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ w.ln_sales_tax | ", FE)) }
+        if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ w.ln_sales_tax | ", FE, "| 0 | module_by_state")) }
         res1 <- felm(formula = formula1, data = sampled.data,
                      weights = sampled.data$base.sales)
         
@@ -358,11 +358,11 @@ for (rep in 1:100) {
         gamma[, iter := rep]
         
         ## Read Previous and write
-        theta.output.results.file <- paste0(output.path, K,"_bern.csv")
+        theta.output.results.file.pi <- paste0(output.path, K,"_bern.csv")
         
-        previous.data <- fread(theta.output.results.file)
+        previous.data <- fread(theta.output.results.file.pi)
         previous.data <- rbind(previous.data, gamma)
-        fwrite(previous.data, theta.output.results.file)
+        fwrite(previous.data, theta.output.results.file.pi)
         
       } 
     }
