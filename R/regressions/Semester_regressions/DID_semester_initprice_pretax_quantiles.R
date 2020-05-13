@@ -212,7 +212,7 @@ for (n.g in 1:3) {
     ## Read Previous and write
     theta.output.results.file.pi <- paste0(output.path, K,"_bern.csv")
     
-    if (n.g == 2) {
+    if (n.g == 1) {
       fwrite(gamma, theta.output.results.file.pi)
     } else {
       previous.data <- fread(theta.output.results.file.pi)
