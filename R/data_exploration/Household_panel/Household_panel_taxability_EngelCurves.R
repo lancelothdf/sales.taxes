@@ -106,29 +106,74 @@ all_pi <- merge(all_pi, al.weights, by = "household_income")
 
 vars <- c("expenditures_exempt", "expenditures_taxable", "expenditures_reduced", "expenditures_exred",
           "expenditures_food", "expenditures_nonfood")
+reg <- c("mean", "meanlog", "meanperc")
 
 
 ## Now for household panel lets collapse across years and households for graphs (separate data since the other will be used) 
 # First, make cases = 0 by constuction as NA: those were consumption total is 0 at state
-mean_pi <- all_pi
 for (var in vars) {
   
-  mean_pi[, paste0("sum_", var) := sum(get(var)), by = .(fips_state)]
-  mean_pi[get(paste0("sum_", var)) == 0, (var) := NA ]
+  all_pi[, paste0("sum_", var) := sum(get(var)), by = .(fips_state)]
+  all_pi[get(paste0("sum_", var)) == 0, (var) := NA ]
   
 }
 
+mean_pi <- all_pi
 # Now collapse
 mean_pi <- mean_pi[, c(lapply(.SD, weighted.mean, w = projection_factor, na.rm = T)),
                     by = .(mean, meanlog, meanperc), 
                     .SDcols = vars]
+
+## Prepare output: melt and estimate OLS
+mean_pi.1 <- melt(mean_pi, id.vars = c("mean"),
+                  measure.vars = vars)
+setnames(mean_pi.1, "mean", "income")
+mean_pi.1[, type := "mean"]
+mean_pi.2 <- melt(mean_pi, id.vars = c("meanlog"),
+                  measure.vars = vars)
+setnames(mean_pi.2, "meanlog", "income")
+mean_pi.2[, type := "meanlog"]
+mean_pi.3 <- melt(mean_pi, id.vars = c("meanperc"),
+                  measure.vars = vars)
+setnames(mean_pi.3, "meanperc", "income")
+mean_pi.3[, type := "meanperc"]
+mean_pi <- rbind(mean_pi.1, mean_pi.2, mean_pi.3)
+
+## Regression pooling across states at individual level
+regs <- data.table(NULL)
+for (x in reg) {
+  for (var in vars) {
+  
+  
+    # Produce formula
+    formula1 <- as.formula(paste0(
+      var, " ~", x
+    ))
+    
+    # Run Linear Regression
+    res1 <- lm(formula1, data, weights = data$projection_factor )
+    
+    # Save results
+    res1.d <- data.table(coef(summary(res1)), keep.rownames=T)
+    res1.d <- res1.dt[, c("rn", "Estimate")]
+    res1.dt <- data.table(intercept = as.vector(res1.d[rn == "(Intercept)"][["Estimate"]]), slope = as.vector(res1.d[rn == var][["Estimate"]]))
+    res1.dt[, Rsq := summary(res1)$r.squared]
+    res1.dt[, variable := var]
+    res1.dt[, type := x]
+
+    # Attach
+    regs <- rbind(regs, res1.dt, fill = T)
+  }
+}
+## Merge files
+mean_pi <- merge(mean_pi, regs, by = c("type", "variable"))
+# Export
 fwrite(mean_pi, paste0(path.data.figures, "av_expend_income.csv"))
 
 
 
-reg <- c("mean", "meanlog", "meanperc")
 
-## Run regression of the slope
+## Run regression of the slope at the state level
 regs <- data.table(NULL)
 for (state in unique(all_pi$fips_state)) {
   
