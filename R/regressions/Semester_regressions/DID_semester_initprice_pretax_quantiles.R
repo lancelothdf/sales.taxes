@@ -210,7 +210,7 @@ for (n.g in 1:3) {
     gamma[, iter := rep]
     
     ## Read Previous and write
-    theta.output.results.file.pi <- paste0(theta.partial.output.results.file, K,"_bern.csv")
+    theta.output.results.file.pi <- paste0(output.path, K,"_bern.csv")
     
     if (n.g == 2) {
       fwrite(gamma, theta.output.results.file.pi)
