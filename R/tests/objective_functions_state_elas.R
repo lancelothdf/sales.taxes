@@ -69,8 +69,7 @@ for (K in 10:2) {
   av.elas <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
   av.elas[, K := K]
   av.elas[, obj := "elas"]
-  av.elas[, price := "consumer"]
-  
+
   ## Objective for fiscal externality
   for (n in 0:(K-1)){
     data[, paste0("b",n) := (get(paste0("b",n)))*(exp(ln_sales_tax)-1)/exp(ln_sales_tax)]
@@ -78,36 +77,10 @@ for (K in 10:2) {
   av.fe <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
   av.fe[, K := K]
   av.fe[, obj := "fe"]
-  av.fe[, price := "consumer"]
-  
+
   data.objective <- rbind(data.objective, av.elas, av.fe, fill = T)
   fwrite(data.objective, output.table)
   
-  
-  ### Pretax Price
-  
-  ## Objective for average elasticity 
-  data <- all_pi
-  # Calculate berstein polynomials
-  for (n in 0:(K-1)){
-    data[, paste0("b",n) := bernstein(dm.ln_pricei2, n, K-1)]
-  }
-  av.elas <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
-  av.elas[, K := K]
-  av.elas[, obj := "elas"]
-  av.elas[, price := "pretax"]
-  
-  ## Objective for fiscal externality
-  for (n in 0:(K-1)){
-    data[, paste0("b",n) := (get(paste0("b",n)))*(exp(ln_sales_tax)-1)/exp(ln_sales_tax)]
-  }
-  av.fe <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
-  av.fe[, K := K]
-  av.fe[, obj := "fe"]
-  av.fe[, price := "pretax"]
-  
-  data.objective <- rbind(data.objective, av.elas, av.fe, fill = T)
-  fwrite(data.objective, output.table)
   
 }
 
