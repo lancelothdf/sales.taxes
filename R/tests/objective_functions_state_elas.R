@@ -52,6 +52,12 @@ pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sal
 pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
 all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
+## Define re-scaled prices to use Bernstein polynomials in that range
+min.p <- all_pi[, min(dm.ln_cpricei2)]
+max.p <- all_pi[, max(dm.ln_cpricei2)]
+all_pi[, r.dm.ln_cpricei2 := (dm.ln_cpricei2 - min.p)/(max.p - min.p) ]
+
+
 ## Keep only taxable items as those are whose responses we care
 all_pi <- all_pi[ln_sales_tax > 0]
 
@@ -64,7 +70,7 @@ for (K in 10:2) {
   data <- all_pi
   # Calculate berstein polynomials
   for (n in 0:(K-1)){
-    data[, paste0("b",n) := bernstein(dm.ln_cpricei2, n, K-1)]
+    data[, paste0("b",n) := bernstein(r.dm.ln_cpricei2, n, K-1)]
   }
   av.elas <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
   av.elas[, K := K]
