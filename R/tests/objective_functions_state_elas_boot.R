@@ -14,7 +14,7 @@ data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
 
 ## Outputs ----------------------------------------------
 output.table <- "Data/objective_state_bernestein_boot.csv"
-output.table.key <- "Data/short_elas_state.csv"
+output.table.key <- "Data/short_elas_state_boot.csv"
 
 
 bernstein <- function(x, k, K){
@@ -115,6 +115,7 @@ for (rep in 0:76) {
   # Export this data
   data.objective[, iter := rep]
   full.data <- rbind(full.data, data.objective)
+  fwrite(full.data, output.table)
   
   ## Calculate key summary statistics for MVPF
   iter.data <- iter.data[, .(av.dm.ln_cpricei2 = weighted.mean(dm.ln_cpricei2 , w = base.sales),
