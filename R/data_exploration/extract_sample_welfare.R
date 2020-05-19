@@ -55,8 +55,8 @@ all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 all_pi[, p_m := round(dm.ln_cpricei2, 3)]
 
 # collapse for every price x state on taxable goods 
-all_pi[ln_sales_tax > 0, .(tau = weighted.mean(ln_sales_tax, w = base.sales),
-                           eta_m = sum(base.sales)), by = .(fips_state, p_m)]
+all_pi<- all_pi[ln_sales_tax > 0, .(tau = weighted.mean(ln_sales_tax, w = base.sales),
+                                    eta_m = sum(base.sales)), by = .(fips_state, p_m)]
 
 # Export
 fwrite(all_pi, output.table)
