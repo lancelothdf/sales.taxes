@@ -72,7 +72,7 @@ fwrite(binscatter, paste0(path.data.figures, "Binscatters_80.csv"))
 rm(binscatter, binscatter.1, binscatter.2)
 
 
-### Graphs 3 to 6: income bins of logs as 1 and 2 and of shares
+### Graphs 3 to 6: income bins of logs as 1 and 2 and of shares  ----
 
 # Collapse
 income.bins.1 <- all_pi.nocons[, c(lapply(.SD, weighted.mean, w = projection_factor), .N, sum(projection_factor)),
@@ -90,7 +90,7 @@ fwrite(income.bins, paste0(path.data.figures, "Bins_income.csv"))
 rm(income.bins, income.bins.1, income.bins.2)
 
 
-## New Graphs for May 11
+## New Graphs for May 11  ----
 
 ## Re-Open Data
 all_pi <- fread(hh.panel.clean)
