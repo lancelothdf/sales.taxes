@@ -52,7 +52,7 @@ all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
 ## Collapse
 # Generate rounded price
-all_pi[, p_m := round(dm.ln_cpricei2, 3)]
+all_pi[, p_m := round(dm.ln_pricei2, 3)]
 
 # collapse for every price x state on taxable goods 
 all_pi<- all_pi[ln_sales_tax > 0, .(tau = weighted.mean(ln_sales_tax, w = base.sales),
