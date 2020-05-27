@@ -213,7 +213,7 @@ constr.min.crit <- function(mu, constr_mat, IV_mat, min.crit) {
 shape.constr<-function(mu, elas) {
   constr.mono <- NULL
   if (elas) {
-    constr.mono <- cbind(cbind(Diagonal(length(mu))*mu, 0), 0)
+    constr.mono <- cbind(Diagonal(length(mu))*mu, 0)
   } else {
     for (k in 1:(K-1)) {
       
