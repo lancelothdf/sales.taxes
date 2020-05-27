@@ -91,6 +91,7 @@ for (K in 10:2) {
   
 }
 rm(all_pi_t)
+
 ## Identify taxability as of 2014-2
 
 # Identify taxability of module: import
@@ -172,4 +173,72 @@ for (K in 10:2) {
   
 }
 
-               
+# By food
+
+# 1. NonFood
+colnames(all_pi)
+
+all_pi_t <- all_pi[Food == 0, ]
+
+for (K in 10:2) {
+  
+  ### Consumer Price
+  
+  ## Objective for average elasticity 
+  data <- all_pi_t
+  # Calculate berstein polynomials
+  for (n in 0:(K-1)){
+    data[, paste0("b",n) := bernstein(r.dm.ln_cpricei2, n, K-1)]
+  }
+  av.elas <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
+  av.elas[, K := K]
+  av.elas[, obj := "elas"]
+  av.elas[, type := "NonFood"]
+  
+  ## Objective for fiscal externality
+  for (n in 0:(K-1)){
+    data[, paste0("b",n) := (get(paste0("b",n)))*(exp(ln_sales_tax)-1)/exp(ln_sales_tax)]
+  }
+  av.fe <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
+  av.fe[, K := K]
+  av.fe[, obj := "fe"]
+  av.fe[, type := "NonFood"]
+  
+  data.objective <- rbind(data.objective, av.elas, av.fe, fill = T)
+  fwrite(data.objective, output.table)
+  
+}
+
+# 2. Food
+
+all_pi_t <- all_pi[Food == 1, ]
+
+for (K in 10:2) {
+  
+  ### Consumer Price
+  
+  ## Objective for average elasticity 
+  data <- all_pi_t
+  # Calculate berstein polynomials
+  for (n in 0:(K-1)){
+    data[, paste0("b",n) := bernstein(r.dm.ln_cpricei2, n, K-1)]
+  }
+  av.elas <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
+  av.elas[, K := K]
+  av.elas[, obj := "elas"]
+  av.elas[, type := "Food"]
+  
+  ## Objective for fiscal externality
+  for (n in 0:(K-1)){
+    data[, paste0("b",n) := (get(paste0("b",n)))*(exp(ln_sales_tax)-1)/exp(ln_sales_tax)]
+  }
+  av.fe <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
+  av.fe[, K := K]
+  av.fe[, obj := "fe"]
+  av.fe[, type := "Food"]
+  
+  data.objective <- rbind(data.objective, av.elas, av.fe, fill = T)
+  fwrite(data.objective, output.table)
+  
+}
+
