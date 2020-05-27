@@ -26,7 +26,7 @@ setwd("/project2/igaarder")
 
 # mu: the vector of parameters (control variables)
 # data: the name of the data set 
-# act.p: the name of the variable of log prices
+# act.p: the name of the variable of log prices (consumer)
 # tax: the name of the log tax variable
 # change: the value of the new sales tax to extrapolate
 # w: variable of weights
@@ -89,7 +89,7 @@ expected.CS.change <- function(mu, data, act.p, tax, change, w, min, max, K, con
   
   # mu: the vector of parameters (control variables)
   # data: the name of the data set 
-  # act.p: the name of the variable of log prices
+  # act.p: the name of the variable of log prices (consumer)
   # tax: the name of the log tax variable
   # change: the value of the new sales tax to extrapolate
   # w: variable of weights
@@ -98,8 +98,8 @@ expected.CS.change <- function(mu, data, act.p, tax, change, w, min, max, K, con
   # max: maximum value of the support of shape constraint
   
   # Use vectors 
-  ll <- data[[act.p]] + data[[tax]]
-  ul <- data[[act.p]] + change
+  ll <- data[[act.p]] 
+  ul <- data[[act.p]] - data[[tax]] + change
   
   # Put together and transform to list
   X <- rbind(ll, ul)
@@ -135,8 +135,8 @@ d.mu.k.expected.CS.change <- function(mu, data, act.p, tax, change, w, min, max,
   # the rest as above
   
   # Use vectors 
-  ll <- data[[act.p]] + data[[tax]]
-  ul <- data[[act.p]] + change
+  ll <- data[[act.p]] 
+  ul <- data[[act.p]] - data[[tax]] + change
   
   # Put together and transform to list
   X <- rbind(ll, ul)
