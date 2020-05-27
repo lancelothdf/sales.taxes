@@ -100,7 +100,7 @@ taxability_panel <- fread("/project2/igaarder/Data/taxability_state_panel.csv")
 taxability_panel[, taxability := ifelse(!is.na(reduced_rate), 2, taxability)]
 # We will use taxability as of December 2014
 taxability_panel <- taxability_panel[(month==12 & year==2014),][, .(product_module_code, product_group_code,
-                                                                    fips_state, taxability)]
+                                                                    fips_state, taxability, FoodNonfood)]
 
 ## Merge to products
 all_pi<- merge(all_pi, taxability_panel, by = c("product_module_code", "fips_state"))
@@ -178,7 +178,7 @@ for (K in 10:2) {
 # 1. NonFood
 colnames(all_pi)
 
-all_pi_t <- all_pi[Food == 0, ]
+all_pi_t <- all_pi[FoodNonfood == 0, ]
 
 for (K in 10:2) {
   
@@ -211,7 +211,7 @@ for (K in 10:2) {
 
 # 2. Food
 
-all_pi_t <- all_pi[Food == 1, ]
+all_pi_t <- all_pi[FoodNonfood == 1, ]
 
 for (K in 10:2) {
   
