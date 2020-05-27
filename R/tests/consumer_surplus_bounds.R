@@ -377,7 +377,7 @@ for (K in unique(min.criteria$Degree)) {
                       elas = T
       )
       # B5. Extract minimization results
-      up <- res0$objective
+      up <- -res0$objective
       
       # B6. Compile estimates
       welfare.st <- data.table(data.table(down, up, state, D , K))
