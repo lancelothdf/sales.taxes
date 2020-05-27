@@ -204,9 +204,9 @@ constr.min.crit <- function(mu, constr_mat, IV_mat, min.crit) {
   
   return(
     rbind(
-      c(constraint(mu, constr_mat, IV_mat), - min.crit),
-      c(constraint(mu, -constr_mat, -IV_mat), min.crit)
-      )
+      constraint(mu, constr_mat, IV_mat+min.crit),
+      constraint(mu, -constr_mat, -IV_mat+min.crit)
+    )
   )
 }
 ## Function to create the shape constraint
@@ -218,7 +218,7 @@ shape.constr<-function(mu, elas) {
     for (k in 1:(K-1)) {
       
       constr.mono <- rbind(constr.mono,
-                           c(rep(0,k-1), -mu[k], mu[k+1], rep(0,K-k+1), rep(0, 2)))
+                           c(rep(0,k-1), -mu[k], mu[k+1], rep(0,K-k+1), 0))
     }
   }
   return(constr.mono)
