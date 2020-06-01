@@ -117,6 +117,15 @@ expected.CS.change <- function(mu, data, act.p, tax, change, w, min, max, K, con
   
   # get the weights
   w <- data[[w]]
+  # Divide by initial current sales
+  p_m <- data[[act.p]] - data[[tax]]
+  p_m_t <- data[[act.p]]
+  q <- rep(0,K)
+  for (i in 1:K) {
+    q[i] <- int.bernstein(p_m_t, i, K-1, min, max)
+  }
+  q <- exp(sum(mu*q) + p_m)
+  w <- w/q
   
   # Return weighted average
   return(weighted.mean(int, w = w))
@@ -155,6 +164,15 @@ d.mu.k.expected.CS.change <- function(mu, data, act.p, tax, change, w, min, max,
   
   # get the weights
   w <- data[[w]]
+  # Divide by initial current sales
+  p_m <- data[[act.p]] - data[[tax]]
+  p_m_t <- data[[act.p]]
+  q <- rep(0,K)
+  for (i in 1:K) {
+    q[i] <- int.bernstein(p_m_t, i, K-1, min, max)
+  }
+  q <- int.bernstein(p_m_t, k, K-1, min, max)*exp(sum(mu*q) + p_m)
+  w <- w/q
   
   # Return weighted average
   return(weighted.mean(int, w = w))
