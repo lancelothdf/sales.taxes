@@ -77,7 +77,7 @@ LRdiff_res <- data.table(NULL)
 target_res <- data.table(NULL)
 ## Run within
 flog.info("Iteration 0")
-for (n.g in 1:5) {
+for (n.g in 1:3) {
     
   # Create groups of initial values of tax rate
   # We use the full weighted distribution
@@ -164,7 +164,7 @@ ids <- unique(all_pi$module_by_state)
 
 
 
-for (rep in 1:100) {
+for (rep in 1:200) {
   
   flog.info("Iteration %s", rep)
 
@@ -175,7 +175,7 @@ for (rep in 1:100) {
   # Merge data to actual data
   sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
   
-  for (n.g in 1:5) {
+  for (n.g in 1:3) {
     
     # Create groups of initial values of tax rate
     # We use the full weighted distribution

@@ -58,13 +58,26 @@ min.p <- all_pi[, min(dm.ln_cpricei2)]
 max.p <- all_pi[, max(dm.ln_cpricei2)]
 all_pi[, r.dm.ln_cpricei2 := (dm.ln_cpricei2 - min.p)/(max.p - min.p) ]
 
+
+# Identify taxability of module: import
+taxability_panel <- fread("/project2/igaarder/Data/taxability_state_panel.csv")
+# For now, make reduced rate another category
+taxability_panel[, taxability := ifelse(!is.na(reduced_rate), 2, taxability)]
+# We will use taxability as of December 2014
+taxability_panel <- taxability_panel[(month==12 & year==2014),][, .(product_module_code, product_group_code,
+                                                                    fips_state, taxability, FoodNonfood)]
+
+## Merge to products
+all_pi<- merge(all_pi, taxability_panel, by = c("product_module_code", "fips_state"))
+
+## Run by taxability
 set.seed(2019)
 ids <- unique(all_pi$module_by_state)
 
 
 full.data <- data.table(NULL)
 charac.data <- data.table(NULL)
-for (rep in 0:76) {
+for (rep in 0:200) {
   
   flog.info("Iteration %s", rep)
   
@@ -82,7 +95,7 @@ for (rep in 0:76) {
   
   ## Keep only taxable items as those are whose responses we care
   
-  iter.data <- iter.data[ln_sales_tax > 0]
+  iter.data <- iter.data[taxability == 1]
   
   
   ## Objective functions

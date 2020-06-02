@@ -126,7 +126,7 @@ for (n.g in 1:3) {
   ed.price.quantile[, p_m := (p_ul+p_ll)/2]
   
   #### Matrices of Polynomials for Elasticity: elasticity is itself a bernstein Polynomial
-  for (K in (n.g):12) {
+  for (K in (n.g):10) {
     
     if (K>1){
       # Create the derivative of the polynomial of prices and multiplicate by weights
@@ -192,7 +192,7 @@ for (n.g in 1:3) {
 set.seed(2019) ## Same seed as the estimations
 ids <- unique(all_pi$module_by_state)
 
-for (rep in 1:100) {
+for (rep in 1:200) {
 
   flog.info("Iteration %s", rep)
 
@@ -236,7 +236,7 @@ for (rep in 1:100) {
     
     #### Matrices of Polynomials for Elasticity: elasticity is itself a bernstein Polynomial
 
-    for (K in (n.g):12) {
+    for (K in (n.g):10) {
       
       if (K>1){
         # Create the derivative of the polynomial of prices and multiplicate by weights
