@@ -311,7 +311,7 @@ out.file <- "Data/consumer_surplus_changes.csv"
 
 # 6. Set up Optimization Parameters (algorithm for now)
 nlo.opts <- list(
-  "algorithm"="NLOPT_LD_MMA",
+  "algorithm"="NLOPT_GN_ISRES",
   "maxeval" = 200
 )
 
@@ -369,8 +369,10 @@ for (K in unique(min.criteria$Degree)) {
                       constr_mat = constr, 
                       IV_mat = IVs, 
                       min.crit = mc,
-                      elas = T
-                      )
+                      elas = T,
+                      ub = rep(0, K),
+                      lb = rep(-100, K)
+      )
       # B3. Extract minimization results
       down <- res0$objective
       
@@ -392,7 +394,9 @@ for (K in unique(min.criteria$Degree)) {
                       constr_mat = constr, 
                       IV_mat = IVs, 
                       min.crit = mc,
-                      elas = T
+                      elas = T,
+                      ub = rep(0, K),
+                      lb = rep(-100, K)
       )
       # B5. Extract minimization results
       up <- -res0$objective
