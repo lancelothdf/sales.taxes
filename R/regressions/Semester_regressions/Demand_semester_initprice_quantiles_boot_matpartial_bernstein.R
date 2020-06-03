@@ -192,7 +192,7 @@ for (n.g in 1:3) {
 set.seed(2019) ## Same seed as the estimations
 ids <- unique(all_pi$module_by_state)
 
-for (rep in 1:200) {
+for (rep in 1:110) {
 
   flog.info("Iteration %s", rep)
 

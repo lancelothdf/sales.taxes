@@ -159,7 +159,7 @@ for (n.g in 1:3) {
 }
 
 ### Start manual bootstrap
-set.seed(2019)
+set.seed(1941)
 ids <- unique(all_pi$module_by_state)
 
 
