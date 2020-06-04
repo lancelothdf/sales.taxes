@@ -77,7 +77,7 @@ ids <- unique(all_pi$module_by_state)
 
 full.data <- data.table(NULL)
 charac.data <- data.table(NULL)
-for (rep in 0:200) {
+for (rep in 0:109) {
   
   flog.info("Iteration %s", rep)
   
@@ -134,9 +134,7 @@ for (rep in 0:200) {
   iter.data <- iter.data[, .(av.dm.ln_cpricei2 = weighted.mean(dm.ln_cpricei2 , w = base.sales),
                        av.ln_sales_tax = weighted.mean(ln_sales_tax , w = base.sales),
                        av.d_sales_tax = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
-                       av.d_sales_tax_theta0117 = weighted.mean((exp(ln_sales_tax)-1 + 0.117)/(exp(ln_sales_tax)), w = base.sales),
-                       av.d_sales_tax_theta0100 = weighted.mean((exp(ln_sales_tax)-1 + 0.1)/(exp(ln_sales_tax)), w = base.sales),
-                       av.d_sales_tax_theta0050 = weighted.mean((exp(ln_sales_tax)-1 + 0.05)/(exp(ln_sales_tax)), w = base.sales),
+                       av.1_d_sales_tax = weighted.mean(1/(exp(ln_sales_tax)), w = base.sales),
                        N = .N) , by = .(fips_state)]
   
   ## Export kete charac
