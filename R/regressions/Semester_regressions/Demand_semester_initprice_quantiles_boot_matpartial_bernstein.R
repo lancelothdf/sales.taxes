@@ -189,7 +189,7 @@ for (n.g in 1:3) {
 }
 
 ### Start manual bootstrap
-set.seed(2019) ## Same seed as the estimations
+set.seed(1941) ## Same seed as the estimations
 ids <- unique(all_pi$module_by_state)
 
 for (rep in 1:110) {
