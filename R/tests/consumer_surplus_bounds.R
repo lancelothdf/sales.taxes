@@ -82,10 +82,22 @@ int.apply <- function(x, mu, K, min, max) {
 d.int.apply <- function(x, mu, K, min, max, k) {
   sapply(x, integrand.d, mu=mu, K=K, min=min, max=max, k = k)
 }
-
+exp.sales <- function(p, mu, K, min, max) {
+  polynomial <- rep(0,K)
+  for (k in 1:K) {
+    polynomial[k] <- int.bernstein(p, k, K-1, min, max)
+  }
+  return(exp(sum(mu*polynomial)))
+}
+common_term <- function(p, mu, K, min, max) {
+  
+  return(sapply(p, function(x, mu, K, min, max) 
+    exp.sales(p = x, mu = mu, K = K, min = min, max = max), 
+    mu = mu, K = K, min = min, max = max))
+}
 
 # Objective function: include arguments for constraints even if not needed
-expected.CS.change <- function(mu, data, act.p, tax, change, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
+expected.CS.change <- function(mu, data, act.p, tax, t, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
   
   # mu: the vector of parameters (control variables)
   # data: the name of the data set 
@@ -99,7 +111,7 @@ expected.CS.change <- function(mu, data, act.p, tax, change, w, min, max, K, con
   
   # Use vectors 
   ll <- data[[act.p]] 
-  ul <- data[[act.p]] - data[[tax]] + change
+  ul <- data[[act.p]] - data[[tax]] + t
   
   # Put together and transform to list
   X <- rbind(ll, ul)
@@ -119,13 +131,8 @@ expected.CS.change <- function(mu, data, act.p, tax, change, w, min, max, K, con
   w <- data[[w]]
   # Divide by initial current sales
   p_m <- data[[act.p]] - data[[tax]]
-  p_m_t <- data[[act.p]]
-  q <- rep(0,K)
-  for (i in 1:K) {
-    q[i] <- int.bernstein(p_m_t, i, K-1, min, max)
-  }
-  q <- exp(sum(mu*q) + p_m)
-  w <- w/q
+  or <- common_term(p = ll, mu = mu, K = K, min = min, max = max)*exp(p_m)
+  int <- int/or
   
   # Return weighted average
   return(weighted.mean(int, w = w))
@@ -133,19 +140,19 @@ expected.CS.change <- function(mu, data, act.p, tax, change, w, min, max, K, con
 }
 # Objective function max.
 
-max_expected.CS.change <- function(mu, data, act.p, tax, change, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
-  return(-expected.CS.change(mu, data, act.p, tax, change, w, min, max, K, constr_mat, IV_mat, min.crit, elas))
+max_expected.CS.change <- function(mu, data, act.p, tax, t, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
+  return(-expected.CS.change(mu, data, act.p, tax, t, w, min, max, K, constr_mat, IV_mat, min.crit, elas))
 }
 
 # derivative w. respect to mu_k
-d.mu.k.expected.CS.change <- function(mu, data, act.p, tax, change, w, min, max, K, k) {
+d.mu.k.expected.CS.change <- function(mu, data, act.p, tax, t, w, min, max, K, k) {
   
   # k: mu_k degree for derivative
   # the rest as above
   
   # Use vectors 
   ll <- data[[act.p]] 
-  ul <- data[[act.p]] - data[[tax]] + change
+  ul <- data[[act.p]] - data[[tax]] + t
   
   # Put together and transform to list
   X <- rbind(ll, ul)
@@ -164,15 +171,15 @@ d.mu.k.expected.CS.change <- function(mu, data, act.p, tax, change, w, min, max,
   
   # get the weights
   w <- data[[w]]
-  # Divide by initial current sales
+  # Divide by initial current sales derivative
   p_m <- data[[act.p]] - data[[tax]]
-  p_m_t <- data[[act.p]]
-  q <- rep(0,K)
-  for (i in 1:K) {
-    q[i] <- int.bernstein(p_m_t, i, K-1, min, max)
-  }
-  q <- int.bernstein(p_m_t, k, K-1, min, max)*exp(sum(mu*q) + p_m)
-  w <- w/q
+  or <- common_term(p = ll, mu = mu, K = K, min = min, max = max)*exp(p_m)
+  
+  p.0 <- sapply(ll, function(x,k,K,min,max)
+    int.bernstein(p = x, k = k, K = K, min = min, max = max),
+    k = k, K = K, min = min, max = max)
+  
+  int <- -p.0*int/or
   
   # Return weighted average
   return(weighted.mean(int, w = w))
@@ -180,17 +187,17 @@ d.mu.k.expected.CS.change <- function(mu, data, act.p, tax, change, w, min, max,
 }
 
 # Finally, a function that evaluates every gradient: include here arguments for constraint so it runs
-eval_grad <- function(mu, data, act.p, tax, change, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
+eval_grad <- function(mu, data, act.p, tax, t, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
   k <-1:K
-  der <- sapply(k, function(x, data, act.p, tax, change, w, k, K, min, max) 
+  der <- sapply(k, function(x, data, act.p, tax, t, w, k, K, min, max) 
     d.mu.k.expected.CS.change(mu = mu, data = data, act.p = act.p, 
-                              tax = tax, change = change, w = w, min = min, 
+                              tax = tax, t = change, w = w, min = min, 
                               max = max, K = K, k = x),
-    data = data, act.p = act.p, tax = tax, change = change, w = w, K = K, min = min, max = max)
+    data = data, act.p = act.p, tax = tax, t = t, w = w, K = K, min = min, max = max)
   return(t(t(der)))
 }
-max_eval_grad <- function(mu, data, act.p, tax, change, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
-  return(-eval_grad(mu, data, act.p, tax, change, w, min, max, K, constr_mat, IV_mat, min.crit, elas))
+max_eval_grad <- function(mu, data, act.p, tax, t, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
+  return(-eval_grad(mu, data, act.p, tax, t, w, min, max, K, constr_mat, IV_mat, min.crit, elas))
 }
 #### Constraints functions ----------
 
@@ -211,7 +218,7 @@ constraint <- function(mu, constr_mat, IV_mat) {
   
   constraints <- NULL
   for (r in 1:dim(constr_mat)[1]) {
-    constraints <- rbind(constraints, c(constr_mat[r,]*mu, - IV_mat[r]))
+    constraints <- rbind(constraints, c(sum(constr_mat[r,]*mu) - IV_mat[r]))
   }
   return(constraints)
 }
@@ -231,38 +238,43 @@ constr.min.crit <- function(mu, constr_mat, IV_mat, min.crit) {
 shape.constr<-function(mu, elas) {
   constr.mono <- NULL
   if (elas) {
-    constr.mono <- cbind(Diagonal(length(mu))*mu, 0)
+    for (k in 1:K) {
+      
+      constr.mono <- rbind(constr.mono,
+                           c(mu[k]))
+    }
   } else {
     for (k in 1:(K-1)) {
       
       constr.mono <- rbind(constr.mono,
-                           c(rep(0,k-1), -mu[k], mu[k+1], rep(0,K-k+1), 0))
+                           c( -mu[k] + mu[k+1]))
     }
   }
   return(constr.mono)
 }
 ## Function for constraint: includes the arguments from evaluation function even if not needed so it runs
-eval_restrictions <- function(mu, data, act.p, tax, change, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
-
+eval_restrictions <- function(mu, data, act.p, t, tax, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
   return(
     as.matrix(
       rbind(
         constr.min.crit(mu, constr_mat, IV_mat, min.crit),
-           shape.constr(mu, elas)
+        shape.constr(mu, elas)
       )
     )
   )
 }
 ## Function for jacobian
-eval_restrictions_j <- function(mu, data, act.p, tax, change, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
+eval_restrictions_j <- function(mu, data, act.p, t, tax, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
   
   constr.jac <- NULL
   for (k in 1:K) {
     
-    constr.jac <- rbind(
+    constr.jac <- cbind(
       constr.jac,
-      constr.min.crit(c(rep(0,k-1),1,rep(0,K-k)), constr_mat, rep(0, dim(constr_mat)[1]), 0),
-      shape.constr(c(rep(0,k-1),1,rep(0,K-k)), elas)
+      rbind(
+        constr.min.crit(c(rep(0,k-1),1,rep(0,K-k)), constr_mat, rep(0, dim(constr_mat)[1]), 0),
+        shape.constr(c(rep(0,k-1),1,rep(0,K-k)), elas)
+      )
     )
     
   }
@@ -270,6 +282,7 @@ eval_restrictions_j <- function(mu, data, act.p, tax, change, w, min, max, K, co
   return(as.matrix(constr.jac))
   
 }
+
 
 #### Prepare optimizations -----
 
@@ -311,8 +324,9 @@ out.file <- "Data/consumer_surplus_changes.csv"
 
 # 6. Set up Optimization Parameters (algorithm for now)
 nlo.opts <- list(
-  "algorithm"="NLOPT_GN_ISRES",
-  "maxeval" = 200
+  "algorithm"="NLOPT_LD_MMA",
+  "maxeval" = 200,
+  "xtol_rel"=1.0e-8
 )
 
 
