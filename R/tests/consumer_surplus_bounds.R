@@ -323,10 +323,17 @@ setnames(mus, c("K", "D"), c("Degree", "L"))
 out.file <- "Data/consumer_surplus_changes.csv"
 
 # 6. Set up Optimization Parameters (algorithm for now)
-nlo.opts <- list(
-  "algorithm"="NLOPT_LD_MMA",
-  "maxeval" = 200,
+nlo.opts.global <- list(
+  "algorithm"="NLOPT_GN_ISRES",
+  "maxeval" = 20,
   "xtol_rel"=1.0e-8
+)
+nlo.opts.local <- list(
+  "algorithm"="NLOPT_LD_SLSQP",
+  "maxeval" = 100,
+  "xtol_rel"=1.0e-8,
+  "check_derivatives_print" = "all"
+  
 )
 
 
@@ -358,14 +365,36 @@ for (K in unique(min.criteria$Degree)) {
     ## A4. Loop across states
     for (state in unique(mus$st)) {
       
-      # B1. Capture initial values
-      init.val.up <- mus[Degree == K & L == D & st == state,][["mu.up"]]
-      init.val.down <- mus[Degree == K & L == D & st == state,][["mu.down"]]
+      ## Generate an initial value somewhere in the middle
+      init.val.up <- mus[Degree == K & L == D & st == 19,][["mu.up"]]
+      init.val.down <- mus[Degree == K & L == D & st == 19,][["mu.down"]]
       
       # B2. Subset data
       st.data <- data[fips_state == state,]
       
-      # B3. Run minimization
+      # B2.B1 Run minimization: Global 
+      res0 <- nloptr( x0=init.val.down,
+                      eval_f= expected.CS.change,
+                      eval_g_ineq = eval_restrictions,
+                      opts = nlo.opts.global,
+                      data = st.data,
+                      act.p = "p_m", 
+                      t = 0, 
+                      tax = "tau",
+                      w = "eta_m", 
+                      min = p.min, 
+                      max = p.max, 
+                      K = K,
+                      constr_mat = constr, 
+                      IV_mat = IVs, 
+                      min.crit = mc,
+                      elas = T,
+                      ub = rep(0, K),
+                      lb = rep(-1000, K),
+      )       
+      init.val.down <- res0$solution
+
+            # B3. Run minimization. Local
       res0 <- nloptr( x0=init.val.down,
                       eval_f= expected.CS.change,
                       eval_grad_f=eval_grad,
@@ -375,7 +404,7 @@ for (K in unique(min.criteria$Degree)) {
                       data = st.data,
                       act.p = "p_m", 
                       tax = "tau", 
-                      change = 0, 
+                      t = 0, 
                       w = "eta_m", 
                       min = p.min, 
                       max = p.max, 
@@ -390,7 +419,28 @@ for (K in unique(min.criteria$Degree)) {
       # B3. Extract minimization results
       down <- res0$objective
       
-      # B4. Run maximization
+      # B3.B1 Run maximization: Global 
+      res0 <- nloptr( x0=init.val.up,
+                      eval_f= max_expected.CS.change,
+                      eval_g_ineq = eval_restrictions,
+                      opts = nlo.opts.global,
+                      data = st.data,
+                      act.p = "p_m", 
+                      t = 0, 
+                      tax = "tau",
+                      w = "eta_m", 
+                      min = p.min, 
+                      max = p.max, 
+                      K = K,
+                      constr_mat = constr, 
+                      IV_mat = IVs, 
+                      min.crit = mc,
+                      elas = T,
+                      ub = rep(0, K),
+                      lb = rep(-1000, K),
+      )       
+      init.val.down <- res0$solution
+      # B4. Run maximization. Local
       res0 <- nloptr( x0=init.val.up,
                       eval_f= max_expected.CS.change,
                       eval_grad_f = max_eval_grad,
@@ -400,7 +450,7 @@ for (K in unique(min.criteria$Degree)) {
                       data = st.data,
                       act.p = "p_m", 
                       tax = "tau", 
-                      change = 0, 
+                      t = 0, 
                       w = "eta_m", 
                       min = p.min, 
                       max = p.max, 
