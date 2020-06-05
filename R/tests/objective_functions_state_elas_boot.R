@@ -71,7 +71,7 @@ taxability_panel <- taxability_panel[(month==12 & year==2014),][, .(product_modu
 all_pi<- merge(all_pi, taxability_panel, by = c("product_module_code", "fips_state"))
 
 ## Run by taxability
-set.seed(1941)
+set.seed(2019)
 ids <- unique(all_pi$module_by_state)
 
 
