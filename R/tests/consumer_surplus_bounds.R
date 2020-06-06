@@ -191,7 +191,7 @@ eval_grad <- function(mu, data, act.p, tax, t, w, min, max, K, constr_mat, IV_ma
   k <-1:K
   der <- sapply(k, function(x, data, act.p, tax, t, w, k, K, min, max) 
     d.mu.k.expected.CS.change(mu = mu, data = data, act.p = act.p, 
-                              tax = tax, t = change, w = w, min = min, 
+                              tax = tax, t = t, w = w, min = min, 
                               max = max, K = K, k = x),
     data = data, act.p = act.p, tax = tax, t = t, w = w, K = K, min = min, max = max)
   return(t(t(der)))
