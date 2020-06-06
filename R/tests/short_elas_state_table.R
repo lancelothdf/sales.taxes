@@ -70,7 +70,9 @@ output <- data.table(NULL)
 
 ## Calculate all elasticities: t>0
 all_pi_t <- all_pi[ln_sales_tax > 0, .(av.dm.ln_cpricei2 = weighted.mean(dm.ln_cpricei2 , w = base.sales),
-                                       av.sales_tax = weighted.mean(exp(1-ln_sales_tax) , w = base.sales),
+                                       av.fe2 = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax))*dm.ln_cpricei2 , w = base.sales),
+                                       av.fe3 = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax))*dm.ln_cpricei2^2, w = base.sales),
+                                       av.sales_tax = weighted.mean(exp(ln_sales_tax) -1 , w = base.sales),
                                        av.ln_sales_tax = weighted.mean(ln_sales_tax , w = base.sales),
                                        av.d_sales_tax = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
                                        av.1_d_sales_tax = weighted.mean(1/(exp(ln_sales_tax)), w = base.sales),
@@ -81,7 +83,9 @@ output <- rbind(output, all_pi_t)
 
 ## Calculate all elasticities: taxable
 all_pi_t <- all_pi[taxability == 1, .(av.dm.ln_cpricei2 = weighted.mean(dm.ln_cpricei2 , w = base.sales),
-                                      av.sales_tax = weighted.mean(exp(1-ln_sales_tax) , w = base.sales),
+                                      av.fe2 = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax))*dm.ln_cpricei2 , w = base.sales),
+                                      av.fe3 = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax))*dm.ln_cpricei2^2, w = base.sales),
+                                      av.sales_tax = weighted.mean(exp(ln_sales_tax) -1 , w = base.sales),
                                       av.ln_sales_tax = weighted.mean(ln_sales_tax , w = base.sales),
                                          av.d_sales_tax = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
                                       av.1_d_sales_tax = weighted.mean(1/(exp(ln_sales_tax)), w = base.sales),
@@ -92,7 +96,9 @@ output <- rbind(output, all_pi_t)
 
 ## Calculate all elasticities: reduced
 all_pi_t <- all_pi[taxability == 2, .(av.dm.ln_cpricei2 = weighted.mean(dm.ln_cpricei2 , w = base.sales),
-                                      av.sales_tax = weighted.mean(exp(1-ln_sales_tax) , w = base.sales),
+                                      av.fe2 = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax))*dm.ln_cpricei2 , w = base.sales),
+                                      av.fe3 = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax))*dm.ln_cpricei2^2, w = base.sales),
+                                      av.sales_tax = weighted.mean(exp(ln_sales_tax) -1 , w = base.sales),
                                       av.ln_sales_tax = weighted.mean(ln_sales_tax , w = base.sales),
                                         av.d_sales_tax = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
                                       av.1_d_sales_tax = weighted.mean(1/(exp(ln_sales_tax)), w = base.sales),
@@ -104,7 +110,9 @@ output <- rbind(output, all_pi_t)
 
 ## Calculate all elasticities: Food
 all_pi_t <- all_pi[FoodNonfood == 1, .(av.dm.ln_cpricei2 = weighted.mean(dm.ln_cpricei2 , w = base.sales),
-                                       av.sales_tax = weighted.mean(exp(1-ln_sales_tax) , w = base.sales),
+                                       av.fe2 = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax))*dm.ln_cpricei2 , w = base.sales),
+                                       av.fe3 = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax))*dm.ln_cpricei2^2, w = base.sales),
+                                       av.sales_tax = weighted.mean(exp(ln_sales_tax) -1 , w = base.sales),
                                        av.ln_sales_tax = weighted.mean(ln_sales_tax , w = base.sales),
                                         av.d_sales_tax = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
                                        av.1_d_sales_tax = weighted.mean(1/(exp(ln_sales_tax)), w = base.sales),
@@ -115,7 +123,9 @@ output <- rbind(output, all_pi_t)
 
 ## Calculate all elasticities: NonFood
 all_pi_t <- all_pi[FoodNonfood == 0, .(av.dm.ln_cpricei2 = weighted.mean(dm.ln_cpricei2 , w = base.sales),
-                                       av.sales_tax = weighted.mean(exp(1-ln_sales_tax) , w = base.sales),
+                                       av.fe2 = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax))*dm.ln_cpricei2 , w = base.sales),
+                                       av.fe3 = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax))*dm.ln_cpricei2^2, w = base.sales),
+                                       av.sales_tax = weighted.mean(exp(ln_sales_tax) -1 , w = base.sales),
                                        av.ln_sales_tax = weighted.mean(ln_sales_tax , w = base.sales),
                                        av.d_sales_tax = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
                                        av.1_d_sales_tax = weighted.mean(1/(exp(ln_sales_tax)), w = base.sales),
