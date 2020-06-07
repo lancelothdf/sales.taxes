@@ -99,43 +99,46 @@ for (rep in 0:109) {
   
   
   ## Objective functions
-  data.objective <- data.table(NULL)
-  for (K in 10:2) {
-    
-    ### Consumer Price
-    
-    ## Objective for average elasticity 
-    data <- iter.data
-    # Calculate berstein polynomials
-    for (n in 0:(K-1)){
-      data[, paste0("b",n) := bernstein(r.dm.ln_cpricei2, n, K-1)]
-    }
-    av.elas <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
-    av.elas[, K := K]
-    av.elas[, obj := "elas"]
-    
-    ## Objective for fiscal externality
-    for (n in 0:(K-1)){
-      data[, paste0("b",n) := (get(paste0("b",n)))*(exp(ln_sales_tax)-1)/exp(ln_sales_tax)]
-    }
-    av.fe <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
-    av.fe[, K := K]
-    av.fe[, obj := "fe"]
-    
-    data.objective <- rbind(data.objective, av.elas, av.fe, fill = T)
-
-  }
-  # Export this data
-  data.objective[, iter := rep]
-  full.data <- rbind(full.data, data.objective)
-  fwrite(full.data, output.table)
+  # data.objective <- data.table(NULL)
+  # for (K in 10:2) {
+  # 
+  #   ### Consumer Price
+  # 
+  #   ## Objective for average elasticity
+  #   data <- iter.data
+  #   # Calculate berstein polynomials
+  #   for (n in 0:(K-1)){
+  #     data[, paste0("b",n) := bernstein(r.dm.ln_cpricei2, n, K-1)]
+  #   }
+  #   av.elas <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
+  #   av.elas[, K := K]
+  #   av.elas[, obj := "elas"]
+  # 
+  #   ## Objective for fiscal externality
+  #   for (n in 0:(K-1)){
+  #     data[, paste0("b",n) := (get(paste0("b",n)))*(exp(ln_sales_tax)-1)/exp(ln_sales_tax)]
+  #   }
+  #   av.fe <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
+  #   av.fe[, K := K]
+  #   av.fe[, obj := "fe"]
+  # 
+  #   data.objective <- rbind(data.objective, av.elas, av.fe, fill = T)
+  # 
+  # }
+  # # Export this data
+  # data.objective[, iter := rep]
+  # full.data <- rbind(full.data, data.objective)
+  # fwrite(full.data, output.table)
   
   ## Calculate key summary statistics for MVPF
   iter.data <- iter.data[, .(av.dm.ln_cpricei2 = weighted.mean(dm.ln_cpricei2 , w = base.sales),
-                       av.ln_sales_tax = weighted.mean(ln_sales_tax , w = base.sales),
-                       av.d_sales_tax = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
-                       av.1_d_sales_tax = weighted.mean(1/(exp(ln_sales_tax)), w = base.sales),
-                       N = .N) , by = .(fips_state)]
+                             av.fe2 = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax))*dm.ln_cpricei2 , w = base.sales),
+                             av.fe3 = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax))*dm.ln_cpricei2^2, w = base.sales),
+                             av.sales_tax = weighted.mean(exp(ln_sales_tax) -1 , w = base.sales),
+                             av.ln_sales_tax = weighted.mean(ln_sales_tax , w = base.sales),
+                             av.d_sales_tax = weighted.mean((exp(ln_sales_tax)-1)/(exp(ln_sales_tax)), w = base.sales),
+                             av.1_d_sales_tax = weighted.mean(1/(exp(ln_sales_tax)), w = base.sales),
+                             N = .N) , by = .(fips_state)]
   
   ## Export kete charac
   iter.data[, iter := rep]
