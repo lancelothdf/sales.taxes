@@ -137,3 +137,6 @@ output <- rbind(output, all_pi_t)
 
 ###### 3. Export Results ---------------------
 fwrite(output, output.table)
+
+# Capture this value
+all_pi[taxability == 1, weighted.mean(dm.ln_cpricei2 , w = base.sales)]
