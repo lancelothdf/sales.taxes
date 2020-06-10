@@ -56,6 +56,9 @@ all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 min.p <- all_pi[, min(dm.ln_cpricei2)]
 max.p <- all_pi[, max(dm.ln_cpricei2)]
 all_pi[, r.dm.ln_cpricei2 := (dm.ln_cpricei2 - min.p)/(max.p - min.p) ]
+min.p <- all_pi[, min(dm.ln_pricei2)]
+max.p <- all_pi[, max(dm.ln_pricei2)]
+all_pi[, r.dm.ln_pricei2 := (dm.ln_pricei2 - min.p)/(max.p - min.p) ]
 
 
 ## Keep only taxable items as those are whose responses we care
@@ -85,10 +88,37 @@ for (K in 10:2) {
   av.fe[, K := K]
   av.fe[, obj := "fe"]
   av.fe[, type := "t>0"]
+  # Put data together
+  cp <- rbind(av.elas, av.fe)
+  cp[, price := "consumer"]
   
-  data.objective <- rbind(data.objective, av.elas, av.fe, fill = T)
+  ### Pre-tax price
+  # Calculate berstein polynomials
+  for (n in 0:(K-1)){
+    data[, paste0("b",n) := bernstein(r.dm.ln_pricei2, n, K-1)]
+  }
+  av.elas <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
+  av.elas[, K := K]
+  av.elas[, obj := "elas"]
+  av.elas[, type := "t>0"]
+  
+  ## Objective for fiscal externality
+  for (n in 0:(K-1)){
+    data[, paste0("b",n) := (get(paste0("b",n)))*(exp(ln_sales_tax)-1)/exp(ln_sales_tax)]
+  }
+  av.fe <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
+  av.fe[, K := K]
+  av.fe[, obj := "fe"]
+  av.fe[, type := "t>0"]
+  # Put data together
+  pt <- rbind(av.elas, av.fe)
+  pt[, price := "producer"]
+  
+  ## All together now
+  data.objective <- rbind(data.objective, cp, pt, fill = T)
   fwrite(data.objective, output.table)
   
+
 }
 rm(all_pi_t)
 
@@ -134,8 +164,34 @@ for (K in 10:2) {
   av.fe[, K := K]
   av.fe[, obj := "fe"]
   av.fe[, type := "taxable"]
+  # Put data together
+  cp <- rbind(av.elas, av.fe)
+  cp[, price := "consumer"]
   
-  data.objective <- rbind(data.objective, av.elas, av.fe, fill = T)
+  ### Pre-tax price
+  # Calculate berstein polynomials
+  for (n in 0:(K-1)){
+    data[, paste0("b",n) := bernstein(r.dm.ln_pricei2, n, K-1)]
+  }
+  av.elas <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
+  av.elas[, K := K]
+  av.elas[, obj := "elas"]
+  av.elas[, type := "taxable"]
+  
+  ## Objective for fiscal externality
+  for (n in 0:(K-1)){
+    data[, paste0("b",n) := (get(paste0("b",n)))*(exp(ln_sales_tax)-1)/exp(ln_sales_tax)]
+  }
+  av.fe <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
+  av.fe[, K := K]
+  av.fe[, obj := "fe"]
+  av.fe[, type := "taxable"]
+  # Put data together
+  pt <- rbind(av.elas, av.fe)
+  pt[, price := "producer"]
+  
+  ## All together now
+  data.objective <- rbind(data.objective, cp, pt, fill = T)
   fwrite(data.objective, output.table)
   
 }
@@ -167,8 +223,34 @@ for (K in 10:2) {
   av.fe[, K := K]
   av.fe[, obj := "fe"]
   av.fe[, type := "reduced"]
+  # Put data together
+  cp <- rbind(av.elas, av.fe)
+  cp[, price := "consumer"]
   
-  data.objective <- rbind(data.objective, av.elas, av.fe, fill = T)
+  ### Pre-tax price
+  # Calculate berstein polynomials
+  for (n in 0:(K-1)){
+    data[, paste0("b",n) := bernstein(r.dm.ln_pricei2, n, K-1)]
+  }
+  av.elas <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
+  av.elas[, K := K]
+  av.elas[, obj := "elas"]
+  av.elas[, type := "reduced"]
+  
+  ## Objective for fiscal externality
+  for (n in 0:(K-1)){
+    data[, paste0("b",n) := (get(paste0("b",n)))*(exp(ln_sales_tax)-1)/exp(ln_sales_tax)]
+  }
+  av.fe <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
+  av.fe[, K := K]
+  av.fe[, obj := "fe"]
+  av.fe[, type := "reduced"]
+  # Put data together
+  pt <- rbind(av.elas, av.fe)
+  pt[, price := "producer"]
+  
+  ## All together now
+  data.objective <- rbind(data.objective, cp, pt, fill = T)
   fwrite(data.objective, output.table)
   
 }
@@ -203,8 +285,34 @@ for (K in 10:2) {
   av.fe[, K := K]
   av.fe[, obj := "fe"]
   av.fe[, type := "NonFood"]
+  # Put data together
+  cp <- rbind(av.elas, av.fe)
+  cp[, price := "consumer"]
   
-  data.objective <- rbind(data.objective, av.elas, av.fe, fill = T)
+  ### Pre-tax price
+  # Calculate berstein polynomials
+  for (n in 0:(K-1)){
+    data[, paste0("b",n) := bernstein(r.dm.ln_pricei2, n, K-1)]
+  }
+  av.elas <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
+  av.elas[, K := K]
+  av.elas[, obj := "elas"]
+  av.elas[, type := "NonFood"]
+  
+  ## Objective for fiscal externality
+  for (n in 0:(K-1)){
+    data[, paste0("b",n) := (get(paste0("b",n)))*(exp(ln_sales_tax)-1)/exp(ln_sales_tax)]
+  }
+  av.fe <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
+  av.fe[, K := K]
+  av.fe[, obj := "fe"]
+  av.fe[, type := "NonFood"]
+  # Put data together
+  pt <- rbind(av.elas, av.fe)
+  pt[, price := "producer"]
+  
+  ## All together now
+  data.objective <- rbind(data.objective, cp, pt, fill = T)
   fwrite(data.objective, output.table)
   
 }
@@ -236,8 +344,34 @@ for (K in 10:2) {
   av.fe[, K := K]
   av.fe[, obj := "fe"]
   av.fe[, type := "Food"]
+  # Put data together
+  cp <- rbind(av.elas, av.fe)
+  cp[, price := "consumer"]
   
-  data.objective <- rbind(data.objective, av.elas, av.fe, fill = T)
+  ### Pre-tax price
+  # Calculate berstein polynomials
+  for (n in 0:(K-1)){
+    data[, paste0("b",n) := bernstein(r.dm.ln_pricei2, n, K-1)]
+  }
+  av.elas <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
+  av.elas[, K := K]
+  av.elas[, obj := "elas"]
+  av.elas[, type := "Food"]
+  
+  ## Objective for fiscal externality
+  for (n in 0:(K-1)){
+    data[, paste0("b",n) := (get(paste0("b",n)))*(exp(ln_sales_tax)-1)/exp(ln_sales_tax)]
+  }
+  av.fe <- data[ , lapply(.SD, weighted.mean, w = base.sales), by = .(fips_state), .SDcols = paste0("b",0:(K-1))]
+  av.fe[, K := K]
+  av.fe[, obj := "fe"]
+  av.fe[, type := "Food"]
+  # Put data together
+  pt <- rbind(av.elas, av.fe)
+  pt[, price := "producer"]
+  
+  ## All together now
+  data.objective <- rbind(data.objective, cp, pt, fill = T)
   fwrite(data.objective, output.table)
   
 }
