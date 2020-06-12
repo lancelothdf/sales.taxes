@@ -80,10 +80,13 @@ pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sa
 all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
 #### Original Range ----------
-
+extrap <- "Original"
 ## Define re-scaled prices to use Bernstein polynomials in that range
 min.p <- all_pi[, min(dm.ln_cpricei2)]
 max.p <- all_pi[, max(dm.ln_cpricei2)]
+min.p.or <- min.p
+max.p.or <- max.p
+
 all_pi[, r.dm.ln_cpricei2 := (dm.ln_cpricei2 - min.p)/(max.p - min.p) ]
 
 LRdiff_res <- data.table(NULL)
@@ -94,8 +97,7 @@ mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
 mean.p <- all_pi[, mean(r.dm.ln_cpricei2, weights = base.sales, na.rm = T)]
 
 
-estimated.pq <- data.table(mean.q, mean.p, min.p, max.p, rep)
-estimated.pq[, extrap := "Original"]
+estimated.pq <- data.table(mean.q, mean.p, min.p, max.p, extrap)
 pq_res <- rbind(pq_res, estimated.pq)
 fwrite(pq_res, pq.output.results.file)
 
@@ -156,12 +158,13 @@ for (n.g in 1:3) {
 
 
 #### No Tax Range ----------
+extrap <- "No Tax"
 all_pi[ex_p := dm.ln_cpricei2 - ln_sales_tax]
 
 ## Define re-scaled prices to use Bernstein polynomials in that range
-min.p <- all_pi[, min(ex_p)]
-max.p <- all_pi[, max(ex_p)]
-all_pi[, r.dm.ln_cpricei2 := (ex_p - min.p)/(max.p - min.p) ]
+min.p <- min(all_pi[, min(ex_p)], min.p.or)
+max.p <- max(all_pi[, max(ex_p)], max.p.or)
+all_pi[, r.dm.ln_cpricei2 := (dm.ln_cpricei2 - min.p)/(max.p - min.p) ]
 
 ## Run within
 ## To estimate the intercept
@@ -169,8 +172,7 @@ mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
 mean.p <- all_pi[, mean(r.dm.ln_cpricei2, weights = base.sales, na.rm = T)]
 
 
-estimated.pq <- data.table(mean.q, mean.p, min.p, max.p, rep)
-estimated.pq[, extrap := "No Tax"]
+estimated.pq <- data.table(mean.q, mean.p, min.p, max.p, extrap)
 pq_res <- rbind(pq_res, estimated.pq)
 fwrite(pq_res, pq.output.results.file)
 
@@ -228,12 +230,13 @@ for (n.g in 1:3) {
 
 
 #### plus 5 Range ----------
+extrap <- "plus 5 Tax"
 all_pi[ex_p := dm.ln_cpricei2 + log(1+0.05)]
 
 ## Define re-scaled prices to use Bernstein polynomials in that range
-min.p <- all_pi[, min(ex_p)]
-max.p <- all_pi[, max(ex_p)]
-all_pi[, r.dm.ln_cpricei2 := (ex_p - min.p)/(max.p - min.p) ]
+min.p <- min(all_pi[, min(ex_p)], min.p.or)
+max.p <- max(all_pi[, max(ex_p)], max.p.or)
+all_pi[, r.dm.ln_cpricei2 := (dm.ln_cpricei2 - min.p)/(max.p - min.p) ]
 
 ## Run within
 ## To estimate the intercept
@@ -241,8 +244,7 @@ mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
 mean.p <- all_pi[, mean(r.dm.ln_cpricei2, weights = base.sales, na.rm = T)]
 
 
-estimated.pq <- data.table(mean.q, mean.p, min.p, max.p, rep)
-estimated.pq[, extrap := "plus 5 Tax"]
+estimated.pq <- data.table(mean.q, mean.p, min.p, max.p, extrap)
 pq_res <- rbind(pq_res, estimated.pq)
 fwrite(pq_res, pq.output.results.file)
 
