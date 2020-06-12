@@ -159,7 +159,7 @@ for (n.g in 1:3) {
 
 #### No Tax Range ----------
 extrap <- "No Tax"
-all_pi[ex_p := dm.ln_cpricei2 - ln_sales_tax]
+all_pi[, ex_p := dm.ln_cpricei2 - ln_sales_tax]
 
 ## Define re-scaled prices to use Bernstein polynomials in that range
 min.p <- min(all_pi[, min(ex_p)], min.p.or)
@@ -231,7 +231,7 @@ for (n.g in 1:3) {
 
 #### plus 5 Range ----------
 extrap <- "plus 5 Tax"
-all_pi[ex_p := dm.ln_cpricei2 + log(1+0.05)]
+all_pi[, ex_p := dm.ln_cpricei2 + log(1+0.05)]
 
 ## Define re-scaled prices to use Bernstein polynomials in that range
 min.p <- min(all_pi[, min(ex_p)], min.p.or)
