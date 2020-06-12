@@ -271,7 +271,7 @@ fwrite(data.full, output.table)
 #### No Tax Support -------
 
 ## Define re-scaled prices to use Bernstein polynomials in that range
-all_pi[ex_p := dm.ln_cpricei2 - ln_sales_tax]
+all_pi[, ex_p := dm.ln_cpricei2 - ln_sales_tax]
 min.p <- min(all_pi[, min(ex_p)], min.p.or)
 max.p <- max(all_pi[, max(ex_p)], max.p.or)
 all_pi[, r.dm.ln_cpricei2 := (dm.ln_cpricei2 - min.p)/(max.p - min.p) ]
@@ -466,7 +466,7 @@ fwrite(data.full, output.table)
 #### plus 5 % Support -------
 
 ## Define re-scaled prices to use Bernstein polynomials in that range
-all_pi[ex_p := dm.ln_cpricei2 + log(1+0.05)]
+all_pi[, ex_p := dm.ln_cpricei2 + log(1+0.05)]
 min.p <- min(all_pi[, min(ex_p)], min.p.or)
 max.p <- max(all_pi[, max(ex_p)], max.p.or)
 all_pi[, r.dm.ln_cpricei2 := (dm.ln_cpricei2 - min.p)/(max.p - min.p) ]
