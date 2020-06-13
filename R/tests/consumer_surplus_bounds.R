@@ -376,6 +376,10 @@ for (sc in scenarios) {
       IVs <- res.ivs[n.groups == D][["estimate"]] 
       
       
+      print(K)
+      print(D)
+      print(constr)
+      print(IVs)
       ## A4. Loop across states
       for (state in unique(mus$st)) {
         
@@ -383,12 +387,6 @@ for (sc in scenarios) {
         init.val.up <- mus[Degree == K & L == D & st == 19 & extrap == sc,][["mu.up"]]
         init.val.down <- mus[Degree == K & L == D & st == 19 & extrap == sc,][["mu.down"]]
         
-        ## Print things to check
-        print(p.min)
-        print(p.max)
-        print(tax.cs)
-        print(t.cs)
-
         # B2. Subset data
         st.data <- data[fips_state == state,]
         
