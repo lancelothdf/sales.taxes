@@ -269,7 +269,7 @@ setnames(min.criteria, c("K", "D", "sc"), c("Degree", "L", "extrap"))
 
 ## 4. Load previous solutions of the linear problem, to start there
 mus <- fread("Data/elasticity_mu_bounds_table_state_extrapolation.csv")
-mus <- mus[target == "elas" & taxability == "taxable"][, -c("up", "down", "target", "taxability")]
+mus <- mus[target == "elas" & taxability == "taxable" & !is.na(mu.up)][, -c("up", "down", "target", "taxability")]
 setnames(mus, c("K", "D", "sc"), c("Degree", "L", "extrap"))
 
 # 5. Define output and Ks to test
