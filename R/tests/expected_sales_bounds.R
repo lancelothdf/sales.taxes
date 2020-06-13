@@ -341,6 +341,11 @@ for (sc in scenarios) {
         init.val.up <- mus[Degree == K & L == D & st == 19 & extrap == sc,][["mu.up"]]
         init.val.down <- mus[Degree == K & L == D & st == 19 & extrap == sc,][["mu.down"]]
         
+        ## Print things to check
+        print(p.min)
+        print(p.max)
+        print(tax.cs)
+        print(t.cs)
         
         # B1. Subset data
         st.data <- data[fips_state == state,]
