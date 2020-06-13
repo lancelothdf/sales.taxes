@@ -341,6 +341,7 @@ for (sc in scenarios) {
       
       ## A5. Loop across states
       for (state in unique(mus$st)) {
+        print(state)
         
         
         ## Generate an initial value somewhere in the middle
