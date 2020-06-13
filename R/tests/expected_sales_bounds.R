@@ -273,7 +273,7 @@ mus <- mus[target == "elas" & taxability == "taxable"][, -c("up", "down", "targe
 setnames(mus, c("K", "D", "sc"), c("Degree", "L", "extrap"))
 
 # 5. Define output and Ks to test
-out.file <- "Data/expected sales_changes_ex1.csv"
+out.file <- "Data/expected_sales_changes_ex1.csv"
 K.test <- c(2,3,7,10)
 
 # 6. Set up Optimization Parameters (algorithm for now)
