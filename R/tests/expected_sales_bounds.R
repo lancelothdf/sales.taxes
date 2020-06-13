@@ -301,10 +301,11 @@ for (sc in scenarios) {
   p.min <- res.pq[extrap == sc][["min.p"]]
   p.max <- res.pq[extrap == sc][["max.p"]]
   
-  if (sc == "No tax") {
+  if (sc == "No Tax") {
     tax.cs <- "tau"
     t.cs <- 0
-  } else {
+  } 
+  if (sc == "plus 5 Tax")  {
     data[, tau.n := 0]
     tax.cs <- "tau.n"
     t.cs <- log(1+0.05)
@@ -342,6 +343,11 @@ for (sc in scenarios) {
         init.val.down <- mus[Degree == K & L == D & st == 19 & extrap == sc,][["mu.down"]]
         
         ## Print things to check
+        print(init.val.up)
+        print(init.val.down)
+        print(constr)
+        print(IVs)
+        print(mc)
         print(p.min)
         print(p.max)
         print(tax.cs)
