@@ -382,6 +382,13 @@ for (sc in scenarios) {
         init.val.up <- mus[Degree == K & L == D & st == 23 & extrap == sc,][["mu.up"]]
         init.val.down <- mus[Degree == K & L == D & st == 23 & extrap == sc,][["mu.down"]]
         
+        ## Print things to check
+        print(init.val.up)
+        print(init.val.down)
+        print(constr)
+        print(IVs)
+        print(mc)
+        
         # B2. Subset data
         st.data <- data[fips_state == state,]
         

@@ -314,7 +314,7 @@ for (sc in scenarios) {
   for (K in K.test) {
     
     ## 6.1. Load Matrix of gamma (this extrictly depends on K since the basis change)
-    in.file <- paste0("Constraints/Demand_gamma_sat_initial_price_semester_extrapolate_K", K,"_bern.csv")
+    in.file <- paste0("Data/Demand_gamma_sat_initial_price_semester_extrapolate_K", K,"_bern.csv")
     gamma.full.data <- fread(in.file)
     
     ## 6.2 Restrict gamma file. Constant across p
