@@ -379,8 +379,8 @@ for (sc in scenarios) {
       for (state in unique(mus$st)) {
         
         ## Generate an initial value somewhere in the middle
-        init.val.up <- mus[Degree == K & L == D & st == 23 & extrap == sc,][["mu.up"]]
-        init.val.down <- mus[Degree == K & L == D & st == 23 & extrap == sc,][["mu.down"]]
+        init.val.up <- mus[Degree == K & L == D & st == 19 & extrap == sc,][["mu.up"]]
+        init.val.down <- mus[Degree == K & L == D & st == 19 & extrap == sc,][["mu.down"]]
         
         ## Print things to check
         print(init.val.up)
