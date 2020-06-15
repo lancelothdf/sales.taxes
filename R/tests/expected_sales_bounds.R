@@ -273,8 +273,9 @@ mus <- mus[target == "elas" & taxability == "taxable" & !is.na(mu.up)][, -c("up"
 setnames(mus, c("K", "D", "sc"), c("Degree", "L", "extrap"))
 
 # 5. Define output and Ks to test
-out.file <- "Data/expected_sales_changes_ex1.csv"
-K.test <- c(2,3,7,10)
+out.file <- "Data/expected_sales_changes_ex1b.csv"
+#K.test <- c(2,3,7,10)
+K.test <- c(10)
 
 # 6. Set up Optimization Parameters (algorithm for now)
 nlo.opts.global <- list(
@@ -293,7 +294,8 @@ nlo.opts.local <- list(
 
 
 ## 6. Loop acorss Scenarios
-scenarios <- c("No Tax", "plus 5 Tax")
+#scenarios <- c("No Tax", "plus 5 Tax")
+scenarios <- c("plus 5 Tax")
 welfare <- data.table(NULL)
 
 for (sc in scenarios) {
