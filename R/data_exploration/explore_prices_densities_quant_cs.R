@@ -76,8 +76,6 @@ simple.dt <- data.table(coef(summary(simple.fit)), keep.rownames=T)
 
 sdc <- all_pi_pcs[, sd(ln_cpricei2, na.rm = T)]
 sdl <- all_pi_pcs[, sd(L.ln_cpricei2, na.rm = T)]
-sdc
-sdl
 simple.dt[, SD_cur := sdc]
 simple.dt[, SD_lag := sdl]
 
@@ -87,8 +85,6 @@ dd.dt <- data.table(coef(summary(simple.fit)), keep.rownames=T)
 
 sdc <- all_pi_pcs[, sd(dm.ln_cpricei2, na.rm = T)]
 sdl <- all_pi_pcs[, sd(dm.L.ln_cpricei2, na.rm = T)]
-sdc
-sdl
 dd.dt[, SD_cur := sdc]
 dd.dt[, SD_lag := sdl]
 
@@ -100,12 +96,14 @@ res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
 
 sdc <- all_pi_pcs[, sd(w.ln_cpricei2, na.rm = T)]
 sdl <- all_pi_pcs[, sd(w.L.ln_cpricei2, na.rm = T)]
-sdc
-sdl
 res1.dt[, SD_cur := sdc]
 res1.dt[, SD_lag := sdl]
 
 
+
+simple.dt
+dd.dt
+res1.dt
 # Export
 estimates <- rbind(simple.dt, dd.dt, res1, fill = T)
 fwrite(prices_densities, output.results)
