@@ -92,11 +92,12 @@ dd.dt[, SD_lag := sdl]
 formula1 <- as.formula("w.ln_cpricei2 ~ w.L.ln_cpricei2 | module_by_time | 0 ")
 res1 <- felm(formula = formula1, data = all_pi_pcs,
              weights = all_pi_pcs$base.sales)
+res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
 
 sdc <- all_pi_pcs[, sd(w.ln_cpricei2, na.rm = T)]
 sdl <- all_pi_pcs[, sd(w.L.ln_cpricei2, na.rm = T)]
-res1[, SD_cur := sdc]
-res1[, SD_lag := sdl]
+res1.dt[, SD_cur := sdc]
+res1.dt[, SD_lag := sdl]
 
 
 # Export
