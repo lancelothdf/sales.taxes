@@ -36,6 +36,8 @@ all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
 all_pi[, L.ln_cpricei2 := ln_cpricei2 - D.ln_cpricei2]
 all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.ln_cpricei2 := ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
+all_pi[, w.ln_pricei2 := ln_pricei2 - mean(ln_pricei2), by = .(store_by_module)]
+all_pi[, w.L.ln_pricei2 := L.ln_pricei2 - mean(ln_pricei2), by = .(store_by_module)]
 
 
 # Defining common support
@@ -65,6 +67,41 @@ pct1 <- quantile(all_pi_pcs$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base
 pct99 <- quantile(all_pi_pcs$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
 all_pi_pcs <- all_pi_pcs[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
+
+## Price persistence estimates----------
+
+# Raw
+simple.fit <- lm(ln_cpricei2~L.ln_cpricei2, data=all_pi_pcs, weights = all_pi_pcs$base.sales)
+simple.dt <- data.table(coef(summary(simple.fit)), keep.rownames=T)
+
+sdc <- all_pi_pcs[, sd(ln_cpricei2, na.rm = T)]
+sdl <- all_pi_pcs[, sd(L.ln_cpricei2, na.rm = T)]
+simple.dt[, SD_cur := sdc]
+simple.dt[, SD_lag := sdl]
+
+# De-meaned
+simple.fit <- lm(dm.ln_cpricei2~ 0 + dm.L.ln_cpricei2, data=all_pi_pcs, weights = all_pi_pcs$base.sales)
+dd.dt <- data.table(coef(summary(simple.fit)), keep.rownames=T)
+
+sdc <- all_pi_pcs[, sd(dm.ln_cpricei2, na.rm = T)]
+sdl <- all_pi_pcs[, sd(dm.L.ln_cpricei2, na.rm = T)]
+dd.dt[, SD_cur := sdc]
+dd.dt[, SD_lag := sdl]
+
+# Full controls
+formula1 <- as.formula("w.ln_cpricei2 ~ w.L.ln_cpricei2 | module_by_time | 0 ")
+res1 <- felm(formula = formula1, data = all_pi_pcs,
+             weights = all_pi_pcs$base.sales)
+
+sdc <- all_pi_pcs[, sd(w.ln_cpricei2, na.rm = T)]
+sdl <- all_pi_pcs[, sd(w.L.ln_cpricei2, na.rm = T)]
+res1[, SD_cur := sdc]
+res1[, SD_lag := sdl]
+
+
+# Export
+estimates <- rbind(simple.dt, dd.dt, res1, fill = T)
+fwrite(prices_densities, output.results)
 
 ## Treat this by N quantiles
 for (n.quantiles in 2:7) {
