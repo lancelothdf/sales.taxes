@@ -36,8 +36,8 @@ all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
 all_pi[, L.ln_cpricei2 := ln_cpricei2 - D.ln_cpricei2]
 all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.ln_cpricei2 := ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
-all_pi[, w.ln_pricei2 := ln_pricei2 - mean(ln_pricei2), by = .(store_by_module)]
-all_pi[, w.L.ln_pricei2 := L.ln_pricei2 - mean(ln_pricei2), by = .(store_by_module)]
+all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2), by = .(store_by_module)]
+all_pi[, w.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2), by = .(store_by_module)]
 
 
 # Defining common support
