@@ -350,11 +350,12 @@ for (sc in scenarios) {
         init.val.up <- mus[Degree == K & L == D & st == state & extrap == sc,][["mu.up"]]
         init.val.down <- mus[Degree == K & L == D & st == state & extrap == sc,][["mu.down"]]
         
-        print(st.data[, weighted.mean(p_m - get(tax.cs), w = eta_m)])
-        print(st.data[, weighted.mean(p_m + get(t.cs), w = eta_m)])
-
         # B1. Subset data
         st.data <- data[fips_state == state,]
+        
+        print(st.data[, weighted.mean(p_m - get(tax.cs), w = eta_m)])
+        print(st.data[, weighted.mean(p_m + get(t.cs), w = eta_m)])
+        
         
         # B2.B1 Run minimization: Global 
         res0 <- nloptr( x0=init.val.down,
