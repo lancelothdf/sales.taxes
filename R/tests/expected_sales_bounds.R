@@ -273,7 +273,7 @@ mus <- mus[target == "elas" & taxability == "taxable" & !is.na(mu.up)][, -c("up"
 setnames(mus, c("K", "D", "sc"), c("Degree", "L", "extrap"))
 
 # 5. Define output and Ks to test
-out.file <- "Data/expected_sales_changes_ex1b.csv"
+out.file <- "Data/expected_sales_changes_exp5.csv"
 K.test <- c(2,3,7,10)
 #K.test <- c(10)
 
