@@ -402,7 +402,8 @@ for (sc in scenarios) {
         
         # B2.B1 Minimum
         down0 <- res0$objective
-  
+        s1 <- res0$status
+        
         # B2.B1 Run minimization: Global 
         res0 <- nloptr( x0=init.val.up,
                         eval_f= max_ext.sales,
@@ -424,6 +425,7 @@ for (sc in scenarios) {
                         lb = rep(-1000, K),
         )       
         init.val.up <- res0$solution
+        s2 <- res0$status
         
         # B3.B1 Run maximization: Local
         res0 <- nloptr( x0=init.val.up,
@@ -452,7 +454,7 @@ for (sc in scenarios) {
         down <- min(up0,down0)
         
         # B6. Compile estimates
-        welfare.st <- data.table(data.table(down, up, state, D , K, sc))
+        welfare.st <- data.table(data.table(down, up, state, D , K, sc, s1, s2))
         welfare <- rbind(welfare, welfare.st)
         
         # B7. Export Results every case is done
