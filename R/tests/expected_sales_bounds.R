@@ -354,7 +354,7 @@ for (sc in scenarios) {
         st.data <- data[fips_state == state,]
         
         print(st.data[, weighted.mean(p_m - get(tax.cs), w = eta_m)])
-        print(st.data[, weighted.mean(p_m + get(t.cs), w = eta_m)])
+        print(st.data[, weighted.mean(p_m + t.cs, w = eta_m)])
         
         
         # B2.B1 Run minimization: Global 
