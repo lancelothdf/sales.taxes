@@ -274,8 +274,8 @@ setnames(mus, c("K", "D", "sc"), c("Degree", "L", "extrap"))
 
 # 5. Define output and Ks to test
 out.file <- "Data/expected_sales_changes_ex1b.csv"
-#K.test <- c(2,3,7,10)
-K.test <- c(10)
+K.test <- c(2,3,7,10)
+#K.test <- c(10)
 
 # 6. Set up Optimization Parameters (algorithm for now)
 nlo.opts.global <- list(
@@ -347,8 +347,13 @@ for (sc in scenarios) {
         
         
         ## Generate an initial value somewhere in the middle
-        init.val.up <- mus[Degree == K & L == D & st == 19 & extrap == sc,][["mu.up"]]
-        init.val.down <- mus[Degree == K & L == D & st == 19 & extrap == sc,][["mu.down"]]
+        init.val.up <- mus[Degree == K & L == D & st == state & extrap == sc,][["mu.up"]]
+        init.val.down <- mus[Degree == K & L == D & st == state & extrap == sc,][["mu.down"]]
+        
+        
+        print(t.cs)
+        print(tax.cs)
+        
         
         # B1. Subset data
         st.data <- data[fips_state == state,]
@@ -397,7 +402,7 @@ for (sc in scenarios) {
         )
         
         # B2.B1 Minimum
-        down <- res0$objective
+        down0 <- res0$objective
   
         # B2.B1 Run minimization: Global 
         res0 <- nloptr( x0=init.val.up,
@@ -442,7 +447,10 @@ for (sc in scenarios) {
                         elas = T
         )
         # B3.B2 Extract minimization results
-        up <- -res0$objective
+        up0 <- -res0$objective
+        
+        up <- max(up0,down0)
+        down <- min(up0,down0)
         
         # B6. Compile estimates
         welfare.st <- data.table(data.table(down, up, state, D , K, sc))

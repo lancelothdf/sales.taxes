@@ -390,8 +390,8 @@ for (sc in scenarios) {
       welfare.st <- foreach (state= unique(mus$st), .combine=rbind) %dopar% {
         
         ## Generate an initial value somewhere in the middle
-        init.val.up <- mus[Degree == K & L == D & st == 19 & extrap == sc,][["mu.up"]]
-        init.val.down <- mus[Degree == K & L == D & st == 19 & extrap == sc,][["mu.down"]]
+        init.val.up <- mus[Degree == K & L == D & st == 19 & state == sc,][["mu.up"]]
+        init.val.down <- mus[Degree == K & L == D & st == 19 & state == sc,][["mu.down"]]
         
         # B2. Subset data
         st.data <- data[fips_state == state,]
@@ -441,7 +441,7 @@ for (sc in scenarios) {
                         lb = rep(-100, K)
         )
         # B3. Extract minimization results
-        down <- res0$objective
+        down0 <- res0$objective
         
         # B3.B1 Run maximization: Global 
         res0 <- nloptr( x0=init.val.up,
@@ -487,7 +487,10 @@ for (sc in scenarios) {
                         lb = rep(-100, K)
         )
         # B5. Extract minimization results
-        up <- -res0$objective
+        up0 <- -res0$objective
+        
+        up <- max(up0,down0)
+        down <- min(up0,down0)
         
         # B6. Compile estimates export
         data.table(data.table(down, up, state, D , K, sc))
