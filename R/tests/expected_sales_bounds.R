@@ -234,7 +234,7 @@ eval_restrictions_j <- function(mu, data, act.p, t, tax, w, min, max, K, constr_
     constr.jac <- cbind(
       constr.jac,
       #rbind(
-        constr.min.crit(c(rep(0,k-1),1,rep(0,K-k)), constr_mat, rep(0, dim(constr_mat)[1]), 0),
+        constr.min.crit(c(rep(0,k-1),1,rep(0,K-k)), constr_mat, rep(0, dim(constr_mat)[1]), 0) #,
         #shape.constr(c(rep(0,k-1),1,rep(0,K-k)), elas)
       #)
     )
