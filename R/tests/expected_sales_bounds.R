@@ -287,7 +287,7 @@ nlo.opts.local <- list(
   "algorithm"="NLOPT_LD_SLSQP",
   "maxeval" = 200,
   "xtol_rel"=1.0e-16,
-  "check_derivatives_print" = "all",
+  "check_derivatives_print" = "all"
 )
 
 
