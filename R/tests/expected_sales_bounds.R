@@ -6,6 +6,7 @@
 #' Then we get several inputs: constraint matrices, minimum criterion's used before and estimated bounds
 #' Finally, we create more functions (for the constraints, as they vary depending the scenario)
 #' We put everything together and run the nonlinear optimization problem for each state in a given scenario, varying cases
+#' In this version I delete the matrix constraint on monotonicity and impose it on the program directly
 
 library(Matrix)
 library(data.table)
@@ -153,7 +154,7 @@ eval_grad <- function(mu, data, act.p, t, tax, w, min, max, K, constr_mat, IV_ma
                       t = t, tax = tax, w = w, min = min, 
                       max = max, K = K, k = x),
     mu = mu, data = data, act.p = act.p, t = t, tax = tax, w = w, K = K, min = min, max = max)
-  return(t(t(der)))
+  return(der)
 }
 max_eval_grad <- function(mu, data, act.p, t, tax, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
   return(-eval_grad(mu, data, act.p, t, tax, w, min, max, K, constr_mat, IV_mat, min.crit, elas))
@@ -217,10 +218,10 @@ eval_restrictions <- function(mu, data, act.p, t, tax, w, min, max, K, constr_ma
   
   return(
     as.matrix(
-      rbind(
-        constr.min.crit(mu, constr_mat, IV_mat, min.crit),
-        shape.constr(mu, elas)
-      )
+      #rbind(
+        constr.min.crit(mu, constr_mat, IV_mat, min.crit) #,
+        #shape.constr(mu, elas)
+      #)
     )
   )
 }
@@ -232,10 +233,10 @@ eval_restrictions_j <- function(mu, data, act.p, t, tax, w, min, max, K, constr_
     
     constr.jac <- cbind(
       constr.jac,
-      rbind(
+      #rbind(
         constr.min.crit(c(rep(0,k-1),1,rep(0,K-k)), constr_mat, rep(0, dim(constr_mat)[1]), 0),
-        shape.constr(c(rep(0,k-1),1,rep(0,K-k)), elas)
-      )
+        #shape.constr(c(rep(0,k-1),1,rep(0,K-k)), elas)
+      #)
     )
     
   }
@@ -396,7 +397,8 @@ for (sc in scenarios) {
                         constr_mat = constr, 
                         IV_mat = IVs, 
                         min.crit = mc,
-                        elas = T
+                        elas = T,
+                        ub = rep(0, K)
         )
         
         # B2.B1 Minimum
@@ -444,6 +446,7 @@ for (sc in scenarios) {
                         constr_mat = constr, 
                         IV_mat = IVs, 
                         min.crit = mc,
+                        ub = rep(0, K),
                         elas = T
         )
         # B3.B2 Extract minimization results
