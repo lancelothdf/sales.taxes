@@ -280,12 +280,12 @@ K.test <- c(2,3,7,10)
 # 6. Set up Optimization Parameters (algorithm for now)
 nlo.opts.global <- list(
   "algorithm"="NLOPT_GN_ISRES",
-  "maxeval" = 20,
+  "maxeval" = 40,
   "xtol_rel"=1.0e-8
 )
 nlo.opts.local <- list(
   "algorithm"="NLOPT_LD_SLSQP",
-  "maxeval" = 100,
+  "maxeval" = 300,
   "xtol_rel"=1.0e-8,
   "check_derivatives_print" = "all"
   
