@@ -15,6 +15,7 @@ library(zoo)
 library(tidyverse)
 library(stringr)
 library(nloptr)
+library(MASS)
 
 setwd("/project2/igaarder")
 
@@ -247,6 +248,24 @@ eval_restrictions_j <- function(mu, data, act.p, t, tax, w, min, max, K, constr_
 
 #### Prepare and run optimizations -----
 
+## Small function to get an initial value for optimization
+get.init.val <- function(A, b, min.c) {
+  if (min.c == 0) {
+    return(as.vector(ginv(A) %*% b))
+  }
+  else{
+    init <- as.vector(ginv(A) %*% b)
+    srv <- (sum(init> 0) > 0)
+    i <- 1
+    while (srv) {
+      i <- i + 1
+      init <- init - (init > 0)*rep(mc/(i^3), length(init))
+      srv <- (sum(init> 0) > 0)
+    }
+  }
+}
+
+
 # 1. Open data
 data <- fread("Data/extraction_state_binned_price.csv")
 
@@ -341,21 +360,23 @@ for (sc in scenarios) {
       print(constr)
       print(IVs)
       
+      ## Generate an initial value somewhere in the middle to test algorithms
+      init.val.up <- get.init.val(constr, IVs, mc)
+      init.val.down <- init.val.up
+      
       ## A5. Loop across states
       for (state in unique(mus$st)) {
         print(state)
         
         
-        ## Generate an initial value somewhere in the middle
-        init.val.up <- mus[Degree == K & L == D & st == state & extrap == sc,][["mu.up"]]
-        init.val.down <- mus[Degree == K & L == D & st == state & extrap == sc,][["mu.down"]]
+        # Capture initial value from LP
+        #init.val.up <- mus[Degree == K & L == D & st == state & extrap == sc,][["mu.up"]]
+        #init.val.down <- mus[Degree == K & L == D & st == state & extrap == sc,][["mu.down"]]
         
         # B1. Subset data
         st.data <- data[fips_state == state,]
         
-        print(st.data[, weighted.mean(p_m - get(tax.cs), w = eta_m)])
-        print(st.data[, weighted.mean(p_m + t.cs, w = eta_m)])
-        
+
         
         # B2.B1 Run minimization: Global 
         res0 <- nloptr( x0=init.val.down,
@@ -426,7 +447,7 @@ for (sc in scenarios) {
                         lb = rep(-1000, K),
         )       
         init.val.up <- res0$solution
-        s2 <- res0$status
+        
         
         # B3.B1 Run maximization: Local
         res0 <- nloptr( x0=init.val.up,
@@ -451,6 +472,7 @@ for (sc in scenarios) {
         )
         # B3.B2 Extract minimization results
         up0 <- -res0$objective
+        s2 <- res0$status
         
         up <- max(up0,down0)
         down <- min(up0,down0)
