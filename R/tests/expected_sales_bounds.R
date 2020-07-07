@@ -258,6 +258,8 @@ get.init.val <- function(A, b, min.c) {
     srv <- (sum(init> 0) > 0)
     i <- dim(A)[2]
     while (srv) {
+      print(paste0("Attempt", i - dim(A)[2] + 1, ": "))
+      print(init)
       i <- i + 1
       init <- init - (init > 0)*rep(mc/(i), length(init)) + (init < 0)*rep(mc/(i), length(init))
       srv <- (sum(init> 0) > 0)
@@ -300,7 +302,7 @@ K.test <- c(2,3,7,10)
 # 6. Set up Optimization Parameters (algorithm for now)
 nlo.opts.global <- list(
   "algorithm"="NLOPT_GN_ISRES",
-  "maxeval" = 100,
+  "maxeval" = 200,
   "xtol_rel"=1.0e-8
 )
 nlo.opts.local <- list(
@@ -396,7 +398,7 @@ for (sc in scenarios) {
                         min.crit = mc,
                         elas = T,
                         ub = rep(0, K),
-                        lb = rep(-1000, K),
+                        lb = rep(IV/min(constr), K),
         )       
         init.val.down <- res0$solution
         print(init.val.down)
@@ -447,7 +449,7 @@ for (sc in scenarios) {
                         min.crit = mc,
                         elas = T,
                         ub = rep(0, K),
-                        lb = rep(-1000, K),
+                        lb = rep(IV/min(constr), K),
         )       
         init.val.up <- res0$solution
         print(init.val.up)
