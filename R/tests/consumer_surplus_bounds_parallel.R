@@ -6,6 +6,7 @@
 #' Then we get several inputs: constraint matrices, minimum criterion's used before and estimated bounds
 #' Finally, we create more functions (for the constraints, as they vary depending the scenario)
 #' We put everything together and run the nonlinear optimization problem for each state in a given scenario, varying cases
+#' We estimate using a derivative-free algorithm
 
 
 library(Matrix)
@@ -201,6 +202,7 @@ eval_grad <- function(mu, data, act.p, tax, t, w, min, max, K, constr_mat, IV_ma
 max_eval_grad <- function(mu, data, act.p, tax, t, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
   return(-eval_grad(mu, data, act.p, tax, t, w, min, max, K, constr_mat, IV_mat, min.crit, elas))
 }
+
 #### Constraints functions ----------
 
 ## Now, we put together functions that create the restrictions for the problem and will be used in the NLOPT program
@@ -256,12 +258,13 @@ shape.constr<-function(mu, elas) {
 }
 ## Function for constraint: includes the arguments from evaluation function even if not needed so it runs
 eval_restrictions <- function(mu, data, act.p, t, tax, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
+  
   return(
     as.matrix(
-      rbind(
-        constr.min.crit(mu, constr_mat, IV_mat, min.crit),
-        shape.constr(mu, elas)
-      )
+      #rbind(
+      constr.min.crit(mu, constr_mat, IV_mat, min.crit) #,
+      #shape.constr(mu, elas)
+      #)
     )
   )
 }
@@ -273,10 +276,10 @@ eval_restrictions_j <- function(mu, data, act.p, t, tax, w, min, max, K, constr_
     
     constr.jac <- cbind(
       constr.jac,
-      rbind(
-        constr.min.crit(c(rep(0,k-1),1,rep(0,K-k)), constr_mat, rep(0, dim(constr_mat)[1]), 0),
-        shape.constr(c(rep(0,k-1),1,rep(0,K-k)), elas)
-      )
+      #rbind(
+      constr.min.crit(c(rep(0,k-1),1,rep(0,K-k)), constr_mat, rep(0, dim(constr_mat)[1]), 0) #,
+      #shape.constr(c(rep(0,k-1),1,rep(0,K-k)), elas)
+      #)
     )
     
   }
@@ -285,9 +288,26 @@ eval_restrictions_j <- function(mu, data, act.p, t, tax, w, min, max, K, constr_
   
 }
 
+#### Prepare and run optimizations -----
 
-#### Prepare optimizations -----
-
+## Small function to get an initial value for optimization
+get.init.val <- function(A, b, min.c) {
+  if (min.c == 0) {
+    return(as.vector(ginv(A) %*% b))
+  }
+  else{
+    init <- as.vector(ginv(A) %*% b)
+    srv <- (sum(init> 0) > 0)
+    i <- dim(A)[2]
+    while (srv) {
+      print(paste0("Attempt", i - dim(A)[2] + 1, ": "))
+      print(init)
+      i <- i + 1
+      init <- init - (init > 0)*rep(mc/(i), length(init)) + (init < 0)*rep(mc/(i), length(init))
+      srv <- (sum(init> 0) > 0)
+    }
+  }
+}
 
 # 0. Parallelize options
 # use the environment variable SLURM_NTASKS_PER_NODE to set the number of cores
@@ -321,21 +341,21 @@ setnames(mus, c("K", "D", "sc"), c("Degree", "L", "extrap"))
 
 # 5. Define output and Ks to test
 out.file <- "Data/consumer_surplus_changes_ex1b.csv"
-K.test <- c(7,10)
+# K.test <- c(7,10)
 
 # 6. Set up Optimization Parameters (algorithm for now)
-nlo.opts.global <- list(
-  "algorithm"="NLOPT_GN_ISRES",
-  "maxeval" = 20,
+nlo.opts.local.df <- list(
+  "algorithm"="NLOPT_LN_COBYLA",
+  "maxeval" = 200,
   "xtol_rel"=1.0e-8
 )
-nlo.opts.local <- list(
-  "algorithm"="NLOPT_LD_SLSQP",
-  "maxeval" = 100,
-  "xtol_rel"=1.0e-8,
-  "check_derivatives_print" = "all"
-  
-)
+# nlo.opts.local <- list(
+#   "algorithm"="NLOPT_LD_SLSQP",
+#   "maxeval" = 100,
+#   "xtol_rel"=1.0e-8,
+#   "check_derivatives_print" = "all"
+#   
+# )
 
 
 
@@ -386,18 +406,22 @@ for (sc in scenarios) {
       print(D)
       print(constr)
       print(IVs)
+      ## Generate an initial value somewhere in the middle to test algorithms
+      init.val0 <- get.init.val(constr, IVs, mc)
+      print(init.val0)
+      
       ## A4. Loop across states
       welfare.st <- foreach (state= unique(mus$st), .combine=rbind) %dopar% {
         
         ## Generate an initial value somewhere in the middle
-        init.val.up <- mus[Degree == K & L == D & st == 19 & state == sc,][["mu.up"]]
-        init.val.down <- mus[Degree == K & L == D & st == 19 & state == sc,][["mu.down"]]
-        
+        # init.val.up <- mus[Degree == K & L == D & st == 19 & state == sc,][["mu.up"]]
+        # init.val.down <- mus[Degree == K & L == D & st == 19 & state == sc,][["mu.down"]]
+
         # B2. Subset data
         st.data <- data[fips_state == state,]
         
-        # B2.B1 Run minimization: Global 
-        res0 <- nloptr( x0=init.val.down,
+        # B2.B1 Run minimization: derivative free 
+        res0 <- nloptr( x0=init.val0,
                         eval_f= expected.CS.change,
                         eval_g_ineq = eval_restrictions,
                         opts = nlo.opts.global,
@@ -414,37 +438,37 @@ for (sc in scenarios) {
                         min.crit = mc,
                         elas = T,
                         ub = rep(0, K),
-                        lb = rep(-1000, K),
+                        lb = rep(min(IVs)/min(constr), K)
         )       
-        init.val.down <- res0$solution
-  
-              # B3. Run minimization. Local
-        res0 <- nloptr( x0=init.val.down,
-                        eval_f= expected.CS.change,
-                        eval_grad_f=eval_grad,
-                        eval_g_ineq = eval_restrictions,
-                        eval_jac_g_ineq = eval_restrictions_j,
-                        opts = nlo.opts.local,
-                        data = st.data,
-                        act.p = "p_m", 
-                        tax = tax.cs, 
-                        t = t.cs, 
-                        w = "eta_m", 
-                        min = p.min, 
-                        max = p.max, 
-                        K = K,
-                        constr_mat = constr, 
-                        IV_mat = IVs, 
-                        min.crit = mc,
-                        elas = T,
-                        ub = rep(0, K),
-                        lb = rep(-100, K)
-        )
+        # init.val.down <- res0$solution
+        # 
+        #       # B3. Run minimization. Local
+        # res0 <- nloptr( x0=init.val.down,
+        #                 eval_f= expected.CS.change,
+        #                 eval_grad_f=eval_grad,
+        #                 eval_g_ineq = eval_restrictions,
+        #                 eval_jac_g_ineq = eval_restrictions_j,
+        #                 opts = nlo.opts.local,
+        #                 data = st.data,
+        #                 act.p = "p_m", 
+        #                 tax = tax.cs, 
+        #                 t = t.cs, 
+        #                 w = "eta_m", 
+        #                 min = p.min, 
+        #                 max = p.max, 
+        #                 K = K,
+        #                 constr_mat = constr, 
+        #                 IV_mat = IVs, 
+        #                 min.crit = mc,
+        #                 elas = T,
+        #                 ub = rep(0, K),
+        #                 lb = rep(-100, K)
+        # )
         # B3. Extract minimization results
-        down0 <- res0$objective
+        down <- res0$objective
         
         # B3.B1 Run maximization: Global 
-        res0 <- nloptr( x0=init.val.up,
+        res0 <- nloptr( x0=init.val0,
                         eval_f= max_expected.CS.change,
                         eval_g_ineq = eval_restrictions,
                         opts = nlo.opts.global,
@@ -461,36 +485,33 @@ for (sc in scenarios) {
                         min.crit = mc,
                         elas = T,
                         ub = rep(0, K),
-                        lb = rep(-1000, K),
+                        lb = rep(min(IVs)/min(constr), K)
         )       
-        init.val.down <- res0$solution
-        # B4. Run maximization. Local
-        res0 <- nloptr( x0=init.val.up,
-                        eval_f= max_expected.CS.change,
-                        eval_grad_f = max_eval_grad,
-                        eval_g_ineq = eval_restrictions,
-                        eval_jac_g_ineq = eval_restrictions_j,
-                        opts = nlo.opts.local,
-                        data = st.data,
-                        act.p = "p_m", 
-                        tax = tax.cs, 
-                        t = t.cs, 
-                        w = "eta_m", 
-                        min = p.min, 
-                        max = p.max, 
-                        K = K,
-                        constr_mat = constr, 
-                        IV_mat = IVs, 
-                        min.crit = mc,
-                        elas = T,
-                        ub = rep(0, K),
-                        lb = rep(-100, K)
-        )
+        # init.val.down <- res0$solution
+        # # B4. Run maximization. Local
+        # res0 <- nloptr( x0=init.val.up,
+        #                 eval_f= max_expected.CS.change,
+        #                 eval_grad_f = max_eval_grad,
+        #                 eval_g_ineq = eval_restrictions,
+        #                 eval_jac_g_ineq = eval_restrictions_j,
+        #                 opts = nlo.opts.local,
+        #                 data = st.data,
+        #                 act.p = "p_m", 
+        #                 tax = tax.cs, 
+        #                 t = t.cs, 
+        #                 w = "eta_m", 
+        #                 min = p.min, 
+        #                 max = p.max, 
+        #                 K = K,
+        #                 constr_mat = constr, 
+        #                 IV_mat = IVs, 
+        #                 min.crit = mc,
+        #                 elas = T,
+        #                 ub = rep(0, K),
+        #                 lb = rep(-100, K)
+        # )
         # B5. Extract minimization results
-        up0 <- -res0$objective
-        
-        up <- max(up0,down0)
-        down <- min(up0,down0)
+        up<- -res0$objective
         
         # B6. Compile estimates export
         data.table(data.table(down, up, state, D , K, sc))

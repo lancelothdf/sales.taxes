@@ -397,7 +397,7 @@ for (sc in scenarios) {
                         min.crit = mc,
                         elas = T,
                         ub = rep(0, K),
-                        lb = rep(IVs/min(constr), K),
+                        lb = rep(min(IVs)/min(constr), K)
         )       
         init.val.down <- res0$solution
         print(init.val.down)
@@ -448,7 +448,7 @@ for (sc in scenarios) {
                         min.crit = mc,
                         elas = T,
                         ub = rep(0, K),
-                        lb = rep(IVs/min(constr), K),
+                        lb = rep(min(IVs)/min(constr), K)
         )       
         init.val.up <- res0$solution
         print(init.val.up)
