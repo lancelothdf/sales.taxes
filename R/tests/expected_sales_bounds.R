@@ -300,8 +300,8 @@ K.test <- c(2,3,7,10)
 #K.test <- c(10)
 
 # 6. Set up Optimization Parameters (algorithm for now)
-nlo.opts.global <- list(
-  "algorithm"="NLOPT_GN_ISRES",
+nlo.opts.local.df <- list(
+  "algorithm"="NLOPT_LN_COBYLA",
   "maxeval" = 200,
   "xtol_rel"=1.0e-8
 )
@@ -362,9 +362,8 @@ for (sc in scenarios) {
       print(IVs)
       
       ## Generate an initial value somewhere in the middle to test algorithms
-      init.val.up0 <- get.init.val(constr, IVs, mc)
-      init.val.down0 <- init.val.up0
-      print(init.val.up0)
+      init.val0 <- get.init.val(constr, IVs, mc)
+      print(init.val0)
 
       ## A5. Loop across states
       for (state in unique(mus$st)) {
@@ -380,11 +379,11 @@ for (sc in scenarios) {
         
 
         
-        # B2.B1 Run minimization: Global 
-        res0 <- nloptr( x0=init.val.down0,
+        # B2.B1 Run minimization: Local derivative free 
+        res0 <- nloptr( x0=init.val0,
                         eval_f= ext.sales,
                         eval_g_ineq = eval_restrictions,
-                        opts = nlo.opts.global,
+                        opts = nlo.opts.local.df,
                         data = st.data,
                         act.p = "p_m", 
                         t = t.cs, 
@@ -403,7 +402,7 @@ for (sc in scenarios) {
         init.val.down <- res0$solution
         print(init.val.down)
         
-        # B2.B2 Run minimization: Local 
+        # B2.B2 Run minimization: Local derivative based
         res0 <- nloptr( x0=init.val.down,
                         eval_f= ext.sales,
                         eval_grad_f = eval_grad,
@@ -431,11 +430,11 @@ for (sc in scenarios) {
         down.mu <- res0$solution
         print(down.mu)
         
-        # B2.B1 Run minimization: Global 
-        res0 <- nloptr( x0=init.val.up0,
+        # B2.B1 Run minimization: Local derivative free 
+        res0 <- nloptr( x0=init.val0,
                         eval_f= max_ext.sales,
                         eval_g_ineq = eval_restrictions,
-                        opts = nlo.opts.global,
+                        opts = nlo.opts.local.df,
                         data = st.data,
                         act.p = "p_m", 
                         t = t.cs, 
@@ -455,7 +454,7 @@ for (sc in scenarios) {
         print(init.val.up)
         
         
-        # B3.B1 Run maximization: Local
+        # B3.B1 Run maximization: Local derivative based
         res0 <- nloptr( x0=init.val.up,
                         eval_f= max_ext.sales,
                         eval_grad_f = max_eval_grad,
