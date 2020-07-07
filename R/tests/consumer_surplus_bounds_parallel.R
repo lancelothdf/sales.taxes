@@ -17,6 +17,7 @@ library(tidyverse)
 library(stringr)
 library(nloptr)
 library(doParallel)
+library(MASS)
 
 
 setwd("/project2/igaarder")
@@ -474,7 +475,7 @@ for (sc in scenarios) {
         down <- res0$objective
         s1 <- res0$status
         
-        # B3.B1 Run maximization: Global 
+        # B3.B1 Run maximization: derivative free 
         res0 <- nloptr( x0=init.val0,
                         eval_f= max_expected.CS.change,
                         eval_g_ineq = eval_restrictions,
