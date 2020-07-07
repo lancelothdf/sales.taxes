@@ -304,11 +304,15 @@ get.init.val <- function(A, b, min.c) {
       print(paste0("Attempt ", i - dim(A)[2] + 1, ":"))
       print(init)
       i <- i + 1
-      init <- init - (init > 0)*rep(sum(init < 0)*min.c/(d), length(init)) + (init < 0)*rep(sum(init < 0)*min.c/(d), length(init))
+      init <- init - 
+        (init > 0)*rep(sum(init < 0)*min.c/(d), length(init)) + 
+        (init < 0)*rep(sum(init < 0)*min.c/(d), length(init))
       srv <- (sum(init> 0) > 0)
     }
+    return(init)
   }
 }
+
 
 # 0. Parallelize options
 # use the environment variable SLURM_NTASKS_PER_NODE to set the number of cores
@@ -343,6 +347,7 @@ setnames(mus, c("K", "D", "sc"), c("Degree", "L", "extrap"))
 # 5. Define output and Ks to test
 out.file <- "Data/consumer_surplus_changes_ex1b.csv"
 # K.test <- c(7,10)
+K.test <- c(2,3,7,10)
 
 # 6. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(

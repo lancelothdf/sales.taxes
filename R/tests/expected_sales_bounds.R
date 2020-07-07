@@ -263,9 +263,12 @@ get.init.val <- function(A, b, min.c) {
       print(paste0("Attempt ", i - dim(A)[2] + 1, ":"))
       print(init)
       i <- i + 1
-      init <- init - (init > 0)*rep(sum(init < 0)*min.c/(d), length(init)) + (init < 0)*rep(sum(init < 0)*min.c/(d), length(init))
+      init <- init - 
+              (init > 0)*rep(sum(init < 0)*min.c/(d), length(init)) + 
+              (init < 0)*rep(sum(init < 0)*min.c/(d), length(init))
       srv <- (sum(init> 0) > 0)
     }
+    return(init)
   }
 }
 
