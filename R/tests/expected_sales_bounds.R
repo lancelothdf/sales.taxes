@@ -362,6 +362,7 @@ for (sc in scenarios) {
       ## Generate an initial value somewhere in the middle to test algorithms
       init.val.up0 <- get.init.val(constr, IVs, mc)
       init.val.down0 <- init.val.up0
+      print(init.val.up0)
 
       ## A5. Loop across states
       for (state in unique(mus$st)) {
@@ -398,6 +399,7 @@ for (sc in scenarios) {
                         lb = rep(-1000, K),
         )       
         init.val.down <- res0$solution
+        print(init.val.down)
         
         # B2.B2 Run minimization: Local 
         res0 <- nloptr( x0=init.val.down,
@@ -422,9 +424,10 @@ for (sc in scenarios) {
         )
         
         # B2.B1 Minimum
-        down0 <- res0$objective
+        down <- res0$objective
         s1 <- res0$status
         down.mu <- res0$solution
+        print(down.mu)
         
         # B2.B1 Run minimization: Global 
         res0 <- nloptr( x0=init.val.up0,
@@ -447,6 +450,7 @@ for (sc in scenarios) {
                         lb = rep(-1000, K),
         )       
         init.val.up <- res0$solution
+        print(init.val.up)
         
         
         # B3.B1 Run maximization: Local
@@ -471,13 +475,12 @@ for (sc in scenarios) {
                         elas = T
         )
         # B3.B2 Extract minimization results
-        up0 <- -res0$objective
+        up <- -res0$objective
         s2 <- res0$status
         up.mu <- res0$solution
+        print(up.mu)
         
-        up <- max(up0,down0)
-        down <- min(up0,down0)
-        
+
         # B6. Compile estimates
         welfare.st <- data.table(data.table(down, up, state, D , K, sc, s1, s2))
         welfare <- rbind(welfare, welfare.st)
