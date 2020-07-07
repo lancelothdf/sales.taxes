@@ -7,6 +7,7 @@
 #' Finally, we create more functions (for the constraints, as they vary depending the scenario)
 #' We put everything together and run the nonlinear optimization problem for each state in a given scenario, varying cases
 #' In this version I delete the matrix constraint on monotonicity and impose it on the program directly
+#' We estimate using a derivative-free algorithm
 
 library(Matrix)
 library(data.table)
@@ -256,12 +257,13 @@ get.init.val <- function(A, b, min.c) {
   else{
     init <- as.vector(ginv(A) %*% b)
     srv <- (sum(init> 0) > 0)
-    i <- dim(A)[2]
+    d <- dim(A)[2]
+    i <- 0
     while (srv) {
-      print(paste0("Attempt", i - dim(A)[2] + 1, ": "))
+      print(paste0("Attempt ", i - dim(A)[2] + 1, ":"))
       print(init)
       i <- i + 1
-      init <- init - (init > 0)*rep(mc/(i), length(init)) + (init < 0)*rep(mc/(i), length(init))
+      init <- init - (init > 0)*rep(sum(init < 0)*min.c/(d), length(init)) + (init < 0)*rep(sum(init < 0)*min.c/(d), length(init))
       srv <- (sum(init> 0) > 0)
     }
   }
@@ -399,30 +401,30 @@ for (sc in scenarios) {
                         ub = rep(0, K),
                         lb = rep(min(IVs)/min(constr), K)
         )       
-        init.val.down <- res0$solution
-        print(init.val.down)
-        
-        # B2.B2 Run minimization: Local derivative based
-        res0 <- nloptr( x0=init.val.down,
-                        eval_f= ext.sales,
-                        eval_grad_f = eval_grad,
-                        eval_g_ineq = eval_restrictions,
-                        eval_jac_g_ineq = eval_restrictions_j,
-                        opts = nlo.opts.local,
-                        data = st.data,
-                        act.p = "p_m", 
-                        t = t.cs, 
-                        tax = tax.cs,
-                        w = "eta_m", 
-                        min = p.min, 
-                        max = p.max, 
-                        K = K,
-                        constr_mat = constr, 
-                        IV_mat = IVs, 
-                        min.crit = mc,
-                        elas = T,
-                        ub = rep(0, K)
-        )
+        # init.val.down <- res0$solution
+        # print(init.val.down)
+        # 
+        # # B2.B2 Run minimization: Local derivative based
+        # res0 <- nloptr( x0=init.val.down,
+        #                 eval_f= ext.sales,
+        #                 eval_grad_f = eval_grad,
+        #                 eval_g_ineq = eval_restrictions,
+        #                 eval_jac_g_ineq = eval_restrictions_j,
+        #                 opts = nlo.opts.local,
+        #                 data = st.data,
+        #                 act.p = "p_m", 
+        #                 t = t.cs, 
+        #                 tax = tax.cs,
+        #                 w = "eta_m", 
+        #                 min = p.min, 
+        #                 max = p.max, 
+        #                 K = K,
+        #                 constr_mat = constr, 
+        #                 IV_mat = IVs, 
+        #                 min.crit = mc,
+        #                 elas = T,
+        #                 ub = rep(0, K)
+        # )
         
         # B2.B1 Minimum
         down <- res0$objective
@@ -450,31 +452,31 @@ for (sc in scenarios) {
                         ub = rep(0, K),
                         lb = rep(min(IVs)/min(constr), K)
         )       
-        init.val.up <- res0$solution
-        print(init.val.up)
-        
-        
-        # B3.B1 Run maximization: Local derivative based
-        res0 <- nloptr( x0=init.val.up,
-                        eval_f= max_ext.sales,
-                        eval_grad_f = max_eval_grad,
-                        eval_g_ineq = eval_restrictions,
-                        eval_jac_g_ineq = eval_restrictions_j,
-                        opts = nlo.opts.local,
-                        data = st.data,
-                        act.p = "p_m", 
-                        t = t.cs, 
-                        tax = tax.cs,
-                        w = "eta_m", 
-                        min = p.min, 
-                        max = p.max, 
-                        K = K,
-                        constr_mat = constr, 
-                        IV_mat = IVs, 
-                        min.crit = mc,
-                        ub = rep(0, K),
-                        elas = T
-        )
+        # init.val.up <- res0$solution
+        # print(init.val.up)
+        # 
+        # 
+        # # B3.B1 Run maximization: Local derivative based
+        # res0 <- nloptr( x0=init.val.up,
+        #                 eval_f= max_ext.sales,
+        #                 eval_grad_f = max_eval_grad,
+        #                 eval_g_ineq = eval_restrictions,
+        #                 eval_jac_g_ineq = eval_restrictions_j,
+        #                 opts = nlo.opts.local,
+        #                 data = st.data,
+        #                 act.p = "p_m", 
+        #                 t = t.cs, 
+        #                 tax = tax.cs,
+        #                 w = "eta_m", 
+        #                 min = p.min, 
+        #                 max = p.max, 
+        #                 K = K,
+        #                 constr_mat = constr, 
+        #                 IV_mat = IVs, 
+        #                 min.crit = mc,
+        #                 ub = rep(0, K),
+        #                 elas = T
+        # )
         # B3.B2 Extract minimization results
         up <- -res0$objective
         s2 <- res0$status

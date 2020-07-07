@@ -298,12 +298,13 @@ get.init.val <- function(A, b, min.c) {
   else{
     init <- as.vector(ginv(A) %*% b)
     srv <- (sum(init> 0) > 0)
-    i <- dim(A)[2]
+    d <- dim(A)[2]
+    i <- 0
     while (srv) {
-      print(paste0("Attempt", i - dim(A)[2] + 1, ": "))
+      print(paste0("Attempt ", i - dim(A)[2] + 1, ":"))
       print(init)
       i <- i + 1
-      init <- init - (init > 0)*rep(mc/(i), length(init)) + (init < 0)*rep(mc/(i), length(init))
+      init <- init - (init > 0)*rep(sum(init < 0)*min.c/(d), length(init)) + (init < 0)*rep(sum(init < 0)*min.c/(d), length(init))
       srv <- (sum(init> 0) > 0)
     }
   }
@@ -466,6 +467,7 @@ for (sc in scenarios) {
         # )
         # B3. Extract minimization results
         down <- res0$objective
+        s1 <- res0$status
         
         # B3.B1 Run maximization: Global 
         res0 <- nloptr( x0=init.val0,
@@ -512,9 +514,10 @@ for (sc in scenarios) {
         # )
         # B5. Extract minimization results
         up<- -res0$objective
+        s2 <- res0$status
         
         # B6. Compile estimates export
-        data.table(data.table(down, up, state, D , K, sc))
+        data.table(data.table(down, up, state, D , K, sc, s1, s2))
 
       }
       welfare <- rbind(welfare, welfare.st)
