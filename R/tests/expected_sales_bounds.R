@@ -256,10 +256,10 @@ get.init.val <- function(A, b, min.c) {
   else{
     init <- as.vector(ginv(A) %*% b)
     srv <- (sum(init> 0) > 0)
-    i <- 1
+    i <- dim(A)[2]
     while (srv) {
       i <- i + 1
-      init <- init - (init > 0)*rep(mc/(i^3), length(init))
+      init <- init - (init > 0)*rep(mc/(i), length(init)) + (init < 0)*rep(mc/(i), length(init))
       srv <- (sum(init> 0) > 0)
     }
   }
@@ -300,14 +300,13 @@ K.test <- c(2,3,7,10)
 # 6. Set up Optimization Parameters (algorithm for now)
 nlo.opts.global <- list(
   "algorithm"="NLOPT_GN_ISRES",
-  "maxeval" = 40,
+  "maxeval" = 100,
   "xtol_rel"=1.0e-8
 )
 nlo.opts.local <- list(
   "algorithm"="NLOPT_LD_SLSQP",
   "maxeval" = 200,
-  "xtol_rel"=-1,
-  "check_derivatives_print" = "all"
+  "xtol_rel"=1.0e-8
 )
 
 
@@ -361,9 +360,9 @@ for (sc in scenarios) {
       print(IVs)
       
       ## Generate an initial value somewhere in the middle to test algorithms
-      init.val.up <- get.init.val(constr, IVs, mc)
-      init.val.down <- init.val.up
-      
+      init.val.up0 <- get.init.val(constr, IVs, mc)
+      init.val.down0 <- init.val.up0
+
       ## A5. Loop across states
       for (state in unique(mus$st)) {
         print(state)
@@ -379,7 +378,7 @@ for (sc in scenarios) {
 
         
         # B2.B1 Run minimization: Global 
-        res0 <- nloptr( x0=init.val.down,
+        res0 <- nloptr( x0=init.val.down0,
                         eval_f= ext.sales,
                         eval_g_ineq = eval_restrictions,
                         opts = nlo.opts.global,
@@ -425,9 +424,10 @@ for (sc in scenarios) {
         # B2.B1 Minimum
         down0 <- res0$objective
         s1 <- res0$status
+        down.mu <- res0$solution
         
         # B2.B1 Run minimization: Global 
-        res0 <- nloptr( x0=init.val.up,
+        res0 <- nloptr( x0=init.val.up0,
                         eval_f= max_ext.sales,
                         eval_g_ineq = eval_restrictions,
                         opts = nlo.opts.global,
@@ -473,6 +473,7 @@ for (sc in scenarios) {
         # B3.B2 Extract minimization results
         up0 <- -res0$objective
         s2 <- res0$status
+        up.mu <- res0$solution
         
         up <- max(up0,down0)
         down <- min(up0,down0)
