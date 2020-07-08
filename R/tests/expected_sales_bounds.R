@@ -249,26 +249,45 @@ eval_restrictions_j <- function(mu, data, act.p, t, tax, w, min, max, K, constr_
 
 #### Prepare and run optimizations -----
 
+
 ## Small function to get an initial value for optimization
 get.init.val <- function(A, b, min.c) {
-  if (min.c == 0) {
-    return(as.vector(ginv(A) %*% b))
-  }
-  else{
-    init <- as.vector(ginv(A) %*% b)
+  
+  init <- as.vector(ginv(A) %*% b)
+  if (sum(init> 0) == 0) {
+    return(init)
+  } 
+  else {
     srv <- (sum(init> 0) > 0)
     d <- dim(A)[2]
     i <- 0
-    while (srv) {
-      print(paste0("Attempt ", i - dim(A)[2] + 1, ":"))
+    if (min.c == 0) {
+      ker <- as.vector(null(A))
+      print(paste0("Attempt ", i, ":"))
       print(init)
-      i <- i + 1
-      init <- init - 
-              (init > 0)*rep(sum(init < 0)*min.c/(d), length(init)) + 
-              (init < 0)*rep(sum(init < 0)*min.c/(d), length(init))
-      srv <- (sum(init> 0) > 0)
+      while (srv) {
+        i <- i + 1
+        s <- sign(ker[which(init == max(init))])
+        rat <- abs( ker[which(init == max(init))] / min(init))
+        init <- init - s*rat*ker
+        print(paste0("Attempt ", i, ":"))
+        print(init)
+        srv <- (sum(init> 0) > 0)
+      }
+      return(init)    
     }
-    return(init)
+    else{
+      while (srv) {
+        print(paste0("Attempt ", i - dim(A)[2] + 1, ":"))
+        print(init)
+        i <- i + 1
+        init <- init - 
+          (init > 0)*rep(sum(init < 0)*min.c/(d), length(init)) + 
+          (init < 0)*rep(sum(init < 0)*min.c/(d), length(init))
+        srv <- (sum(init> 0) > 0)
+      }
+      return(init)
+    }
   }
 }
 
