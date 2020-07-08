@@ -433,8 +433,7 @@ for (sc in scenarios) {
         down <- res0$objective
         s1 <- res0$status
         down.mu <- res0$solution
-        print(down.mu)
-        
+
         # B2.B1 Run minimization: Local derivative free 
         res0 <- nloptr( x0=init.val0,
                         eval_f= max_ext.sales,
@@ -484,8 +483,7 @@ for (sc in scenarios) {
         up <- -res0$objective
         s2 <- res0$status
         up.mu <- res0$solution
-        print(up.mu)
-        
+
 
         # B6. Compile estimates
         welfare.st <- data.table(data.table(down, up, state, D , K, sc, s1, s2))
