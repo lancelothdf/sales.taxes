@@ -261,7 +261,7 @@ get.init.val <- function(A, b, min.c, max = 1000) {
   else {
     srv <- (sum(init> 0) > 0)
     d <- dim(A)[2]
-    ker <- as.vector(null(A))
+    ker <- as.vector(null(A)[,1])
     if (is.null(ker)) ker <- rep(0, length(init)) # When it has a solution then is going to be null: use only min.criterion
     i <- 0
     print(paste0("Attempt ", i, ":"))
