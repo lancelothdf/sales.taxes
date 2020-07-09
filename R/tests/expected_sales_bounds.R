@@ -252,7 +252,7 @@ eval_restrictions_j <- function(mu, data, act.p, t, tax, w, min, max, K, constr_
 
 
 ## Small function to get an initial value for optimization
-get.init.val <- function(A, b, min.c, max = 1000) {
+get.init.val <- function(A, b, min.c, max = 1000, corner) {
   
   init <- as.vector(ginv(A) %*% b)
   if (sum(init> 0) == 0) {
@@ -261,29 +261,34 @@ get.init.val <- function(A, b, min.c, max = 1000) {
   else {
     srv <- (sum(init> 0) > 0)
     d <- dim(A)[2]
-    ker <- as.vector(null(A)[,1])
-    if (is.null(ker)) ker <- rep(0, length(init)) # When it has a solution then is going to be null: use only min.criterion
-    i <- 0
-    print(paste0("Attempt ", i, ":"))
-    print(init)
-    print(ker)
-    while (srv & i < max) {
-      i <- i + 1
-      s <- sign(ker[which(init == max(init))])
-      rat <- abs( ker[which(init == max(init))] / min(init))
-      if (min.c == 0) {
-        init <- init - s*rat*ker
-      }
-      else {
-        init <- init - s*rat*ker -
-          (init > 0)*rep(sum(init < 0)*min.c/(d), length(init)) + 
-          (init < 0)*rep(sum(init < 0)*min.c/(d), length(init))          
-      }
+    kernel <- null(A)
+    if (is.null(kernel)) kernel <- rep(0, length(init)) # When it has a solution then is going to be null: use only min.criterion
+    for (d in 1: dim(kernel)[2]) {
+      ker <- as.vector(kernel[,d])
+      i <- 0
       print(paste0("Attempt ", i, ":"))
       print(init)
-      srv <- (sum(init> 0) > 0)
+      print(ker)
+      while (srv & i < max) {
+        i <- i + 1
+        s <- sign(ker[which(init == max(init))])
+        rat <- abs( ker[which(init == max(init))]/min(init))
+        if (min.c == 0) {
+          init <- init - s*rat*ker
+        }
+        else {
+          init <- init - s*rat*ker -
+            (init > 0)*rep(sum(init < 0)*min.c/(d), length(init)) + 
+            (init < 0)*rep(sum(init < 0)*min.c/(d), length(init))          
+        }
+        if (i < 11 & round(5*i/max) == 5*i/max) {
+          print(paste0("Attempt ", i, ":"))
+          print(init)
+        } 
+        srv <- (sum(init> 0) > 0)
+      }
     }
-    if (i == max) stop("Max attempts reached") else return(init)   
+    if (i == max) stop("Max attempts reached") else return(init)
   }
 }
 
