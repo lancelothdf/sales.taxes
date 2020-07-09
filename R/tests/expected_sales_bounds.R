@@ -17,6 +17,7 @@ library(tidyverse)
 library(stringr)
 library(nloptr)
 library(MASS)
+library(pracma)
 
 setwd("/project2/igaarder")
 
