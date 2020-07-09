@@ -303,7 +303,7 @@ get.init.val <- function(A, b, min.c, max = 1000, corner) {
     srv <- (sum(init> 0) > 0)
     d <- dim(A)[2]
     kernel <- null(A)
-    if (is.null(kernel)) kernel <- rep(0, length(init)) # When it has a solution then is going to be null: use only min.criterion
+    if (is.null(kernel)) kernel <- t(t(rep(0, length(init)))) # When it has a solution then is going to be null: use only min.criterion
     for (d in 1: dim(kernel)[2]) {
       ker <- as.vector(kernel[,d])
       i <- 0
