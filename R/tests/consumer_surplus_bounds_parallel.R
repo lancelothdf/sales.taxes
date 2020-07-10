@@ -293,7 +293,8 @@ eval_restrictions_j <- function(mu, data, act.p, t, tax, w, min, max, K, constr_
 
 
 ## Small function to get an initial value for optimization
-get.init.val <- function(A, b, min.c, max = 1000, corner) {
+## Small function to get an initial value for optimization
+get.init.val <- function(A, b, min.c, max = 1000) {
   
   init <- as.vector(ginv(A) %*% b)
   if (sum(init> 0) == 0) {
@@ -304,7 +305,7 @@ get.init.val <- function(A, b, min.c, max = 1000, corner) {
     d <- dim(A)[2]
     kernel <- null(A)
     if (is.null(kernel)) kernel <- t(t(rep(0, length(init)))) # When it has a solution then is going to be null: use only min.criterion
-    for (d in 1: dim(kernel)[2]) {
+    for (d in 1:dim(kernel)[2]) {
       ker <- as.vector(kernel[,d])
       i <- 0
       print(paste0("Attempt ", i, ":"))
@@ -329,9 +330,25 @@ get.init.val <- function(A, b, min.c, max = 1000, corner) {
         srv <- (sum(init> 0) > 0)
       }
     }
-    if (i == max) stop("Max attempts reached") else return(init)
+    if (i == max) {
+      # Set 1 of them to 0
+      m <- dim(A)[2] -1
+      if (m > 1){
+        A <- A[,1:m]
+        init <- c(get.init.val(A, b, min.c, max), 0)
+        
+      }
+      else {
+        stop("Algorithm Failed") 
+      }
+    }
+    else {
+      return(init)
+    }
   }
 }
+
+
 # 0. Parallelize options
 # use the environment variable SLURM_NTASKS_PER_NODE to set the number of cores
 registerDoParallel(cores=(Sys.getenv("SLURM_NTASKS_PER_NODE")))
@@ -370,7 +387,7 @@ K.test <- c(2,3,7,10)
 # 6. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
   "algorithm"="NLOPT_LN_COBYLA",
-  "maxeval" = 200,
+  "maxeval" = 400,
   "xtol_rel"=1.0e-8
 )
 # nlo.opts.local <- list(

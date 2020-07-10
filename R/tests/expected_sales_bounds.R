@@ -252,7 +252,7 @@ eval_restrictions_j <- function(mu, data, act.p, t, tax, w, min, max, K, constr_
 
 
 ## Small function to get an initial value for optimization
-get.init.val <- function(A, b, min.c, max = 1000, corner) {
+get.init.val <- function(A, b, min.c, max = 1000) {
   
   init <- as.vector(ginv(A) %*% b)
   if (sum(init> 0) == 0) {
@@ -288,7 +288,21 @@ get.init.val <- function(A, b, min.c, max = 1000, corner) {
         srv <- (sum(init> 0) > 0)
       }
     }
-    if (i == max) stop("Max attempts reached") else return(init)
+    if (i == max) {
+      # Set 1 of them to 0
+      m <- dim(A)[2] -1
+      if (m > 1){
+        A <- A[,1:m]
+        init <- c(get.init.val(A, b, min.c, max), 0)
+        
+      }
+      else {
+        stop("Algorithm Failed") 
+      }
+    }
+    else {
+      return(init)
+    }
   }
 }
 
@@ -327,7 +341,7 @@ K.test <- c(2,3,7,10)
 # 6. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
   "algorithm"="NLOPT_LN_COBYLA",
-  "maxeval" = 200,
+  "maxeval" = 400,
   "xtol_rel"=1.0e-8
 )
 nlo.opts.local <- list(
@@ -339,8 +353,8 @@ nlo.opts.local <- list(
 
 
 ## 6. Loop acorss Scenarios
-#scenarios <- c("No Tax", "plus 5 Tax")
-scenarios <- c("plus 5 Tax")
+scenarios <- c("No Tax", "plus 5 Tax")
+#scenarios <- c("plus 5 Tax")
 welfare <- data.table(NULL)
 
 for (sc in scenarios) {
@@ -392,8 +406,7 @@ for (sc in scenarios) {
 
       ## A5. Loop across states
       for (state in unique(mus$st)) {
-        print(state)
-        
+
         
         # Capture initial value from LP
         #init.val.up <- mus[Degree == K & L == D & st == state & extrap == sc,][["mu.up"]]
