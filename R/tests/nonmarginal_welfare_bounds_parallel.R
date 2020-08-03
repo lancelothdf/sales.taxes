@@ -15,8 +15,12 @@ library(zoo)
 library(tidyverse)
 library(stringr)
 library(nloptr)
+library(doParallel)
+library(MASS)
+library(pracma)
 
-setwd("C:/Users/slacouture/Dropbox/UChicago RA/Sales Tax/Nonlinear nonparametric/Extrapolations DWL")
+setwd("/project2/igaarder")
+
 
 #### Objective Function and derivatives ----------------
 
