@@ -114,7 +114,7 @@ expect.nmarg.change <- function(mu, data, act.p, t0, t1, theta, w, min, max, K, 
   X <- lapply(seq_len(ncol(X)), function(i) X[,i])
   
   # sapply from list
-  int <- sapply(X, function(x, p, mu, K, min, max) 
+  int <- sapply(X, function(x, p, mu, K, theta, min, max) 
     integrate(int.apply, 
               lower = x["ll"], 
               upper = x["ul"], 
