@@ -16,6 +16,7 @@ library(zoo)
 library(tidyverse)
 library(stringr)
 library(nloptr)
+library(doParallel)
 library(MASS)
 library(pracma)
 
