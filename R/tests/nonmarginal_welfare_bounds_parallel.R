@@ -1,6 +1,6 @@
 #' Sales Taxes
 #' Welfare Extrapolation
-#' Consumer Surplus Change
+#' Non-marginal change in taxes
 #' This is a Non-Linear optimization. We use many inputs and functions
 #' First, as functions we define all the definitions that are general enough to test different scenarios
 #' Then we get several inputs: constraint matrices, minimum criterion's used before and estimated bounds
@@ -16,11 +16,11 @@ library(zoo)
 library(tidyverse)
 library(stringr)
 library(nloptr)
-library(doParallel)
 library(MASS)
 library(pracma)
 
 setwd("/project2/igaarder")
+
 
 
 #### Objective Function and derivatives ----------------
@@ -30,9 +30,9 @@ setwd("/project2/igaarder")
 
 # mu: the vector of parameters (control variables)
 # data: the name of the data set 
-# act.p: the name of the variable of log prices (consumer)
-# tax: the name of the log tax variable
-# change: the value of the new sales tax to extrapolate
+# act.p: the name of the variable of log prices (producer)
+# t: the value of the sales tax
+# theta: the value of the conduct parameter
 # w: variable of weights
 # K: order of the polynomial used
 # min: minimum value of the support of shape constraint
@@ -45,68 +45,58 @@ normalize <- function(p, min, max) {
   (p - min)/(max - min)
 }
 
-# Bernstein polynomial
-bernstein <- function(p, k, K, min, max){
-  p <- normalize(p, min, max)
+# Bernstein polynomial basis 
+bernstein <- function(p, t, k, K, min, max){
+  p <- normalize(p + t, min, max)
   choose(K, k) * p^k * (1 - p)^(K - k)
 }
 # Integral of the bernstein (demand is actually this: to use the previous results and don't change everything)
-int.bernstein <- function(p, k, K, min, max) {
+int.bernstein <- function(p, t, k, K, min, max) {
   
   j <- (k+1):(K+1)
-  b_k <- sapply(j, function (j, p, k, K, min, max) bernstein(p,k = j, K, min, max), p = p, K = K + 1, min = min, max = max)
+  b_k <- sapply(j, function (j, t, p, k, K, min, max) bernstein(p = p, t = t, k = j, K = K, min = min, max = max), 
+                p = p, t = t, K = K + 1, min = min, max = max)
   
   return(sum(b_k)/(K+1))
 }
-
 # Integrand: here is where parameters appear for the first time
-# Objective
-integrand <- function(p, mu, K, min, max) {
+# Demand
+demand <- function(p, t, mu, K, min, max) {
   polynomial <- rep(0,K)
   for (k in 1:K) {
-    polynomial[k] <- int.bernstein(p, k, K-1, min, max)
-  }
-  return(exp(sum(mu*polynomial) + p))
-}
-# derivative for mu_k
-integrand.d <- function(p, mu, K, min, max, k) {
-  polynomial <- rep(0,K)
-  for (i in 1:K) {
-    polynomial[i] <- int.bernstein(p, i, K-1, min, max)
-  }
-  return(int.bernstein(p, k, K-1, min, max)*exp(sum(mu*polynomial) + p))
-}
-
-# Apply integral to every value of p (this so the integral function can use vectors)
-# Objective
-int.apply <- function(x, mu, K, min, max) {
-  sapply(x, integrand, mu=mu, K=K, min=min, max=max)
-}
-# Derivative
-d.int.apply <- function(x, mu, K, min, max, k) {
-  sapply(x, integrand.d, mu=mu, K=K, min=min, max=max, k = k)
-}
-exp.sales <- function(p, mu, K, min, max) {
-  polynomial <- rep(0,K)
-  for (k in 1:K) {
-    polynomial[k] <- int.bernstein(p, k, K-1, min, max)
+    polynomial[k] <- int.bernstein(p, t, k, K-1, min, max)
   }
   return(exp(sum(mu*polynomial)))
 }
-common_term <- function(p, mu, K, min, max) {
+
+# Elasticity
+log.elasticity <- function(p, t, mu, K, min, max) {
   
-  return(sapply(p, function(x, mu, K, min, max) 
-    exp.sales(p = x, mu = mu, K = K, min = min, max = max), 
-    mu = mu, K = K, min = min, max = max))
+  j <- 0:(K-1)
+  b_k <- sapply(j, function (j, p, t, k, K, min, max) bernstein(p = p, t = t, k = j, K = K, min = min, max = max), 
+              p = p, t = t, K = K + 1, min = min, max = max)
+
+  return((sum(mu*b_k)))
+}
+# Integrand
+integrand <- function(t, p, theta, mu, K, min, max) {
+  return(demand(p, t, mu, K, min, max)*(exp(t)-1)*(log.elasticity(p, t, mu, K, min, max) - theta))
 }
 
+# Apply integral to every value of p (this so the integral function can use vectors)
+int.apply <- function(x, mu, t, theta, K, min, max) {
+  sapply(x, integrand, t = t, theta = theta, mu=mu, K=K, min=min, max=max)
+}
+
+
 # Objective function: include arguments for constraints even if not needed
-expected.CS.change <- function(mu, data, act.p, tax, t, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
+expect.nmarg.change <- function(mu, data, act.p, t0, t1, theta, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
   
   # mu: the vector of parameters (control variables)
   # data: the name of the data set 
   # act.p: the name of the variable of log prices (consumer)
   # tax: the name of the log tax variable
+  # theta: the value of the conduct parameter
   # change: the value of the new sales tax to extrapolate
   # w: variable of weights
   # K: order of the polynomial used
@@ -114,94 +104,41 @@ expected.CS.change <- function(mu, data, act.p, tax, t, w, min, max, K, constr_m
   # max: maximum value of the support of shape constraint
   
   # Use vectors 
-  ll <- data[[act.p]] 
-  ul <- data[[act.p]] - data[[tax]] + t
+  ll <- data[[t0]] 
+  ul <- data[[t1]]
+  p_cm <- data[[act.p]]
   
   # Put together and transform to list
-  X <- rbind(ll, ul)
+  X <- rbind(ll, ul, p_cm)
   X <- lapply(seq_len(ncol(X)), function(i) X[,i])
   
   # sapply from list
-  int <- sapply(X, function(x, mu, K, min, max) 
+  int <- sapply(X, function(x, p, mu, K, min, max) 
     integrate(int.apply, 
               lower = x["ll"], 
               upper = x["ul"], 
+              p = x["p_cm"],
               mu = mu,
+              theta = theta,
               K = K, 
               min = min, 
-              max = max)$value, mu = mu, K = K,  min = min, max = max)
+              max = max)$value, mu = mu, theta = theta, K = K, min = min, max = max)
   
   # get the weights
   w <- data[[w]]
-  # Divide by initial current sales
-  p_m <- data[[act.p]] - data[[tax]]
-  or <- common_term(p = ll, mu = mu, K = K, min = min, max = max)*exp(p_m)
+  # Divide by initial current demand
+  p_m <- data[[act.p]] + data[[t0]]
+  or <- demand(p = p_m, t = 0, mu = mu, K = K, min = min, max = max)
   int <- int/or
   
   # Return weighted average
   return(weighted.mean(int, w = w))
-
+  
 }
 # Objective function max.
 
-max_expected.CS.change <- function(mu, data, act.p, tax, t, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
-  return(-expected.CS.change(mu, data, act.p, tax, t, w, min, max, K, constr_mat, IV_mat, min.crit, elas))
-}
-
-# derivative w. respect to mu_k
-d.mu.k.expected.CS.change <- function(mu, data, act.p, tax, t, w, min, max, K, k) {
-  
-  # k: mu_k degree for derivative
-  # the rest as above
-  
-  # Use vectors 
-  ll <- data[[act.p]] 
-  ul <- data[[act.p]] - data[[tax]] + t
-  
-  # Put together and transform to list
-  X <- rbind(ll, ul)
-  X <- lapply(seq_len(ncol(X)), function(i) X[,i])
-  
-  # sapply from list
-  int <- sapply(X, function(x, mu, k, K, min, max) 
-    integrate(d.int.apply, 
-              lower = x["ll"], 
-              upper = x["ul"], 
-              mu = mu,
-              K = K, 
-              min = min, 
-              max = max,
-              k = k)$value, mu = mu, K = K, k = k, min = min, max = max)
-  
-  # get the weights
-  w <- data[[w]]
-  # Divide by initial current sales derivative
-  p_m <- data[[act.p]] - data[[tax]]
-  or <- common_term(p = ll, mu = mu, K = K, min = min, max = max)*exp(p_m)
-  
-  p.0 <- sapply(ll, function(x,k,K,min,max)
-    int.bernstein(p = x, k = k, K = K, min = min, max = max),
-    k = k, K = K, min = min, max = max)
-  
-  int <- -p.0*int/or
-  
-  # Return weighted average
-  return(weighted.mean(int, w = w))
-  
-}
-
-# Finally, a function that evaluates every gradient: include here arguments for constraint so it runs
-eval_grad <- function(mu, data, act.p, tax, t, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
-  k <-1:K
-  der <- sapply(k, function(x, data, act.p, tax, t, w, k, K, min, max) 
-    d.mu.k.expected.CS.change(mu = mu, data = data, act.p = act.p, 
-                              tax = tax, t = t, w = w, min = min, 
-                              max = max, K = K, k = x),
-    data = data, act.p = act.p, tax = tax, t = t, w = w, K = K, min = min, max = max)
-  return(t(t(der)))
-}
-max_eval_grad <- function(mu, data, act.p, tax, t, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
-  return(-eval_grad(mu, data, act.p, tax, t, w, min, max, K, constr_mat, IV_mat, min.crit, elas))
+max_expect.nmarg.change <- function(mu, data, act.p, t0, t1, theta, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
+  return(-expect.nmarg.change(mu, data, act.p, t0, t1, theta, w, min, max, K, constr_mat, IV_mat, min.crit, elas))
 }
 
 #### Constraints functions ----------
@@ -291,7 +228,6 @@ eval_restrictions_j <- function(mu, data, act.p, t, tax, w, min, max, K, constr_
 
 #### Prepare and run optimizations -----
 
-
 ## Small function to get an initial value for optimization
 get.init.val <- function(A, b, min.c, max = 1000) {
   
@@ -354,6 +290,10 @@ registerDoParallel(cores=(Sys.getenv("SLURM_NTASKS_PER_NODE")))
 
 # 1. Open data
 data <- fread("Data/extraction_state_binned_price.csv")
+data[, p_cml := p_m - tau]
+data[, tauno := 0]
+data[, tau5 := tau + log(1+0.05)]
+
 
 # 2. Open IVs: constant across K & D
 res.ivs <- fread("Data/Demand_iv_sat_initial_price_semester_boot_r.csv")
@@ -379,9 +319,11 @@ mus <- mus[target == "elas" & taxability == "taxable" & !is.na(mu.up)][, -c("up"
 setnames(mus, c("K", "D", "sc"), c("Degree", "L", "extrap"))
 
 # 5. Define output and Ks to test
-out.file <- "Data/consumer_surplus_changes_ex1b.csv"
+out.file <- "Data/nonmarginal_welfare_changes.csv"
 # K.test <- c(7,10)
-K.test <- c(2,3,7,10)
+# K.test <- c(2,3,7,10)
+K.test <- c(2, 10)
+states.test <- c(1,16,27,51)
 
 # 6. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
@@ -389,14 +331,6 @@ nlo.opts.local.df <- list(
   "maxeval" = 400,
   "xtol_rel"=1.0e-8
 )
-# nlo.opts.local <- list(
-#   "algorithm"="NLOPT_LD_SLSQP",
-#   "maxeval" = 100,
-#   "xtol_rel"=1.0e-8,
-#   "check_derivatives_print" = "all"
-#   
-# )
-
 
 
 ## 6. Loop acorss Scenarios
@@ -409,14 +343,12 @@ for (sc in scenarios) {
   p.max <- res.pq[extrap == sc][["max.p"]]
   
   if (sc == "No Tax") {
-    tax.cs <- "tau"
-    t.cs <- 0
+    t0 <- "tauno"
+    t1 <- "tau"
   } 
   if (sc == "plus 5 Tax")  {
-    data[, tau.n := 0]
-    tax.cs <- "tau.n"
-    t.cs <- log(1+0.05)
-    
+    t0 <- "tau"
+    t1 <- "tau5"
   }
   ## Loop across K
   for (K in K.test) {
@@ -452,24 +384,25 @@ for (sc in scenarios) {
       print(init.val0)
       
       ## A4. Loop across states
-      welfare.st <- foreach (state= unique(mus$st), .combine=rbind) %dopar% {
+      welfare.st <- foreach (state= states.test, .combine=rbind) %dopar% {
         
         ## Generate an initial value somewhere in the middle
         # init.val.up <- mus[Degree == K & L == D & st == 19 & state == sc,][["mu.up"]]
         # init.val.down <- mus[Degree == K & L == D & st == 19 & state == sc,][["mu.down"]]
-
+        
         # B2. Subset data
         st.data <- data[fips_state == state,]
         
-        # B2.B1 Run minimization: derivative free 
+        # B3 Run minimization: derivative free 
         res0 <- nloptr( x0=init.val0,
-                        eval_f= expected.CS.change,
+                        eval_f= expect.nmarg.change,
                         eval_g_ineq = eval_restrictions,
                         opts = nlo.opts.local.df,
                         data = st.data,
-                        act.p = "p_m", 
-                        t = t.cs, 
-                        tax = tax.cs,
+                        act.p = "p_cml", 
+                        t0 = t0, 
+                        t1 = t1,
+                        theta = 0,
                         w = "eta_m", 
                         min = p.min, 
                         max = p.max, 
@@ -481,43 +414,20 @@ for (sc in scenarios) {
                         ub = rep(0, K),
                         lb = rep(min(IVs)/min(constr), K)
         )       
-        # init.val.down <- res0$solution
-        # 
-        #       # B3. Run minimization. Local
-        # res0 <- nloptr( x0=init.val.down,
-        #                 eval_f= expected.CS.change,
-        #                 eval_grad_f=eval_grad,
-        #                 eval_g_ineq = eval_restrictions,
-        #                 eval_jac_g_ineq = eval_restrictions_j,
-        #                 opts = nlo.opts.local,
-        #                 data = st.data,
-        #                 act.p = "p_m", 
-        #                 tax = tax.cs, 
-        #                 t = t.cs, 
-        #                 w = "eta_m", 
-        #                 min = p.min, 
-        #                 max = p.max, 
-        #                 K = K,
-        #                 constr_mat = constr, 
-        #                 IV_mat = IVs, 
-        #                 min.crit = mc,
-        #                 elas = T,
-        #                 ub = rep(0, K),
-        #                 lb = rep(-100, K)
-        # )
-        # B3. Extract minimization results
+        # B4. Extract minimization results
         down <- res0$objective
         s1 <- res0$status
         
-        # B3.B1 Run maximization: derivative free 
+        # B5 Run maximization: derivative free 
         res0 <- nloptr( x0=init.val0,
-                        eval_f= max_expected.CS.change,
+                        eval_f= max_expect.nmarg.change,
                         eval_g_ineq = eval_restrictions,
                         opts = nlo.opts.local.df,
                         data = st.data,
-                        act.p = "p_m", 
-                        t = t.cs, 
-                        tax = tax.cs,
+                        act.p = "p_cml", 
+                        t0 = t0, 
+                        t1 = t1,
+                        theta = 0,
                         w = "eta_m", 
                         min = p.min, 
                         max = p.max, 
@@ -529,40 +439,17 @@ for (sc in scenarios) {
                         ub = rep(0, K),
                         lb = rep(min(IVs)/min(constr), K)
         )       
-        # init.val.down <- res0$solution
-        # # B4. Run maximization. Local
-        # res0 <- nloptr( x0=init.val.up,
-        #                 eval_f= max_expected.CS.change,
-        #                 eval_grad_f = max_eval_grad,
-        #                 eval_g_ineq = eval_restrictions,
-        #                 eval_jac_g_ineq = eval_restrictions_j,
-        #                 opts = nlo.opts.local,
-        #                 data = st.data,
-        #                 act.p = "p_m", 
-        #                 tax = tax.cs, 
-        #                 t = t.cs, 
-        #                 w = "eta_m", 
-        #                 min = p.min, 
-        #                 max = p.max, 
-        #                 K = K,
-        #                 constr_mat = constr, 
-        #                 IV_mat = IVs, 
-        #                 min.crit = mc,
-        #                 elas = T,
-        #                 ub = rep(0, K),
-        #                 lb = rep(-100, K)
-        # )
-        # B5. Extract minimization results
+        # B6. Extract minimization results
         up<- -res0$objective
         s2 <- res0$status
         
-        # B6. Compile estimates export
+        # B7. Compile estimates export
         data.table(data.table(down, up, state, D , K, sc, s1, s2))
-
+        
       }
       welfare <- rbind(welfare, welfare.st)
       
-      # B7. Export Results every case is done
+      # B8. Export Results every case is done
       fwrite(welfare, out.file)
       
     }
@@ -570,5 +457,4 @@ for (sc in scenarios) {
   }
   
 }
-
 
