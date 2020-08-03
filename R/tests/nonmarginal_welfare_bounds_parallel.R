@@ -196,7 +196,7 @@ shape.constr<-function(mu, elas) {
   return(constr.mono)
 }
 ## Function for constraint: includes the arguments from evaluation function even if not needed so it runs
-eval_restrictions <- function(mu, data, act.p, t, tax, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
+eval_restrictions <- function(mu, data, act.p, t0, t1, theta, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
   
   return(
     as.matrix(
@@ -208,7 +208,7 @@ eval_restrictions <- function(mu, data, act.p, t, tax, w, min, max, K, constr_ma
   )
 }
 ## Function for jacobian
-eval_restrictions_j <- function(mu, data, act.p, t, tax, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
+eval_restrictions_j <- function(mu, data, act.p, t0, t1, theta, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
   
   constr.jac <- NULL
   for (k in 1:K) {
