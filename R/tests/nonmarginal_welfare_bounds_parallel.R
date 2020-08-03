@@ -79,7 +79,7 @@ log.elasticity <- function(p, t, mu, K, min, max) {
 
   return((sum(mu*b_k)))
 }
-# Integrand
+# Integrand: first time we use theta
 integrand <- function(t, p, theta, mu, K, min, max) {
   return(demand(p, t, mu, K, min, max)*(exp(t)-1)*(log.elasticity(p, t, mu, K, min, max) - theta))
 }
@@ -115,7 +115,7 @@ expect.nmarg.change <- function(mu, data, act.p, t0, t1, theta, w, min, max, K, 
   
   # sapply from list
   int <- sapply(X, function(x, p, mu, K, theta, min, max) 
-    integrate(int.apply, 
+    integrate(integrand, 
               lower = x["ll"], 
               upper = x["ul"], 
               p = x["p_cm"],
@@ -127,7 +127,7 @@ expect.nmarg.change <- function(mu, data, act.p, t0, t1, theta, w, min, max, K, 
   
   # get the weights
   w <- data[[w]]
-  # Divide by initial current demand
+  # Divide by t0 demand
   p_m <- data[[act.p]] + data[[t0]]
   or <- demand(p = p_m, t = 0, mu = mu, K = K, min = min, max = max)
   int <- int/or
