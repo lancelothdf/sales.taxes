@@ -8,7 +8,6 @@
 #' We put everything together and run the nonlinear optimization problem for each state in a given scenario, varying cases
 #' We estimate using a derivative-free algorithm
 
-
 library(Matrix)
 library(data.table)
 library(ggplot2)
@@ -16,13 +15,8 @@ library(zoo)
 library(tidyverse)
 library(stringr)
 library(nloptr)
-library(doParallel)
-library(MASS)
-library(pracma)
 
-setwd("/project2/igaarder")
-
-
+setwd("C:/Users/slacouture/Dropbox/UChicago RA/Sales Tax/Nonlinear nonparametric/Extrapolations DWL")
 
 #### Objective Function and derivatives ----------------
 
@@ -40,7 +34,6 @@ setwd("/project2/igaarder")
 # max: maximum value of the support of shape constraint
 
 
-
 # Normalization function for bernstein polynomial
 normalize <- function(p, min, max) {
   (p - min)/(max - min)
@@ -51,6 +44,7 @@ bernstein <- function(p, t, k, K, min, max){
   p <- normalize(p + t, min, max)
   choose(K, k) * p^k * (1 - p)^(K - k)
 }
+
 # Integral of the bernstein (demand is actually this: to use the previous results and don't change everything)
 int.bernstein <- function(p, t, k, K, min, max) {
   
@@ -75,13 +69,13 @@ log.elasticity <- function(p, t, mu, K, min, max) {
   
   j <- 0:(K-1)
   b_k <- sapply(j, function (j, p, t, k, K, min, max) bernstein(p = p, t = t, k = j, K = K, min = min, max = max), 
-              p = p, t = t, K = K + 1, min = min, max = max)
-
+                p = p, t = t, K = K + 1, min = min, max = max)
+  
   return((sum(mu*b_k)))
 }
 # Integrand: first time we use theta
 integrand <- function(t, p, theta, mu, K, min, max) {
-  return(demand(p, t, mu, K, min, max)*(exp(t)-1)*(log.elasticity(p, t, mu, K, min, max) - theta))
+  return(demand(p, t, mu, K, min, max)*((exp(t)-1)*log.elasticity(p, t, mu, K, min, max) - theta))
 }
 
 # Apply integral to every value of p (this so the integral function can use vectors)
@@ -129,7 +123,7 @@ expect.nmarg.change <- function(mu, data, act.p, t0, t1, theta, w, min, max, K, 
   w <- data[[w]]
   # Divide by t0 demand
   p_m <- data[[act.p]] + data[[t0]]
-  or <- demand(p = p_m, t = 0, mu = mu, K = K, min = min, max = max)
+  or <- sapply(p_m, demand, t = 0, mu = mu, K = K, min = min, max = max)
   int <- int/or
   
   # Return weighted average
@@ -141,7 +135,6 @@ expect.nmarg.change <- function(mu, data, act.p, t0, t1, theta, w, min, max, K, 
 max_expect.nmarg.change <- function(mu, data, act.p, t0, t1, theta, w, min, max, K, constr_mat, IV_mat, min.crit = 0, elas = T) {
   return(-expect.nmarg.change(mu, data, act.p, t0, t1, theta, w, min, max, K, constr_mat, IV_mat, min.crit, elas))
 }
-
 #### Constraints functions ----------
 
 ## Now, we put together functions that create the restrictions for the problem and will be used in the NLOPT program
