@@ -85,8 +85,8 @@ integrand <- function(t, p, theta, mu, K, min, max) {
 }
 
 # Apply integral to every value of p (this so the integral function can use vectors)
-int.apply <- function(x, mu, t, theta, K, min, max) {
-  sapply(x, integrand, t = t, theta = theta, mu=mu, K=K, min=min, max=max)
+int.apply <- function(x, mu, p, theta, K, min, max) {
+  sapply(x, integrand, p = p, theta = theta, mu=mu, K=K, min=min, max=max)
 }
 
 
