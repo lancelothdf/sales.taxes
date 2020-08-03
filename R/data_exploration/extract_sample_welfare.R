@@ -16,6 +16,7 @@ data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
 
 ## Outputs ----------------------------------------------
 output.table <- "Data/extraction_state_binned_price.csv"
+output.table.tax <- "Data/extraction_state_binned_tax.csv"
 
 
 all_pi <- fread(data.semester)
@@ -51,14 +52,24 @@ pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sal
 pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
 all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
-## Collapse
+## Collapse to binned price
 # Generate rounded price
 all_pi[, p_m := round(dm.ln_cpricei2, 3)]
 
 # collapse for every price x state on taxable goods 
-all_pi<- all_pi[ln_sales_tax > 0, .(tau = weighted.mean(ln_sales_tax, w = base.sales),
+all_pi_p<- all_pi[ln_sales_tax > 0, .(tau = weighted.mean(ln_sales_tax, w = base.sales),
                                     eta_m = sum(base.sales)), by = .(fips_state, p_m)]
 
 # Export
-fwrite(all_pi, output.table)
+fwrite(all_pi_p, output.table)
 
+## Collapse to binned tax
+# Generate rounded tax
+all_pi[, tau := round(ln_sales_tax, 3)]
+
+# collapse for every price x state on taxable goods 
+all_pi_t<- all_pi[ln_sales_tax > 0, .(p_m = weighted.mean(dm.ln_cpricei2, w = base.sales),
+                                    eta_m = sum(base.sales)), by = .(fips_state, tau)]
+
+# Export
+fwrite(all_pi_t, output.table.tax)
