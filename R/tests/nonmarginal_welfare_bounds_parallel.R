@@ -7,6 +7,7 @@
 #' Finally, we create more functions (for the constraints, as they vary depending the scenario)
 #' We put everything together and run the nonlinear optimization problem for each state in a given scenario, varying cases
 #' We estimate using a derivative-free algorithm
+#' At the end I divide by the sales-weighted change in tax
 
 library(Matrix)
 library(data.table)
@@ -322,6 +323,7 @@ out.file <- "Data/nonmarginal_welfare_changes.csv"
 # K.test <- c(2,3,7,10)
 K.test <- c(2, 10)
 states.test <- c(1,16,27,51)
+thetas.test <- c(0, 0.00481, 0.1174)
 
 # 6. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
@@ -348,111 +350,118 @@ for (sc in scenarios) {
     t0 <- "tau"
     t1 <- "tau5"
   }
-  ## Loop across K
-  for (K in K.test) {
-    
-    ## 6.1. Load Matrix of gamma (this extrictly depends on K since the basis change)
-    in.file <- paste0("Data/Demand_gamma_sat_initial_price_semester_extrapolate_K", K,"_bern.csv")
-    gamma.full.data <- fread(in.file)
-    
-    ## 6.2 Restrict gamma file. Constant across p
-    gamma <- gamma.full.data[extrap == sc & n.groups < 3][, c(paste0("b", 0:(K-1)), "n.groups"), with = F]             ## For elasticity
-    
-    ## 6.3 Start Loop at number of groups
-    for (D in unique(gamma$n.groups)) {
+  for (theta in thetas.test) {
+    ## Loop across K
+    for (K in K.test) {
       
-      ## A1. Build the constraints matrix 
-      constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")])   ## For elasticity
+      ## 6.1. Load Matrix of gamma (this extrictly depends on K since the basis change)
+      in.file <- paste0("Data/Demand_gamma_sat_initial_price_semester_extrapolate_K", K,"_bern.csv")
+      gamma.full.data <- fread(in.file)
       
-      ## A2. Load min.criterion for case (note that if there is no value it is 0)
-      mc <- min.criteria[Degree == K & L == D & extrap == sc,][["min.criteria"]]
-      if (is_empty(mc)) mc <- 0
+      ## 6.2 Restrict gamma file. Constant across p
+      gamma <- gamma.full.data[extrap == sc & n.groups < 3][, c(paste0("b", 0:(K-1)), "n.groups"), with = F]             ## For elasticity
       
-      ## A3. Retrieve IVs
-      IVs <- res.ivs[n.groups == D][["estimate"]] 
-      
-      
-      print(K)
-      print(D)
-      print(constr)
-      print(IVs)
-      print(mc)
-      ## Generate an initial value somewhere in the middle to test algorithms
-      init.val0 <- get.init.val(constr, IVs, mc)
-      print(init.val0)
-      
-      ## A4. Loop across states
-      welfare.st <- foreach (state= states.test, .combine=rbind) %dopar% {
+      ## 6.3 Start Loop at number of groups
+      for (D in unique(gamma$n.groups)) {
         
-        ## Generate an initial value somewhere in the middle
-        # init.val.up <- mus[Degree == K & L == D & st == 19 & state == sc,][["mu.up"]]
-        # init.val.down <- mus[Degree == K & L == D & st == 19 & state == sc,][["mu.down"]]
+        ## A1. Build the constraints matrix 
+        constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")])   ## For elasticity
         
-        # B2. Subset data
-        st.data <- data[fips_state == state,]
+        ## A2. Load min.criterion for case (note that if there is no value it is 0)
+        mc <- min.criteria[Degree == K & L == D & extrap == sc,][["min.criteria"]]
+        if (is_empty(mc)) mc <- 0
         
-        # B3 Run minimization: derivative free 
-        res0 <- nloptr( x0=init.val0,
-                        eval_f= expect.nmarg.change,
-                        eval_g_ineq = eval_restrictions,
-                        opts = nlo.opts.local.df,
-                        data = st.data,
-                        act.p = "p_cml", 
-                        t0 = t0, 
-                        t1 = t1,
-                        theta = 0,
-                        w = "eta_m", 
-                        min = p.min, 
-                        max = p.max, 
-                        K = K,
-                        constr_mat = constr, 
-                        IV_mat = IVs, 
-                        min.crit = mc,
-                        elas = T,
-                        ub = rep(0, K),
-                        lb = rep(min(IVs)/min(constr), K)
-        )       
-        # B4. Extract minimization results
-        down <- res0$objective
-        s1 <- res0$status
+        ## A3. Retrieve IVs
+        IVs <- res.ivs[n.groups == D][["estimate"]] 
         
-        # B5 Run maximization: derivative free 
-        res0 <- nloptr( x0=init.val0,
-                        eval_f= max_expect.nmarg.change,
-                        eval_g_ineq = eval_restrictions,
-                        opts = nlo.opts.local.df,
-                        data = st.data,
-                        act.p = "p_cml", 
-                        t0 = t0, 
-                        t1 = t1,
-                        theta = 0,
-                        w = "eta_m", 
-                        min = p.min, 
-                        max = p.max, 
-                        K = K,
-                        constr_mat = constr, 
-                        IV_mat = IVs, 
-                        min.crit = mc,
-                        elas = T,
-                        ub = rep(0, K),
-                        lb = rep(min(IVs)/min(constr), K)
-        )       
-        # B6. Extract minimization results
-        up<- -res0$objective
-        s2 <- res0$status
         
-        # B7. Compile estimates export
-        data.table(data.table(down, up, state, D , K, sc, s1, s2))
+        print(K)
+        print(D)
+        print(constr)
+        print(IVs)
+        print(mc)
+        ## Generate an initial value somewhere in the middle to test algorithms
+        init.val0 <- get.init.val(constr, IVs, mc)
+        print(init.val0)
+        
+        ## A4. Loop across states
+        welfare.st <- foreach (state= states.test, .combine=rbind) %dopar% {
+          
+          ## Generate an initial value somewhere in the middle
+          # init.val.up <- mus[Degree == K & L == D & st == 19 & state == sc,][["mu.up"]]
+          # init.val.down <- mus[Degree == K & L == D & st == 19 & state == sc,][["mu.down"]]
+          # B1. Subset data
+          st.data <- data[fips_state == state,]
+          
+          # B2. Calculate denominator to standardize
+          if (sc == "No Tax") den <- -st.data[, weighted.mean(tau, w = eta_m)]
+          if (sc == "plus 5 Tax") den <- log(1+0.05)
+          
+          
+          # B3 Run minimization: derivative free 
+          res0 <- nloptr( x0=init.val0,
+                          eval_f= expect.nmarg.change,
+                          eval_g_ineq = eval_restrictions,
+                          opts = nlo.opts.local.df,
+                          data = st.data,
+                          act.p = "p_cml", 
+                          t0 = t0, 
+                          t1 = t1,
+                          theta = theta,
+                          w = "eta_m", 
+                          min = p.min, 
+                          max = p.max, 
+                          K = K,
+                          constr_mat = constr, 
+                          IV_mat = IVs, 
+                          min.crit = mc,
+                          elas = T,
+                          ub = rep(0, K),
+                          lb = rep(min(IVs)/min(constr), K)
+          )       
+          # B4. Extract minimization results
+          down <- res0$objective/den
+          s1 <- res0$status
+          
+          # B5 Run maximization: derivative free 
+          res0 <- nloptr( x0=init.val0,
+                          eval_f= max_expect.nmarg.change,
+                          eval_g_ineq = eval_restrictions,
+                          opts = nlo.opts.local.df,
+                          data = st.data,
+                          act.p = "p_cml", 
+                          t0 = t0, 
+                          t1 = t1,
+                          theta = theta,
+                          w = "eta_m", 
+                          min = p.min, 
+                          max = p.max, 
+                          K = K,
+                          constr_mat = constr, 
+                          IV_mat = IVs, 
+                          min.crit = mc,
+                          elas = T,
+                          ub = rep(0, K),
+                          lb = rep(min(IVs)/min(constr), K)
+          )       
+          # B6. Extract minimization results
+          up<- -res0$objective/den
+          s2 <- res0$status
+          
+          # B7. Compile estimates export
+          data.table(data.table(down, up, state, D , K, sc, theta, s1, s2))
+          
+        }
+        welfare <- rbind(welfare, welfare.st)
+        
+        # B8. Export Results every case is done
+        fwrite(welfare, out.file)
         
       }
-      welfare <- rbind(welfare, welfare.st)
       
-      # B8. Export Results every case is done
-      fwrite(welfare, out.file)
-      
-    }
-    
+    }    
   }
+
   
 }
 
