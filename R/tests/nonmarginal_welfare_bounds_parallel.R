@@ -328,7 +328,7 @@ thetas.test <- c(0, 0.00481, 0.1174)
 # 6. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
   "algorithm"="NLOPT_LN_COBYLA",
-  "maxeval" = 400,
+  "maxeval" = 2000,
   "xtol_rel"=1.0e-8
 )
 
