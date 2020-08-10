@@ -75,9 +75,6 @@ all_pi[, median(ln_statutory_tax, weight=base.sales)]
 
 all_pi[, pt_t := as.integer(ln_statutory_tax >= median(ln_statutory_tax, na.rm = T, weight=base.sales))]
 
-## Subsamples
-all_pi[, sub := pt_g + pt_t]
-
 
 
 #### Prepare Estimations
@@ -87,37 +84,39 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 LRdiff_res <- data.table(NULL)
 ## Run in levels
-for (sm in 1:4) {
-  est.data <- all_pi[sub == sm]
-  print(est.data[, .N])
-  for (FE in FE_opts) {
-    
-    formula1 <- as.formula(paste0(
-      "w.ln_cpricei2 ~ w.ln_sales_tax | ", FE, " | 0 "
-    ))
-    flog.info("Estimating with %s as sample with %s FE.", sm, FE)
-    res1 <- felm(formula = formula1, data = est.data,
-                 weights = est.data$base.sales)
-    flog.info("Finished estimating with %s as sample with %s FE.", sm, FE)
-    
-    
-    ## attach results
-    flog.info("Writing results...")
-    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-    res1.dt[, controls := FE]
-    res1.dt[, sub := sm]
-    # Add summary values
-    res1.dt[, Rsq := summary(res1)$r.squared]
-    res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-    res1.dt[, N_obs := nrow(est.data)]
-    res1.dt[, N_modules := length(unique(est.data$product_module_code))]
-    res1.dt[, N_stores :=  length(unique(est.data$store_code_uc))]
-    res1.dt[, N_counties := uniqueN(est.data, by = c("fips_state", "fips_county"))]
-    res1.dt[, N_years := uniqueN(est.data, by = c("year"))]
-    res1.dt[, N_county_modules := uniqueN(est.data, by = c("fips_state", "fips_county",
-                                                         "product_module_code"))]
-    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-    fwrite(LRdiff_res, output.results.file)
-    
+for (sm1 in 0:1) {
+  for (sm2 in 0:1) {
+    est.data <- all_pi[pt_g == sm1 & pt_t == sm2]
+    print(est.data[, .N])
+    for (FE in FE_opts) {
+      
+      formula1 <- as.formula(paste0(
+        "w.ln_cpricei2 ~ w.ln_sales_tax | ", FE, " | 0 "
+      ))
+      flog.info("Estimating with %s as sample with %s FE.", sm, FE)
+      res1 <- felm(formula = formula1, data = est.data,
+                   weights = est.data$base.sales)
+      flog.info("Finished estimating with %s as sample with %s FE.", sm, FE)
+      
+      
+      ## attach results
+      flog.info("Writing results...")
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, controls := FE]
+      res1.dt[, sub.p := sm1]
+      res1.dt[, sub.t := sm2]
+      # Add summary values
+      res1.dt[, Rsq := summary(res1)$r.squared]
+      res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
+      res1.dt[, N_obs := nrow(est.data)]
+      res1.dt[, N_modules := length(unique(est.data$product_module_code))]
+      res1.dt[, N_stores :=  length(unique(est.data$store_code_uc))]
+      res1.dt[, N_counties := uniqueN(est.data, by = c("fips_state", "fips_county"))]
+      res1.dt[, N_years := uniqueN(est.data, by = c("year"))]
+      res1.dt[, N_county_modules := uniqueN(est.data, by = c("fips_state", "fips_county",
+                                                           "product_module_code"))]
+      LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+      fwrite(LRdiff_res, output.results.file)
+    } 
   }
 }
