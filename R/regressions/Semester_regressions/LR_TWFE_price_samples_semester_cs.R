@@ -89,10 +89,11 @@ LRdiff_res <- data.table(NULL)
 ## Run in levels
 for (sm in 1:4) {
   est.data <- all_pi[sub == sm]
+  print(est.data[, .N])
   for (FE in FE_opts) {
     
     formula1 <- as.formula(paste0(
-      "w.ln_cpricei2 ~ w.ln_sales_tax | ", FE, " | 0 | module_by_state"
+      "w.ln_cpricei2 ~ w.ln_sales_tax | ", FE, " | 0 "
     ))
     flog.info("Estimating with %s as sample with %s FE.", sm, FE)
     res1 <- felm(formula = formula1, data = est.data,
