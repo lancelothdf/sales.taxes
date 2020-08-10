@@ -69,7 +69,7 @@ all_pi[, median(dm.ln_pricei2, weight=base.sales)]
 
 all_pi[, pt_g := as.integer(dm.ln_pricei2 >= median(dm.ln_pricei2, weight=base.sales))]
 ## Divide the sample: above/below (pre-tax) price
-all_pi[year == 2014, semester == 2, ln_statutory_tax := max(ln_sales_tax, na.rm = T), by = .(fips_state, fips_county, year, semester)]
+all_pi[year == 2014 & semester == 2, ln_statutory_tax := max(ln_sales_tax, na.rm = T), by = .(fips_state, fips_county, year, semester)]
 all_pi[, ln_statutory_tax := max(ln_statutory_tax, na.rm = T), by = .(fips_state, fips_county)]
 all_pi[, median(ln_statutory_tax, weight=base.sales)]
 
@@ -104,6 +104,7 @@ for (sm in 1:4) {
     flog.info("Writing results...")
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, controls := FE]
+    res1.dt[, sub := sm]
     # Add summary values
     res1.dt[, Rsq := summary(res1)$r.squared]
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
