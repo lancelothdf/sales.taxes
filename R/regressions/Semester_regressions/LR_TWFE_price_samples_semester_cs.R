@@ -94,10 +94,10 @@ for (sm in 1:4) {
     formula1 <- as.formula(paste0(
       "w.ln_cpricei2 ~ w.ln_sales_tax | ", FE, " | 0 | module_by_state"
     ))
-    flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
+    flog.info("Estimating with %s as sample with %s FE.", sm, FE)
     res1 <- felm(formula = formula1, data = est.data,
                  weights = est.data$base.sales)
-    flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
+    flog.info("Finished estimating with %s as sample with %s FE.", sm, FE)
     
     
     ## attach results
