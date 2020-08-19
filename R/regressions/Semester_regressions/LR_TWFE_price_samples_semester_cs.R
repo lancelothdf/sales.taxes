@@ -41,6 +41,11 @@ all_pi[, L.ln_pricei2 := ln_pricei2 - D.ln_pricei2]
 all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.L.ln_pricei2 := L.ln_pricei2 - mean(L.ln_pricei2, na.rm = T), by = module_by_time]
 
+# Create statutory tax rate
+all_pi[, ln_statutory_tax := max(ln_sales_tax, na.rm = T), by = .(fips_state, fips_county, year, semester)]
+all_pi <- all_pi[order(store_code_uc, product_module_code, cal_time),] ##Sort on store by year-quarter (in ascending order)
+all_pi[, L.ln_statutory_tax := shift(ln_statutory_tax, n=1, type="lag"), by = .(store_code_uc, product_module_code)]
+
 # Defining common support
 control <- all_pi[D.ln_sales_tax == 0,]
 treated <- all_pi[D.ln_sales_tax != 0,]
@@ -69,11 +74,10 @@ all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 all_pi[, median(dm.L.ln_pricei2, weight=base.sales)]
 
 all_pi[, pt_g := as.integer(dm.L.ln_pricei2 >= median(dm.L.ln_pricei2, weight=base.sales))]
-## Divide the sample: above/below (pre-tax) price
-all_pi[, ln_statutory_tax := max(ln_sales_tax, na.rm = T), by = .(fips_state, fips_county, year, semester)]
-all_pi[, median(ln_statutory_tax, weight=base.sales)]
+## Divide the sample: above/below LAGGED statutory
+all_pi[, median(L.ln_statutory_tax, weight=base.sales)]
 
-all_pi[, pt_t := as.integer(ln_statutory_tax >= median(ln_statutory_tax, na.rm = T, weight=base.sales))]
+all_pi[, pt_t := as.integer(L.ln_statutory_tax >= median(L.ln_statutory_tax, na.rm = T, weight=base.sales))]
 
 
 
