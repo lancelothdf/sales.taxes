@@ -37,6 +37,7 @@ all_pi[, L.ln_cpricei2 := ln_cpricei2 - D.ln_cpricei2]
 all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.ln_pricei2 := ln_pricei2 - mean(ln_pricei2, na.rm = T), by = module_by_time]
+all_pi[, dm.L.ln_pricei2 := L.ln_pricei2 - mean(L.ln_pricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = module_by_time]
 
 
@@ -64,13 +65,12 @@ pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sal
 pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
 all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
-## Divide the sample: above/below (pre-tax) price
-all_pi[, median(dm.ln_pricei2, weight=base.sales)]
+## Divide the sample: above/below lagged (pre-tax) price
+all_pi[, median(dm.L.ln_pricei2, weight=base.sales)]
 
-all_pi[, pt_g := as.integer(dm.ln_pricei2 >= median(dm.ln_pricei2, weight=base.sales))]
+all_pi[, pt_g := as.integer(dm.L.ln_pricei2 >= median(dm.L.ln_pricei2, weight=base.sales))]
 ## Divide the sample: above/below (pre-tax) price
-all_pi[year == 2014 & semester == 2, ln_statutory_tax := max(ln_sales_tax, na.rm = T), by = .(fips_state, fips_county, year, semester)]
-all_pi[, ln_statutory_tax := max(ln_statutory_tax, na.rm = T), by = .(fips_state, fips_county)]
+all_pi[, ln_statutory_tax := max(ln_sales_tax, na.rm = T), by = .(fips_state, fips_county, year, semester)]
 all_pi[, median(ln_statutory_tax, weight=base.sales)]
 
 all_pi[, pt_t := as.integer(ln_statutory_tax >= median(ln_statutory_tax, na.rm = T, weight=base.sales))]
