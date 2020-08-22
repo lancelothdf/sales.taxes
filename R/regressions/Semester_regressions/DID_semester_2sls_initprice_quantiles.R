@@ -84,7 +84,7 @@ LRdiff_res <- data.table(NULL)
 # Create groups of initial values of tax rate (consumer)
 # We use the full weighted distribution
 all_pi <- all_pi[, quantile := cut(dm.L.ln_cpricei2,
-                                   breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
+                                   breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/5), na.rm = T, weight = base.sales),
                                    labels = 1:5, right = FALSE)]
 quantlab <- round(quantile(all_pi$dm.L.ln_cpricei2, 
                            probs = seq(0, 1, by = 1/5), na.rm = T, 
@@ -150,7 +150,7 @@ for (FE in FE_opts) {
 # Create groups of initial values of tax rate (producer)
 # We use the full weighted distribution
 all_pi <- all_pi[, quantile := cut(dm.L.ln_pricei2,
-                                   breaks = quantile(dm.L.ln_pricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
+                                   breaks = quantile(dm.L.ln_pricei2, probs = seq(0, 1, by = 1/5), na.rm = T, weight = base.sales),
                                    labels = 1:5, right = FALSE)]
 quantlab <- round(quantile(all_pi$dm.L.ln_pricei2, 
                            probs = seq(0, 1, by = 1/5), na.rm = T, 
