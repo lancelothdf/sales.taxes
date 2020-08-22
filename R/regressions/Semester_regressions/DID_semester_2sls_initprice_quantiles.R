@@ -119,29 +119,31 @@ for (FE in FE_opts) {
 }
 
 ### 2SLS estimate
-for (FE in FE_opts) {
-  for (X in endogenous.2sls) {
-    formula1 <- as.formula(paste0(
-      "w.ln_quantity3 ~ ", X,":quantile | ", FE, "+ quantile | w.ln_sales_tax:quantile | module_by_state"
-    ))
-    res1 <- felm(formula = formula1, data = all_pi,
-                 weights = all_pi$base.sales)
-    
-    
-    ## attach results
-    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-    res1.dt[, outcome := X]
-    res1.dt[, controls := FE]
-    res1.dt[, lev := quantlab[-1]]
-    res1.dt[, init := "cons"]
-    res1.dt[, spec := "IV"]
-    print(res1.dt)
-    
-    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-    fwrite(LRdiff_res, iv.output.results.file)
+for (i in 1:5) {
+  data <- all_pi[quantile == i]
+  for (FE in FE_opts) {
+    for (X in endogenous.2sls) {
+      formula1 <- as.formula(paste0(
+        "w.ln_quantity3 ~ ", X," | ", FE, " | ", X," ~ w.ln_sales_tax | module_by_state"
+      ))
+      res1 <- felm(formula = formula1, data = data,
+                   weights = data$base.sales)
+      
+      
+      ## attach results
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, outcome := X]
+      res1.dt[, controls := FE]
+      res1.dt[, lev := quantlab[i+1]]
+      res1.dt[, init := "cons"]
+      res1.dt[, spec := "IV"]
+      print(res1.dt)
+      
+      LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+      fwrite(LRdiff_res, iv.output.results.file)
+    }  
   }
 }
-
 
 #### Splitting by PRODUCER prices
 
@@ -173,7 +175,7 @@ for (FE in FE_opts) {
     res1.dt[, outcome := Y]
     res1.dt[, controls := FE]
     res1.dt[, lev := quantlab[-1]]
-    res1.dt[, init := "cons"]
+    res1.dt[, init := "prod"]
     res1.dt[, spec := "Sep"]
     print(res1.dt)
     
@@ -183,25 +185,28 @@ for (FE in FE_opts) {
 }
 
 ### 2SLS estimate
-for (FE in FE_opts) {
-  for (X in endogenous.2sls) {
-    formula1 <- as.formula(paste0(
-      "w.ln_quantity3 ~ ", X,":quantile | ", FE, "+ quantile | w.ln_sales_tax:quantile | module_by_state"
-    ))
-    res1 <- felm(formula = formula1, data = all_pi,
-                 weights = all_pi$base.sales)
-    
-    
-    ## attach results
-    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-    res1.dt[, outcome := X]
-    res1.dt[, controls := FE]
-    res1.dt[, lev := quantlab[-1]]
-    res1.dt[, init := "cons"]
-    res1.dt[, spec := "IV"]
-    print(res1.dt)
-    
-    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-    fwrite(LRdiff_res, iv.output.results.file)
+for (i in 1:5) {
+  data <- all_pi[quantile == i]
+  for (FE in FE_opts) {
+    for (X in endogenous.2sls) {
+      formula1 <- as.formula(paste0(
+        "w.ln_quantity3 ~ ", X," | ", FE, " | ", X," ~ w.ln_sales_tax | module_by_state"
+      ))
+      res1 <- felm(formula = formula1, data = data,
+                   weights = data$base.sales)
+      
+      
+      ## attach results
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, outcome := X]
+      res1.dt[, controls := FE]
+      res1.dt[, lev := quantlab[i+1]]
+      res1.dt[, init := "prod"]
+      res1.dt[, spec := "IV"]
+      print(res1.dt)
+      
+      LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+      fwrite(LRdiff_res, iv.output.results.file)
+    }  
   }
 }
