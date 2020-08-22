@@ -108,7 +108,6 @@ for (FE in FE_opts) {
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := Y]
     res1.dt[, controls := FE]
-    res1.dt[, n.groups := n.g]
     res1.dt[, lev := quantlab[-1]]
     res1.dt[, init := "cons"]
     res1.dt[, spec := "Sep"]
@@ -133,7 +132,6 @@ for (FE in FE_opts) {
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := X]
     res1.dt[, controls := FE]
-    res1.dt[, n.groups := n.g]
     res1.dt[, lev := quantlab[-1]]
     res1.dt[, init := "cons"]
     res1.dt[, spec := "IV"]
@@ -174,7 +172,6 @@ for (FE in FE_opts) {
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := Y]
     res1.dt[, controls := FE]
-    res1.dt[, n.groups := n.g]
     res1.dt[, lev := quantlab[-1]]
     res1.dt[, init := "cons"]
     res1.dt[, spec := "Sep"]
@@ -199,7 +196,6 @@ for (FE in FE_opts) {
     res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
     res1.dt[, outcome := X]
     res1.dt[, controls := FE]
-    res1.dt[, n.groups := n.g]
     res1.dt[, lev := quantlab[-1]]
     res1.dt[, init := "cons"]
     res1.dt[, spec := "IV"]
