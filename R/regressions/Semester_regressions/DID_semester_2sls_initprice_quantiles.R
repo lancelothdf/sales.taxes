@@ -124,7 +124,7 @@ for (i in 1:5) {
   for (FE in FE_opts) {
     for (X in endogenous.2sls) {
       formula1 <- as.formula(paste0(
-        "w.ln_quantity3 ~ ", X," | ", FE, " | ", X," ~ w.ln_sales_tax | module_by_state"
+        "w.ln_quantity3 ~ ", X," | ", FE, " | (", X," ~ w.ln_sales_tax) | module_by_state"
       ))
       res1 <- felm(formula = formula1, data = data,
                    weights = data$base.sales)
@@ -190,7 +190,7 @@ for (i in 1:5) {
   for (FE in FE_opts) {
     for (X in endogenous.2sls) {
       formula1 <- as.formula(paste0(
-        "w.ln_quantity3 ~ ", X," | ", FE, " | ", X," ~ w.ln_sales_tax | module_by_state"
+        "w.ln_quantity3 ~ ", X," | ", FE, " | (", X," ~ w.ln_sales_tax) | module_by_state"
       ))
       res1 <- felm(formula = formula1, data = data,
                    weights = data$base.sales)
