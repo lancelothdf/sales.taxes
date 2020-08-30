@@ -173,6 +173,9 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",1:2)]
     gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
     
+    print(gamma)
+    print(IV)
+    
     ## Retrieve target parameters
     beta_hat <- as.vector(solve(as.matrix(gamma))%*%(as.matrix(IV)))
     # Estimate intercept
