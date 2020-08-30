@@ -81,7 +81,6 @@ all_pi <- all_pi[cs_price == 1,]
 
 
 ## Options
-outcomes.sep <- c("w.ln_cpricei2", "w.ln_pricei2", "w.ln_quantity3")
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 
@@ -90,6 +89,7 @@ target_res <- data.table(NULL)
 ## Loop across sigma 
 for (sig in c(0.25, 0.5, 0.75, 1)) {
   
+  outcomes <- c(paste0("w.ln_cpricei2_sig",sig), "w.ln_quantity3")
   ## cut the tails (keep between 1st and 99th percentile)
   pct1 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.01, na.rm = T, weight=base.sales)
   pct99 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.99, na.rm = T, weight=base.sales)
