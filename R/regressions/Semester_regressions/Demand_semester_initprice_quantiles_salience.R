@@ -151,6 +151,8 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     }
     
     ## Estimate IVs and retrieve in vector
+    
+    print(LRdiff_res[outcome == "w.ln_quantity3" & n.groups == 2 & controls == FE & sigma == sig,])
     IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == 2 & controls == FE & sigma == sig,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == 2 & controls == FE & sigma == sig,][["Estimate"]]
     
     ## Estimate the matrix of the implied system of equations
@@ -172,9 +174,6 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     # Calculate integral
     gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",1:2)]
     gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
-    
-    print(gamma)
-    print(IV)
     
     ## Retrieve target parameters
     beta_hat <- as.vector(solve(as.matrix(gamma))%*%(as.matrix(IV)))
