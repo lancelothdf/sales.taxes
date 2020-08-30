@@ -153,7 +153,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     ## Estimate IVs and retrieve in vector
     
     print(LRdiff_res[outcome == "w.ln_quantity3" & n.groups == 2 & controls == FE & sigma == sig,])
-    IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == 2 & controls == FE & sigma == sig,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == 2 & controls == FE & sigma == sig,][["Estimate"]]
+    IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == 2 & controls == FE & sigma == sig,][["Estimate"]]/LRdiff_res[outcome == paste0("w.ln_cpricei2_sig",sig) & n.groups == 2 & controls == FE & sigma == sig,][["Estimate"]]
     
     ## Estimate the matrix of the implied system of equations
     # Get the empirical distribution of prices by quantile
