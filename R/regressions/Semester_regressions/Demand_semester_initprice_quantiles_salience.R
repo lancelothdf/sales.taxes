@@ -108,7 +108,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
       res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
       res1.dt[, outcome := "IV"]
       res1.dt[, controls := FE]
-      res1.dt[, lev := "full"]
+      res1.dt[, lev := 100]
       res1.dt[, n.groups := 1]
       res1.dt[, sigma := sig]
       
@@ -122,7 +122,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
                                      breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/2), na.rm = T, weight = base.sales),
                                      labels = 1:2, right = FALSE)]
   quantlab <- round(quantile(all_pi_est[[paste0("dm.L.ln_cpricei2_sig", sig)]], 
-                             probs = seq(0, 1, by = 1/n.g), na.rm = T, 
+                             probs = seq(0, 1, by = 1/2), na.rm = T, 
                              weight = all_pi_est$base.sales), digits = 4)
   # Saturate fixed effects
   all_pi_est[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
@@ -134,7 +134,6 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
       formula1 <- as.formula(paste0(
         Y, " ~ w.ln_sales_tax:quantile | group_", FE, "+ quantile"
       ))
-      if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ w.ln_sales_tax | ", FE)) }
       res1 <- felm(formula = formula1, data = all_pi,
                    weights = all_pi$base.sales)
       
@@ -171,7 +170,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
       ed.price.quantile[, paste0("b",n) := (n)*w1*(p_m^(n-1))]
     }
     # Calculate integral
-    gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",1:n.g)]
+    gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",1:2)]
     gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
     
     ## Retrieve target parameters
@@ -179,7 +178,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     # Estimate intercept
     mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales)]
     mean.p <- all_pi[, mean(get(paste0("dm.ln_cpricei2_sig", sig)), weights = base.sales)]
-    beta_0_hat <- mean.q - sum((beta_hat)*(mean.p^(1:n.g)))
+    beta_0_hat <- mean.q - sum((beta_hat)*(mean.p^(1:2)))
     beta_hat <- c(beta_0_hat, beta_hat)
     
     ## Export estimated target parameters
