@@ -134,8 +134,8 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
       formula1 <- as.formula(paste0(
         Y, " ~ w.ln_sales_tax:quantile | group_", FE, "+ quantile"
       ))
-      res1 <- felm(formula = formula1, data = all_pi,
-                   weights = all_pi$base.sales)
+      res1 <- felm(formula = formula1, data = all_pi_est,
+                   weights = all_pi_est$base.sales)
       
       
       ## attach results
@@ -155,13 +155,13 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     
     ## Estimate the matrix of the implied system of equations
     # Get the empirical distribution of prices by quantile
-    all_pi[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
-    all_pi[, p_group := floor((get(paste0("dm.L.ln_cpricei2_sig", sig)) - min(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T))/((max(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T)-min(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T))/500)), by = .(quantile)]
-    all_pi[, p_ll := p_group*((max(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T)-min(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T))/500), by = .(quantile)]
-    all_pi[, p_ll := p_ll + min(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T), by = .(quantile)]
-    all_pi[, p_ul := p_ll + ((max(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T)-min(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T))/500), by = .(quantile)]
+    all_pi_est[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
+    all_pi_est[, p_group := floor((get(paste0("dm.L.ln_cpricei2_sig", sig)) - min(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T))/((max(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T)-min(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T))/500)), by = .(quantile)]
+    all_pi_est[, p_ll := p_group*((max(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T)-min(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T))/500), by = .(quantile)]
+    all_pi_est[, p_ll := p_ll + min(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T), by = .(quantile)]
+    all_pi_est[, p_ul := p_ll + ((max(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T)-min(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T))/500), by = .(quantile)]
     
-    ed.price.quantile <- all_pi[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
+    ed.price.quantile <- all_pi_est[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
     ed.price.quantile[, p_m := (p_ul+p_ll)/2]
     
     
@@ -176,8 +176,8 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     ## Retrieve target parameters
     beta_hat <- as.vector(solve(as.matrix(gamma))%*%(as.matrix(IV)))
     # Estimate intercept
-    mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales)]
-    mean.p <- all_pi[, mean(get(paste0("dm.ln_cpricei2_sig", sig)), weights = base.sales)]
+    mean.q <- all_pi_est[, mean(ln_quantity3, weights = base.sales)]
+    mean.p <- all_pi_est[, mean(get(paste0("dm.ln_cpricei2_sig", sig)), weights = base.sales)]
     beta_0_hat <- mean.q - sum((beta_hat)*(mean.p^(1:2)))
     beta_hat <- c(beta_0_hat, beta_hat)
     
