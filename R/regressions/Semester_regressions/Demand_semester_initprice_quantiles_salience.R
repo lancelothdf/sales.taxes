@@ -95,8 +95,9 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
   pct99 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.99, na.rm = T, weight=base.sales)
   all_pi_est <- all_pi[(get(paste0("dm.ln_cpricei2_sig", sig)) > pct1 & get(paste0("dm.ln_cpricei2_sig", sig)) < pct99),]
   
-  ## Full sample IV
+  ## Full sample estimates
   for (FE in FE_opts) {
+    ## Full sample IV
       formula1 <- as.formula(paste0(
         "w.ln_quantity3 ~ 0 | ", FE, " | (w.ln_cpricei2_sig", sig," ~ w.ln_sales_tax) | module_by_state"
       ))
@@ -114,6 +115,24 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
       
       LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
       fwrite(LRdiff_res, iv.output.results.file)
+    ## Full sample passthrough
+      formula1 <- as.formula(paste0(
+        "w.ln_cpricei2_sig", sig," ~ w.ln_sales_tax | ", FE, " | 0 | module_by_state"
+      ))
+      res1 <- felm(formula = formula1, data = all_pi_est,
+                   weights = all_pi_est$base.sales)
+      
+      
+      ## attach results
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, outcome := "rho"]
+      res1.dt[, controls := FE]
+      res1.dt[, lev := 100]
+      res1.dt[, n.groups := 1]
+      res1.dt[, sigma := sig]
+      
+      LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+      fwrite(LRdiff_res, iv.output.results.file)      
   }
   ## Demand for K=L=2
   # Create groups of initial values of tax rate
