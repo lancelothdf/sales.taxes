@@ -38,7 +38,7 @@ data.year <- "Data/Nielsen/yearly_nielsen_data.csv"
 iv.output.results.file <- "Data/Demand_iv_sat_initial_price_semester_salience.csv"
 theta.output.results.file <- "Data/Demand_theta_sat_initial_price_semester_salience.csv"
 ## output filepaths ----------------------------------------------
-estimates.theta.out <- "Data/dalience_conduct_parameter_at_p.csv"
+estimates.theta.out <- "Data/salience_conduct_parameter_at_p.csv"
 
 
 
@@ -129,7 +129,8 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
   ## Capture passthorugh
   rho <- rho.old[sigma == sig][["Estimate"]]/sig
   ## Capture estimated demand
-  demand <- betas.old[sigma == sig][["beta_n"]]
+  demand <- betas.old[sigma == sig][["beta_hat"]]
+
   
   for (es.val in val.es) {
     for (p in prices) {
@@ -145,6 +146,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
       for (k in 3:length(demand)) {
         q2 <- q2 + (k-1)*(k-2)*demand[k]*(p)^(k-3)
       } 
+      
       
       ## 3. find asymptote
       solve <- uniroot(asymptote.fun, c(0,1), extendInt="yes", q1 = q1, q2 = q2, es = es.val, tol = .Machine$double.eps^2)
