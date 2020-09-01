@@ -127,7 +127,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
   prices <- (values[-1] + values[-length(values)])/2 # find the mid point
   
   ## Capture passthorugh
-  rho <- rho.old[sigma == sig][["Estimate"]]/sig - 1
+  rho <- (rho.old[sigma == sig][["Estimate"]]-1)/sig
   ## Capture estimated demand
   demand <- betas.old[sigma == sig][["beta_hat"]]
 
