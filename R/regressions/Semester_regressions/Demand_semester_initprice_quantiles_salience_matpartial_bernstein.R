@@ -100,16 +100,16 @@ LRdiff_res <- data.table(NULL)
 pq_res <- data.table(NULL)
 for (sig in c(0.25, 0.5, 0.75, 1)) {
   
-  outcomes <- c(paste0("w.ln_cpricei2_sig",sig), "w.ln_quantity3")
   ## cut the tails (keep between 1st and 99th percentile)
   pct1 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.01, na.rm = T, weight=base.sales)
   pct99 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.99, na.rm = T, weight=base.sales)
   all_pi_est <- all_pi[(get(paste0("dm.ln_cpricei2_sig", sig)) > pct1 & get(paste0("dm.ln_cpricei2_sig", sig)) < pct99),]
-  
+
+
   ## Define re-scaled prices to use Bernstein polynomials in that range
-  min.p <- all_pi_est[, min(get(paste0("dm.ln_cpricei2_sig", sig))]
-  max.p <- all_pi_est[, max(get(paste0("dm.ln_cpricei2_sig", sig))]
-  all_pi_est[, r.dm.ln_cpricei2 := (get(paste0("dm.ln_cpricei2_sig", sig) - min.p)/(max.p - min.p) ]
+  min.p <- all_pi_est[, min(get(paste0("dm.ln_cpricei2_sig", sig)))]
+  max.p <- all_pi_est[, max(get(paste0("dm.ln_cpricei2_sig", sig)))]
+  all_pi_est[, r.dm.ln_cpricei2 := (get(paste0("dm.ln_cpricei2_sig", sig)) - min.p)/(max.p - min.p)]
   
   ## Export values to re-estimate the intercept
   mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
@@ -174,5 +174,6 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     }
   }
 }
+
   
   
