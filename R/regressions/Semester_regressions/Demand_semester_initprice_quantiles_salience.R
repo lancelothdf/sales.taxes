@@ -171,16 +171,15 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     
     ## Estimate IVs and retrieve in vector
     
-    print(LRdiff_res[outcome == "w.ln_quantity3" & n.groups == 2 & controls == FE & sigma == sig,])
     IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == 2 & controls == FE & sigma == sig,][["Estimate"]]/LRdiff_res[outcome == paste0("w.ln_cpricei2_sig",sig) & n.groups == 2 & controls == FE & sigma == sig,][["Estimate"]]
     
     ## Estimate the matrix of the implied system of equations
     # Get the empirical distribution of prices by quantile
     all_pi_est[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
-    all_pi_est[, p_group := floor((get(paste0("dm.L.ln_cpricei2_sig", sig)) - min(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T))/((max(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T)-min(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T))/500)), by = .(quantile)]
-    all_pi_est[, p_ll := p_group*((max(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T)-min(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T))/500), by = .(quantile)]
-    all_pi_est[, p_ll := p_ll + min(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T), by = .(quantile)]
-    all_pi_est[, p_ul := p_ll + ((max(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T)-min(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T))/500), by = .(quantile)]
+    all_pi_est[, p_group := floor((get(paste0("dm.ln_cpricei2_sig", sig)) - min(get(paste0("dm.ln_cpricei2_sig", sig)), na.rm = T))/((max(get(paste0("dm.ln_cpricei2_sig", sig)), na.rm = T)-min(get(paste0("dm.L.ln_cpricei2_sig", sig)), na.rm = T))/500)), by = .(quantile)]
+    all_pi_est[, p_ll := p_group*((max(get(paste0("dm.ln_cpricei2_sig", sig)), na.rm = T)-min(get(paste0("dm.ln_cpricei2_sig", sig)), na.rm = T))/500), by = .(quantile)]
+    all_pi_est[, p_ll := p_ll + min(get(paste0("dm.ln_cpricei2_sig", sig)), na.rm = T), by = .(quantile)]
+    all_pi_est[, p_ul := p_ll + ((max(get(paste0("dm.ln_cpricei2_sig", sig)), na.rm = T)-min(get(paste0("dm.ln_cpricei2_sig", sig)), na.rm = T))/500), by = .(quantile)]
     
     ed.price.quantile <- all_pi_est[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
     ed.price.quantile[, p_m := (p_ul+p_ll)/2]
