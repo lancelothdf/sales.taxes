@@ -112,8 +112,8 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
   all_pi_est[, r.dm.ln_cpricei2 := (get(paste0("dm.ln_cpricei2_sig", sig)) - min.p)/(max.p - min.p)]
   
   ## Export values to re-estimate the intercept
-  mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
-  mean.p <- all_pi[, mean(r.dm.ln_cpricei2, weights = base.sales, na.rm = T)]
+  mean.q <- all_pi_est[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
+  mean.p <- all_pi_est[, mean(r.dm.ln_cpricei2, weights = base.sales, na.rm = T)]
   
   estimated.pq <- data.table(mean.q, mean.p, min.p, max.p, sigma = sig)
   pq_res <- rbind(pq_res, estimated.pq)
