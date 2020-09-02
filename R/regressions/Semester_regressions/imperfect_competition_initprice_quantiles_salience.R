@@ -154,72 +154,100 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
       
       ## 4. Find value of theta smartly
       # Start calculating values at asymptote (each side), 0 and 1
-      ub <- asymptote+epsilon
-      lb <- asymptote-epsilon
-      l <- -0.25
-      u <- 1.25
-      f.u <- pass.through.eq(ub, q1 = q1, q2 = q2, es = es.val, rho = rho)
-      f.l <- pass.through.eq(lb, q1 = q1, q2 = q2, es = es.val, rho = rho)
-      f.0 <- pass.through.eq(l, q1 = q1, q2 = q2, es = es.val, rho = rho)
-      f.1 <- pass.through.eq(u, q1 = q1, q2 = q2, es = es.val, rho = rho)
+      # ub <- asymptote+epsilon
+      # lb <- asymptote-epsilon
+      # l <- -0.25
+      # u <- 1.25
+      # f.u <- pass.through.eq(ub, q1 = q1, q2 = q2, es = es.val, rho = rho)
+      # f.l <- pass.through.eq(lb, q1 = q1, q2 = q2, es = es.val, rho = rho)
+      # f.0 <- pass.through.eq(l, q1 = q1, q2 = q2, es = es.val, rho = rho)
+      # f.1 <- pass.through.eq(u, q1 = q1, q2 = q2, es = es.val, rho = rho)
+      # 
+      # if (asymptote > l & asymptote < u) {
+      #   ## Case 1
+      #   if (f.l>0 & f.l > f.0) {
+      #     if (f.0 < 0) {
+      #       solve2 <- uniroot(pass.through.eq, c(l,lb), q1 = q1, q2 = q2, es = es.val, rho = rho)
+      #       theta <- solve2$root
+      #       is.0 <- solve2$f.root
+      #     }
+      #     else {
+      #       # try the oposite area if possible
+      #       if (f.1 > 0 & f.u < 0) {
+      #         solve2 <- uniroot(pass.through.eq, c(ub,u), q1 = q1, q2 = q2, es = es.val, rho = rho)
+      #         theta <- solve2$root
+      #         is.0 <- solve2$f.root
+      #       }
+      #       else {
+      #         theta <- NA
+      #         is.0 <- NA              
+      #       }
+      #     }
+      #   }
+      #   else {
+      #     ## Case 2 (very unlikely given the values?)
+      #     if (f.u>0 & f.u > f.1) {
+      #       if (f.1 < 0) {
+      #         solve2 <- uniroot(pass.through.eq, c(ub,u), q1 = q1, q2 = q2, es = es.val, rho = rho)
+      #         theta <- solve2$root
+      #         is.0 <- solve2$f.root
+      #       }
+      #       else {
+      #         # try the oposite area if possible
+      #         if (f.0 > 0 & f.l < 0) {
+      #           solve2 <- uniroot(pass.through.eq, c(l,lb), q1 = q1, q2 = q2, es = es.val, rho = rho)
+      #           theta <- solve2$root
+      #           is.0 <- solve2$f.root             
+      #         }
+      #         else {
+      #           theta <- NA
+      #           is.0 <- NA              
+      #         }
+      #       }          
+      #     }          
+      #   }
+      # }
+      # ## Case 3: asymptote falls outside interest area
+      # else {
+      #   ## just see if limits have different signs
+      #   if ((f.1 >0 & f.0 < 0) | (f.1 <0 & f.0 > 0)) {
+      #     solve2 <- uniroot(pass.through.eq, c(l,u), q1 = q1, q2 = q2, es = es.val, rho = rho)
+      #     theta <- solve2$root
+      #     is.0 <- solve2$f.root          
+      #   }
+      #   else {
+      #     theta <- NA
+      #     is.0 <- NA              
+      #   }
+      # }
       
-      if (asymptote > l & asymptote < u) {
-        ## Case 1
-        if (f.l>0 & f.l > f.0) {
-          if (f.0 < 0) {
-            solve2 <- uniroot(pass.through.eq, c(l,lb), q1 = q1, q2 = q2, es = es.val, rho = rho)
-            theta <- solve2$root
-            is.0 <- solve2$f.root
-          }
-          else {
-            # try the oposite area if possible
-            if (f.1 > 0 & f.u < 0) {
-              solve2 <- uniroot(pass.through.eq, c(ub,u), q1 = q1, q2 = q2, es = es.val, rho = rho)
-              theta <- solve2$root
-              is.0 <- solve2$f.root
-            }
-            else {
-              theta <- NA
-              is.0 <- NA              
-            }
-          }
-        }
-        else {
-          ## Case 2 (very unlikely given the values?)
-          if (f.u>0 & f.u > f.1) {
-            if (f.1 < 0) {
-              solve2 <- uniroot(pass.through.eq, c(ub,u), q1 = q1, q2 = q2, es = es.val, rho = rho)
-              theta <- solve2$root
-              is.0 <- solve2$f.root
-            }
-            else {
-              # try the oposite area if possible
-              if (f.0 > 0 & f.l < 0) {
-                solve2 <- uniroot(pass.through.eq, c(l,lb), q1 = q1, q2 = q2, es = es.val, rho = rho)
-                theta <- solve2$root
-                is.0 <- solve2$f.root             
-              }
-              else {
-                theta <- NA
-                is.0 <- NA              
-              }
-            }          
-          }          
+      # old method works better
+      ub <- asymptote-epsilon
+      lb <- -.1
+      if (ub < 0.15) { lb <- ub-0.25}
+      # Force opposite sign starting point
+      ## make f(lb) opposite value of f(ub) up to an extreme point -.2 and 1.2
+      # Only looking for solutions to the left of the asymptote
+      f.u <- pass.through.eq.s(ub, sigma = sig.val, q1 = q1, q2 = q2, es = es.val, rho = rho)
+      f.l <- pass.through.eq.s(lb, sigma = sig.val, q1 = q1, q2 = q2, es = es.val, rho = rho)
+      if (f.u*f.l > 0 ) {
+        while (f.l > 0 & lb > - 0.2) {
+          lb <- lb - 0.01
+          f.l <- pass.through.eq.s(lb, sigma = sig.val, q1 = q1, q2 = q2, es = es.val, rho = rho)
+        } 
+        while (f.u < 0 & ub < 1.2) {
+          ub <- ub + 0.01
+          f.u <- pass.through.eq.s(ub, sigma = sig.val, q1 = q1, q2 = q2, es = es.val, rho = rho)
         }
       }
-      ## Case 3: asymptote falls outside interest area
-      else {
-        ## just see if limits have different signs
-        if ((f.1 >0 & f.0 < 0) | (f.1 <0 & f.0 > 0)) {
-          solve2 <- uniroot(pass.through.eq, c(l,u), q1 = q1, q2 = q2, es = es.val, rho = rho)
-          theta <- solve2$root
-          is.0 <- solve2$f.root          
-        }
-        else {
-          theta <- NA
-          is.0 <- NA              
-        }
+      if (f.u*f.l < 0 ) {
+        solve2 <- uniroot(pass.through.eq.s, c(lb,ub), extendInt="downX", sigma = sig.val, q1 = q1, q2 = q2, es = es.val, rho = rho)
+        theta <- solve2$root
+        is.0 <- solve2$f.root
+      } else {
+        theta <- is.0 <- NA
       }
+      
       
       ## 6. Export
       results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, asymptote, f.0, f.1, rho, theta, is.0))
