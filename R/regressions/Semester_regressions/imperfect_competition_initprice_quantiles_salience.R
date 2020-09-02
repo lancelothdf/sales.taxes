@@ -208,7 +208,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
         }
       }
       ## Case 3: asymptote falls outside interest area
-      else (asymptote < l | asymptote > u) {
+      else {
         ## just see if limits have different signs
         if ((f.1 >0 & f.0 < 0) | (f.1 <0 & f.0 > 0)) {
           solve2 <- uniroot(pass.through.eq, c(l,u), q1 = q1, q2 = q2, es = es.val, rho = rho)
