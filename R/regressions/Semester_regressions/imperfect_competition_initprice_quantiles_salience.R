@@ -222,33 +222,75 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
       # }
       
       # old method works better
+      ## 5. Find value of theta
       ub <- asymptote-epsilon
-      lb <- -.1
-      if (ub < 0.15) { lb <- ub-0.25}
-      # Force opposite sign starting point
-      ## make f(lb) opposite value of f(ub) up to an extreme point -.2 and 1.2
-      # Only looking for solutions to the left of the asymptote
+      
+      ## If asymptote is too positive or too negative start at 1
+      if (ub < -0.3 | ub > 1.3) {ub <- 1}
+      ## make f(lb) opposite value of f(ub)
       f.u <- pass.through.eq(ub, q1 = q1, q2 = q2, es = es.val, rho = rho)
-      f.l <- pass.through.eq(lb, q1 = q1, q2 = q2, es = es.val, rho = rho)
-      if (f.u*f.l > 0 ) {
-        while (f.l > 0 & lb > - 0.2) {
-          lb <- lb - 0.01
-          f.l <- pass.through.eq(lb, q1 = q1, q2 = q2, es = es.val, rho = rho)
-        } 
-        while (f.u < 0 & ub < 1.2) {
+      lb <- ub-0.1
+      f <- pass.through.eq(lb, q1 = q1, q2 = q2, es = es.val, rho = rho)
+      # When is very far away from a reasonable value of theta, make lb = ub and search over ub
+      if (f.u > 0) {
+        while (f > 0 & lb > -0.5) {
+          lb <- lb-0.01
+          f <- pass.through.eq(lb, q1 = q1, q2 = q2, es = es.val, rho = rho)
+        }
+        if (lb < -0.5) {
+          lb <- ub
           ub <- ub + 0.01
-          f.u <- pass.through.eq(ub, q1 = q1, q2 = q2, es = es.val, rho = rho)
+          f <- pass.through.eq(ub, q1 = q1, q2 = q2, es = es.val, rho = rho)
+          while (f > 0 & ub < 1.5) {
+            ub <- ub + 0.05
+            f <- pass.through.eq(ub, q1 = q1, q2 = q2, es = es.val, rho = rho)
+          } 
+          if (ub >= 1.5) {
+            ub <- NA
+            lb <- NA
+            theta <- NA
+            is.0 <- NA
+          } else {
+            solve2 <- uniroot(pass.through.eq, c(lb,ub), q1 = q1, q2 = q2, es = es.val, rho = rho)
+            theta <- solve2$root
+            is.0 <- solve2$f.root
+          }
+        } else {
+          solve2 <- uniroot(pass.through.eq, c(lb,ub), q1 = q1, q2 = q2, es = es.val, rho = rho)
+          theta <- solve2$root
+          is.0 <- solve2$f.root
+        }
+      } else {
+        while (f < 0 & lb > -0.5) {
+          lb <- lb-0.01
+          f <- pass.through.eq(lb, q1 = q1, q2 = q2, es = es.val, rho = rho)
+        }
+        if (lb < -0.5) {
+          lb <- ub
+          ub <- ub + 0.01
+          f <- pass.through.eq(ub, q1 = q1, q2 = q2, es = es.val, rho = rho)
+          while (f < 0 & ub < 1.5) {
+            ub <- ub + 0.01
+            f <- pass.through.eq(ub, q1 = q1, q2 = q2, es = es.val, rho = rho)
+          } 
+          if (ub >= 1.5) {
+            ub <- NA
+            lb <- NA
+            theta <- NA
+            is.0 <- NA
+          } else {
+            solve2 <- uniroot(pass.through.eq, c(lb,ub), q1 = q1, q2 = q2, es = es.val, rho = rho)
+            theta <- solve2$root
+            is.0 <- solve2$f.root
+          }
+        } else {
+          solve2 <- uniroot(pass.through.eq, c(lb,ub), q1 = q1, q2 = q2, es = es.val, rho = rho)
+          theta <- solve2$root
+          is.0 <- solve2$f.root
         }
       }
-      if (f.u*f.l < 0 ) {
-        solve2 <- uniroot(pass.through.eq, c(lb,ub), extendInt="downX", q1 = q1, q2 = q2, es = es.val, rho = rho)
-        theta <- solve2$root
-        is.0 <- solve2$f.root
-      } else {
-        theta <- is.0 <- NA
-      }
       
-      
+
       ## 6. Export
       #results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, asymptote, f.0, f.1, rho, theta, is.0))
       results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, asymptote, rho, theta, is.0))
