@@ -250,6 +250,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
       
       
       ## 6. Export
+      #results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, asymptote, f.0, f.1, rho, theta, is.0))
       results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, asymptote, f.0, f.1, rho, theta, is.0))
     }
   }
