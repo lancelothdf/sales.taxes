@@ -228,20 +228,20 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
       # Force opposite sign starting point
       ## make f(lb) opposite value of f(ub) up to an extreme point -.2 and 1.2
       # Only looking for solutions to the left of the asymptote
-      f.u <- pass.through.eq.s(ub, sigma = sig.val, q1 = q1, q2 = q2, es = es.val, rho = rho)
-      f.l <- pass.through.eq.s(lb, sigma = sig.val, q1 = q1, q2 = q2, es = es.val, rho = rho)
+      f.u <- pass.through.eq(ub, q1 = q1, q2 = q2, es = es.val, rho = rho)
+      f.l <- pass.through.eq(lb, q1 = q1, q2 = q2, es = es.val, rho = rho)
       if (f.u*f.l > 0 ) {
         while (f.l > 0 & lb > - 0.2) {
           lb <- lb - 0.01
-          f.l <- pass.through.eq.s(lb, sigma = sig.val, q1 = q1, q2 = q2, es = es.val, rho = rho)
+          f.l <- pass.through.eq(lb, q1 = q1, q2 = q2, es = es.val, rho = rho)
         } 
         while (f.u < 0 & ub < 1.2) {
           ub <- ub + 0.01
-          f.u <- pass.through.eq.s(ub, sigma = sig.val, q1 = q1, q2 = q2, es = es.val, rho = rho)
+          f.u <- pass.through.eq(ub, q1 = q1, q2 = q2, es = es.val, rho = rho)
         }
       }
       if (f.u*f.l < 0 ) {
-        solve2 <- uniroot(pass.through.eq.s, c(lb,ub), extendInt="downX", sigma = sig.val, q1 = q1, q2 = q2, es = es.val, rho = rho)
+        solve2 <- uniroot(pass.through.eq, c(lb,ub), extendInt="downX", q1 = q1, q2 = q2, es = es.val, rho = rho)
         theta <- solve2$root
         is.0 <- solve2$f.root
       } else {
