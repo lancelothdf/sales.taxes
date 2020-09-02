@@ -184,29 +184,31 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
             }
           }
         }
-        ## Case 2 (very unlikely given the values?)
-        if (f.u>0 & f.u > f.1) {
-          if (f.1 < 0) {
-            solve2 <- uniroot(pass.through.eq, c(ub,u), q1 = q1, q2 = q2, es = es.val, rho = rho)
-            theta <- solve2$root
-            is.0 <- solve2$f.root
-          }
-          else {
-            # try the oposite area if possible
-            if (f.0 > 0 & f.l < 0) {
-              solve2 <- uniroot(pass.through.eq, c(l,lb), q1 = q1, q2 = q2, es = es.val, rho = rho)
+        else {
+          ## Case 2 (very unlikely given the values?)
+          if (f.u>0 & f.u > f.1) {
+            if (f.1 < 0) {
+              solve2 <- uniroot(pass.through.eq, c(ub,u), q1 = q1, q2 = q2, es = es.val, rho = rho)
               theta <- solve2$root
-              is.0 <- solve2$f.root             
+              is.0 <- solve2$f.root
             }
             else {
-              theta <- NA
-              is.0 <- NA              
-            }
+              # try the oposite area if possible
+              if (f.0 > 0 & f.l < 0) {
+                solve2 <- uniroot(pass.through.eq, c(l,lb), q1 = q1, q2 = q2, es = es.val, rho = rho)
+                theta <- solve2$root
+                is.0 <- solve2$f.root             
+              }
+              else {
+                theta <- NA
+                is.0 <- NA              
+              }
+            }          
           }          
         }
       }
       ## Case 3: asymptote falls outside interest area
-      if (asymptote < l | asymptote > u) {
+      else (asymptote < l | asymptote > u) {
         ## just see if limits have different signs
         if ((f.1 >0 & f.0 < 0) | (f.1 <0 & f.0 > 0)) {
           solve2 <- uniroot(pass.through.eq, c(l,u), q1 = q1, q2 = q2, es = es.val, rho = rho)
@@ -220,7 +222,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
       }
       
       ## 6. Export
-      results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, asymptote, rho, theta, is.0))
+      results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, asymptote, f.0, f.1, rho, theta, is.0))
     }
   }
   fwrite(results, estimates.theta.out)  
