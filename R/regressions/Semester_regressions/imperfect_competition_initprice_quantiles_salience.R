@@ -105,7 +105,7 @@ all_pi <- all_pi[cs_price == 1,]
 ### Manually incorporate values needed
 epsilon <- 0.000001
 ed <- 0.54811
-sol <- c(0.02, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
+sol <- c(0.02, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.6459489, 0.7, 0.8, 0.9, 1)
 val.es <- sol*ed / (1- sol)
 
 
