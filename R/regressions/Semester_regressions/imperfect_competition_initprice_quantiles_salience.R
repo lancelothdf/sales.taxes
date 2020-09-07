@@ -1,5 +1,6 @@
 #' Conduct parameter under salience
 #' USe same formula as before but modify estimates scaling by sigma
+#' Don't use uniroot function to solve, is not needed as we are interested in excluding 
 
 library(data.table)
 library(futile.logger)
@@ -29,6 +30,18 @@ pass.through.eq <- function(theta, q1, q2, es, rho){
     return(rho - (es*q1*(q1 + theta))/((q1 + theta)*(es*q1 - 1) - theta*q2*es))
   }
 }
+
+
+## Function that directly solves for theta
+
+theta.direct <- function(q1, q2, es, rho) {
+  if (is.infinite(es)) {
+    return(q1*q1*(1-rho)/((q1-q2)*rho-q1))
+  } else {
+    return(q1*(es*q1-rho*(es*q1-1))/(rho*(es*q1-1)-es*(rho*q2-q1)))
+  }
+}
+
 
 ## input filepaths -----------------------------------------------
 #' This data is the same as all_goods_pi_path, except it has 2015-2016 data as well.
@@ -152,7 +165,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
       solve <- uniroot(asymptote.fun, c(0,1), extendInt="yes", q1 = q1, q2 = q2, es = es.val, tol = .Machine$double.eps^2)
       asymptote <- solve$root
       
-      # 4. Find value of theta smartly
+      # 4. Find value of theta using uniroot smartly
       #Start calculating values at asymptote (each side), 0 and 1
       ub <- asymptote+epsilon
       lb <- asymptote-epsilon
@@ -220,11 +233,12 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
           is.0 <- NA
         }
       }
-      
+      # 5. Find the value of theta solviving directly
+      theta.d <- theta.direct( q1 = q1, q2 = q2, es = es.val, rho = rho)
 
 
       ## 6. Export
-      results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, asymptote, rho, theta, is.0, f.0, f.1, f.l, f.u, l, u, lb, ub))
+      results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, asymptote, rho, theta, is.0, f.0, f.1, f.l, f.u, l, u, lb, ub, theta.d))
       #results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, asymptote, rho, theta, is.0))
     }
   }
