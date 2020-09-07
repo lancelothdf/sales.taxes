@@ -36,9 +36,9 @@ pass.through.eq <- function(theta, q1, q2, es, rho){
 
 theta.direct <- function(q1, q2, es, rho) {
   if (is.infinite(es)) {
-    return(q1*q1*(1-rho)/((q1-q2)*rho-q1))
+    return(q1*q1*(rho)/(q1-(q1-q2)*(1+rho)))
   } else {
-    return(q1*(es*q1-rho*(es*q1-1))/(rho*(es*q1-1)-es*(rho*q2-q1)))
+    return(q1*q1*(rho*es - q1*(1+rho))/((1+rho)*(q1^2-(q1-q2)*es)+q1*es))
   }
 }
 
