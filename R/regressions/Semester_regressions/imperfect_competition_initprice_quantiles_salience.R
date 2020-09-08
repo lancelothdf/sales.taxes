@@ -43,6 +43,16 @@ theta.direct <- function(q1, q2, es, rho) {
     return(ems*(q1*q1+rho*(es - q1))/(ems*(es+q1)+q1*es-rho*(es-ems)))
   }
 }
+theta.direct2 <- function(q1, q2, es, rho) {
+  ems.inv <- (q1-q2)/(q1^2)
+  ed.inv <- - 1/q1
+  
+  if (is.infinite(es)) {
+    return(rho/(-rho*(ems.inv)-(ems.inv+ed.inv)))
+  } else {
+    return((rho*(1-q1/es)-q1/es)/(rho*(1/es-ems.inv)-(ems.inv-1/q1+q1/es)))
+  }
+}
 
 
 ## input filepaths -----------------------------------------------
@@ -237,10 +247,11 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
       # }
       # 5. Find the value of theta solviving directly
       theta <- theta.direct( q1 = q1, q2 = q2, es = es.val, rho = rho)
-
+      theta2 <- theta.direct2( q1 = q1, q2 = q2, es = es.val, rho = rho)
+      
 
       ## 6. Export
-      results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, rho, theta))
+      results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, rho, theta, theta2))
       # results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, asymptote, rho, theta, is.0, f.0, f.1, f.l, f.u, l, u, lb, ub, theta.d))
       #results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, asymptote, rho, theta, is.0))
     }
