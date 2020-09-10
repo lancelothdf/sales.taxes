@@ -254,9 +254,6 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
   all_pi_est[, ex_p := get(paste0("dm.ln_cpricei2_sig", sig)) + log(1+0.05)]
   
   ## Define re-scaled prices to use Bernstein polynomials in that range
-  min.p <- min(all_pi[, min(ex_p)], min.p.or)
-  max.p <- max(all_pi[, max(ex_p)], max.p.or)
-  ## Define re-scaled prices to use Bernstein polynomials in that range
   min.p <- min(all_pi_est[, min(ex_p)], min.p.or)
   max.p <- max(all_pi_est[, max(ex_p)], max.p.or)
   ## Normalize
