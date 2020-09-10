@@ -254,7 +254,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
   }
   
   
-  ### Plus 5 range
+  ##### Plus 5 range case
   extrap <- "plus 5 Tax"
   all_pi_est[, ex_p := get(paste0("dm.ln_cpricei2_sig", sig)) + log(1+0.05)]
   
