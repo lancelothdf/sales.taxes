@@ -105,17 +105,18 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
   pct99 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.99, na.rm = T, weight=base.sales)
   all_pi_est <- all_pi[(get(paste0("dm.ln_cpricei2_sig", sig)) > pct1 & get(paste0("dm.ln_cpricei2_sig", sig)) < pct99),]
 
-
-  ## Define re-scaled prices to use Bernstein polynomials in that range
-  min.p <- all_pi_est[, min(get(paste0("dm.ln_cpricei2_sig", sig)))]
-  max.p <- all_pi_est[, max(get(paste0("dm.ln_cpricei2_sig", sig)))]
+  ###### Original Range
+  extrap <- "Original"
+  ## Normalize
+  min.p.or <- min.p <- all_pi_est[, min(get(paste0("dm.ln_cpricei2_sig", sig)))]
+  max.p.or <- max.p <- all_pi_est[, max(get(paste0("dm.ln_cpricei2_sig", sig)))]
   all_pi_est[, r.dm.ln_cpricei2 := (get(paste0("dm.ln_cpricei2_sig", sig)) - min.p)/(max.p - min.p)]
   
   ## Export values to re-estimate the intercept
   mean.q <- all_pi_est[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
   mean.p <- all_pi_est[, mean(r.dm.ln_cpricei2, weights = base.sales, na.rm = T)]
   
-  estimated.pq <- data.table(mean.q, mean.p, min.p, max.p, sigma = sig)
+  estimated.pq <- data.table(mean.q, mean.p, min.p, max.p, sigma = sig, extrap)
   pq_res <- rbind(pq_res, estimated.pq)
   fwrite(pq_res, pq.output.results.file)
   
@@ -159,6 +160,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
         # Export Calculation
         gamma[, n.groups := n.g]
         gamma[, sigma := sig]
+        gamma[, extrap := "Original"]
         
         ## Read Previous and write
         theta.output.results.file <- paste0(output.path, K,"_bern.csv")
@@ -173,6 +175,165 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
       }
     }
   }
+  
+  
+  ##### No tax Case
+  extrap <- "No Tax"
+  all_pi_est[, ex_p := get(paste0("dm.ln_cpricei2_sig", sig)) - ln_sales_tax]
+  
+  ## Define re-scaled prices to use Bernstein polynomials in that range
+  min.p <- min(all_pi_est[, min(ex_p)], min.p.or)
+  max.p <- max(all_pi_est[, max(ex_p)], max.p.or)
+  ## Normalize
+  min.p.or <- min.p <- all_pi_est[, min(get(paste0("dm.ln_cpricei2_sig", sig)))]
+  max.p.or <- max.p <- all_pi_est[, max(get(paste0("dm.ln_cpricei2_sig", sig)))]
+  all_pi_est[, r.dm.ln_cpricei2 := (get(paste0("dm.ln_cpricei2_sig", sig)) - min.p)/(max.p - min.p)]
+  
+  ## Export values to re-estimate the intercept
+  mean.q <- all_pi_est[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
+  mean.p <- all_pi_est[, mean(r.dm.ln_cpricei2, weights = base.sales, na.rm = T)]
+  
+  estimated.pq <- data.table(mean.q, mean.p, min.p, max.p, sigma = sig, extrap)
+  pq_res <- rbind(pq_res, estimated.pq)
+  fwrite(pq_res, pq.output.results.file)
+  
+  for (n.g in 1:2) {
+    
+    
+    # Create groups of initial values of tax rate
+    # We use the full weighted distribution
+    all_pi_est <- all_pi_est[, quantile := cut(get(paste0("dm.L.ln_cpricei2_sig", sig)),
+                                               breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/2), na.rm = T, weight = base.sales),
+                                               labels = 1:2, right = FALSE)]
+    quantlab <- round(quantile(all_pi_est[[paste0("dm.L.ln_cpricei2_sig", sig)]], 
+                               probs = seq(0, 1, by = 1/2), na.rm = T, 
+                               weight = all_pi_est$base.sales), digits = 4)
+    
+    ## Do partial identification
+    ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
+    # Get the empirical distribution of prices by quantile
+    all_pi_est[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
+    all_pi_est[, p_group := floor((r.dm.ln_cpricei2 - min(r.dm.ln_cpricei2, na.rm = T))/((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/100)), by = .(quantile)]
+    all_pi_est[, p_ll := p_group*((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
+    all_pi_est[, p_ll := p_ll + min(r.dm.ln_cpricei2, na.rm = T), by = .(quantile)]
+    all_pi_est[, p_ul := p_ll + ((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
+    
+    ed.price.quantile <- all_pi_est[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
+    ed.price.quantile[, p_m := (p_ul+p_ll)/2]
+    
+    #### Matrices of Polynomials for Elasticity: elasticity is itself a bernstein Polynomial
+    for (K in (n.g):10) {
+      
+      if (K>1){
+        # Create the derivative of the polynomial of prices and multiplicate by weights
+        for (n in 0:(K-1)){
+          ed.price.quantile[, paste0("b",n) := w1*(bernstein(p_m,n,K-1))]
+        }
+        
+        # Calculate integral
+        gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",0:(K-1))]
+        gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
+        
+        # Export Calculation
+        gamma[, n.groups := n.g]
+        gamma[, sigma := sig]
+        gamma[, extrap := "No Tax"]
+        
+        ## Read Previous and write
+        theta.output.results.file <- paste0(output.path, K,"_bern.csv")
+        
+        if (n.g == 1 & sig == 0.25) {
+          fwrite(gamma, theta.output.results.file)
+        } else {
+          previous.data <- fread(theta.output.results.file)
+          previous.data <- rbind(previous.data, gamma)
+          fwrite(previous.data, theta.output.results.file)
+        }
+      }
+    }
+  }
+  
+  
+  ### Plus 5 range
+  extrap <- "plus 5 Tax"
+  all_pi_est[, ex_p := get(paste0("dm.ln_cpricei2_sig", sig)) + log(1+0.05)]
+  
+  ## Define re-scaled prices to use Bernstein polynomials in that range
+  min.p <- min(all_pi[, min(ex_p)], min.p.or)
+  max.p <- max(all_pi[, max(ex_p)], max.p.or)
+  ## Define re-scaled prices to use Bernstein polynomials in that range
+  min.p <- min(all_pi_est[, min(ex_p)], min.p.or)
+  max.p <- max(all_pi_est[, max(ex_p)], max.p.or)
+  ## Normalize
+  min.p.or <- min.p <- all_pi_est[, min(get(paste0("dm.ln_cpricei2_sig", sig)))]
+  max.p.or <- max.p <- all_pi_est[, max(get(paste0("dm.ln_cpricei2_sig", sig)))]
+  all_pi_est[, r.dm.ln_cpricei2 := (get(paste0("dm.ln_cpricei2_sig", sig)) - min.p)/(max.p - min.p)]
+  
+  ## Export values to re-estimate the intercept
+  mean.q <- all_pi_est[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
+  mean.p <- all_pi_est[, mean(r.dm.ln_cpricei2, weights = base.sales, na.rm = T)]
+  
+  estimated.pq <- data.table(mean.q, mean.p, min.p, max.p, sigma = sig, extrap)
+  pq_res <- rbind(pq_res, estimated.pq)
+  fwrite(pq_res, pq.output.results.file)
+  
+  for (n.g in 1:2) {
+    
+    
+    # Create groups of initial values of tax rate
+    # We use the full weighted distribution
+    all_pi_est <- all_pi_est[, quantile := cut(get(paste0("dm.L.ln_cpricei2_sig", sig)),
+                                               breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/2), na.rm = T, weight = base.sales),
+                                               labels = 1:2, right = FALSE)]
+    quantlab <- round(quantile(all_pi_est[[paste0("dm.L.ln_cpricei2_sig", sig)]], 
+                               probs = seq(0, 1, by = 1/2), na.rm = T, 
+                               weight = all_pi_est$base.sales), digits = 4)
+    
+    ## Do partial identification
+    ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
+    # Get the empirical distribution of prices by quantile
+    all_pi_est[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
+    all_pi_est[, p_group := floor((r.dm.ln_cpricei2 - min(r.dm.ln_cpricei2, na.rm = T))/((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/100)), by = .(quantile)]
+    all_pi_est[, p_ll := p_group*((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
+    all_pi_est[, p_ll := p_ll + min(r.dm.ln_cpricei2, na.rm = T), by = .(quantile)]
+    all_pi_est[, p_ul := p_ll + ((max(r.dm.ln_cpricei2, na.rm = T)-min(r.dm.ln_cpricei2, na.rm = T))/100), by = .(quantile)]
+    
+    ed.price.quantile <- all_pi_est[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
+    ed.price.quantile[, p_m := (p_ul+p_ll)/2]
+    
+    #### Matrices of Polynomials for Elasticity: elasticity is itself a bernstein Polynomial
+    for (K in (n.g):10) {
+      
+      if (K>1){
+        # Create the derivative of the polynomial of prices and multiplicate by weights
+        for (n in 0:(K-1)){
+          ed.price.quantile[, paste0("b",n) := w1*(bernstein(p_m,n,K-1))]
+        }
+        
+        # Calculate integral
+        gamma <- ed.price.quantile[ , lapply(.SD, sum), by = .(quantile), .SDcols = paste0("b",0:(K-1))]
+        gamma <- gamma[!is.na(quantile),][order(quantile)][, -c("quantile")]
+        
+        # Export Calculation
+        gamma[, n.groups := n.g]
+        gamma[, sigma := sig]
+        gamma[, extrap := "plus 5 Tax"]
+        
+        ## Read Previous and write
+        theta.output.results.file <- paste0(output.path, K,"_bern.csv")
+        
+        if (n.g == 1 & sig == 0.25) {
+          fwrite(gamma, theta.output.results.file)
+        } else {
+          previous.data <- fread(theta.output.results.file)
+          previous.data <- rbind(previous.data, gamma)
+          fwrite(previous.data, theta.output.results.file)
+        }
+      }
+    }
+  }
+  
+  
 }
 
   
