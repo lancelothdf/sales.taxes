@@ -33,24 +33,13 @@ pass.through.eq <- function(theta, q1, q2, es, rho){
 
 
 ## Function that directly solves for theta
-
-theta.direct <- function(q1, q2, es, rho) {
-  ems <- (q1^2)/(q1-q2)
-
-  if (is.infinite(es)) {
-    return(ems*(1+rho-q1)/(ems-1-rho))
-  } else {
-    return(ems*(q1*q1+rho*(es - q1))/(ems*(es+q1)+q1*es-rho*(es-ems)))
-  }
-}
-theta.direct2 <- function(q1, q2, es, rho) {
+theta.direct <- function(q1, q2, es, rho, sigma) {
   ems.inv <- (q1-q2)/(q1^2)
-  ed.inv <- - 1/q1
-  
+
   if (is.infinite(es)) {
-    return(rho/(-rho*(ems.inv)-(ems.inv+ed.inv)))
+    return((1-rho)/(rho*(ems.inv)-sigma/q1-(1-sigma)*ems.inv))
   } else {
-    return((rho*(1-q1/es)-q1/es)/(rho*(1/es-ems.inv)-(ems.inv-1/q1+q1/es)))
+    return((1-(1-sigma)*q1/es-rho*(1-q1/es))/(rho*(ems.inv-1/es)-sigma/q1+(1-sigma)*(1/es-ems.inv)))
   }
 }
 
@@ -145,14 +134,14 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
   all_pi_est <- all_pi[(get(paste0("dm.ln_cpricei2_sig", sig)) > pct1 & get(paste0("dm.ln_cpricei2_sig", sig)) < pct99),]
   
   # Prices to evaluate the function
-  pctiles <- seq(0,1,0.1)
+  pctiles <- seq(0,1,0.01)
   values <- round(quantile(all_pi_est[[paste0("dm.ln_cpricei2_sig", sig)]], 
                            probs = pctiles, na.rm = T, 
-                           weight = all_pi_est$base.sales), digits = 4)
+                           weight = all_pi_est$base.sales), digits = 6)
   prices <- (values[-1] + values[-length(values)])/2 # find the mid point
   
   ## Capture passthorugh
-  rho <- 0.0508/sig #estimated effect on producer price
+  rho <- 1.0508 #estimated effect on producer price
   ## Capture estimated demand
   demand <- betas.old[sigma == sig][["beta_hat"]]
 
@@ -246,12 +235,11 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
       #   }
       # }
       # 5. Find the value of theta solviving directly
-      theta <- theta.direct( q1 = q1, q2 = q2, es = es.val, rho = rho)
-      theta2 <- theta.direct2( q1 = q1, q2 = q2, es = es.val, rho = rho)
-      
+      theta <- theta.direct( q1 = q1, q2 = q2, es = es.val, rho = rho, sigma = sig)
+
 
       ## 6. Export
-      results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, rho, theta, theta2))
+      results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, rho, theta))
       # results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, asymptote, rho, theta, is.0, f.0, f.1, f.l, f.u, l, u, lb, ub, theta.d))
       #results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, asymptote, rho, theta, is.0))
     }
