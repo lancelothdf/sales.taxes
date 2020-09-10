@@ -241,14 +241,9 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
         
         ## Read Previous and write
         theta.output.results.file <- paste0(output.path, K,"_bern.csv")
-        
-        if (n.g == 1 & sig == 0.25) {
-          fwrite(gamma, theta.output.results.file)
-        } else {
-          previous.data <- fread(theta.output.results.file)
-          previous.data <- rbind(previous.data, gamma)
-          fwrite(previous.data, theta.output.results.file)
-        }
+        previous.data <- fread(theta.output.results.file)
+        previous.data <- rbind(previous.data, gamma)
+        fwrite(previous.data, theta.output.results.file)
       }
     }
   }
@@ -321,14 +316,10 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
         
         ## Read Previous and write
         theta.output.results.file <- paste0(output.path, K,"_bern.csv")
-        
-        if (n.g == 1 & sig == 0.25) {
-          fwrite(gamma, theta.output.results.file)
-        } else {
-          previous.data <- fread(theta.output.results.file)
-          previous.data <- rbind(previous.data, gamma)
-          fwrite(previous.data, theta.output.results.file)
-        }
+        previous.data <- fread(theta.output.results.file)
+        previous.data <- rbind(previous.data, gamma)
+        fwrite(previous.data, theta.output.results.file)
+      
       }
     }
   }
