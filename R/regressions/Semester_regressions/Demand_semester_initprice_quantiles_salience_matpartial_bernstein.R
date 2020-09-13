@@ -126,10 +126,10 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     # Create groups of initial values of tax rate
     # We use the full weighted distribution
     all_pi_est <- all_pi_est[, quantile := cut(get(paste0("dm.L.ln_cpricei2_sig", sig)),
-                                               breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/2), na.rm = T, weight = base.sales),
-                                               labels = 1:2, right = FALSE)]
+                                               breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
+                                               labels = 1:n.g, right = FALSE)]
     quantlab <- round(quantile(all_pi_est[[paste0("dm.L.ln_cpricei2_sig", sig)]], 
-                               probs = seq(0, 1, by = 1/2), na.rm = T, 
+                               probs = seq(0, 1, by = 1/n.g), na.rm = T, 
                                weight = all_pi_est$base.sales), digits = 4)
     
     ## Do partial identification
@@ -185,8 +185,6 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
   min.p <- min(all_pi_est[, min(ex_p)], min.p.or)
   max.p <- max(all_pi_est[, max(ex_p)], max.p.or)
   ## Normalize
-  min.p.or <- min.p <- all_pi_est[, min(get(paste0("dm.ln_cpricei2_sig", sig)))]
-  max.p.or <- max.p <- all_pi_est[, max(get(paste0("dm.ln_cpricei2_sig", sig)))]
   all_pi_est[, r.dm.ln_cpricei2 := (get(paste0("dm.ln_cpricei2_sig", sig)) - min.p)/(max.p - min.p)]
   
   ## Export values to re-estimate the intercept
@@ -203,10 +201,10 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     # Create groups of initial values of tax rate
     # We use the full weighted distribution
     all_pi_est <- all_pi_est[, quantile := cut(get(paste0("dm.L.ln_cpricei2_sig", sig)),
-                                               breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/2), na.rm = T, weight = base.sales),
-                                               labels = 1:2, right = FALSE)]
+                                               breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
+                                               labels = 1:n.g, right = FALSE)]
     quantlab <- round(quantile(all_pi_est[[paste0("dm.L.ln_cpricei2_sig", sig)]], 
-                               probs = seq(0, 1, by = 1/2), na.rm = T, 
+                               probs = seq(0, 1, by = 1/n.g), na.rm = T, 
                                weight = all_pi_est$base.sales), digits = 4)
     
     ## Do partial identification
@@ -257,8 +255,6 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
   min.p <- min(all_pi_est[, min(ex_p)], min.p.or)
   max.p <- max(all_pi_est[, max(ex_p)], max.p.or)
   ## Normalize
-  min.p.or <- min.p <- all_pi_est[, min(get(paste0("dm.ln_cpricei2_sig", sig)))]
-  max.p.or <- max.p <- all_pi_est[, max(get(paste0("dm.ln_cpricei2_sig", sig)))]
   all_pi_est[, r.dm.ln_cpricei2 := (get(paste0("dm.ln_cpricei2_sig", sig)) - min.p)/(max.p - min.p)]
   
   ## Export values to re-estimate the intercept
@@ -275,10 +271,10 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     # Create groups of initial values of tax rate
     # We use the full weighted distribution
     all_pi_est <- all_pi_est[, quantile := cut(get(paste0("dm.L.ln_cpricei2_sig", sig)),
-                                               breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/2), na.rm = T, weight = base.sales),
-                                               labels = 1:2, right = FALSE)]
+                                               breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
+                                               labels = 1:n.g, right = FALSE)]
     quantlab <- round(quantile(all_pi_est[[paste0("dm.L.ln_cpricei2_sig", sig)]], 
-                               probs = seq(0, 1, by = 1/2), na.rm = T, 
+                               probs = seq(0, 1, by = 1/n.g), na.rm = T, 
                                weight = all_pi_est$base.sales), digits = 4)
     
     ## Do partial identification
