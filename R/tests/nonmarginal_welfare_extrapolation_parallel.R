@@ -181,7 +181,7 @@ for (sc in scenarios) {
           
           ## F Loop across states
           ## A4. Loop across states
-          welfare.st <- foreach (state= states.test, .combine=rbind, .verbose = T) %dopar% {
+          welfare.st <- foreach (state= states.test, .errorhandling = "pass", .verbose = T) %dopar% {
             
             # F1. Subset data
             st.data <- data[fips_state == state,]
@@ -252,6 +252,10 @@ for (sc in scenarios) {
             data.table(down, up, state, sc, D , K, sigma = sig, theta, s1, s2, it1, it2, ConsChckDown, ConsChckUp)
             
           }
+          print(welfare.st)
+          
+          welfare.st <- data.table(Reduce(rbind,welfare.st[-which(unlist(lapply(welfare.st, is.character)))]))
+
           results.nonmarginal <- rbind(results.nonmarginal, welfare.st)
           fwrite(results.nonmarginal, out.file.nonmarginal)
           
