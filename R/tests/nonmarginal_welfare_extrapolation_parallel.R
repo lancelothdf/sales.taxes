@@ -113,7 +113,8 @@ scenarios <- c("No Tax", "plus 5 Tax")
 nlo.opts.local.df <- list(
   "algorithm"="NLOPT_LN_COBYLA",
   "maxeval" = 150000,
-  "xtol_rel"=1.0e-8
+  "xtol_rel"=1.0e-8,
+  "print_level" = 3
 )
 
 # Options for Gurobi's min criterion calculation
@@ -180,7 +181,7 @@ for (sc in scenarios) {
           
           ## F Loop across states
           ## A4. Loop across states
-          welfare.st <- foreach (state= states.test, .combine=rbind) %dopar% {
+          welfare.st <- foreach (state= states.test, .combine=rbind, .verbose = T) %dopar% {
             
             # F1. Subset data
             st.data <- data[fips_state == state,]
