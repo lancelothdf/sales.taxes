@@ -129,11 +129,11 @@ for (K in K.test) {
     i <- i + 1
     thetas.test <- thetas.list[[i]]
     ## C.1 Extract support to use
-    p.min <- res.pq[extrap == sc & sigma == sig][["min.p"]]
-    p.max <- res.pq[extrap == sc & sigma == sig][["max.p"]]
+    p.min <- res.pq[extrap == "Original" & sigma == sig][["min.p"]]
+    p.max <- res.pq[extrap == "Original" & sigma == sig][["max.p"]]
     
     ## C.2 Restrict gamma file. Constant across p
-    gamma <- gamma.full.data[extrap == sc & n.groups < 3 & sigma == sig][, c(paste0("b", 0:(K-1)), "n.groups"), with = F]             ## For elasticity
+    gamma <- gamma.full.data[extrap == "Original" & n.groups < 3 & sigma == sig][, c(paste0("b", 0:(K-1)), "n.groups"), with = F]             ## For elasticity
     
     ## D Start Loop at number of groups
     for (D in unique(gamma$n.groups)) {
