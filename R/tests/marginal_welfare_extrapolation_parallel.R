@@ -13,7 +13,6 @@ library(nloptr)
 library(doParallel)
 library(MASS)
 library(pracma)
-library(gurobi)
 
 setwd("/project2/igaarder")
 
@@ -87,6 +86,9 @@ res.ivs <- rbind(IVs1, IVs2)
 res.ivs <- res.ivs[order(sigma, n.groups, lev)]
 rm(IVs, IVs1, IVs2)
 
+## 5. Load min criteria
+min.criteria <- fread("Data/mincriteria_all.csv")
+setnames(min.criteria, c("K", "D"), c("Degree", "L"))
 
 ## 5. Open Min - Max files
 res.pq <- fread("Data/Demand_pq_sat_initial_price_semester_salience.csv")
@@ -142,31 +144,8 @@ for (K in K.test) {
       ## D2. Retrieve IVs
       IVs <- res.ivs[n.groups == D  & sigma == sig][["Estimate"]] 
       
-      ## D3. Estimate min.criterion for case (note that if there is no value it is 0)
-      constr.mono <- Diagonal(ncol(constr))
-      RHS.mono <- rep(0, K)
-      
-      # D3a. Define the problem
-      min.crit <- list() 
-      min.crit$A <- rbind(cbind(Diagonal(nrow(constr)), constr), 
-                          cbind(Diagonal(nrow(constr)), -constr),
-                          cbind(matrix(0, nrow(constr.mono), nrow(constr)), constr.mono)
-      )
-      min.crit$rhs <- c(IVs, -IVs, RHS.mono)
-      min.crit$sense <- c( rep('>=', 2*length(IVs)), rep('<=',K))
-      min.crit$obj <- c(rep(1, nrow(constr)), rep(0, ncol(constr)))
-      min.crit$lb <- c(rep(0, nrow(constr)), rep(-Inf, ncol(constr)))  
-      min.crit$modelsense <- 'min'
-      
-      # D3b. Solve for the minimum criterion
-      min.crit.sol <- gurobi(min.crit)
-      
-      # D3c. Get the minimum criterion estimated and modify the setting of the problem
-      mc <- min.crit.sol$objval
-      
-      # D3d. Export the min creterion for each case to check
-      mincriteria <- rbind(mincriteria, data.table(min.criteria = mc, D, K, sigma = sig))
-      fwrite(mincriteria, out.file.mincriteria)
+      ## D3. Load min.criterion for case
+      mc <- min.criteria[Degree == K & L == D & sigma == sig & extrap == sc,][["min.criteria"]]
       
       ## D4. Generate an initial value somewhere in the middle to test algorithms
       init.old<- init.val0 <- get.init.val(constr, IVs, mc)
