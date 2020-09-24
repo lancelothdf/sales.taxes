@@ -19,7 +19,7 @@ setwd("/project2/igaarder")
 source("Code/sales.taxes/R/tests/welfare_formulae_nlopt.R")
 
 ## Output files
-out.file.nonmarginal <- "Data/nonmarginal_hypothetical_def2.csv"
+out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state.csv"
 out.file.mincriteria <- "Data/mincriteria_nonmarginal.csv"
 
 
@@ -47,13 +47,14 @@ thetas.list$s50 <- c(0, 0.018501935, 0.202776786)
 thetas.list$s75 <- c(0, 0.008007016, 0.102212766)
 thetas.list$s100 <- c(0, 0.004861793, 0.066616166)
 
+states.test <- unique(data$fips_state)
 
 #### Estimates for Linear Case
 results.nonmarginal <- data.table(NULL)
 # FOR LINEAR Estimates we don't need to normalize!!! The coefficient is directly interpretable (contrary to non-linear, where matrices are normalized)
 min <- 0
 max <- 1
-for (state in 1:nrow(hypot.data)) {
+for (state in states.test) {
   data.st <- data[fips_state == state,]
   i <- 0
   for (sig in sigmas.test) {
@@ -106,7 +107,6 @@ setnames(min.criteria, c("K", "D"), c("Degree", "L"))
 ## 6. Set up Ks
 # K.test <- c(7,10)
 K.test <- c(2, 8)
-states.test <- unique(data$fips_state)
 scenarios <- c("No Tax", "plus 5 Tax")
 
 ## 7. Set up Optimization Parameters (algorithm for now)
