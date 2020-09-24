@@ -145,7 +145,7 @@ for (K in K.test) {
       IVs <- res.ivs[n.groups == D  & sigma == sig][["Estimate"]] 
       
       ## D3. Load min.criterion for case
-      mc <- min.criteria[Degree == K & L == D & sigma == sig & extrap == sc,][["min.criteria"]]
+      mc <- min.criteria[Degree == K & L == D & sigma == sig & extrap == "Original",][["min.criteria"]]
       
       ## D4. Generate an initial value somewhere in the middle to test algorithms
       init.old<- init.val0 <- get.init.val(constr, IVs, mc)
