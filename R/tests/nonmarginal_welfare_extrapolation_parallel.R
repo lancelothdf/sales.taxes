@@ -105,26 +105,17 @@ setnames(min.criteria, c("K", "D"), c("Degree", "L"))
 
 
 ## 6. Set up Ks
-# K.test <- c(7,10)
 K.test <- c(2, 8)
+#K.test <- 8
 scenarios <- c("No Tax", "plus 5 Tax")
 
 ## 7. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
   "algorithm"="NLOPT_LN_COBYLA",
   "maxeval" = 150000,
-  "xtol_rel"=1.0e-8,
-  "print_level" = 3
+  "xtol_rel"=1.0e-8
 )
 
-# Options for Gurobi's min criterion calculation
-params <- list()
-params$NumericFocus <- 3
-params$ScaleFlag <- 2
-params$Method <- 1
-params$Presolve <- 0
-tolerance <- 1e-6
-params$FeasibilityTol <- tolerance
 
 for (sc in scenarios) {
   
@@ -157,7 +148,7 @@ for (sc in scenarios) {
       gamma <- gamma.full.data[extrap == sc & n.groups < 3 & sigma == sig][, c(paste0("b", 0:(K-1)), "n.groups"), with = F]             ## For elasticity
       
       ## D Start Loop at number of groups
-      for (D in unique(gamma$n.groups)) {
+      for (D in 2) { #unique(gamma$n.groups)
         
         ## D1. Build the constraints matrix 
         constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")])   ## For elasticity
@@ -181,10 +172,13 @@ for (sc in scenarios) {
           
           ## F Loop across states
           ## A4. Loop across states
-          welfare.st <- foreach (state= states.test, .errorhandling = "pass", .verbose = T) %dopar% {
+          welfare.st <- foreach (state= states.test) %dopar% {
             
             # F1. Subset data
             st.data <- data[fips_state == state,]
+            
+            print(non.marginal.change())
+            
             # F2. Non Marginal change
             # B3 Run minimization: derivative free 
             res0 <- nloptr( x0=init.val0,
@@ -200,8 +194,6 @@ for (sc in scenarios) {
                             w = "eta_m", 
                             min = p.min, 
                             max = p.max,
-                            np = 0, 
-                            nd = 1,
                             constr_mat = constr, 
                             IV_mat = IVs, 
                             min.crit = mc,
@@ -233,8 +225,6 @@ for (sc in scenarios) {
                             w = "eta_m", 
                             min = p.min, 
                             max = p.max,
-                            np = 0, 
-                            nd = 1,
                             constr_mat = constr, 
                             IV_mat = IVs, 
                             min.crit = mc,

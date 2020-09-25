@@ -134,15 +134,19 @@ implied.mu0 <- function(p, t, sigma, mu, min, max, n.value) {
 }
 
 # Non-Marginal change function
-non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max, np = 0, nd = 1, constr_mat, IV_mat, min.crit = 0, elas = T) {
+non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
   
-  # Normalize to get a value of \mu_0: use np and nd values
-  mu0 <- implied.mu0(np, t = 0, sigma = sigma, mu, min, max, nd)
-
+  # Normalize to get a value of \mu_0: set to NULL we know is the same
+  mu0 <- NULL
+  
   # Use vectors 
   ll <- exp(data[[t0]])-1
   ul <- exp(data[[t1]])-1
   p <- data[[pp]]
+  
+  # Calculate initial demand
+  #print(mu0)
+  init.dem <- (demand(p, ll, sigma, mu, mu0, min, max))
   
   # Put together and transform to list
   X <- rbind(ll, ul, p)
@@ -161,8 +165,9 @@ non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max,
               max = max,
               mu0 = mu0)$value, mu = mu, sigma = sigma, theta = theta, min = min, max = max, mu0 = mu0)
   # divide numerator by initial demand
-  numer.vector <- int.num/(demand(p, ll, sigma, mu, mu0, min, max))
-  
+  numer.vector <- int.num/init.dem
+
+    
   ## OLD
   # # Denominator
   # denom.vector <- ul*(demand(p, ul, sigma, mu, mu0, min, max)/demand(p, ll, sigma, mu, mu0, min, max)) - ll
@@ -178,9 +183,9 @@ non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max,
               min = min, 
               max = max,
               mu0 = mu0)$value, mu = mu, sigma = sigma, min = min, max = max, mu0 = mu0)
-  denom.vector <- int.den/(demand(p, ll, sigma, mu, mu0, min, max))
-  
-  
+  denom.vector <- int.den/init.dem
+
+    
   # Get weighted average
   w <- data[[w]]
   return(weighted.mean(numer.vector, w = w)/(weighted.mean(denom.vector, w = w)))
@@ -190,7 +195,7 @@ max.marginal.change <- function(mu, data, pp, tau, theta, sigma, w, min, max, co
   return(-marginal.change(mu, data, pp, tau, theta, sigma, w, min, max, constr_mat, IV_mat, min.crit, elas))
 }
 
-max.non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max, np = 0, nd = 1, constr_mat, IV_mat, min.crit = 0, elas = T) {
+max.non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
   return(-non.marginal.change(mu, data, pp, t0, t1, theta, sigma, w, min, max, np, nd, constr_mat, IV_mat, min.crit, elas))
 }
 
@@ -280,7 +285,7 @@ eval_restrictions_j_marg <- function(mu, data, pp, tau, theta, sigma, w, min, ma
   return(as.matrix(constr.jac))
 }
 ## Function for constraint: includes the arguments from evaluation function even if not needed so it runs
-eval_restrictions_nmarg <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max, np = 0, nd = 1, constr_mat, IV_mat, min.crit = 0, elas = T) {
+eval_restrictions_nmarg <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
   
   return(
     as.matrix(
@@ -292,7 +297,7 @@ eval_restrictions_nmarg <- function(mu, data, pp, t0, t1, theta, sigma, w, min, 
   )
 }
 ## Function for jacobian
-eval_restrictions_j_nmarg <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max, np = 0, nd = 1, constr_mat, IV_mat, min.crit = 0, elas = T) {
+eval_restrictions_j_nmarg <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
   
   constr.jac <- NULL
   for (k in 1:K) {
@@ -330,9 +335,6 @@ get.init.val <- function(A, b, min.c, max = 1000) {
     for (d in 1:dim(kernel)[2]) {
       ker <- as.vector(kernel[,d])
       i <- 0
-      print(paste0("Attempt ", i, ":"))
-      print(init)
-      print(ker)
       while (srv & i < max) {
         i <- i + 1
         s <- sign(ker[which(init == max(init))])
@@ -346,8 +348,6 @@ get.init.val <- function(A, b, min.c, max = 1000) {
             (init < 0)*rep(sum(init < 0)*min.c/(d), length(init))          
         }
         if (i < 11 & round(5*i/max) == 5*i/max) {
-          print(paste0("Attempt ", i, ":"))
-          print(init)
         } 
         srv <- (sum(init> 0) > 0)
       }
@@ -365,6 +365,7 @@ get.init.val <- function(A, b, min.c, max = 1000) {
       }
     }
     else {
+      print(init)
       return(init)
     }
   }

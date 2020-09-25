@@ -135,7 +135,7 @@ for (sc in scenarios) {
         mc <- min.criteria[Degree == K & L == D & sigma == sig & extrap == sc,][["min.criteria"]]
         
         ## D4. Generate an initial value somewhere in the middle to test algorithms
-        init.old<- init.val0 <- get.init.val(constr, IVs, mc)
+        init.val0 <- get.init.val(constr, IVs, mc)
         print(init.val0)
         print(constr)
         print(IVs)
