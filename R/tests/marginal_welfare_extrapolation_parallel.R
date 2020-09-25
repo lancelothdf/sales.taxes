@@ -20,7 +20,7 @@ setwd("/project2/igaarder")
 source("Code/sales.taxes/R/tests/welfare_formulae_nlopt.R")
 
 ## Output files
-out.file.marginal <- "Data/marginal_extrapoaltion_state.csv"
+out.file.marginal <- "Data/marginal_extrapoaltion_state_p2.csv"
 out.file.mincriteria <- "Data/mincriteria_marginal.csv"
 
 
@@ -53,25 +53,25 @@ states.test <- unique(data$fips_state)
 #### Estimates for Linear Case
 results.marginal <- data.table(NULL)
 # FOR LINEAR Estimates we don't need to normalize!!! The coefficient is directly interpretable (contrary to non-linear, where matrices are normalized)
-min <- 0
-max <- 1
-for (state in states.test) {
-  data.st <- data[fips_state == state,]
-  i <- 0
-  for (sig in sigmas.test) {
-    i <- i + 1
-    thetas.test <- thetas.list[[i]]
-    for (theta in thetas.test) {
-      ## Capture min/max and coef in lin case
-      lin <- IVs[outcome == "IV" & sigma == sig][["Estimate"]]
-      
-      ## Marginal Change
-      up <- down <- marginal.change(lin, data.st, "p_cml", "tau", theta, sig, "eta_m", min, max, 0, 0) 
-      results.marginal<- rbind(results.marginal, data.table(state, down, up, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1))
-      
-    }
-  }
-}
+# min <- 0
+# max <- 1
+# for (state in states.test) {
+#   data.st <- data[fips_state == state,]
+#   i <- 0
+#   for (sig in sigmas.test) {
+#     i <- i + 1
+#     thetas.test <- thetas.list[[i]]
+#     for (theta in thetas.test) {
+#       ## Capture min/max and coef in lin case
+#       lin <- IVs[outcome == "IV" & sigma == sig][["Estimate"]]
+#       
+#       ## Marginal Change
+#       up <- down <- marginal.change(lin, data.st, "p_cml", "tau", theta, sig, "eta_m", min, max, 0, 0) 
+#       results.marginal<- rbind(results.marginal, data.table(state, down, up, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1))
+#       
+#     }
+#   }
+# }
 
 
 ## 4. Set up IV estimates for each sigma
@@ -97,7 +97,8 @@ res.pq <- fread("Data/Demand_pq_sat_initial_price_semester_salience.csv")
 
 ## 6. Set up Ks
 # K.test <- c(7,10)
-K.test <- c(2, 8)
+#K.test <- c(2, 8)
+K.test <- 8
 
 ## 7. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
@@ -136,7 +137,7 @@ for (K in K.test) {
     gamma <- gamma.full.data[extrap == "Original" & n.groups < 3 & sigma == sig][, c(paste0("b", 0:(K-1)), "n.groups"), with = F]             ## For elasticity
     
     ## D Start Loop at number of groups
-    for (D in unique(gamma$n.groups)) {
+    for (D in 2) { #unique(gamma$n.groups)
       
       ## D1. Build the constraints matrix 
       constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")])   ## For elasticity
