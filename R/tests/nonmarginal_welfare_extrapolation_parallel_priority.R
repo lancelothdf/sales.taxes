@@ -1,6 +1,6 @@
 ## Welfare Extrapolations actual data
 # Non-Marginal Case
-
+# Priority Cases
 
 library(Matrix)
 library(data.table)
@@ -19,7 +19,7 @@ setwd("/project2/igaarder")
 source("Code/sales.taxes/R/tests/welfare_formulae_nlopt.R")
 
 ## Output files
-out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state.csv"
+out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priority.csv"
 
 
 # 0. Parallelize options
@@ -41,10 +41,14 @@ IVs <- IVs[controls == "division_by_module_by_time"]
 sigmas.test <- c(0.25, 0.5, 0.75, 1)
 
 thetas.list <- list()
-thetas.list$s25 <- c(0, 0.058897778, 0.564015475)
-thetas.list$s50 <- c(0, 0.018501935, 0.202776786)
-thetas.list$s75 <- c(0, 0.008007016, 0.102212766)
-thetas.list$s100 <- c(0, 0.004861793, 0.066616166)
+# thetas.list$s25 <- c(0, 0.058897778, 0.564015475)
+# thetas.list$s50 <- c(0, 0.018501935, 0.202776786)
+# thetas.list$s75 <- c(0, 0.008007016, 0.102212766)
+# thetas.list$s100 <- c(0, 0.004861793, 0.066616166)
+thetas.list$s25 <- c(0)
+thetas.list$s50 <- c(0)
+thetas.list$s75 <- c(0)
+thetas.list$s100 <- c(0, 0.066616166)
 
 states.test <- unique(data$fips_state)
 
@@ -239,7 +243,6 @@ for (sc in scenarios) {
             data.table(down, up, state, sc, D , K, sigma = sig, theta, s1, s2, it1, it2, ConsChckDown, ConsChckUp)
             
           }
-
           results.nonmarginal <- rbind(results.nonmarginal, welfare.st)
           fwrite(results.nonmarginal, out.file.nonmarginal)
           
