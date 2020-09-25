@@ -21,7 +21,6 @@ source("Code/sales.taxes/R/tests/welfare_formulae_nlopt.R")
 
 ## Output files
 out.file.marginal <- "Data/marginal_extrapoaltion_state_p2.csv"
-out.file.mincriteria <- "Data/mincriteria_marginal.csv"
 
 
 # 0. Parallelize options
