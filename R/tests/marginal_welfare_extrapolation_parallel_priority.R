@@ -100,8 +100,8 @@ res.pq <- fread("Data/Demand_pq_sat_initial_price_semester_salience.csv")
 
 ## 6. Set up Ks
 # K.test <- c(7,10)
-#K.test <- c(2, 8)
-K.test <- 8
+K.test <- c(2, 8)
+#K.test <- 8
 
 ## 7. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
