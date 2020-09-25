@@ -64,6 +64,10 @@ marginal.change <- function(mu, data, pp, tau, theta, sigma, w, min, max, constr
   w <- data[[w]]
   return(weighted.mean(numer.vector, w = w)/(1-weighted.mean(denom.vector, w = w)))
 }
+
+max.marginal.change <- function(mu, data, pp, tau, theta, sigma, w, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
+  return(-marginal.change(mu, data, pp, tau, theta, sigma, w, min, max, constr_mat, IV_mat, min.crit, elas))
+}
   
 ### Non-Marginal changes
 
@@ -191,12 +195,10 @@ non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max,
   return(weighted.mean(numer.vector, w = w)/(weighted.mean(denom.vector, w = w)))
 }
 
-max.marginal.change <- function(mu, data, pp, tau, theta, sigma, w, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
-  return(-marginal.change(mu, data, pp, tau, theta, sigma, w, min, max, constr_mat, IV_mat, min.crit, elas))
-}
+
 
 max.non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
-  return(-non.marginal.change(mu, data, pp, t0, t1, theta, sigma, w, min, max, np, nd, constr_mat, IV_mat, min.crit, elas))
+  return(-non.marginal.change(mu, data, pp, t0, t1, theta, sigma, w, min, max, constr_mat, IV_mat, min.crit, elas))
 }
 
 
