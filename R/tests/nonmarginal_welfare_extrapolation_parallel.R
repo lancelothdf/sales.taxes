@@ -20,7 +20,6 @@ source("Code/sales.taxes/R/tests/welfare_formulae_nlopt.R")
 
 ## Output files
 out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state.csv"
-out.file.mincriteria <- "Data/mincriteria_nonmarginal.csv"
 
 
 # 0. Parallelize options
@@ -68,14 +67,14 @@ for (state in states.test) {
       t0 <- "tauno"
       t1 <- "tau"
       sc <- "No Tax"
-      up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, np = 0, nd = 1, 0, 0)
+      up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
       results.nonmarginal<- rbind(results.nonmarginal, data.table(state, down, up, sc, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1, it1 = 0, it2 = 0, ConsChckUp = 1, ConsChckDown = 1))
       
       
       t0 <- "tau"
       t1 <- "tau5"
       sc <- "plus 5 Tax"
-      up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, np = 0, nd = 1, 0, 0)
+      up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
       results.nonmarginal<- rbind(results.nonmarginal, data.table(state, down, up, sc, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1, it1 = 0, it2 = 0, ConsChckUp = 1, ConsChckDown = 1))
       
     }
