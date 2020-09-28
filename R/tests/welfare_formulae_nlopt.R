@@ -168,9 +168,7 @@ non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max,
               min = min, 
               max = max,
               mu0 = mu0)$value, mu = mu, sigma = sigma, theta = theta, min = min, max = max, mu0 = mu0)
-  # divide numerator by initial demand
-  numer.vector <- int.num/init.dem
-
+  
     
   ## OLD
   # # Denominator
@@ -187,12 +185,20 @@ non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max,
               min = min, 
               max = max,
               mu0 = mu0)$value, mu = mu, sigma = sigma, min = min, max = max, mu0 = mu0)
+  
+  # divide numerator and denominator by initial demand
+  numer.vector <- int.num/init.dem
   denom.vector <- int.den/init.dem
-
-    
+  
   # Get weighted average
-  w <- data[[w]]
-  return(weighted.mean(numer.vector, w = w)/(weighted.mean(denom.vector, w = w)))
+  w <- data[[w]] 
+  numer <- weighted.mean(numer.vector, w = w)
+  denom <- weighted.mean(denom.vector, w = w)
+  # Sometimes we get Infinite as result as R can't handle large precission numbers. In such case we return 1
+  res <-numer/denom
+  if(is.nan(res)) res <- 1
+    
+  return(res)
 }
 
 
