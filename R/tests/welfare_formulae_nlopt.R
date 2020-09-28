@@ -196,7 +196,7 @@ non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max,
   denom <- weighted.mean(denom.vector, w = w)
   # Sometimes we get Infinite as result as R can't handle large precission numbers. In such case we return 1
   res <-numer/denom
-  if(is.nan(res)) res <- 1
+  if(is.infinite(numer) | is.infinite(denom)) res <- 1
     
   return(res)
 }
