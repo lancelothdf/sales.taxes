@@ -192,6 +192,8 @@ non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max,
   
   # Get weighted average
   w <- data[[w]] 
+  w <- w/sum(w)
+  
   numer <- weighted.mean(numer.vector, w = w)
   denom <- weighted.mean(denom.vector, w = w)
   # Sometimes we get Infinite as result as R can't handle large precission numbers. In such case we return 1
