@@ -39,8 +39,8 @@ IVs <- IVs[controls == "division_by_module_by_time"]
 
 # 3. Values to Tests
 
-#sigmas.test <- c(0.25, 0.5, 0.75, 1)
-sigmas.test <- c(0.75, 1)
+sigmas.test <- c(0.25, 0.5, 0.75, 1)
+#sigmas.test <- c(0.75, 1)
 
 thetas.list <- list()
 ## All
