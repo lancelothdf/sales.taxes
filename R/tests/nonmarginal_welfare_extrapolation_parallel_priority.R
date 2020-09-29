@@ -20,7 +20,7 @@ source("Code/sales.taxes/R/tests/welfare_formulae_nlopt.R")
 
 ## Output files
 out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priority.csv"
-out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityB.csv"
+# out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityB.csv"
 
 
 # 0. Parallelize options
@@ -49,8 +49,8 @@ thetas.list <- list()
 # thetas.list$s75 <- c(0, 0.008007016, 0.102212766)
 # thetas.list$s100 <- c(0, 0.004861793, 0.066616166)
 ## Priority
-# thetas.list$s25 <- c(0)
-# thetas.list$s50 <- c(0)
+thetas.list$s25 <- c(0)
+thetas.list$s50 <- c(0)
 thetas.list$s75 <- c(0)
 thetas.list$s100 <- c(0, 0.066616166)
 
@@ -112,9 +112,10 @@ setnames(min.criteria, c("K", "D"), c("Degree", "L"))
 
 
 ## 6. Set up Ks
-K.test <- c(2, 8)
-#K.test <- 8
+#K.test <- c(2, 8)
+K.test <- 8
 scenarios <- c("No Tax", "plus 5 Tax")
+scenarios <- "No Tax"
 
 ## 7. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
@@ -215,34 +216,39 @@ for (sc in scenarios) {
             ConsChckDown <- all.equal(sum(abs(constr%*%(as.matrix(res0$solution)) - IVs) - mc), 0)
             # B5. Check constraint is met
             
-          
+            sol <- 0
+            in0 <- init.val0
             # B5 Run maximization: derivative free 
-            res0 <- nloptr( x0=init.val0,
-                            eval_f= max.non.marginal.change,
-                            eval_g_ineq = eval_restrictions_nmarg,
-                            opts = nlo.opts.local.df,
-                            data = st.data,
-                            pp = "p_cml", 
-                            t0 = t0, 
-                            t1 = t1,
-                            theta = theta,
-                            sigma = sig,
-                            w = "eta_m", 
-                            min = p.min, 
-                            max = p.max,
-                            constr_mat = constr, 
-                            IV_mat = IVs, 
-                            min.crit = mc,
-                            elas = T,
-                            ub = rep(0, K),
-                            lb = rep(min(IVs)/min(constr), K)
-            )       
-            # B6. Extract minimization results
-            up<- -res0$objective
-            s2 <- res0$status
-            it2 <- res0$iterations
+            while (sol != 1) {
+              res0 <- nloptr( x0=in0,
+                              eval_f= max.non.marginal.change,
+                              eval_g_ineq = eval_restrictions_nmarg,
+                              opts = nlo.opts.local.df,
+                              data = st.data,
+                              pp = "p_cml", 
+                              t0 = t0, 
+                              t1 = t1,
+                              theta = theta,
+                              sigma = sig,
+                              w = "eta_m", 
+                              min = p.min, 
+                              max = p.max,
+                              constr_mat = constr, 
+                              IV_mat = IVs, 
+                              min.crit = mc,
+                              elas = T,
+                              ub = rep(0, K),
+                              lb = rep(min(IVs)/min(constr), K)
+              )       
+              # B6. Extract minimization results
+              up <- sol <- -res0$objective
+              in0 <- reachingres0$solution
+              s2 <- res0$status
+              it2 <- res0$iterations
+              
+              ConsChckUp <- all.equal(sum(abs(constr%*%(as.matrix(res0$solution)) - IVs) - mc), 0)
+            }
             
-            ConsChckUp <- all.equal(sum(abs(constr%*%(as.matrix(res0$solution)) - IVs) - mc), 0)
             
             data.table(down, up, state, sc, D , K, sigma = sig, theta, s1, s2, it1, it2, ConsChckDown, ConsChckUp)
             
