@@ -59,35 +59,35 @@ states.test <- unique(data$fips_state)
 #### Estimates for Linear Case
 results.nonmarginal <- data.table(NULL)
 # FOR LINEAR Estimates we don't need to normalize!!! The coefficient is directly interpretable (contrary to non-linear, where matrices are normalized)
-min <- 0
-max <- 1
-for (state in states.test) {
-  data.st <- data[fips_state == state,]
-  i <- 0
-  for (sig in sigmas.test) {
-    i <- i + 1
-    thetas.test <- thetas.list[[i]]
-    for (theta in thetas.test) {
-      ## Capture min/max and coef in lin case
-      lin <- IVs[outcome == "IV" & sigma == sig][["Estimate"]]
-      
-      ## Non Marginal Change
-      t0 <- "tauno"
-      t1 <- "tau"
-      sc <- "No Tax"
-      up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
-      results.nonmarginal<- rbind(results.nonmarginal, data.table(state, down, up, sc, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1, it1 = 0, it2 = 0, ConsChckUp = 1, ConsChckDown = 1))
-      
-      
-      t0 <- "tau"
-      t1 <- "tau5"
-      sc <- "plus 5 Tax"
-      up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
-      results.nonmarginal<- rbind(results.nonmarginal, data.table(state, down, up, sc, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1, it1 = 0, it2 = 0, ConsChckUp = 1, ConsChckDown = 1))
-      
-    }
-  }
-}
+# min <- 0
+# max <- 1
+# for (state in states.test) {
+#   data.st <- data[fips_state == state,]
+#   i <- 0
+#   for (sig in sigmas.test) {
+#     i <- i + 1
+#     thetas.test <- thetas.list[[i]]
+#     for (theta in thetas.test) {
+#       ## Capture min/max and coef in lin case
+#       lin <- IVs[outcome == "IV" & sigma == sig][["Estimate"]]
+#       
+#       ## Non Marginal Change
+#       t0 <- "tauno"
+#       t1 <- "tau"
+#       sc <- "No Tax"
+#       up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
+#       results.nonmarginal<- rbind(results.nonmarginal, data.table(state, down, up, sc, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1, it1 = 0, it2 = 0, ConsChckUp = 1, ConsChckDown = 1))
+#       
+#       
+#       t0 <- "tau"
+#       t1 <- "tau5"
+#       sc <- "plus 5 Tax"
+#       up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
+#       results.nonmarginal<- rbind(results.nonmarginal, data.table(state, down, up, sc, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1, it1 = 0, it2 = 0, ConsChckUp = 1, ConsChckDown = 1))
+#       
+#     }
+#   }
+# }
 
 ## 4. Set up IV estimates for each sigma
 # For L = 1
