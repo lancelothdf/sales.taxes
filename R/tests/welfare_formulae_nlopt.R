@@ -113,7 +113,7 @@ demand <- function(p, t, sigma, mu, mu0 = NULL, min, max) {
 
 # Integrand numerator
 integrand.num <- function(t, p, sigma, theta, mu, min, max, mu0 = NULL) {
-  return(demand(p, t, sigma, mu, mu0, min, max)*(M.theta(t,theta)-A.sigma(t, sigma)*log.elas(mu, p, t, sigma, min, max)))
+  return(demand(p, t, sigma, mu, mu0, min, max)*(M.theta(t,theta)-A.sigma(t, sigma)*log.elas(mu, p, t, sigma, min, max))/10000)
 }
 # Apply integral to every value of t (this so the integral function can use vectors)
 int.apply.num <- function(x, mu, p, sigma, theta, mu0, min, max) {
@@ -122,7 +122,7 @@ int.apply.num <- function(x, mu, p, sigma, theta, mu0, min, max) {
 
 #New: Integral in denominator too
 integrand.den <- function(t, p, sigma, mu, min, max, mu0 = NULL) {
-  return(demand(p, t, sigma, mu, mu0, min, max)*(1-B.sigma(t, sigma)*log.elas(mu, p, t, sigma, min, max)))
+  return(demand(p, t, sigma, mu, mu0, min, max)*(1-B.sigma(t, sigma)*log.elas(mu, p, t, sigma, min, max))/10000)
 }
 int.apply.den <- function(x, mu, p, sigma, mu0, min, max) {
   sapply(x, integrand.den, p = p, sigma = sigma, mu=mu, mu0=mu0, min=min, max=max)
@@ -148,14 +148,17 @@ non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max,
   ul <- exp(data[[t1]])-1
   p <- data[[pp]]
   
-  # Calculate initial demand
-  #print(mu0)
-  init.dem <- (demand(p, ll, sigma, mu, mu0, min, max))
   
   # Put together and transform to list
   X <- rbind(ll, ul, p)
   X <- lapply(seq_len(ncol(X)), function(i) X[,i])
   
+  # Calculate initial demand
+  init.dem <- sapply(X, function(x, mu, sigma, min, max, mu0) 
+                     demand(p = x["p"], t = x["ll"], sigma = sigma, 
+                            mu = mu, mu0 = mu0, min = min, max = max), 
+                     mu = mu, sigma = sigma, min = min, max = max, mu0 = mu0)
+
   # sapply from list to numerator
   int.num <- sapply(X, function(x, p, mu, sigma, theta, min, max, mu0) 
     integrate(int.apply.num, 
@@ -189,11 +192,11 @@ non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max,
   # divide numerator and denominator by initial demand
   numer.vector <- int.num/init.dem
   denom.vector <- int.den/init.dem
-  
+
   # Get weighted average
   w <- data[[w]] 
   w <- w/sum(w)
-  
+
   numer <- weighted.mean(numer.vector, w = w)
   denom <- weighted.mean(denom.vector, w = w)
   # Sometimes we get Infinite as result as R can't handle large precission numbers. In such case we return 1

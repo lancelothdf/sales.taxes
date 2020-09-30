@@ -20,9 +20,10 @@ source("Code/sales.taxes/R/tests/welfare_formulae_nlopt.R")
 
 ## Output files
 #out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priority.csv"
+out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityA.csv"
 #out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityB.csv"
 #out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityC.csv"
-out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityD.csv"
+#out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityD.csv"
 
 
 # 0. Parallelize options
@@ -42,7 +43,7 @@ IVs <- IVs[controls == "division_by_module_by_time"]
 # 3. Values to Tests
 
 #sigmas.test <- c(0.25, 0.5, 0.75, 1)
-sigmas.test <- c(1)
+sigmas.test <- c(0.25)
 #sigmas.test <- c(0.75, 1)
 
 thetas.list <- list()
@@ -52,45 +53,45 @@ thetas.list <- list()
 # thetas.list$s75 <- c(0, 0.008007016, 0.102212766)
 # thetas.list$s100 <- c(0, 0.004861793, 0.066616166)
 ## Priority
-# thetas.list$s25 <- c(0)
+thetas.list$s25 <- c(0)
 # thetas.list$s50 <- c(0)
-#thetas.list$s75 <- c(0)
- thetas.list$s100 <- c(0, 0.066616166)
+# thetas.list$s75 <- c(0)
+# thetas.list$s100 <- c(0, 0.066616166)
 
 states.test <- unique(data$fips_state)
 
 #### Estimates for Linear Case
 results.nonmarginal <- data.table(NULL)
-# FOR LINEAR Estimates we don't need to normalize!!! The coefficient is directly interpretable (contrary to non-linear, where matrices are normalized)
-# min <- 0
-# max <- 1
-# for (state in states.test) {
-#   data.st <- data[fips_state == state,]
-#   i <- 0
-#   for (sig in sigmas.test) {
-#     i <- i + 1
-#     thetas.test <- thetas.list[[i]]
-#     for (theta in thetas.test) {
-#       ## Capture min/max and coef in lin case
-#       lin <- IVs[outcome == "IV" & sigma == sig][["Estimate"]]
-#       
-#       ## Non Marginal Change
-#       t0 <- "tauno"
-#       t1 <- "tau"
-#       sc <- "No Tax"
-#       up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
-#       results.nonmarginal<- rbind(results.nonmarginal, data.table(state, down, up, sc, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1, it1 = 0, it2 = 0, ConsChckUp = 1, ConsChckDown = 1))
-#       
-#       
-#       t0 <- "tau"
-#       t1 <- "tau5"
-#       sc <- "plus 5 Tax"
-#       up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
-#       results.nonmarginal<- rbind(results.nonmarginal, data.table(state, down, up, sc, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1, it1 = 0, it2 = 0, ConsChckUp = 1, ConsChckDown = 1))
-#       
-#     }
-#   }
-# }
+#FOR LINEAR Estimates we don't need to normalize!!! The coefficient is directly interpretable (contrary to non-linear, where matrices are normalized)
+min <- 0
+max <- 1
+for (state in states.test) {
+  data.st <- data[fips_state == state,]
+  i <- 0
+  for (sig in sigmas.test) {
+    i <- i + 1
+    thetas.test <- thetas.list[[i]]
+    for (theta in thetas.test) {
+      ## Capture min/max and coef in lin case
+      lin <- IVs[outcome == "IV" & sigma == sig][["Estimate"]]
+
+      ## Non Marginal Change
+      t0 <- "tauno"
+      t1 <- "tau"
+      sc <- "No Tax"
+      up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
+      results.nonmarginal<- rbind(results.nonmarginal, data.table(state, down, up, sc, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1, it1 = 0, it2 = 0, ConsChckUp = 1, ConsChckDown = 1))
+
+
+      t0 <- "tau"
+      t1 <- "tau5"
+      sc <- "plus 5 Tax"
+      up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
+      results.nonmarginal<- rbind(results.nonmarginal, data.table(state, down, up, sc, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1, it1 = 0, it2 = 0, ConsChckUp = 1, ConsChckDown = 1))
+
+    }
+  }
+}
 
 ## 4. Set up IV estimates for each sigma
 # For L = 1
@@ -115,9 +116,9 @@ setnames(min.criteria, c("K", "D"), c("Degree", "L"))
 
 
 ## 6. Set up Ks
-#K.test <- c(2, 8)
-K.test <- 8
-scenarios <- c("No Tax", "plus 5 Tax")
+K.test <- c(2, 8)
+#K.test <- 8
+#scenarios <- c("No Tax", "plus 5 Tax")
 scenarios <- "No Tax"
 
 ## 7. Set up Optimization Parameters (algorithm for now)
@@ -219,38 +220,33 @@ for (sc in scenarios) {
             ConsChckDown <- all.equal(sum(abs(constr%*%(as.matrix(res0$solution)) - IVs) - mc), 0)
             # B5. Check constraint is met
             
-            sol <- 0
-            in0 <- init.val0
             # B5 Run maximization: derivative free 
-            while (sol != 1) {
-              res0 <- nloptr( x0=in0,
-                              eval_f= max.non.marginal.change,
-                              eval_g_ineq = eval_restrictions_nmarg,
-                              opts = nlo.opts.local.df,
-                              data = st.data,
-                              pp = "p_cml", 
-                              t0 = t0, 
-                              t1 = t1,
-                              theta = theta,
-                              sigma = sig,
-                              w = "eta_m", 
-                              min = p.min, 
-                              max = p.max,
-                              constr_mat = constr, 
-                              IV_mat = IVs, 
-                              min.crit = mc,
-                              elas = T,
-                              ub = rep(0, K),
-                              lb = rep(min(IVs)/min(constr), K)
-              )       
-              # B6. Extract minimization results
-              up <- sol <- -res0$objective
-              in0 <- reachingres0$solution
-              s2 <- res0$status
-              it2 <- res0$iterations
-              
-              ConsChckUp <- all.equal(sum(abs(constr%*%(as.matrix(res0$solution)) - IVs) - mc), 0)
-            }
+            res0 <- nloptr( x0=init.val0,
+                            eval_f= max.non.marginal.change,
+                            eval_g_ineq = eval_restrictions_nmarg,
+                            opts = nlo.opts.local.df,
+                            data = st.data,
+                            pp = "p_cml", 
+                            t0 = t0, 
+                            t1 = t1,
+                            theta = theta,
+                            sigma = sig,
+                            w = "eta_m", 
+                            min = p.min, 
+                            max = p.max,
+                            constr_mat = constr, 
+                            IV_mat = IVs, 
+                            min.crit = mc,
+                            elas = T,
+                            ub = rep(0, K),
+                            lb = rep(min(IVs)/min(constr), K)
+            )       
+            # B6. Extract minimization results
+            up <- sol <- -res0$objective
+            s2 <- res0$status
+            it2 <- res0$iterations
+            ConsChckUp <- all.equal(sum(abs(constr%*%(as.matrix(res0$solution)) - IVs) - mc), 0)
+            
             
             
             data.table(down, up, state, sc, D , K, sigma = sig, theta, s1, s2, it1, it2, ConsChckDown, ConsChckUp)
