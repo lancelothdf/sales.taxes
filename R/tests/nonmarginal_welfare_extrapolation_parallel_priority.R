@@ -20,8 +20,8 @@ source("Code/sales.taxes/R/tests/welfare_formulae_nlopt.R")
 
 ## Output files
 #out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priority.csv"
-out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityA.csv"
-#out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityB.csv"
+#out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityA.csv"
+out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityB.csv"
 #out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityC.csv"
 #out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityD.csv"
 
@@ -43,7 +43,7 @@ IVs <- IVs[controls == "division_by_module_by_time"]
 # 3. Values to Tests
 
 #sigmas.test <- c(0.25, 0.5, 0.75, 1)
-sigmas.test <- c(0.25)
+sigmas.test <- c(0.5)
 #sigmas.test <- c(0.75, 1)
 
 thetas.list <- list()
@@ -53,8 +53,8 @@ thetas.list <- list()
 # thetas.list$s75 <- c(0, 0.008007016, 0.102212766)
 # thetas.list$s100 <- c(0, 0.004861793, 0.066616166)
 ## Priority
-thetas.list$s25 <- c(0)
-# thetas.list$s50 <- c(0)
+# thetas.list$s25 <- c(0)
+thetas.list$s50 <- c(0)
 # thetas.list$s75 <- c(0)
 # thetas.list$s100 <- c(0, 0.066616166)
 
