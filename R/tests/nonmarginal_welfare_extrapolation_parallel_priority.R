@@ -124,7 +124,7 @@ scenarios <- "No Tax"
 ## 7. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
   "algorithm"="NLOPT_LN_COBYLA",
-  "maxeval" = 150000,
+  "maxeval" = 2000,
   "xtol_rel"=1.0e-8
 )
 

@@ -113,7 +113,7 @@ demand <- function(p, t, sigma, mu, mu0 = NULL, min, max) {
 
 # Integrand numerator
 integrand.num <- function(t, p, sigma, theta, mu, min, max, mu0 = NULL) {
-  return(demand(p, t, sigma, mu, mu0, min, max)*(M.theta(t,theta)-A.sigma(t, sigma)*log.elas(mu, p, t, sigma, min, max))/10000)
+  return(demand(p, t, sigma, mu, mu0, min, max)*(M.theta(t,theta)-A.sigma(t, sigma)*log.elas(mu, p, t, sigma, min, max))/100)
 }
 # Apply integral to every value of t (this so the integral function can use vectors)
 int.apply.num <- function(x, mu, p, sigma, theta, mu0, min, max) {
@@ -122,7 +122,7 @@ int.apply.num <- function(x, mu, p, sigma, theta, mu0, min, max) {
 
 #New: Integral in denominator too
 integrand.den <- function(t, p, sigma, mu, min, max, mu0 = NULL) {
-  return(demand(p, t, sigma, mu, mu0, min, max)*(1-B.sigma(t, sigma)*log.elas(mu, p, t, sigma, min, max))/10000)
+  return(demand(p, t, sigma, mu, mu0, min, max)*(1-B.sigma(t, sigma)*log.elas(mu, p, t, sigma, min, max))/100)
 }
 int.apply.den <- function(x, mu, p, sigma, mu0, min, max) {
   sapply(x, integrand.den, p = p, sigma = sigma, mu=mu, mu0=mu0, min=min, max=max)
