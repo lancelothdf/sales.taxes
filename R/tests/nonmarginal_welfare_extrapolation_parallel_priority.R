@@ -119,7 +119,7 @@ setnames(min.criteria, c("K", "D"), c("Degree", "L"))
 K.test <- c(2, 8)
 #K.test <- 8
 #scenarios <- c("No Tax", "plus 5 Tax")
-scenarios <- "No Tax"
+scenarios <- "plus 5 Tax"
 
 ## 7. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
