@@ -191,11 +191,11 @@ for (case in c("down", "up")) {
             
           }
           
-          data.table(state, sc, sigma = sig, theta = th, obj, it, mu)
+          data.table(state, sc, sigma = sig, theta = th, case, obj, it, mu)
           
         }
         res.conv <- welfare.st[it != 3000, ]
-        res.conv[, lapply(.SD, mean), by = .(state, sigma, theta, sc), .SDcols = c("obj", "it")]
+        res.conv[, lapply(.SD, mean), by = .(state, sigma, theta, sc, case), .SDcols = c("obj", "it")]
         
       
         results.conv <- rbind(results.conv, res.conv)
