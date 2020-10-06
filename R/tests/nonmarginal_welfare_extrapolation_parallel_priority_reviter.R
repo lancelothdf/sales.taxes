@@ -90,10 +90,14 @@ for (case in c("down", "up")) {
   in.file <- "Data/Demand_gamma_sat_initial_price_semester_salience_K8_bern.csv"
   gamma.full.data <- fread(in.file)
   
-  ## B. Loop across sigmas
-  for (sig in unique(target$sigma)) {
-    target.sigma <- target[sigma == sig,]
-
+  ## B. Loop across unsolved cases
+  
+  welfare.st <- foreach (unsolved= c(1:nrow(target)), .combine=rbind) %dopar% {
+    
+    target.case <- target[unsolved,]
+    
+    sig <- target.case[["sigma"]]
+    
     ## C.1 Extract support to use
     p.min <- res.pq[extrap == sc & sigma == sig][["min.p"]]
     p.max <- res.pq[extrap == sc & sigma == sig][["max.p"]]
@@ -101,111 +105,107 @@ for (case in c("down", "up")) {
     ## C.2 Restrict gamma file. Constant across p
     gamma <- gamma.full.data[extrap == sc & n.groups < 3 & sigma == sig][, c(paste0("b", 0:(K-1)), "n.groups"), with = F]             ## For elasticity
     
-    ## D Start Loop at number of groups
-    for (D in 2) { #unique(gamma$n.groups)
+    ## Number of groups
+    D <- 2
       
-      ## D1. Build the constraints matrix 
-      constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")])   ## For elasticity
+    ## D1. Build the constraints matrix 
+    constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")])   ## For elasticity
+    
+    ## D2. Retrieve IVs
+    IVs <- res.ivs[n.groups == D  & sigma == sig][["Estimate"]] 
+    
+    ## D3. Load min.criterion for case (note that if there is no value it is 0)
+    mc <- min.criteria[Degree == 8 & L == D & sigma == sig & extrap == sc,][["min.criteria"]]
+    
+    ## D4. Generate an initial value somewhere in the middle to test algorithms
+    init.old<- init.val0 <- get.init.val(constr, IVs, mc)
+    print(init.val0)
+    print(constr)
+    print(IVs)
+    print(mc)
       
-      ## D2. Retrieve IVs
-      IVs <- res.ivs[n.groups == D  & sigma == sig][["Estimate"]] 
+    # E. Capture theta 
+    theta <- target.case[["theta"]] 
+    
+    ## F Capture state
+    state <- target.case[["state"]] 
+    
+
+    # F1. Subset data
+    st.data <- data[fips_state == state,]
+    
+    # F2. Non Marginal change
+    # B3 Run minimization: derivative free
+    if (case == "down") {
+      res0 <- nloptr( x0=init.val0,
+                      eval_f= non.marginal.change,
+                      eval_g_ineq = eval_restrictions_nmarg,
+                      opts = nlo.opts.local.df,
+                      data = st.data,
+                      pp = "p_cml", 
+                      t0 = t0, 
+                      t1 = t1,
+                      theta = th,
+                      sigma = sig,
+                      w = "eta_m", 
+                      min = p.min, 
+                      max = p.max,
+                      constr_mat = constr, 
+                      IV_mat = IVs, 
+                      min.crit = mc,
+                      elas = T,
+                      ub = rep(0, K),
+                      lb = rep(min(IVs)/min(constr), K)
+      )       
+      # B4. Extract minimization results
+      obj <- res0$objective
+      it <- res0$iterations
+      mu <- res0$solution
       
-      ## D3. Load min.criterion for case (note that if there is no value it is 0)
-      mc <- min.criteria[Degree == 8 & L == D & sigma == sig & extrap == sc,][["min.criteria"]]
+    }
+    if (case == "up") {
+    
+      # B5 Run maximization: derivative free 
+      res0 <- nloptr( x0=init.val0,
+                      eval_f= max.non.marginal.change,
+                      eval_g_ineq = eval_restrictions_nmarg,
+                      opts = nlo.opts.local.df,
+                      data = st.data,
+                      pp = "p_cml", 
+                      t0 = t0, 
+                      t1 = t1,
+                      theta = th,
+                      sigma = sig,
+                      w = "eta_m", 
+                      min = p.min, 
+                      max = p.max,
+                      constr_mat = constr, 
+                      IV_mat = IVs, 
+                      min.crit = mc,
+                      elas = T,
+                      ub = rep(0, K),
+                      lb = rep(min(IVs)/min(constr), K)
+      )       
+      # B6. Extract minimization results
+      obj <- res0$objective
+      it <- res0$iterations
+      mu <- res0$solution
       
-      ## D4. Generate an initial value somewhere in the middle to test algorithms
-      init.old<- init.val0 <- get.init.val(constr, IVs, mc)
-      print(init.val0)
-      print(constr)
-      print(IVs)
-      print(mc)
-      
-      
-      ## E. Loop across thetas
-      for (th in unique(target.sigma$theta)) {
-        
-        ## F Loop across states
-        states.test <- unique(target.sigma[theta == th,]$state)
-        ## A4. Loop across states
-        welfare.st <- foreach (state= states.test, .combine=rbind) %dopar% {
-          
-          # F1. Subset data
-          st.data <- data[fips_state == state,]
-          
-          # F2. Non Marginal change
-          # B3 Run minimization: derivative free
-          if (case == "down") {
-            res0 <- nloptr( x0=init.val0,
-                            eval_f= non.marginal.change,
-                            eval_g_ineq = eval_restrictions_nmarg,
-                            opts = nlo.opts.local.df,
-                            data = st.data,
-                            pp = "p_cml", 
-                            t0 = t0, 
-                            t1 = t1,
-                            theta = th,
-                            sigma = sig,
-                            w = "eta_m", 
-                            min = p.min, 
-                            max = p.max,
-                            constr_mat = constr, 
-                            IV_mat = IVs, 
-                            min.crit = mc,
-                            elas = T,
-                            ub = rep(0, K),
-                            lb = rep(min(IVs)/min(constr), K)
-            )       
-            # B4. Extract minimization results
-            obj <- res0$objective
-            it <- res0$iterations
-            mu <- res0$solution
-            
-          }
-          if (case == "up") {
-          
-            # B5 Run maximization: derivative free 
-            res0 <- nloptr( x0=init.val0,
-                            eval_f= max.non.marginal.change,
-                            eval_g_ineq = eval_restrictions_nmarg,
-                            opts = nlo.opts.local.df,
-                            data = st.data,
-                            pp = "p_cml", 
-                            t0 = t0, 
-                            t1 = t1,
-                            theta = th,
-                            sigma = sig,
-                            w = "eta_m", 
-                            min = p.min, 
-                            max = p.max,
-                            constr_mat = constr, 
-                            IV_mat = IVs, 
-                            min.crit = mc,
-                            elas = T,
-                            ub = rep(0, K),
-                            lb = rep(min(IVs)/min(constr), K)
-            )       
-            # B6. Extract minimization results
-            obj <- res0$objective
-            it <- res0$iterations
-            mu <- res0$solution
-            
-          }
-          
-          data.table(state, sc, sigma = sig, theta = th, case, obj, it, mu)
-          
-        }
-        res.conv <- welfare.st[it != 3000, ]
-        res.conv[, lapply(.SD, mean), by = .(state, sigma, theta, sc, case), .SDcols = c("obj", "it")]
-        
-      
-        results.conv <- rbind(results.conv, res.conv)
-        fwrite(out.file.nonmarginal.c, out.file.nonmarginal)
-        
-        results.rev <- rbind(results.rev, welfare.st[it == 3000, ])
-        fwrite(out.file.nonmarginal.r, out.file.nonmarginal)
-        
-      }
-    }  
+    }
+    
+    data.table(state, sc, sigma = sig, theta = th, case, obj, it, mu)
+    
   }
+  res.conv <- welfare.st[it != 3000, ]
+  res.conv[, lapply(.SD, mean), by = .(state, sigma, theta, sc, case), .SDcols = c("obj", "it")]
+  
+
+  results.conv <- rbind(results.conv, res.conv)
+  fwrite(out.file.nonmarginal.c, out.file.nonmarginal)
+  
+  results.rev <- rbind(results.rev, welfare.st[it == 3000, ])
+  fwrite(out.file.nonmarginal.r, out.file.nonmarginal)
+        
 }
+
     
