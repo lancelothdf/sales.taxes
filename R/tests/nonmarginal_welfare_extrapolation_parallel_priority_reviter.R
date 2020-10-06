@@ -106,8 +106,9 @@ for (case in c("down", "up")) {
     gamma <- gamma.full.data[extrap == sc & n.groups < 3 & sigma == sig][, c(paste0("b", 0:(K-1)), "n.groups"), with = F]             ## For elasticity
     
     ## Number of groups
-    D <- 2
-      
+    D <- target.case[["L"]]
+    K <- target.case[["K"]]
+    
     ## D1. Build the constraints matrix 
     constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")])   ## For elasticity
     
@@ -115,7 +116,7 @@ for (case in c("down", "up")) {
     IVs <- res.ivs[n.groups == D  & sigma == sig][["Estimate"]] 
     
     ## D3. Load min.criterion for case (note that if there is no value it is 0)
-    mc <- min.criteria[Degree == 8 & L == D & sigma == sig & extrap == sc,][["min.criteria"]]
+    mc <- min.criteria[Degree == K & L == D & sigma == sig & extrap == sc,][["min.criteria"]]
     
     ## D4. Generate an initial value somewhere in the middle to test algorithms
     init.old<- init.val0 <- get.init.val(constr, IVs, mc)
