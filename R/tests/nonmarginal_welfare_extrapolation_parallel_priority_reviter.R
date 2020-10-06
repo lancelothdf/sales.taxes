@@ -96,7 +96,14 @@ for (case in c("down", "up")) {
     
     target.case <- target[unsolved,]
     
+    
+    ## Capture characteristics of case
     sig <- target.case[["sigma"]]
+    D <- target.case[["L"]]
+    K <- target.case[["K"]]
+    theta <- target.case[["theta"]] 
+    state <- target.case[["state"]] 
+    
     
     ## C.1 Extract support to use
     p.min <- res.pq[extrap == sc & sigma == sig][["min.p"]]
@@ -105,9 +112,7 @@ for (case in c("down", "up")) {
     ## C.2 Restrict gamma file. Constant across p
     gamma <- gamma.full.data[extrap == sc & n.groups < 3 & sigma == sig][, c(paste0("b", 0:(K-1)), "n.groups"), with = F]             ## For elasticity
     
-    ## Number of groups
-    D <- target.case[["L"]]
-    K <- target.case[["K"]]
+
     
     ## D1. Build the constraints matrix 
     constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")])   ## For elasticity
@@ -124,13 +129,7 @@ for (case in c("down", "up")) {
     print(constr)
     print(IVs)
     print(mc)
-      
-    # E. Capture theta 
-    theta <- target.case[["theta"]] 
-    
-    ## F Capture state
-    state <- target.case[["state"]] 
-    
+
 
     # F1. Subset data
     st.data <- data[fips_state == state,]
