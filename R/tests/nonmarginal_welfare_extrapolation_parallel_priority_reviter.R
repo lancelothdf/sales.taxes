@@ -91,9 +91,10 @@ for (case in c("down", "up")) {
   gamma.full.data <- fread(in.file)
   
   ## B. Loop across unsolved cases
-  
-  welfare.st <- foreach (unsolved= c(1:nrow(target)), .combine=rbind) %dopar% {
+  all <- c(1:nrow(target))
+  welfare.st <- foreach (unsolved= all, .combine=rbind, .verbose = T) %dopar% {
     
+    ## Get case dta
     target.case <- target[unsolved,]
     
     
