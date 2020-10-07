@@ -108,18 +108,19 @@ for (case in c("down", "up")) {
     theta <- target.case[["theta"]] 
     state <- target.case[["state"]] 
     
-    print("1")
+    print(sig)
     
     ## C.1 Extract support to use
     p.min <- res.pq[extrap == sc & sigma == sig][["min.p"]]
     p.max <- res.pq[extrap == sc & sigma == sig][["max.p"]]
     
-    print("2")
+    print(p.min)
     ## C.2 Restrict gamma file. Constant across p
     gamma <- gamma.full.data[extrap == sc & n.groups < 3 & sigma == sig][, c(paste0("b", 0:(K-1)), "n.groups"), with = F]             ## For elasticity
     
 
-    print("3")
+    print(gamma)
+    print(D)
     
     ## D1. Build the constraints matrix 
     constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")])   ## For elasticity
