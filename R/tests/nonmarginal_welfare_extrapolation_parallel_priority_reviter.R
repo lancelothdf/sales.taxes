@@ -92,8 +92,7 @@ for (case in c("down", "up")) {
   
   ## B. Loop across unsolved cases
   all <- c(1:nrow(target))
-  for(unsolved in all) {
-  #welfare.st <- foreach (unsolved= all, .combine=rbind, .verbose = T) %dopar% {
+  welfare.st <- foreach (unsolved= all, .combine=rbind) %dopar% {
       
     print(unsolved)
     ## Get case dta
@@ -103,25 +102,21 @@ for (case in c("down", "up")) {
     
     ## Capture characteristics of case
     sig <- target.case[["sigma"]]
-    D <- target.case[["L"]]
+    D <- target.case[["D"]]
     K <- target.case[["K"]]
     theta <- target.case[["theta"]] 
     state <- target.case[["state"]] 
     
-    print(sig)
-    
+
     ## C.1 Extract support to use
     p.min <- res.pq[extrap == sc & sigma == sig][["min.p"]]
     p.max <- res.pq[extrap == sc & sigma == sig][["max.p"]]
     
-    print(p.min)
     ## C.2 Restrict gamma file. Constant across p
     gamma <- gamma.full.data[extrap == sc & n.groups < 3 & sigma == sig][, c(paste0("b", 0:(K-1)), "n.groups"), with = F]             ## For elasticity
     
 
-    print(gamma)
-    print(D)
-    
+
     ## D1. Build the constraints matrix 
     constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")])   ## For elasticity
     
@@ -203,11 +198,11 @@ for (case in c("down", "up")) {
       
     }
     
-    data.table(state, sc, sigma = sig, theta, case, obj, it, mu)
+    data.table(state, sc, sigma = sig, theta, case, K, D, obj, it, mu)
     
   }
   res.conv <- welfare.st[it != 3000, ]
-  res.conv<- res.conv[, lapply(.SD, mean), by = .(state, sigma, theta, sc, case), .SDcols = c("obj", "it")]
+  res.conv<- res.conv[, lapply(.SD, mean), by = .(state, sigma, theta, sc, case, K, D), .SDcols = c("obj", "it")]
   
 
   results.conv <- rbind(results.conv, res.conv)
