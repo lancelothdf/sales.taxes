@@ -92,8 +92,9 @@ for (case in c("down", "up")) {
   
   ## B. Loop across unsolved cases
   all <- c(1:nrow(target))
-  welfare.st <- foreach (unsolved= all, .combine=rbind, .verbose = T) %dopar% {
-    
+  for(unsolved in all) {
+  #welfare.st <- foreach (unsolved= all, .combine=rbind, .verbose = T) %dopar% {
+      
     ## Get case dta
     target.case <- target[unsolved,]
     
@@ -194,11 +195,11 @@ for (case in c("down", "up")) {
       
     }
     
-    data.table(state, sc, sigma = sig, theta = th, case, obj, it, mu)
+    data.table(state, sc, sigma = sig, theta, case, obj, it, mu)
     
   }
   res.conv <- welfare.st[it != 3000, ]
-  res.conv[, lapply(.SD, mean), by = .(state, sigma, theta, sc, case), .SDcols = c("obj", "it")]
+  res.conv<- res.conv[, lapply(.SD, mean), by = .(state, sigma, theta, sc, case), .SDcols = c("obj", "it")]
   
 
   results.conv <- rbind(results.conv, res.conv)
