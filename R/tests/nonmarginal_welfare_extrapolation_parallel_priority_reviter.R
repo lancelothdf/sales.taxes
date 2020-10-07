@@ -19,8 +19,8 @@ setwd("/project2/igaarder")
 source("Code/sales.taxes/R/tests/welfare_formulae_nlopt.R")
 
 ## Output files
-out.file.nonmarginal.c <- "Data/nonmarginal_extrapolation_state_priority_con.csv"
-out.file.nonmarginal.r <- "Data/nonmarginal_extrapolation_state_priority_rev.csv"
+out.file.nonmarginal.c <- "Data/nonmarginal_extrapolation_state_priority_notax_con_notax.csv"
+out.file.nonmarginal.r <- "Data/nonmarginal_extrapolation_state_priority_notax_rev_notax.csv"
 
 
 # 0. Parallelize options
@@ -146,7 +146,7 @@ for (case in c("down", "up")) {
                       pp = "p_cml", 
                       t0 = t0, 
                       t1 = t1,
-                      theta = th,
+                      theta = theta,
                       sigma = sig,
                       w = "eta_m", 
                       min = p.min, 
@@ -175,7 +175,7 @@ for (case in c("down", "up")) {
                       pp = "p_cml", 
                       t0 = t0, 
                       t1 = t1,
-                      theta = th,
+                      theta = theta,
                       sigma = sig,
                       w = "eta_m", 
                       min = p.min, 
