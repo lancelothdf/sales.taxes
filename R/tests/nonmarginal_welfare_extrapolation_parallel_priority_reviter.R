@@ -95,8 +95,10 @@ for (case in c("down", "up")) {
   for(unsolved in all) {
   #welfare.st <- foreach (unsolved= all, .combine=rbind, .verbose = T) %dopar% {
       
+    print(unsolved)
     ## Get case dta
     target.case <- target[unsolved,]
+    print(target.case)
     
     
     ## Capture characteristics of case
@@ -106,22 +108,27 @@ for (case in c("down", "up")) {
     theta <- target.case[["theta"]] 
     state <- target.case[["state"]] 
     
+    print("1")
     
     ## C.1 Extract support to use
     p.min <- res.pq[extrap == sc & sigma == sig][["min.p"]]
     p.max <- res.pq[extrap == sc & sigma == sig][["max.p"]]
     
+    print("2")
     ## C.2 Restrict gamma file. Constant across p
     gamma <- gamma.full.data[extrap == sc & n.groups < 3 & sigma == sig][, c(paste0("b", 0:(K-1)), "n.groups"), with = F]             ## For elasticity
     
 
+    print("3")
     
     ## D1. Build the constraints matrix 
     constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")])   ## For elasticity
     
+    print("4")
     ## D2. Retrieve IVs
     IVs <- res.ivs[n.groups == D  & sigma == sig][["Estimate"]] 
     
+    print("5")
     ## D3. Load min.criterion for case (note that if there is no value it is 0)
     mc <- min.criteria[Degree == K & L == D & sigma == sig & extrap == sc,][["min.criteria"]]
     
