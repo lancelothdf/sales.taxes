@@ -19,8 +19,12 @@ setwd("/project2/igaarder")
 source("Code/sales.taxes/R/tests/welfare_formulae_nlopt.R")
 
 ## Output files
-out.file.nonmarginal.c <- "Data/nonmarginal_extrapolation_state_priority_notax_con_notax.csv"
-out.file.nonmarginal.r <- "Data/nonmarginal_extrapolation_state_priority_notax_rev_notax.csv"
+# No Tax
+# out.file.nonmarginal.c <- "Data/nonmarginal_extrapolation_state_priority_notax_con_notax.csv"
+# out.file.nonmarginal.r <- "Data/nonmarginal_extrapolation_state_priority_notax_rev_notax.csv"
+# Plus 5 tax
+out.file.nonmarginal.c <- "Data/nonmarginal_extrapolation_state_priority_notax_con_5pp.csv"
+out.file.nonmarginal.r <- "Data/nonmarginal_extrapolation_state_priority_notax_rev_5pp.csv"
 
 
 # 0. Parallelize options
@@ -38,11 +42,18 @@ IVs <- fread("Data/Demand_iv_sat_initial_price_semester_salience.csv")
 IVs <- IVs[controls == "division_by_module_by_time"]
 
 # 3. Values to test
-prev.sol <- fread("Data/nonmarginal_extrapolation_state_priority_notax.csv")
+# No Tax
+# prev.sol <- fread("Data/nonmarginal_extrapolation_state_priority_notax.csv")
+# 
+# sc <- "No Tax"
+# t0 <- "tauno"
+# t1 <- "tau"
+# +5pp
+prev.sol <- fread("Data/nonmarginal_extrapolation_state_priority_5pp.csv")
 
-sc <- "No Tax"
-t0 <- "tauno"
-t1 <- "tau"
+sc <- "plus 5 Tax"
+t0 <- "tau"
+t1 <- "tau5"
 
 
 ## 4. Set up IV estimates for each sigma
