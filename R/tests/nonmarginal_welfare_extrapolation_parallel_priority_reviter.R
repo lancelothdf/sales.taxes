@@ -201,10 +201,10 @@ for (case in c("down", "up")) {
   
 
   results.conv <- rbind(results.conv, res.conv)
-  fwrite(out.file.nonmarginal.c, out.file.nonmarginal)
+  fwrite(results.conv, out.file.nonmarginal.c)
   
   results.rev <- rbind(results.rev, welfare.st[it == 3000, ])
-  fwrite(out.file.nonmarginal.r, out.file.nonmarginal)
+  fwrite(results.rev, out.file.nonmarginal.r)
         
 }
 
