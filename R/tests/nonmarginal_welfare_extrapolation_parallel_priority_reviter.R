@@ -94,11 +94,8 @@ for (case in c("down", "up")) {
   all <- c(1:nrow(target))
   welfare.st <- foreach (unsolved= all, .combine=rbind) %dopar% {
       
-    print(unsolved)
     ## Get case dta
     target.case <- target[unsolved,]
-    print(target.case)
-    
     
     ## Capture characteristics of case
     sig <- target.case[["sigma"]]
@@ -120,11 +117,9 @@ for (case in c("down", "up")) {
     ## D1. Build the constraints matrix 
     constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")])   ## For elasticity
     
-    print("4")
     ## D2. Retrieve IVs
     IVs <- res.ivs[n.groups == D  & sigma == sig][["Estimate"]] 
     
-    print("5")
     ## D3. Load min.criterion for case (note that if there is no value it is 0)
     mc <- min.criteria[Degree == K & L == D & sigma == sig & extrap == sc,][["min.criteria"]]
     
