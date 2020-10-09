@@ -98,7 +98,7 @@ for (case in c("down", "up")) {
   ## A.1 Identify cases
   # if (case == "up") target <- prev.sol[itup == 2000, ]
   # if (case == "down") target <- prev.sol[itdown == 2000, ]
-  target.all <- prev.sol[, case == case]
+  target.all <- prev.sol[ case == case]
   target <- target.all[, .(obj = mean(obj)), by = .(state,sigma,theta,K,D)]
   
   print(target)
