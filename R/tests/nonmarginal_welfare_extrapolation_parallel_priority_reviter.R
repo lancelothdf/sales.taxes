@@ -20,11 +20,11 @@ source("Code/sales.taxes/R/tests/welfare_formulae_nlopt.R")
 
 ## Output files
 # No Tax
-out.file.nonmarginal.c <- "Data/nonmarginal_extrapolation_state_priority_notax_con_notax.csv"
-out.file.nonmarginal.r <- "Data/nonmarginal_extrapolation_state_priority_notax_rev_notax.csv"
+# out.file.nonmarginal.c <- "Data/nonmarginal_extrapolation_state_priority_notax_con_notax.csv"
+# out.file.nonmarginal.r <- "Data/nonmarginal_extrapolation_state_priority_notax_rev_notax.csv"
 # Plus 5 tax
-# out.file.nonmarginal.c <- "Data/nonmarginal_extrapolation_state_priority_notax_con_5pp.csv"
-# out.file.nonmarginal.r <- "Data/nonmarginal_extrapolation_state_priority_notax_rev_5pp.csv"
+out.file.nonmarginal.c <- "Data/nonmarginal_extrapolation_state_priority_notax_con_5pp.csv"
+out.file.nonmarginal.r <- "Data/nonmarginal_extrapolation_state_priority_notax_rev_5pp.csv"
 
 
 # 0. Parallelize options
@@ -44,19 +44,19 @@ IVs <- IVs[controls == "division_by_module_by_time"]
 # 3. Values to test
 # No Tax
 # prev.sol <- fread("Data/nonmarginal_extrapolation_state_priority_notax.csv")
-prev.sol <- fread("Data/nonmarginal_extrapolation_state_priority_notax_rev_notax.csv")
-
-sc <- "No Tax"
-t0 <- "tauno"
-t1 <- "tau"
+# prev.sol <- fread("Data/nonmarginal_extrapolation_state_priority_notax_rev_notax.csv")
+# 
+# sc <- "No Tax"
+# t0 <- "tauno"
+# t1 <- "tau"
 
 
 # +5pp
-# prev.sol <- fread("Data/nonmarginal_extrapolation_state_priority_5pp.csv")
-# 
-# sc <- "plus 5 Tax"
-# t0 <- "tau"
-# t1 <- "tau5"
+prev.sol <- fread("Data/nonmarginal_extrapolation_state_priority_5pp.csv")
+
+sc <- "plus 5 Tax"
+t0 <- "tau"
+t1 <- "tau5"
 
 
 ## 4. Set up IV estimates for each sigma
@@ -83,7 +83,7 @@ setnames(min.criteria, c("K", "D"), c("Degree", "L"))
 ## 7. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
   "algorithm"="NLOPT_LN_COBYLA",
-  "maxeval" = 3000,
+  "maxeval" = 2500,
   "xtol_rel"=1.0e-8
 )
 
@@ -96,10 +96,10 @@ results.rev <- data.table(NULL)
 for (case in c("down", "up")) {
   
   ## A.1 Identify cases
-  # if (case == "up") target <- prev.sol[itup == 2000, ]
-  # if (case == "down") target <- prev.sol[itdown == 2000, ]
-  target.all <- prev.sol[ case == case]
-  target <- target.all[, .(obj = mean(obj)), by = .(state,sigma,theta,K,D)]
+  if (case == "up") target <- prev.sol[itup == 2000, ]
+  if (case == "down") target <- prev.sol[itdown == 2000, ]
+  # target.all <- prev.sol[ case == case]
+  # target <- target.all[, .(obj = mean(obj)), by = .(state,sigma,theta,K,D)]
   
   print(target)
   
@@ -141,13 +141,13 @@ for (case in c("down", "up")) {
     mc <- min.criteria[Degree == K & L == D & sigma == sig & extrap == sc,][["min.criteria"]]
     
     ## D4. Generate an initial value somewhere in the middle to test algorithms
-    # init.old<- init.val0 <- get.init.val(constr, IVs, mc)
-    # print(init.val0)
-    # print(constr)
-    # print(IVs)
-    # print(mc)
+    init.old<- init.val0 <- get.init.val(constr, IVs, mc)
+    print(init.val0)
+    print(constr)
+    print(IVs)
+    print(mc)
     # Capture it from previous
-    init.val0 <- merge(target.case, target.all, by = c("state", "sigma", "theta", "K", "D") )[["mu"]]
+    # init.val0 <- merge(target.case, target.all, by = c("state", "sigma", "theta", "K", "D") )[["mu"]]
 
     # F1. Subset data
     st.data <- data[fips_state == state,]
