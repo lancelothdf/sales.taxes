@@ -1,6 +1,6 @@
 ## Welfare Extrapolations actual data
 # Non-Marginal Case
-# Priority Cases
+# Priority / Non-Priority Cases
 
 library(Matrix)
 library(data.table)
@@ -20,10 +20,14 @@ source("Code/sales.taxes/R/tests/welfare_formulae_nlopt.R")
 
 ## Output files
 #out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priority.csv"
-#out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityA.csv"
-#out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityB.csv"
-#out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityC.csv"
-out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityD.csv"
+# out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityA.csv"
+# out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityB.csv"
+# out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityC.csv"
+# out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityD.csv"
+out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_nonpriorityA.csv"
+# out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_nonpriorityB.csv"
+# out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_nonpriorityC.csv"
+# out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_nonpriorityD.csv"
 
 
 # 0. Parallelize options
@@ -56,7 +60,13 @@ thetas.list <- list()
 # thetas.list$s25 <- c(0)
 # thetas.list$s50 <- c(0)
 # thetas.list$s75 <- c(0)
- thetas.list$s100 <- c(0, 0.066616166)
+# thetas.list$s100 <- c(0, 0.066616166)
+## Nonpriority 
+#thetas.list$s25 <- c(0.058897778, 0.564015475)
+#thetas.list$s50 <- c(0.018501935, 0.202776786)
+#thetas.list$s75 <- c(0.004861793, 0.066616166)
+thetas.list$s100 <- c(0.004861793)
+
 
 states.test <- unique(data$fips_state)
 
@@ -76,18 +86,18 @@ for (state in states.test) {
       lin <- IVs[outcome == "IV" & sigma == sig][["Estimate"]]
 
       ## Non Marginal Change
-      # t0 <- "tauno"
-      # t1 <- "tau"
-      # sc <- "No Tax"
-      # up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
-      # results.nonmarginal<- rbind(results.nonmarginal, data.table(state, down, up, sc, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1, it1 = 0, it2 = 0, ConsChckUp = 1, ConsChckDown = 1))
-
-
-      t0 <- "tau"
-      t1 <- "tau5"
-      sc <- "plus 5 Tax"
+      t0 <- "tauno"
+      t1 <- "tau"
+      sc <- "No Tax"
       up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
       results.nonmarginal<- rbind(results.nonmarginal, data.table(state, down, up, sc, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1, it1 = 0, it2 = 0, ConsChckUp = 1, ConsChckDown = 1))
+
+
+      # t0 <- "tau"
+      # t1 <- "tau5"
+      # sc <- "plus 5 Tax"
+      # up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
+      # results.nonmarginal<- rbind(results.nonmarginal, data.table(state, down, up, sc, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1, it1 = 0, it2 = 0, ConsChckUp = 1, ConsChckDown = 1))
 
     }
   }
@@ -119,12 +129,12 @@ setnames(min.criteria, c("K", "D"), c("Degree", "L"))
 K.test <- c(2, 8)
 #K.test <- 8
 #scenarios <- c("No Tax", "plus 5 Tax")
-scenarios <- "plus 5 Tax"
+scenarios <- "No Tax"
 
 ## 7. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
   "algorithm"="NLOPT_LN_COBYLA",
-  "maxeval" = 2000,
+  "maxeval" = 1800,
   "xtol_rel"=1.0e-8
 )
 
