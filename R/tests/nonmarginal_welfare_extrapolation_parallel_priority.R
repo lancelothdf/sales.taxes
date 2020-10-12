@@ -25,8 +25,8 @@ source("Code/sales.taxes/R/tests/welfare_formulae_nlopt.R")
 # out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityC.csv"
 # out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_priorityD.csv"
 # out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_nonpriorityA.csv"
- out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_nonpriorityB.csv"
-# out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_nonpriorityC.csv"
+# out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_nonpriorityB.csv"
+ out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_nonpriorityC.csv"
 # out.file.nonmarginal <- "Data/nonmarginal_extrapoaltion_state_nonpriorityD.csv"
 
 
@@ -47,7 +47,7 @@ IVs <- IVs[controls == "division_by_module_by_time"]
 # 3. Values to Tests
 
 #sigmas.test <- c(0.25, 0.5, 0.75, 1)
-sigmas.test <- c(0.75)
+sigmas.test <- c(0.5)
 #sigmas.test <- c(0.75, 1)
 
 thetas.list <- list()
@@ -63,8 +63,8 @@ thetas.list <- list()
 # thetas.list$s100 <- c(0, 0.066616166)
 ## Nonpriority 
 #thetas.list$s25 <- c(0.058897778, 0.564015475)
-#thetas.list$s50 <- c(0.018501935, 0.202776786)
-thetas.list$s75 <- c(0.004861793, 0.066616166)
+thetas.list$s50 <- c(0.018501935, 0.202776786)
+#thetas.list$s75 <- c(0.004861793, 0.066616166)
 #thetas.list$s100 <- c(0.004861793)
 
 
