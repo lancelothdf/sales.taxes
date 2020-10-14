@@ -85,18 +85,18 @@ for (state in states.test) {
       lin <- IVs[outcome == "IV" & sigma == sig][["Estimate"]]
 
       ## Non Marginal Change
-      t0 <- "tauno"
-      t1 <- "tau"
-      sc <- "No Tax"
-      up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
-      results.nonmarginal<- rbind(results.nonmarginal, data.table(state, down, up, sc, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1, it1 = 0, it2 = 0, ConsChckUp = 1, ConsChckDown = 1))
-
-
-      # t0 <- "tau"
-      # t1 <- "tau5"
-      # sc <- "plus 5 Tax"
+      # t0 <- "tauno"
+      # t1 <- "tau"
+      # sc <- "No Tax"
       # up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
       # results.nonmarginal<- rbind(results.nonmarginal, data.table(state, down, up, sc, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1, it1 = 0, it2 = 0, ConsChckUp = 1, ConsChckDown = 1))
+
+
+      t0 <- "tau"
+      t1 <- "tau5"
+      sc <- "plus 5 Tax"
+      up <- down <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
+      results.nonmarginal<- rbind(results.nonmarginal, data.table(state, down, up, sc, theta, sigma = sig, K = 1, D = 1, s1 = 1, s2 = 1, it1 = 0, it2 = 0, ConsChckUp = 1, ConsChckDown = 1))
 
     }
   }
@@ -128,7 +128,7 @@ setnames(min.criteria, c("K", "D"), c("Degree", "L"))
 K.test <- c(2, 8)
 #K.test <- 8
 #scenarios <- c("No Tax", "plus 5 Tax")
-scenarios <- "No Tax"
+scenarios <- "plus 5 Tax"
 
 ## 7. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
