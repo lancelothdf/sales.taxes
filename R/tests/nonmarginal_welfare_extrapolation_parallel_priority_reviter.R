@@ -54,7 +54,7 @@ IVs <- IVs[controls == "division_by_module_by_time"]
 # +5pp
 #prev.sol <- fread("Data/nonmarginal_extrapolation_state_priority_5pp.csv")
 prev.sol <- fread("Data/nonmarginal_extrapolation_state_priority_notax_rev_5pp.csv")
-
+setnames(prev.sol, "case", "cases")
 sc <- "plus 5 Tax"
 t0 <- "tau"
 t1 <- "tau5"
@@ -99,7 +99,7 @@ for (case in c("down", "up")) {
   ## A.1 Identify cases
   # if (case == "up") target <- prev.sol[itup == 2000, ]
   # if (case == "down") target <- prev.sol[itdown == 2000, ]
-  target.all <- prev.sol[ case == case]
+  target.all <- prev.sol[ cases == case]
   target <- target.all[, .(obj = mean(obj)), by = .(state,sigma,theta,K,D)]
   
   print(target)
