@@ -149,7 +149,7 @@ for (case in c("down", "up")) {
     # print(mc)
     # Capture it from previous
     init.val0 <- merge(target.case, target.all, by = c("state", "sigma", "theta", "K", "D") )[["mu"]]
-
+    print(init.val0)
     # F1. Subset data
     st.data <- data[fips_state == state,]
     
