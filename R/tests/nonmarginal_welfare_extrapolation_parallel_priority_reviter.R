@@ -52,6 +52,7 @@ IVs <- IVs[controls == "division_by_module_by_time"]
 # prev.sol <- fread("Data/nonmarginal_extrapolation_state_priority_notax_rev_notax.csv")
 # prev.sol <- fread("Data/nonmarginal_extrapolation_state_nonpriority_notax.csv")
 prev.sol <- fread("Data/nonmarginal_extrapolation_state_nonpriority_notax_rev.csv")
+setnames(prev.sol, "case", "cases")
 
 sc <- "No Tax"
 t0 <- "tauno"
