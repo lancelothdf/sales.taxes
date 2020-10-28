@@ -150,14 +150,14 @@ for (case in c("down", "up")) {
       mc <- min.criteria[Degree == K & L == D & sigma == sig & extrap == sc,][["min.criteria"]]
       
       ## D4. Generate an initial value somewhere in the middle to test algorithms
-      init.old<- init.val0 <- get.init.val(constr, IVs, mc)
-      print(init.val0)
-      print(constr)
-      print(IVs)
-      print(mc)
-      # Capture it from previous
-      # init.val0 <- merge(target.case, target.all, by = c("state", "sigma", "theta", "K", "D") )[["mu"]]
+      # init.old<- init.val0 <- get.init.val(constr, IVs, mc)
       # print(init.val0)
+      # print(constr)
+      # print(IVs)
+      # print(mc)
+      # Capture it from previous
+      init.val0 <- merge(target.case, target.all, by = c("state", "sigma", "theta", "K", "D") )[["mu"]]
+      print(init.val0)
       # F1. Subset data
       st.data <- data[fips_state == state,]
       
