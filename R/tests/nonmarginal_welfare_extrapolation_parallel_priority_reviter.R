@@ -28,8 +28,11 @@ source("Code/sales.taxes/R/tests/welfare_formulae_nlopt.R")
 # out.file.nonmarginal.r <- "Data/nonmarginal_extrapolation_state_priority_notax_rev_5pp.csv"
 ## Non-Priority
 # No Tax
-out.file.nonmarginal.c <- "Data/nonmarginal_extrapolation_state_nonpriority_notax_con.csv"
-out.file.nonmarginal.r <- "Data/nonmarginal_extrapolation_state_nonpriority_notax_rev.csv"
+# out.file.nonmarginal.c <- "Data/nonmarginal_extrapolation_state_nonpriority_notax_con.csv"
+# out.file.nonmarginal.r <- "Data/nonmarginal_extrapolation_state_nonpriority_notax_rev.csv"
+# Plus 5 tax
+out.file.nonmarginal.c <- "Data/nonmarginal_extrapolation_state_nonpriority_5pp_con.csv"
+out.file.nonmarginal.r <- "Data/nonmarginal_extrapolation_state_nonpriority_5pp_rev.csv"
 
 
 # 0. Parallelize options
@@ -51,21 +54,23 @@ IVs <- IVs[controls == "division_by_module_by_time"]
 # prev.sol <- fread("Data/nonmarginal_extrapolation_state_priority_notax.csv")
 # prev.sol <- fread("Data/nonmarginal_extrapolation_state_priority_notax_rev_notax.csv")
 # prev.sol <- fread("Data/nonmarginal_extrapolation_state_nonpriority_notax.csv")
-prev.sol <- fread("Data/nonmarginal_extrapolation_state_nonpriority_notax_rev.csv")
-setnames(prev.sol, "case", "cases")
-
-sc <- "No Tax"
-t0 <- "tauno"
-t1 <- "tau"
+# prev.sol <- fread("Data/nonmarginal_extrapolation_state_nonpriority_notax_rev.csv")
+# setnames(prev.sol, "case", "cases")
+# 
+# sc <- "No Tax"
+# t0 <- "tauno"
+# t1 <- "tau"
 
 
 # # +5pp
-# #prev.sol <- fread("Data/nonmarginal_extrapolation_state_priority_5pp.csv")
+# prev.sol <- fread("Data/nonmarginal_extrapolation_state_priority_5pp.csv")
 # prev.sol <- fread("Data/nonmarginal_extrapolation_state_priority_notax_rev_5pp.csv")
+prev.sol <- fread("Data/nonmarginal_extrapolation_state_nonpriority_5pp.csv")
+# prev.sol <- fread("Data/nonmarginal_extrapolation_state_nonpriority_5pp_rev.csv")
 # setnames(prev.sol, "case", "cases")
-# sc <- "plus 5 Tax"
-# t0 <- "tau"
-# t1 <- "tau5"
+sc <- "plus 5 Tax"
+t0 <- "tau"
+t1 <- "tau5"
 
 
 ## 4. Set up IV estimates for each sigma
@@ -92,7 +97,7 @@ setnames(min.criteria, c("K", "D"), c("Degree", "L"))
 ## 7. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
   "algorithm"="NLOPT_LN_COBYLA",
-  "maxeval" = 2400,
+  "maxeval" = 1900,
   "xtol_rel"=1.0e-8
 )
 
@@ -105,10 +110,10 @@ results.rev <- data.table(NULL)
 for (case in c("down", "up")) {
   
   ## A.1 Identify cases
-  # if (case == "up") target <- prev.sol[itup == 1800, ]
-  # if (case == "down") target <- prev.sol[itdown == 1800, ]
-  target.all <- prev.sol[ cases == case]
-  target <- target.all[, .(obj = mean(obj)), by = .(state,sigma,theta,K,D)]
+  if (case == "up") target <- prev.sol[itup == 1800, ]
+  if (case == "down") target <- prev.sol[itdown == 1800, ]
+  # target.all <- prev.sol[ cases == case]
+  # target <- target.all[, .(obj = mean(obj)), by = .(state,sigma,theta,K,D)]
   
   print(target)
   if (nrow(target) > 0) {
@@ -150,14 +155,14 @@ for (case in c("down", "up")) {
       mc <- min.criteria[Degree == K & L == D & sigma == sig & extrap == sc,][["min.criteria"]]
       
       ## D4. Generate an initial value somewhere in the middle to test algorithms
-      # init.old<- init.val0 <- get.init.val(constr, IVs, mc)
-      # print(init.val0)
+      init.old<- init.val0 <- get.init.val(constr, IVs, mc)
+      print(init.val0)
       # print(constr)
       # print(IVs)
       # print(mc)
       # Capture it from previous
-      init.val0 <- merge(target.case, target.all, by = c("state", "sigma", "theta", "K", "D") )[["mu"]]
-      print(init.val0)
+      # init.val0 <- merge(target.case, target.all, by = c("state", "sigma", "theta", "K", "D") )[["mu"]]
+      # print(init.val0)
       # F1. Subset data
       st.data <- data[fips_state == state,]
       
@@ -223,14 +228,14 @@ for (case in c("down", "up")) {
       data.table(state, sc, sigma = sig, theta, case, K, D, obj, it, mu)
       
     }
-    res.conv <- welfare.st[it != 2400, ]
+    res.conv <- welfare.st[it != 1900, ]
     res.conv<- res.conv[, lapply(.SD, mean), by = .(state, sigma, theta, sc, case, K, D), .SDcols = c("obj", "it")]
     
     
     results.conv <- rbind(results.conv, res.conv)
     fwrite(results.conv, out.file.nonmarginal.c)
     
-    results.rev <- rbind(results.rev, welfare.st[it == 2400, ])
+    results.rev <- rbind(results.rev, welfare.st[it == 1900, ])
     fwrite(results.rev, out.file.nonmarginal.r)
     
   }
