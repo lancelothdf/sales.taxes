@@ -97,7 +97,7 @@ setnames(min.criteria, c("K", "D"), c("Degree", "L"))
 ## 7. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
   "algorithm"="NLOPT_LN_COBYLA",
-  "maxeval" = 1900,
+  "maxeval" = 1400,
   "xtol_rel"=1.0e-8
 )
 
@@ -228,14 +228,14 @@ for (case in c("down", "up")) {
       data.table(state, sc, sigma = sig, theta, case, K, D, obj, it, mu)
       
     }
-    res.conv <- welfare.st[it != 1900, ]
+    res.conv <- welfare.st[it != 1400, ]
     res.conv<- res.conv[, lapply(.SD, mean), by = .(state, sigma, theta, sc, case, K, D), .SDcols = c("obj", "it")]
     
     
     results.conv <- rbind(results.conv, res.conv)
     fwrite(results.conv, out.file.nonmarginal.c)
     
-    results.rev <- rbind(results.rev, welfare.st[it == 1900, ])
+    results.rev <- rbind(results.rev, welfare.st[it == 1400, ])
     fwrite(results.rev, out.file.nonmarginal.r)
     
   }
