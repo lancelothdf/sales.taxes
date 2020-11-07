@@ -1,7 +1,7 @@
 # Sales Taxes PRoject
 # In this code we re-do estimate of evidence on non-linearities, but also using 2SLS
 # We do this for consumer price and pre-tax and splitting them by both
-# We only show evidence for 5 quintiles
+# We only show evidence for all sample and 5 quintiles
 
 
 library(data.table)
@@ -77,6 +77,31 @@ endogenous.2sls <- c("w.ln_cpricei2", "w.ln_pricei2")
 FE_opts <- c("group_region_by_module_by_time", "group_division_by_module_by_time")
 
 LRdiff_res <- data.table(NULL)
+
+##### Full sample IV
+
+for (FE in FE_opts) {
+  for (X in endogenous.2sls) {
+    formula1 <- as.formula(paste0(
+      "w.ln_quantity3 ~ 0 | ", FE, " | (", X," ~ w.ln_sales_tax) | module_by_state"
+    ))
+    res1 <- felm(formula = formula1, data = data,
+                 weights = data$base.sales)
+    
+    
+    ## attach results
+    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+    res1.dt[, outcome := X]
+    res1.dt[, controls := FE]
+    res1.dt[, lev := 0]
+    res1.dt[, init := "all"]
+    res1.dt[, spec := "IV"]
+    print(res1.dt)
+    
+    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+    fwrite(LRdiff_res, iv.output.results.file)
+  }  
+}
 
 
 #### Splitting by CONSUMER prices
