@@ -269,7 +269,7 @@ for (sc in scenarios) {
       
         }
         ## F2c Export
-        data.table(down, up, state, sc, D , K, sigma = sig, theta, s1, s2, it1, it2)
+        data.table(down, up, sc, D , K, sigma = sig, theta, s1, s2, it1, it2)
       
        }
        results <- rbind(results, welfare.theta)
