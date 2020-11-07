@@ -248,7 +248,7 @@ av.marginal.change <- function(mu, data, pp, tau, theta, sigma, w, st.code, min,
   return(mean(data.final$MVPF.state))
 }
 
-max.av.av.marginal.change <- function(mu, data, pp, tau, theta, sigma, w, st.code, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
+max.av.marginal.change <- function(mu, data, pp, tau, theta, sigma, w, st.code, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
   return(-av.marginal.change(mu, data, pp, tau, theta, sigma, w, st.code, min, max, constr_mat, IV_mat, min.crit, elas))
 }
 
