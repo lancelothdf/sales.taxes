@@ -185,7 +185,7 @@ for (sc in scenarios) {
           it1 <- res0$iterations
           # F2b1. Max calculation
           res0 <- nloptr( x0=init.val0,
-                          eval_f= av.max.marginal.change,
+                          eval_f= max.av.marginal.change,
                           eval_g_ineq = eval_restrictions_marg_av,
                           opts = nlo.opts.local.df,
                           data = data,
@@ -242,7 +242,7 @@ for (sc in scenarios) {
       
           # B5 Run maximization: derivative free 
           res0 <- nloptr( x0=init.val0,
-                          eval_f= av.max.non.marginal.change,
+                          eval_f= max.av.non.marginal.change,
                           eval_g_ineq = eval_restrictions_nmarg_av,
                           opts = nlo.opts.local.df,
                           data = data,
