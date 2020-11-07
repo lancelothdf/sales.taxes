@@ -387,7 +387,7 @@ eval_restrictions_marg <- function(mu, data, pp, tau, theta, sigma, w, min, max,
     )
   )
 }
-eval_restrictions_marg_av <- function(mu, data, pp, tau, theta, sigma, w, st.data, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
+eval_restrictions_marg_av <- function(mu, data, pp, tau, theta, sigma, w, st.code, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
   
   return(
     as.matrix(
@@ -428,7 +428,7 @@ eval_restrictions_nmarg <- function(mu, data, pp, t0, t1, theta, sigma, w, min, 
     )
   )
 }
-eval_restrictions_nmarg_av <- function(mu, data, pp, t0, t1, theta, sigma, w, st.data, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
+eval_restrictions_nmarg_av <- function(mu, data, pp, t0, t1, theta, sigma, w, st.code, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
   
   return(
     as.matrix(
