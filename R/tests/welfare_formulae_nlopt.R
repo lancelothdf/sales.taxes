@@ -213,8 +213,115 @@ max.non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, min, 
 }
 
 
+# Average across states
 
+# Marginal change function 
+av.marginal.change <- function(mu, data, pp, tau, theta, sigma, w, st.code, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
   
+  # Take producer price
+  p <- data[[pp]] 
+  
+  # Get tax rate (t not log(1+t))
+  t <- exp(data[[tau]]) - 1
+  
+  # Put together and transform to list to apply
+  X <- rbind(p, t)
+  X <- lapply(seq_len(ncol(X)), function(i) X[,i])
+  
+  # Numerator
+  numer.vector <- sapply(X, function(x, mu, theta, sigma, min, max) 
+    M.theta(x["t"], theta) - A.sigma(x["t"], sigma)*log.elas(mu, x["p"], x["t"], sigma, min, max),
+    mu = mu, theta = theta, sigma = sigma, min = min, max = max)
+  
+  # Denominator
+  denom.vector <- sapply(X, function(x, mu, theta, sigma, min, max) 
+    B.sigma(x["t"], sigma)*log.elas(mu, x["p"], x["t"], sigma, min, max),
+    mu = mu, theta = theta, sigma = sigma, min = min, max = max)
+  # Put together info: vectors are organized as provided
+  w <- data[[w]]
+  st.code <- data[[st.code]]
+  data.final <- data.table(numer.vector, denom.vector, w, st.code)
+  # Get weighted average by state
+  data.final <- data.final[, .(MVPF.state = weighted.mean(numer.vector, w = w)/(1-weighted.mean(denom.vector, w = w))), by =.(st.code)]  
+  # Average across states
+  
+  return(mean(data.final$MVPF.state))
+}
+
+max.av.av.marginal.change <- function(mu, data, pp, tau, theta, sigma, w, st.code, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
+  return(-av.marginal.change(mu, data, pp, tau, theta, sigma, w, st.code, min, max, constr_mat, IV_mat, min.crit, elas))
+}
+
+av.non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, st.code, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
+  
+  # Normalize to get a value of \mu_0: set to NULL we know is the same
+  mu0 <- NULL
+  
+  # Use vectors 
+  ll <- exp(data[[t0]])-1
+  ul <- exp(data[[t1]])-1
+  p <- data[[pp]]
+  
+  
+  # Put together and transform to list
+  X <- rbind(ll, ul, p)
+  X <- lapply(seq_len(ncol(X)), function(i) X[,i])
+  
+  # Calculate initial demand
+  init.dem <- sapply(X, function(x, mu, sigma, min, max, mu0) 
+    demand(p = x["p"], t = x["ll"], sigma = sigma, 
+           mu = mu, mu0 = mu0, min = min, max = max), 
+    mu = mu, sigma = sigma, min = min, max = max, mu0 = mu0)
+  
+  # sapply from list to numerator
+  int.num <- sapply(X, function(x, p, mu, sigma, theta, min, max, mu0) 
+    integrate(int.apply.num, 
+              lower = x["ll"], 
+              upper = x["ul"], 
+              p = x["p"],
+              mu = mu,
+              sigma = sigma,
+              theta = theta,
+              min = min, 
+              max = max,
+              mu0 = mu0)$value, mu = mu, sigma = sigma, theta = theta, min = min, max = max, mu0 = mu0)
+  
+  
+  ## OLD
+  # # Denominator
+  # denom.vector <- ul*(demand(p, ul, sigma, mu, mu0, min, max)/demand(p, ll, sigma, mu, mu0, min, max)) - ll
+  
+  ## NEW denominator
+  int.den <- sapply(X, function(x, p, mu, sigma, theta, min, max, mu0) 
+    integrate(int.apply.den, 
+              lower = x["ll"], 
+              upper = x["ul"], 
+              p = x["p"],
+              mu = mu,
+              sigma = sigma,
+              min = min, 
+              max = max,
+              mu0 = mu0)$value, mu = mu, sigma = sigma, min = min, max = max, mu0 = mu0)
+  
+  # divide numerator and denominator by initial demand
+  numer.vector <- int.num/init.dem
+  denom.vector <- int.den/init.dem
+  
+  # Put together info: vectors are organized as provided
+  w <- data[[w]]
+  w <- w/sum(w)
+  st.code <- data[[st.code]]
+  data.final <- data.table(numer.vector, denom.vector, w, st.code)
+  # Get weighted average by state
+  data.final <- data.final[, .(MVPF.state = weighted.mean(numer.vector, w = w)/(weighted.mean(denom.vector, w = w))), by =.(st.code)]  
+  # Average across states
+  return(mean(data.final$MVPF.state))
+}
+
+max.av.non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, st.code, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
+  return(-(av.non.marginal.change(mu, data, pp, t0, t1, theta, sigma, w, st.code, min, max, constr_mat, IV_mat, min.crit, elas)))
+}
+
 #### Constraints functions ----------
 
 ## Now, we put together functions that create the restrictions for the problem and will be used in the NLOPT program
@@ -280,6 +387,18 @@ eval_restrictions_marg <- function(mu, data, pp, tau, theta, sigma, w, min, max,
     )
   )
 }
+eval_restrictions_marg_av <- function(mu, data, pp, tau, theta, sigma, w, st.data, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
+  
+  return(
+    as.matrix(
+      #rbind(
+      constr.min.crit(mu, constr_mat, IV_mat, min.crit) #,
+      #shape.constr(mu, elas)
+      #)
+    )
+  )
+}
+
 ## Function for jacobian
 eval_restrictions_j_marg <- function(mu, data, pp, tau, theta, sigma, w, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
   
@@ -299,6 +418,17 @@ eval_restrictions_j_marg <- function(mu, data, pp, tau, theta, sigma, w, min, ma
 }
 ## Function for constraint: includes the arguments from evaluation function even if not needed so it runs
 eval_restrictions_nmarg <- function(mu, data, pp, t0, t1, theta, sigma, w, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
+  
+  return(
+    as.matrix(
+      #rbind(
+      constr.min.crit(mu, constr_mat, IV_mat, min.crit) #,
+      #shape.constr(mu, elas)
+      #)
+    )
+  )
+}
+eval_restrictions_nmarg_av <- function(mu, data, pp, t0, t1, theta, sigma, w, st.data, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
   
   return(
     as.matrix(
