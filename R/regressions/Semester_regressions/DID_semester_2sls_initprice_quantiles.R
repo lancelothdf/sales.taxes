@@ -85,7 +85,7 @@ for (FE in FE_opts) {
     formula1 <- as.formula(paste0(
       "w.ln_quantity3 ~ 0 | ", FE, " | (", X," ~ w.ln_sales_tax) | module_by_state"
     ))
-    res1 <- felm(formula = formula1, all_pi = all_pi,
+    res1 <- felm(formula = formula1, data = all_pi,
                  weights = all_pi$base.sales)
     
     
