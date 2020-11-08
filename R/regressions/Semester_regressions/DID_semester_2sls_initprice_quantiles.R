@@ -74,13 +74,14 @@ all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
 outcomes.sep <- c("w.ln_cpricei2", "w.ln_pricei2", "w.ln_quantity3")
 endogenous.2sls <- c("w.ln_cpricei2", "w.ln_pricei2")
+FE_opts_a <- c("region_by_module_by_time", "division_by_module_by_time")
 FE_opts <- c("group_region_by_module_by_time", "group_division_by_module_by_time")
 
 LRdiff_res <- data.table(NULL)
 
 ##### Full sample IV
 
-for (FE in FE_opts) {
+for (FE in FE_opts_a) {
   for (X in endogenous.2sls) {
     formula1 <- as.formula(paste0(
       "w.ln_quantity3 ~ 0 | ", FE, " | (", X," ~ w.ln_sales_tax) | module_by_state"
