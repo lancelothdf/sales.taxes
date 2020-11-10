@@ -86,14 +86,15 @@ res.pq <- fread("Data/Demand_pq_sat_initial_price_semester_salience.csv")
 
 ## 6. Set up Ks
 # K.test <- c(7,10)
-#K.test <- c(2, 8)
+# K.test <- c(2, 8)
 K.test <- 8
 scenarios <- c("Original", "No Tax", "plus 5 Tax")
+scenarios <- c("No Tax", "plus 5 Tax")
 
 ## 7. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
  "algorithm"="NLOPT_LN_COBYLA",
- "maxeval" = 1500,
+ "maxeval" = 400,
  "xtol_rel"=1.0e-8
 )
 
@@ -183,6 +184,7 @@ for (sc in scenarios) {
           down <- res0$objective
           s1 <- res0$status
           it1 <- res0$iterations
+          sol1 <- res0$solution
           # F2b1. Max calculation
           res0 <- nloptr( x0=init.val0,
                           eval_f= max.av.marginal.change,
@@ -208,6 +210,7 @@ for (sc in scenarios) {
           up <- -res0$objective
           s2 <- res0$status
           it2 <- res0$iterations
+          sol2 <- res0$solution
           
         }
         else {
@@ -238,6 +241,7 @@ for (sc in scenarios) {
           down <- res0$objective
           s1 <- res0$status
           it1 <- res0$iterations
+          sol1 <- res0$solution
           
       
           # B5 Run maximization: derivative free 
@@ -266,10 +270,11 @@ for (sc in scenarios) {
           up <- sol <- -res0$objective
           s2 <- res0$status
           it2 <- res0$iterations
-      
+          sol2 <- res0$solution
+          
         }
         ## F2c Export
-        data.table(down, up, sc, D , K, sigma = sig, theta, s1, s2, it1, it2)
+        data.table(down, up, sc, D , K, sigma = sig, theta, s1, s2, it1, it2, sol1, sol2)
       
        }
        results <- rbind(results, welfare.theta)
