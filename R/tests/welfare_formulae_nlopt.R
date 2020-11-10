@@ -286,7 +286,6 @@ av.non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, st.cod
               max = max,
               mu0 = mu0)$value, mu = mu, sigma = sigma, theta = theta, min = min, max = max, mu0 = mu0)
   
-  
   ## OLD
   # # Denominator
   # denom.vector <- ul*(demand(p, ul, sigma, mu, mu0, min, max)/demand(p, ll, sigma, mu, mu0, min, max)) - ll
@@ -302,12 +301,13 @@ av.non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, st.cod
               min = min, 
               max = max,
               mu0 = mu0)$value, mu = mu, sigma = sigma, min = min, max = max, mu0 = mu0)
-  
+
   # divide numerator and denominator by initial demand
   numer.vector <- int.num/init.dem
   denom.vector <- int.den/init.dem
   
-  # Put together info: vectors are organized as provided
+
+  
   w <- data[[w]]
   w <- w/sum(w)
   st.code <- data[[st.code]]
@@ -320,6 +320,79 @@ av.non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, st.cod
 
 max.av.non.marginal.change <- function(mu, data, pp, t0, t1, theta, sigma, w, st.code, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
   return(-(av.non.marginal.change(mu, data, pp, t0, t1, theta, sigma, w, st.code, min, max, constr_mat, IV_mat, min.crit, elas)))
+}
+
+av.non.marginal.change.parallel <- function(mu, data, pp, t0, t1, theta, sigma, w, st.code, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
+  
+  # Normalize to get a value of \mu_0: set to NULL we know is the same
+  mu0 <- NULL
+  
+  # Use vectors 
+  ll <- exp(data[[t0]])-1
+  ul <- exp(data[[t1]])-1
+  p <- data[[pp]]
+  
+  
+  # Put together and transform to list
+  X <- rbind(ll, ul, p)
+  X <- lapply(seq_len(ncol(X)), function(i) X[,i])
+  
+  # Calculate initial demand
+  init.dem <- sapply(X, function(x, mu, sigma, min, max, mu0) 
+    demand(p = x["p"], t = x["ll"], sigma = sigma, 
+           mu = mu, mu0 = mu0, min = min, max = max), 
+    mu = mu, sigma = sigma, min = min, max = max, mu0 = mu0)
+  
+  # sapply from list to numerator
+  int.num <- foreach(i=1:length(p),.combine="c") %dopar% {
+                  integrate(int.apply.num, 
+                            lower = ll[i], 
+                            upper = ul[i], 
+                            p = p[i],
+                            mu = mu,
+                            sigma = sigma,
+                            theta = theta,
+                            min = min, 
+                            max = max,
+                            mu0 = mu0)$value
+      }
+
+  ## OLD
+  # # Denominator
+  # denom.vector <- ul*(demand(p, ul, sigma, mu, mu0, min, max)/demand(p, ll, sigma, mu, mu0, min, max)) - ll
+  
+  ## NEW denominator
+  int.den <- foreach(i=1:length(p),.combine="c") %dopar% {
+                integrate(int.apply.den, 
+                          lower = ll[i], 
+                          upper = ul[i], 
+                          p = p[i],
+                          mu = mu,
+                          sigma = sigma,
+                          theta = theta,
+                          min = min, 
+                          max = max,
+                          mu0 = mu0)$value
+  }
+  
+  # divide numerator and denominator by initial demand
+  numer.vector <- int.num/init.dem
+  denom.vector <- int.den/init.dem
+  
+  
+  
+  w <- data[[w]]
+  w <- w/sum(w)
+  st.code <- data[[st.code]]
+  data.final <- data.table(numer.vector, denom.vector, w, st.code)
+  # Get weighted average by state
+  data.final <- data.final[, .(MVPF.state = weighted.mean(numer.vector, w = w)/(weighted.mean(denom.vector, w = w))), by =.(st.code)]  
+  # Average across states
+  return(mean(data.final$MVPF.state))
+}
+
+max.av.non.marginal.change.parallel <- function(mu, data, pp, t0, t1, theta, sigma, w, st.code, min, max, constr_mat, IV_mat, min.crit = 0, elas = T) {
+  return(-(av.non.marginal.change.parallel(mu, data, pp, t0, t1, theta, sigma, w, st.code, min, max, constr_mat, IV_mat, min.crit, elas)))
 }
 
 #### Constraints functions ----------

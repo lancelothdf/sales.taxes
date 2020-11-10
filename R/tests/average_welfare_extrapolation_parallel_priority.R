@@ -156,7 +156,7 @@ for (sc in scenarios) {
       
       
       ## E. Loop across thetas
-      welfare.theta <- foreach (theta= thetas.test, .combine=rbind) %dopar% {
+      for (theta in thetas.test) {
         if (sc == "Original") {
           # F2. Marginal change
           # F2a1. Min calculation
@@ -217,7 +217,7 @@ for (sc in scenarios) {
           # F2. Non Marginal change
           # B3 Run minimization: derivative free 
           res0 <- nloptr( x0=init.val0,
-                          eval_f= av.non.marginal.change,
+                          eval_f= av.non.marginal.change.parallel,
                           eval_g_ineq = eval_restrictions_nmarg_av,
                           opts = nlo.opts.local.df,
                           data = data,
@@ -246,7 +246,7 @@ for (sc in scenarios) {
       
           # B5 Run maximization: derivative free 
           res0 <- nloptr( x0=init.val0,
-                          eval_f= max.av.non.marginal.change,
+                          eval_f= max.av.non.marginal.change.parallel,
                           eval_g_ineq = eval_restrictions_nmarg_av,
                           opts = nlo.opts.local.df,
                           data = data,
@@ -274,7 +274,7 @@ for (sc in scenarios) {
           
         }
         ## F2c Export
-        data.table(down, up, sc, D , K, sigma = sig, theta, s1, s2, it1, it2, sol1, sol2)
+        welfare.theta <- data.table(down, up, sc, D , K, sigma = sig, theta, s1, s2, it1, it2, sol1, sol2)
       
        }
        results <- rbind(results, welfare.theta)
