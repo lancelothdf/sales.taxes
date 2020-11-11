@@ -275,10 +275,10 @@ for (sc in scenarios) {
         }
         ## F2c Export
         welfare.theta <- data.table(down, up, sc, D , K, sigma = sig, theta, s1, s2, it1, it2, sol1, sol2)
-      
+        results <- rbind(results, welfare.theta)
+        fwrite(results, out.file)
+        
        }
-       results <- rbind(results, welfare.theta)
-       fwrite(results, out.file)
        
       }
     }    
