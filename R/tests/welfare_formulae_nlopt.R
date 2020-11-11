@@ -369,7 +369,6 @@ av.non.marginal.change.parallel <- function(mu, data, pp, t0, t1, theta, sigma, 
                           p = p[i],
                           mu = mu,
                           sigma = sigma,
-                          theta = theta,
                           min = min, 
                           max = max,
                           mu0 = mu0)$value
