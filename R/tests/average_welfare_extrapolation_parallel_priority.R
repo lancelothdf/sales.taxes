@@ -162,7 +162,7 @@ for (sc in scenarios) {
         init.val0max <- target[["sol2"]]
         target <- target[, .(it1 = mean(it1), it2 = mean(it2),
                              down = mean(down), up = mean(up),
-                             s1 = mean(s1), s2 = mean(s2)), by = .(state,sigma,theta,K,D)]
+                             s1 = mean(s1), s2 = mean(s2)), by = .(sc,sigma,theta,K,D)]
         
 
         if (sc == "Original") {
