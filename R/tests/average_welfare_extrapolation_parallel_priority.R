@@ -156,7 +156,7 @@ for (sc in scenarios) {
       for (theta in thetas.test) {
   
         case <- data.table(sc, D , K, sigma = sig, theta)
-        target <- merge(prev.sol, case, by = c("state", "sigma", "theta", "K", "D"))
+        target <- merge(prev.sol, case, by = c("sc", "sigma", "theta", "K", "D"))
         
         init.val0min <- target[["sol1"]]
         init.val0max <- target[["sol2"]]
