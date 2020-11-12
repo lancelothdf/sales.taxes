@@ -24,6 +24,7 @@ source("Code/sales.taxes/R/tests/welfare_formulae_nlopt.R")
 
 ## Output files
 out.file <- "Data/average_extrapolation_state_priority.csv"
+out.file <- "Data/average_extrapolation_state_priority_R2.csv"
 
 
 # 0. Parallelize options
@@ -83,6 +84,11 @@ setnames(min.criteria, c("K", "D"), c("Degree", "L"))
 ## 5. Open Min - Max files
 res.pq <- fread("Data/Demand_pq_sat_initial_price_semester_salience.csv")
 
+## Load Previous results
+prev.sol <- fread("Data/nonmarginal_extrapolation_state_nonpriority_5pp_rev.csv")
+R <- 2
+if (R==2) prev.sol[, R := 1]
+
 
 ## 6. Set up Ks
 # K.test <- c(7,10)
@@ -94,20 +100,13 @@ scenarios <- c("No Tax", "plus 5 Tax")
 ## 7. Set up Optimization Parameters (algorithm for now)
 nlo.opts.local.df <- list(
  "algorithm"="NLOPT_LN_COBYLA",
- "maxeval" = 400,
+ "maxeval" = 600,
  "xtol_rel"=1.0e-8
 )
 
-# Options for Gurobi's min criterion calculation
-params <- list()
-params$NumericFocus <- 3
-params$ScaleFlag <- 2
-params$Method <- 1
-params$Presolve <- 0
-tolerance <- 1e-6
-params$FeasibilityTol <- tolerance
- 
+
 results <- data.table(NULL)
+results <- prev.sol
 
 for (sc in scenarios) {
   
@@ -151,16 +150,25 @@ for (sc in scenarios) {
       mc <- min.criteria[Degree == K & L == D & sigma == sig & extrap == "Original",][["min.criteria"]]
       
       ## D4. Generate an initial value somewhere in the middle to test algorithms
-      init.old<- init.val0 <- get.init.val(constr, IVs, mc)
-      print(init.val0)
-      
+      # init.val0max <- init.val0min <- get.init.val(constr, IVs, mc)
       
       ## E. Loop across thetas
       for (theta in thetas.test) {
+  
+        case <- data.table(sc, D , K, sigma = sig, theta)
+        target <- merge(prev.sol, case, by = c("state", "sigma", "theta", "K", "D"))
+        
+        init.val0min <- target[["sol1"]]
+        init.val0max <- target[["sol2"]]
+        target <- target[, .(it1 = mean(it1), it2 = mean(it2),
+                             down = mean(down), up = mean(up),
+                             s1 = mean(s1), s2 = mean(s2)), by = .(state,sigma,theta,K,D)]
+        
+
         if (sc == "Original") {
           # F2. Marginal change
           # F2a1. Min calculation
-          res0 <- nloptr( x0=init.val0,
+          res0 <- nloptr( x0=init.val0min,
                           eval_f= av.marginal.change,
                           eval_g_ineq = eval_restrictions_marg_av,
                           opts = nlo.opts.local.df,
@@ -186,7 +194,7 @@ for (sc in scenarios) {
           it1 <- res0$iterations
           sol1 <- res0$solution
           # F2b1. Max calculation
-          res0 <- nloptr( x0=init.val0,
+          res0 <- nloptr( x0=init.val0max,
                           eval_f= max.av.marginal.change,
                           eval_g_ineq = eval_restrictions_marg_av,
                           opts = nlo.opts.local.df,
@@ -216,65 +224,81 @@ for (sc in scenarios) {
         else {
           # F2. Non Marginal change
           # B3 Run minimization: derivative free 
-          res0 <- nloptr( x0=init.val0,
-                          eval_f= av.non.marginal.change.parallel,
-                          eval_g_ineq = eval_restrictions_nmarg_av,
-                          opts = nlo.opts.local.df,
-                          data = data,
-                          pp = "p_cml", 
-                          t0 = t0, 
-                          t1 = t1,
-                          theta = theta,
-                          sigma = sig,
-                          w = "eta_m", 
-                          st.code = "fips_state", 
-                          min = p.min, 
-                          max = p.max,
-                          constr_mat = constr, 
-                          IV_mat = IVs, 
-                          min.crit = mc,
-                          elas = T,
-                          ub = rep(0, K),
-                          lb = rep(min(IVs)/min(constr), K)
-          )       
-          # B4. Extract minimization results
-          down <- res0$objective
-          s1 <- res0$status
-          it1 <- res0$iterations
-          sol1 <- res0$solution
+          if (target[["it1"]] == 400) {
+            res0 <- nloptr( x0=init.val0min,
+                            eval_f= av.non.marginal.change.parallel,
+                            eval_g_ineq = eval_restrictions_nmarg_av,
+                            opts = nlo.opts.local.df,
+                            data = data,
+                            pp = "p_cml", 
+                            t0 = t0, 
+                            t1 = t1,
+                            theta = theta,
+                            sigma = sig,
+                            w = "eta_m", 
+                            st.code = "fips_state", 
+                            min = p.min, 
+                            max = p.max,
+                            constr_mat = constr, 
+                            IV_mat = IVs, 
+                            min.crit = mc,
+                            elas = T,
+                            ub = rep(0, K),
+                            lb = rep(min(IVs)/min(constr), K)
+            )       
+            # B4. Extract minimization results
+            down <- res0$objective
+            s1 <- res0$status
+            it1 <- res0$iterations
+            sol1 <- res0$solution
+          }
+          else {
+            down <- target[["down"]]
+            s1 <- target[["s1"]]
+            it1 <- target[["it1"]]
+            sol1 <- init.val0min
+          }
           
       
-          # B5 Run maximization: derivative free 
-          res0 <- nloptr( x0=init.val0,
-                          eval_f= max.av.non.marginal.change.parallel,
-                          eval_g_ineq = eval_restrictions_nmarg_av,
-                          opts = nlo.opts.local.df,
-                          data = data,
-                          pp = "p_cml", 
-                          t0 = t0, 
-                          t1 = t1,
-                          theta = theta,
-                          sigma = sig,
-                          w = "eta_m", 
-                          st.code = "fips_state", 
-                          min = p.min, 
-                          max = p.max,
-                          constr_mat = constr, 
-                          IV_mat = IVs, 
-                          min.crit = mc,
-                          elas = T,
-                          ub = rep(0, K),
-                          lb = rep(min(IVs)/min(constr), K)
-          )       
-          # B6. Extract minimization results
-          up <- sol <- -res0$objective
-          s2 <- res0$status
-          it2 <- res0$iterations
-          sol2 <- res0$solution
+          if (target[["it2"]] == 400) {
+            # B5 Run maximization: derivative free 
+            res0 <- nloptr( x0=init.val0max,
+                            eval_f= max.av.non.marginal.change.parallel,
+                            eval_g_ineq = eval_restrictions_nmarg_av,
+                            opts = nlo.opts.local.df,
+                            data = data,
+                            pp = "p_cml", 
+                            t0 = t0, 
+                            t1 = t1,
+                            theta = theta,
+                            sigma = sig,
+                            w = "eta_m", 
+                            st.code = "fips_state", 
+                            min = p.min, 
+                            max = p.max,
+                            constr_mat = constr, 
+                            IV_mat = IVs, 
+                            min.crit = mc,
+                            elas = T,
+                            ub = rep(0, K),
+                            lb = rep(min(IVs)/min(constr), K)
+            )       
+            # B6. Extract minimization results
+            up <- sol <- -res0$objective
+            s2 <- res0$status
+            it2 <- res0$iterations
+            sol2 <- res0$solution
+          }
+          else {
+            up <- target[["up"]]
+            s2 <- target[["s2"]]
+            it2 <- target[["it2"]]
+            sol2 <- init.val0max
+          }
           
         }
         ## F2c Export
-        welfare.theta <- data.table(down, up, sc, D , K, sigma = sig, theta, s1, s2, it1, it2, sol1, sol2)
+        welfare.theta <- data.table(down, up, sc, D , K, sigma = sig, theta, s1, s2, it1, it2, sol1, sol2, R)
         results <- rbind(results, welfare.theta)
         fwrite(results, out.file)
         
