@@ -85,7 +85,7 @@ setnames(min.criteria, c("K", "D"), c("Degree", "L"))
 res.pq <- fread("Data/Demand_pq_sat_initial_price_semester_salience.csv")
 
 ## Load Previous results
-prev.sol <- fread("Data/nonmarginal_extrapolation_state_nonpriority_5pp_rev.csv")
+prev.sol <- fread("Data/average_extrapolation_state_priority.csv")
 R <- 2
 if (R==2) prev.sol[, R := 1]
 
