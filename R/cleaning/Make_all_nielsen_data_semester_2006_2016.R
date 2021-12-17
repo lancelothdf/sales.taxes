@@ -42,12 +42,6 @@ all_pi <- merge(all_pi, quant_pi, by = c("store_code_uc", "product_module_code",
 rm(quant_pi)
 
 
-# impute tax rates prior to 2008 and after 2014
-all_pi[, sales_tax := ifelse(year < 2008, sales_tax[year == 2008 & quarter == 1], sales_tax),
-       by = .(store_code_uc, product_module_code)]
-all_pi[, sales_tax := ifelse(year > 2014, sales_tax[year == 2014 & quarter == 4], sales_tax),
-       by = .(store_code_uc, product_module_code)]
-
 # create necessary variables
 all_pi[, ln_cpricei := log(cpricei)]
 all_pi[, ln_pricei := log(pricei)]
@@ -59,7 +53,7 @@ all_pi[, ln_sales := log(sales)]
 
 
 ## get sales weights
-all_pi[, base.sales := sales[year == 2008 & quarter == 1],
+all_pi[, base.sales := sales[year == 2006 & quarter == 1],
        by = .(store_code_uc, product_module_code)]
 
 all_pi <- all_pi[!is.na(base.sales) & !is.na(sales) & !is.na(ln_cpricei) & !is.na(ln_pricei) &
@@ -87,7 +81,7 @@ all_pi <- all_pi[, c("fips_state", "fips_county", "year", "quarter", "store_code
 ## Generate a semester indicator
 all_pi[, semester := 1 + (quarter >= 3 & quarter <= 4)*1 ]
 
-## Collapse at semester-leve
+## Collapse at semester-level
 #all_pi <- all_pi[, list(ln_cpricei = mean(ln_cpricei), ln_cpricei2 = mean(ln_cpricei2), ln_sales = mean(ln_sales), ln_quantity = mean(ln_quantity), ln_quantity2 = mean(ln_quantity2), ln_quantity3 = mean(ln_quantity3), ln_UPC = mean(ln_UPC), ln_raw_quant = mean(ln_raw_quant), ln_sales_tax = mean(ln_sales_tax), taxability = mean(taxability), base.sales = mean(base.sales), sales = mean(sales)), by = .(fips_state, fips_county, store_code_uc, product_module_code, year, semester)]
 all_pi <- all_pi[, list(ln_cpricei = mean(ln_cpricei), ln_pricei = mean(ln_pricei), ln_cpricei2 = mean(ln_cpricei2), ln_pricei2 = mean(ln_pricei2), ln_sales = mean(ln_sales), ln_quantity = mean(ln_quantity), ln_quantity2 = mean(ln_quantity2), ln_quantity3 = mean(ln_quantity3), ln_UPC = mean(ln_UPC), ln_raw_quant = mean(ln_raw_quant), ln_sales_tax = mean(ln_sales_tax), base.sales = mean(base.sales), sales = mean(sales)), by = .(fips_state, fips_county, store_code_uc, product_module_code, year, semester)]
 ### Excludes taxability because there was sthg wrong with that variable
@@ -166,7 +160,6 @@ all_pi[, D.ln_sales_share := ln_sales_share - shift(ln_sales_share, n=1, type = 
       by = .(store_code_uc, product_module_code)]
 
 
-
 ## generate lags and leads of ln_sales_tax
 for (lag.val in 1:4) {
   lag.X <- paste0("L", lag.val, ".D.ln_sales_tax")
@@ -179,10 +172,9 @@ for (lag.val in 1:4) {
 }
 
 
-
 ### Keep only relevant years ---------------------------------------------------
-all_pi <- all_pi[between(year, 2008, 2014)]
-all_pi <- all_pi[ year >= 2009 | (year == 2008 & semester >= 2)] ## First semester of 2008, the difference was imputed not real data - so we drop it
+all_pi <- all_pi[between(year, 2006, 2016)]
+all_pi <- all_pi[ year >= 2007 | (year == 2006 & semester >= 2)] ## First semester of 2008, the difference was imputed not real data - so we drop it
 
 
 ### Finally keep only the variables that we may need (mostly the differenced variables)
@@ -191,6 +183,6 @@ all_pi <- all_pi[, c("fips_state", "fips_county", "year", "semester", "store_cod
 ## Taxability not on the list
 
 
- ###
- fwrite(all_pi, output_semester)
+###
+fwrite(all_pi, output_semester)
 
