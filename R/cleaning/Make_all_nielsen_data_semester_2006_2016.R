@@ -53,7 +53,8 @@ all_pi[, ln_sales := log(sales)]
 
 
 ## get sales weights
-all_pi[, base.sales := sales[year == 2006 & quarter == 1],
+####### DO I WANT THIS TO READ YEAR==2006 AND QUARTER==1
+all_pi[, base.sales := sales[year == 2008 & quarter == 1],
        by = .(store_code_uc, product_module_code)]
 
 all_pi <- all_pi[!is.na(base.sales) & !is.na(sales) & !is.na(ln_cpricei) & !is.na(ln_pricei) &
@@ -81,7 +82,7 @@ all_pi <- all_pi[, c("fips_state", "fips_county", "year", "quarter", "store_code
 ## Generate a semester indicator
 all_pi[, semester := 1 + (quarter >= 3 & quarter <= 4)*1 ]
 
-## Collapse at semester-level
+## Collapse at semester-leve
 #all_pi <- all_pi[, list(ln_cpricei = mean(ln_cpricei), ln_cpricei2 = mean(ln_cpricei2), ln_sales = mean(ln_sales), ln_quantity = mean(ln_quantity), ln_quantity2 = mean(ln_quantity2), ln_quantity3 = mean(ln_quantity3), ln_UPC = mean(ln_UPC), ln_raw_quant = mean(ln_raw_quant), ln_sales_tax = mean(ln_sales_tax), taxability = mean(taxability), base.sales = mean(base.sales), sales = mean(sales)), by = .(fips_state, fips_county, store_code_uc, product_module_code, year, semester)]
 all_pi <- all_pi[, list(ln_cpricei = mean(ln_cpricei), ln_pricei = mean(ln_pricei), ln_cpricei2 = mean(ln_cpricei2), ln_pricei2 = mean(ln_pricei2), ln_sales = mean(ln_sales), ln_quantity = mean(ln_quantity), ln_quantity2 = mean(ln_quantity2), ln_quantity3 = mean(ln_quantity3), ln_UPC = mean(ln_UPC), ln_raw_quant = mean(ln_raw_quant), ln_sales_tax = mean(ln_sales_tax), base.sales = mean(base.sales), sales = mean(sales)), by = .(fips_state, fips_county, store_code_uc, product_module_code, year, semester)]
 ### Excludes taxability because there was sthg wrong with that variable
@@ -158,6 +159,7 @@ all_pi[, D.ln_raw_quant := ln_raw_quant - shift(ln_raw_quant, n=1, type="lag"),
 
 all_pi[, D.ln_sales_share := ln_sales_share - shift(ln_sales_share, n=1, type = "lag"),
       by = .(store_code_uc, product_module_code)]
+
 
 
 ## generate lags and leads of ln_sales_tax
