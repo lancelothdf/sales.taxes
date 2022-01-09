@@ -1,6 +1,6 @@
-#' Author: Lancelot Henry de Frahan and John Bonney
+#' Author: Lancelot Henry de Frahan and John Bonney (Wesley Janson)
 #'
-#'Same as Main_semesterly_regressions but we estimate only in the common supports and anchor at -1
+# Run similar regressions as "main_semesterly_regressions_commonsupport_c1.R", but with county X module data 
 
 library(data.table)
 library(futile.logger)
@@ -12,12 +12,12 @@ setwd("/project2/igaarder")
 
 ## input filepaths -----------------------------------------------
 #' This data set contains quarterly Laspeyres indices and sales from 2006 to
-#' 2014. It also contains sales tax rates from 2008-2014.
+#' 2016. It also contains sales tax rates from the same time period.
 all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_notaxinfo.csv"
 #' This data set contains an old price index that Lance constructed, from
 old_pi_path <- "Data/Nielsen/Quarterly_old_pi.csv"
 #' This data is the same as all_goods_pi_path, except it has 2015-2016 data as well.
-data.full.path <- "Data/Nielsen/semester_nielsen_data.csv"
+data.full.path <- "Data/Nielsen/semester_nielsen_data_county.csv"
 
 zillow_path <- "Data/covariates/zillow_long_by_county_clean.csv"
 zillow_state_path <- "Data/covariates/zillow_long_by_state_clean.csv"
@@ -27,12 +27,12 @@ wage.path <- "Data/covariates/qcew_quarterly_clean.csv"
 
 
 ## output filepaths ----------------------------------------------
-output.results.file <- "Data/LRdiff_semesterly_main_commonsupport_1.csv"
-
+output.results.file <- "Data/LRdiff_semesterly_COUNTY.csv"
 
 
 ##### 
 all_pi <- fread(data.full.path)
+
 
 #### Prep the unemployment, house price data and quarterly wage data
 ### Start with house prices 
@@ -88,8 +88,6 @@ zillow_dt <- merge(zillow_dt, unemp.data, by = c("fips_state", "fips_county", "y
 rm(unemp.data)
 
 
-
-
 ### Balance the sample
 zillow_dt <- zillow_dt[!is.na(ln_unemp) & !is.na(ln_home_price)]
 
@@ -104,6 +102,7 @@ setkey(keep_counties, fips_state, fips_county)
 zillow_dt <- zillow_dt[keep_counties]
 setkey(zillow_dt, fips_state, fips_county, year, semester)
 
+
 ### Difference the econ data + leads and lags
 zillow_dt <- zillow_dt[order(fips_state, fips_county, year, semester),]
 
@@ -112,7 +111,6 @@ zillow_dt[, D.ln_home_price := ln_home_price - shift(ln_home_price, n=1, type="l
 
 zillow_dt[, D.ln_unemp := ln_unemp - shift(ln_unemp, n=1, type="lag"),
           by = .(fips_state, fips_county)]
-
 
 ## generate lags
 for (lag.val in 1:4) {
@@ -123,9 +121,7 @@ for (lag.val in 1:4) {
   lag.X <- paste0("L", lag.val, ".D.ln_unemp")
   zillow_dt[, (lag.X) := shift(D.ln_unemp, n=lag.val, type="lag"),
             by = .(fips_state, fips_county)]
-  
 }
-
 
 
 # Create lagged value (initial)
@@ -137,10 +133,6 @@ all_pi[, L.ln_cpricei2 := ln_cpricei2 - D.ln_cpricei2]
 all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = module_by_time]
-
-
-
-
 
 # Defining common support
 control <- all_pi[D.ln_sales_tax == 0,]
@@ -166,11 +158,8 @@ pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sal
 pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
 all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
-
 ### Merge econ data to price and quantity data then run estimations
 all_pi_econ <- merge(all_pi, zillow_dt, by = c("fips_state", "fips_county", "year", "semester"))
-
-
 
 ## Setting up loop to estimate
 
@@ -212,7 +201,7 @@ for (Y in c(outcomes)) {
         res1 <- felm(formula = formula1, data = all_pi_econ,
                      weights = all_pi_econ$base.sales)
         flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
-    
+        
       } else {
         
         formula1 <- as.formula(paste0(
@@ -241,7 +230,7 @@ for (Y in c(outcomes)) {
         res1.dt[, N_counties := uniqueN(all_pi_econ, by = c("fips_state", "fips_county"))]
         res1.dt[, N_years := uniqueN(all_pi_econ, by = c("year"))]
         res1.dt[, N_county_modules := uniqueN(all_pi_econ, by = c("fips_state", "fips_county",
-                                                             "product_module_code"))]
+                                                                  "product_module_code"))]
         
       } else {
         
@@ -259,7 +248,7 @@ for (Y in c(outcomes)) {
       
       LRdiff_res <- rbind(LRdiff_res, res1.dt)
       fwrite(LRdiff_res, output.results.file)
-  
+      
       ## sum leads
       flog.info("Summing leads...")
       lead.test <- glht(res1, linfct = lead.lp.restr)
@@ -371,7 +360,4 @@ for (Y in c(outcomes)) {
     }
   }
 }
-
-
-
 
