@@ -71,7 +71,6 @@ zillow_dt[, state_median_home_price := NULL]
 zillow_dt <- zillow_dt[, semester := ceiling((month/12)*2)]
 zillow_dt <- zillow_dt[, list(ln_home_price = log(mean(median_home_price))),
                        by = .(year, semester, fips_state, fips_county)]
-
 ##
 
 
