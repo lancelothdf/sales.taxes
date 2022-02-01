@@ -59,14 +59,14 @@ all_pi <- all_pi[!is.na(base.sales) & !is.na(sales) & !is.na(ln_cpricei) & !is.n
 
 ## Balance on county-module level
 keep_store_modules <- all_pi[, list(n = .N),
-                             by = .(fips_county, product_module_code)]
+                             by = .(store_code_uc, product_module_code)]
 keep_store_modules <- keep_store_modules[n == (2016 - 2005) * 4]
 
-setkey(all_pi, fips_county, product_module_code)
-setkey(keep_store_modules, fips_county, product_module_code)
+setkey(all_pi, store_code_uc, product_module_code)
+setkey(keep_store_modules, store_code_uc, product_module_code)
 
 all_pi <- all_pi[keep_store_modules]
-setkey(all_pi, fips_county, product_module_code, year, quarter)
+setkey(all_pi, store_code_uc, product_module_code, year, quarter)
 
 
 #############################################################
@@ -80,8 +80,9 @@ all_pi[, semester := 1 + (quarter >= 3 & quarter <= 4)*1 ]
 
 ## Collapse at semester-level
 #all_pi <- all_pi[, list(ln_cpricei = mean(ln_cpricei), ln_cpricei2 = mean(ln_cpricei2), ln_sales = mean(ln_sales), ln_quantity = mean(ln_quantity), ln_quantity2 = mean(ln_quantity2), ln_quantity3 = mean(ln_quantity3), ln_UPC = mean(ln_UPC), ln_raw_quant = mean(ln_raw_quant), ln_sales_tax = mean(ln_sales_tax), taxability = mean(taxability), base.sales = mean(base.sales), sales = mean(sales)), by = .(fips_state, fips_county, store_code_uc, product_module_code, year, semester)]
-all_pi <- all_pi[, list(ln_cpricei = mean(ln_cpricei), ln_pricei = mean(ln_pricei), ln_cpricei2 = mean(ln_cpricei2), ln_pricei2 = mean(ln_pricei2), ln_sales = mean(ln_sales), ln_quantity = mean(ln_quantity), ln_quantity2 = mean(ln_quantity2), ln_quantity3 = mean(ln_quantity3), ln_UPC = mean(ln_UPC), ln_raw_quant = mean(ln_raw_quant), ln_sales_tax = mean(ln_sales_tax), base.sales = mean(base.sales), sales = mean(sales)), by = .(fips_state, fips_county, product_module_code, year, semester)]
-### Excludes taxability because there was sthg wrong with that variable
+all_pi <- all_pi[, list(ln_cpricei = weighted.mean(ln_cpricei, w = sales), ln_pricei = weighted.mean(ln_pricei, w = sales), ln_cpricei2 = weighted.mean(ln_cpricei2, w = sales), ln_pricei2 = weighted.mean(ln_pricei2, w = sales), ln_sales = weighted.mean(ln_sales, w = sales), ln_quantity = weighted.mean(ln_quantity, w = sales), ln_quantity2 = weighted.mean(ln_quantity2, w = sales), ln_quantity3 = mweighted.ean(ln_quantity3, w = sales), ln_UPC = weighted.mean(ln_UPC, w = sales), ln_raw_quant = weighted.mean(ln_raw_quant, w = sales), ln_sales_tax = weighted.mean(ln_sales_tax, w = sales), base.sales = sum(base.sales), sales = sum(sales)), by = .(fips_state, fips_county, product_module_code, year, semester)]
+
+
 
 ## Prep Census region/division data ------------------------------
 geo_dt <- structure(list(
