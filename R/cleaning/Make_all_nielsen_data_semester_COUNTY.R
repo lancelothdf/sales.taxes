@@ -105,57 +105,57 @@ setDT(geo_dt)
 all_pi <- merge(all_pi, geo_dt, by = "fips_state")
 
 
-all_pi[, county_by_module := .GRP, by = .(fips_county, product_module_code)]
+all_pi[, county_by_module := .GRP, by = .(fips_state, fips_county, product_module_code)]
 all_pi[, cal_time := 2 * year + semester]
 all_pi[, module_by_time := .GRP, by = .(product_module_code, cal_time)]
 all_pi[, module_by_state := .GRP, by = .(product_module_code, fips_state)]
 all_pi[, region_by_module_by_time := .GRP, by = .(region, product_module_code, cal_time)]
 all_pi[, division_by_module_by_time := .GRP, by = .(division, product_module_code, cal_time)]
 
-all_pi[, county_sales := sum(sales), by = .(fips_county, cal_time)]
+all_pi[, county_sales := sum(sales), by = .(fips_state, fips_county, cal_time)]
 all_pi[, ln_sales_share := log(sales/county_sales)]
 
 
 #######################################################
 ## Take first differences of outcomes and treatment
-all_pi <- all_pi[order(fips_county, product_module_code, cal_time),] ##Sort on county by year-quarter (in ascending order)
+all_pi <- all_pi[order(fips_state, fips_county, product_module_code, cal_time),] ##Sort on county by year-quarter (in ascending order)
 
 
 all_pi[, D.ln_cpricei := ln_cpricei - shift(ln_cpricei, n=1, type="lag"),
-       by = .(fips_county, product_module_code)]
+       by = .(fips_state, fips_county, product_module_code)]
 
 all_pi[, D.ln_pricei := ln_pricei - shift(ln_pricei, n=1, type="lag"),
-       by = .(fips_county, product_module_code)]
+       by = .(fips_state, fips_county, product_module_code)]
 
 all_pi[, D.ln_cpricei2 := ln_cpricei2 - shift(ln_cpricei2, n=1, type="lag"),
-       by = .(fips_county, product_module_code)]
+       by = .(fips_state, fips_county, product_module_code)]
 
 all_pi[, D.ln_pricei2 := ln_pricei2 - shift(ln_pricei2, n=1, type="lag"),
-       by = .(fips_county, product_module_code)]
+       by = .(fips_state, fips_county, product_module_code)]
 
 all_pi[, D.ln_quantity := ln_quantity - shift(ln_quantity, n=1, type="lag"),
-       by = .(fips_county, product_module_code)]
+       by = .(fips_state, fips_county, product_module_code)]
 
 all_pi[, D.ln_quantity2 := ln_quantity2 - shift(ln_quantity2, n=1, type="lag"),
-       by = .(fips_county, product_module_code)]
+       by = .(fips_state, fips_county, product_module_code)]
 
 all_pi[, D.ln_quantity3 := ln_quantity3 - shift(ln_quantity3, n=1, type="lag"),
-       by = .(fips_county, product_module_code)]
+       by = .(fips_state, fips_county, product_module_code)]
 
 all_pi[, D.ln_sales := ln_sales - shift(ln_sales, n=1, type="lag"),
-       by = .(fips_county, product_module_code)]
+       by = .(fips_state, fips_county, product_module_code)]
 
 all_pi[, D.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=1, type="lag"),
-       by = .(fips_county, product_module_code)]
+       by = .(fips_state, fips_county, product_module_code)]
 
 all_pi[, D.ln_UPC := ln_UPC - shift(ln_UPC, n=1, type="lag"),
-       by = .(fips_county, product_module_code)]
+       by = .(fips_state, fips_county, product_module_code)]
 
 all_pi[, D.ln_raw_quant := ln_raw_quant - shift(ln_raw_quant, n=1, type="lag"),
-       by = .(fips_county, product_module_code)]
+       by = .(fips_state, fips_county, product_module_code)]
 
 all_pi[, D.ln_sales_share := ln_sales_share - shift(ln_sales_share, n=1, type = "lag"),
-       by = .(fips_county, product_module_code)]
+       by = .(fips_state, fips_county, product_module_code)]
 
 
 
@@ -163,11 +163,11 @@ all_pi[, D.ln_sales_share := ln_sales_share - shift(ln_sales_share, n=1, type = 
 for (lag.val in 1:4) {
   lag.X <- paste0("L", lag.val, ".D.ln_sales_tax")
   all_pi[, (lag.X) := shift(D.ln_sales_tax, n=lag.val, type="lag"),
-         by = .(fips_county, product_module_code)]
+         by = .(fips_state, fips_county, product_module_code)]
   
   lead.X <- paste0("F", lag.val, ".D.ln_sales_tax")
   all_pi[, (lead.X) := shift(D.ln_sales_tax, n=lag.val, type="lead"),
-         by = .(fips_county, product_module_code)]
+         by = .(fips_state, fips_county, product_module_code)]
 }
 
 
