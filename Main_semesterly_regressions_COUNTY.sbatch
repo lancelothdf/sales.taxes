@@ -7,4 +7,4 @@
 #SBATCH --mem=256000
 
 module load R
-R CMD BATCH /project2/igaarder/Code/r-package/sales.taxes/R/regressions/Semester_regressions/Main_semesterly_regressions_COUNTY.R
+R CMD BATCH /project2/igaarder/Code/sales.taxes/R/regressions/Semester_regressions/Main_semesterly_regressions_COUNTY.R
