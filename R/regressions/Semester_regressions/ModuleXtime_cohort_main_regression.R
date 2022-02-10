@@ -8,7 +8,7 @@ library(data.table)
 library(futile.logger)
 library(lfe)
 library(multcomp)
-#library(estimatr)
+library(estimatr)
 
 
 ########## !!!!!!! ###########
@@ -37,8 +37,8 @@ wage.path <- "Data/covariates/qcew_quarterly_clean.csv"
 
 
 ## output filepaths ----------------------------------------------
-output.results.file <- "Data/LRdiff_cohortbycohort_time.csv" ### Main results
-boot.results.file <- "Data/Boot_LRdiff_cohortbycohort_time.csv" ### Bootstrap
+output.results.file <- "Data/LRdiff_cohortbycohort_moduleXtime.csv" ### Main results
+boot.results.file <- "Data/Boot_LRdiff_cohortbycohort_moduleXtime.csv" ### Bootstrap
 
 
 ##### 
@@ -91,15 +91,14 @@ formula_RHS <- paste0("D.ln_sales_tax + ", formula_lags, "+", formula_leads)
 
 
 outcomes <- c("D.ln_cpricei", "D.ln_cpricei2", "D.ln_quantity", "D.ln_quantity2", "D.ln_quantity3")
-FE_opts <- c("module_by_time", "region_by_module_by_time", "division_by_module_by_time")
+FE_opts <- c("", "region_by_module_by_time", "division_by_module_by_time")
 
 
 ### Keep only data between 2008-2014 (Note: previous and subsequent data is used to calculate lead and lagged variables)
 all_pi <- all_pi[year >= 2008 & year <= 2014,]
 all_pi <- all_pi[year > 2008 | (year == 2008 & semester == 2),] ## Get rid of 2008S1 cohort
 
-#ids <- unique(sort(all_pi$module_by_time))
-c_ids <- unique(sort(all_pi$cal_time)) ## Define cohorts based on YearXsemester (calendar time)
+c_ids <- unique(sort(all_pi$module_by_time)) ## Define cohorts based on YearXsemesterXmodule
 
 # ## for linear hypothesis tests
 # lead.vars <- paste(paste0("F", 4:1, ".D.ln_sales_tax"), collapse = " + ")
@@ -116,80 +115,160 @@ for(co in c_ids) {
   for (Y in c(outcomes)) {
       for (FE in FE_opts) {
         
-        formula1 <- as.formula(paste0(
-          Y, "~", formula_RHS, "| ", FE, " | 0 | module_by_state"
-        ))
-        flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
-        res1 <- felm(formula = formula1, data = all_pi[cal_time == co,],
-                     weights = all_pi[cal_time == co,]$base.sales)
-        flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
-        
-        
-        
-        ## attach results
-        flog.info("Writing results...")
-        
-        ##### Add the cumulative effect at each lead/lag (relative to -1)
-        cumul.lead1.est <- 0
-        cumul.lead1.se <- NA
-        cumul.lead1.pval <- NA
-        
-        cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_sales_tax", "Estimate"]
-        cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Cluster s.e."]
-        cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Pr(>|t|)"]
-        
-        ##LEADS
-        for(j in 3:5) {
+        if(FE == "") {
           
-          ## Create a name for estimate, se and pval of each lead
-          cumul.test.est.name <- paste("cumul.lead", j, ".est", sep = "")
-          cumul.test.se.name <- paste("cumul.lead", j, ".se", sep = "")
-          cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
           
-          ## Create the formula to compute cumulative estimate at each lead/lag
-          cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_sales_tax"), collapse = " - "))
-          cumul.test.form <- paste(cumul.test.form, " = 0")
+          formula1 <- as.formula(paste0(
+            Y, "~", formula_RHS
+          ))
+          flog.info("Estimating with %s as outcome with no FEs.", Y)
+          res1 <- lm(formula = formula1, data = all_pi[module_by_time == co,],
+                       weights = all_pi[module_by_time == co,]$base.sales)
+          flog.info("Finished estimating with %s as outcome with no FEs.", Y)
           
-          ## Compute estimate and store in variables names
-          cumul.test <- glht(res1, linfct = cumul.test.form)
           
-          assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
-          assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
-          assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
+          ## attach results
+          flog.info("Writing results...")
+          
+          ##### Add the cumulative effect at each lead/lag (relative to -1)
+          cumul.lead1.est <- 0
+          cumul.lead1.se <- NA
+          cumul.lead1.pval <- NA
+          
+          cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_sales_tax", "Estimate"]
+          cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Std. Error"]
+          cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Pr(>|t|)"]
+          
+          
+          ##LEADS
+          for(j in 3:5) {
+            
+            ## Create a name for estimate, se and pval of each lead
+            cumul.test.est.name <- paste("cumul.lead", j, ".est", sep = "")
+            cumul.test.se.name <- paste("cumul.lead", j, ".se", sep = "")
+            cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
+            
+            ## Create the formula to compute cumulative estimate at each lead/lag
+            cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_sales_tax"), collapse = " - "))
+            cumul.test.form <- paste(cumul.test.form, " = 0")
+            
+            ## Compute estimate and store in variables names
+            cumul.test <- glht(res1, linfct = cumul.test.form)
+            
+            assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
+            assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
+            assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
+          }
+          
+          
+          ##LAGS
+          cumul.lag0.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
+          cumul.lag0.se <- coef(summary(res1))[ "D.ln_sales_tax", "Std. Error"]
+          cumul.lag0.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
+          
+          
+          for(j in 1:4) {
+            
+            ## Create a name for estimate, se and pval of each lead
+            cumul.test.est.name <- paste("cumul.lag", j, ".est", sep = "")
+            cumul.test.se.name <- paste("cumul.lag", j, ".se", sep = "")
+            cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
+            
+            ## Create the formula to compute cumulative estimate at each lead/lag
+            cumul.test.form <- paste("D.ln_sales_tax + ", paste(paste0("L", 1:j, ".D.ln_sales_tax"), collapse = " + "), sep = "")
+            cumul.test.form <- paste(cumul.test.form, " = 0")
+            
+            ## Compute estimate and store in variables names
+            cumul.test <- glht(res1, linfct = cumul.test.form)
+            
+            assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
+            assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
+            assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
+          }
+          
+          
+        } else {
+         
+          formula1 <- as.formula(paste0(
+            Y, "~", formula_RHS, "| ", FE, " | 0 | module_by_state"
+          ))
+          flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
+          res1 <- felm(formula = formula1, data = all_pi[module_by_time == co,],
+                       weights = all_pi[module_by_time == co,]$base.sales)
+          flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
+          
+          
+          
+          ## attach results
+          flog.info("Writing results...")
+          
+          ##### Add the cumulative effect at each lead/lag (relative to -1)
+          cumul.lead1.est <- 0
+          cumul.lead1.se <- NA
+          cumul.lead1.pval <- NA
+          
+          cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_sales_tax", "Estimate"]
+          cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Cluster s.e."]
+          cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Pr(>|t|)"]
+          
+          
+          ##LEADS
+          for(j in 3:5) {
+            
+            ## Create a name for estimate, se and pval of each lead
+            cumul.test.est.name <- paste("cumul.lead", j, ".est", sep = "")
+            cumul.test.se.name <- paste("cumul.lead", j, ".se", sep = "")
+            cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
+            
+            ## Create the formula to compute cumulative estimate at each lead/lag
+            cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_sales_tax"), collapse = " - "))
+            cumul.test.form <- paste(cumul.test.form, " = 0")
+            
+            ## Compute estimate and store in variables names
+            cumul.test <- glht(res1, linfct = cumul.test.form)
+            
+            assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
+            assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
+            assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
+          }
+          
+          
+          ##LAGS
+          cumul.lag0.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
+          cumul.lag0.se <- coef(summary(res1))[ "D.ln_sales_tax", "Cluster s.e."]
+          cumul.lag0.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
+          
+          
+          for(j in 1:4) {
+            
+            ## Create a name for estimate, se and pval of each lead
+            cumul.test.est.name <- paste("cumul.lag", j, ".est", sep = "")
+            cumul.test.se.name <- paste("cumul.lag", j, ".se", sep = "")
+            cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
+            
+            ## Create the formula to compute cumulative estimate at each lead/lag
+            cumul.test.form <- paste("D.ln_sales_tax + ", paste(paste0("L", 1:j, ".D.ln_sales_tax"), collapse = " + "), sep = "")
+            cumul.test.form <- paste(cumul.test.form, " = 0")
+            
+            ## Compute estimate and store in variables names
+            cumul.test <- glht(res1, linfct = cumul.test.form)
+            
+            assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
+            assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
+            assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
+          }
+          
+          
+          
         }
-        
-        
-        ##LAGS
-        cumul.lag0.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
-        cumul.lag0.se <- coef(summary(res1))[ "D.ln_sales_tax", "Cluster s.e."]
-        cumul.lag0.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
-        
-        
-        for(j in 1:4) {
-          
-          ## Create a name for estimate, se and pval of each lead
-          cumul.test.est.name <- paste("cumul.lag", j, ".est", sep = "")
-          cumul.test.se.name <- paste("cumul.lag", j, ".se", sep = "")
-          cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
-          
-          ## Create the formula to compute cumulative estimate at each lead/lag
-          cumul.test.form <- paste("D.ln_sales_tax + ", paste(paste0("L", 1:j, ".D.ln_sales_tax"), collapse = " + "), sep = "")
-          cumul.test.form <- paste(cumul.test.form, " = 0")
-          
-          ## Compute estimate and store in variables names
-          cumul.test <- glht(res1, linfct = cumul.test.form)
-          
-          assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
-          assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
-          assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
-        }
+      
         
         
         ## Store results
         res1.dt <- data.table(
           rn = c("cumul.lead5.D.ln_sales_tax", "cumul.lead4.D.ln_sales_tax", "cumul.lead3.D.ln_sales_tax", "cumul.lead2.D.ln_sales_tax", "cumul.lead1.D.ln_sales_tax", "cumul.lag0.D.ln_sales_tax", "cumul.lag1.D.ln_sales_tax", "cumul.lag2.D.ln_sales_tax", "cumul.lag3.D.ln_sales_tax", "cumul.lag4.D.ln_sales_tax"),
           Estimate = c(cumul.lead5.est, cumul.lead4.est, cumul.lead3.est, cumul.lead2.est, cumul.lead1.est, cumul.lag0.est, cumul.lag1.est, cumul.lag2.est, cumul.lag3.est, cumul.lag4.est),
-          `Cluster s.e.` = c(cumul.lead5.se, cumul.lead4.se, cumul.lead3.se, cumul.lead2.se, cumul.lead1.se, cumul.lag0.se, cumul.lag1.se, cumul.lag2.se, cumul.lag3.se, cumul.lag4.se),
+          `Std. Error` = c(cumul.lead5.se, cumul.lead4.se, cumul.lead3.se, cumul.lead2.se, cumul.lead1.se, cumul.lag0.se, cumul.lag1.se, cumul.lag2.se, cumul.lag3.se, cumul.lag4.se),
           `Pr(>|t|)` = c(cumul.lead5.pval, cumul.lead4.pval, cumul.lead3.pval, cumul.lead2.pval, cumul.lead1.pval, cumul.lag0.pval, cumul.lag1.pval, cumul.lag2.pval, cumul.lag3.pval, cumul.lag4.pval),
           outcome = Y,
           controls = FE,
@@ -239,17 +318,34 @@ for (rep in 1:200) {
     for (Y in c(outcomes)) {
       for (FE in FE_opts) {
         
-        formula1 <- as.formula(paste0(
-          Y, "~", formula_RHS, "| ", FE, " | 0 | 0"
-        ))
         
-        #flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
-        res1 <- felm(formula = formula1, data = sampled.data[cal_time == co,],
-                     weights = sampled.data[cal_time == co,]$base.sales)
+        if(FE == "") {
+          
+          
+          formula1 <- as.formula(paste0(
+            Y, "~", formula_RHS
+          ))
+          
+          #flog.info("Estimating with %s as outcome with no FEs.", Y)
+          res1 <- lm(formula = formula1, data = sampled.data[module_by_time == co,],
+                     weights = sampled.data[module_by_time == co,]$base.sales)
+          
+          #flog.info("Finished estimating with %s as outcome with no FEs.", Y)
+          
+          
+          
+        } else {
+          
+          formula1 <- as.formula(paste0(
+            Y, "~", formula_RHS, "| ", FE, " | 0 | 0"
+          ))
+
+          
+          res1 <- felm(formula = formula1, data = sampled.data[module_by_time == co,],
+                       weights = sampled.data[module_by_time == co,]$base.sales)
+          
         
-        #flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
-        
-        
+        }
         
         ## attach results
         #flog.info("Writing results...")
