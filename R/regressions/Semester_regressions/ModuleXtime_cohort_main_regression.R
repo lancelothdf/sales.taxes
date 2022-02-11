@@ -8,7 +8,6 @@ library(data.table)
 library(futile.logger)
 library(lfe)
 library(multcomp)
-library(estimatr)
 
 
 ########## !!!!!!! ###########
