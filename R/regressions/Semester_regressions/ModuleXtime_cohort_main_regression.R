@@ -52,11 +52,11 @@ all_pi <- fread(data.full.path)
 all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
 
 # need to demean lag price to compare appropiately
-all_pi[, module_by_time := .GRP, by = .(product_module_code, year)]
+all_pi[, module_by_yr := .GRP, by = .(product_module_code, year)]
 all_pi[, L.ln_cpricei2 := ln_cpricei2 - D.ln_cpricei2]
-all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
-all_pi[, dm.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = module_by_time]
-all_pi[, dm.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = module_by_time]
+all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_yr]
+all_pi[, dm.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = module_by_yr]
+all_pi[, dm.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = module_by_yr]
 
 # Defining common support
 control <- all_pi[D.ln_sales_tax == 0,]
@@ -129,62 +129,65 @@ for(co in c_ids) {
           ## attach results
           flog.info("Writing results...")
           
-          ##### Add the cumulative effect at each lead/lag (relative to -1)
-          cumul.lead1.est <- 0
-          cumul.lead1.se <- NA
-          cumul.lead1.pval <- NA
+          if( any(is.na(vcov(res1)))==FALSE ) {
+            
+            ##### Add the cumulative effect at each lead/lag (relative to -1)
+            cumul.lead1.est <- 0
+            cumul.lead1.se <- NA
+            cumul.lead1.pval <- NA
           
-          cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_sales_tax", "Estimate"]
-          cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Std. Error"]
-          cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Pr(>|t|)"]
+            cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_sales_tax", "Estimate"]
+            cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Std. Error"]
+            cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Pr(>|t|)"]
           
           
-          ##LEADS
-          for(j in 3:5) {
+            ##LEADS
+            for(j in 3:5) {
             
-            ## Create a name for estimate, se and pval of each lead
-            cumul.test.est.name <- paste("cumul.lead", j, ".est", sep = "")
-            cumul.test.se.name <- paste("cumul.lead", j, ".se", sep = "")
-            cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
+              ## Create a name for estimate, se and pval of each lead
+              cumul.test.est.name <- paste("cumul.lead", j, ".est", sep = "")
+              cumul.test.se.name <- paste("cumul.lead", j, ".se", sep = "")
+              cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
             
-            ## Create the formula to compute cumulative estimate at each lead/lag
-            cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_sales_tax"), collapse = " - "))
-            cumul.test.form <- paste(cumul.test.form, " = 0")
+              ## Create the formula to compute cumulative estimate at each lead/lag
+              cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_sales_tax"), collapse = " - "))
+              cumul.test.form <- paste(cumul.test.form, " = 0")
+              
+              ## Compute estimate and store in variables names
+              cumul.test <- glht(res1, linfct = cumul.test.form)
             
-            ## Compute estimate and store in variables names
-            cumul.test <- glht(res1, linfct = cumul.test.form)
+              assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
+              assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
+              assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
+            }
+          
+          
+            ##LAGS
+            cumul.lag0.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
+            cumul.lag0.se <- coef(summary(res1))[ "D.ln_sales_tax", "Std. Error"]
+            cumul.lag0.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
+          
+          
+            for(j in 1:4) {
             
-            assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
-            assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
-            assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
+              ## Create a name for estimate, se and pval of each lead
+              cumul.test.est.name <- paste("cumul.lag", j, ".est", sep = "")
+              cumul.test.se.name <- paste("cumul.lag", j, ".se", sep = "")
+              cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
+            
+              ## Create the formula to compute cumulative estimate at each lead/lag
+              cumul.test.form <- paste("D.ln_sales_tax + ", paste(paste0("L", 1:j, ".D.ln_sales_tax"), collapse = " + "), sep = "")
+              cumul.test.form <- paste(cumul.test.form, " = 0")
+            
+              ## Compute estimate and store in variables names
+              cumul.test <- glht(res1, linfct = cumul.test.form)
+              
+              assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
+              assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
+              assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
+            }
           }
-          
-          
-          ##LAGS
-          cumul.lag0.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
-          cumul.lag0.se <- coef(summary(res1))[ "D.ln_sales_tax", "Std. Error"]
-          cumul.lag0.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
-          
-          
-          for(j in 1:4) {
-            
-            ## Create a name for estimate, se and pval of each lead
-            cumul.test.est.name <- paste("cumul.lag", j, ".est", sep = "")
-            cumul.test.se.name <- paste("cumul.lag", j, ".se", sep = "")
-            cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
-            
-            ## Create the formula to compute cumulative estimate at each lead/lag
-            cumul.test.form <- paste("D.ln_sales_tax + ", paste(paste0("L", 1:j, ".D.ln_sales_tax"), collapse = " + "), sep = "")
-            cumul.test.form <- paste(cumul.test.form, " = 0")
-            
-            ## Compute estimate and store in variables names
-            cumul.test <- glht(res1, linfct = cumul.test.form)
-            
-            assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
-            assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
-            assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
-          }
-          
+        
           
         } else {
          
@@ -198,80 +201,98 @@ for(co in c_ids) {
           
           
           
-          ## attach results
-          flog.info("Writing results...")
-          
-          ##### Add the cumulative effect at each lead/lag (relative to -1)
-          cumul.lead1.est <- 0
-          cumul.lead1.se <- NA
-          cumul.lead1.pval <- NA
-          
-          cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_sales_tax", "Estimate"]
-          cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Cluster s.e."]
-          cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Pr(>|t|)"]
-          
-          
-          ##LEADS
-          for(j in 3:5) {
+          if( any(is.na(vcov(res1))) == FALSE ) {
             
-            ## Create a name for estimate, se and pval of each lead
-            cumul.test.est.name <- paste("cumul.lead", j, ".est", sep = "")
-            cumul.test.se.name <- paste("cumul.lead", j, ".se", sep = "")
-            cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
+            ## attach results
+            flog.info("Writing results...")
+          
+            ##### Add the cumulative effect at each lead/lag (relative to -1)
+            cumul.lead1.est <- 0
+            cumul.lead1.se <- NA
+            cumul.lead1.pval <- NA
+          
+            cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_sales_tax", "Estimate"]
+            cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Cluster s.e."]
+            cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Pr(>|t|)"]
+          
+          
+            ##LEADS
+            for(j in 3:5) {
             
-            ## Create the formula to compute cumulative estimate at each lead/lag
-            cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_sales_tax"), collapse = " - "))
-            cumul.test.form <- paste(cumul.test.form, " = 0")
+              ## Create a name for estimate, se and pval of each lead
+              cumul.test.est.name <- paste("cumul.lead", j, ".est", sep = "")
+              cumul.test.se.name <- paste("cumul.lead", j, ".se", sep = "")
+              cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
             
-            ## Compute estimate and store in variables names
-            cumul.test <- glht(res1, linfct = cumul.test.form)
+              ## Create the formula to compute cumulative estimate at each lead/lag
+              cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_sales_tax"), collapse = " - "))
+              cumul.test.form <- paste(cumul.test.form, " = 0")
             
-            assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
-            assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
-            assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
+              ## Compute estimate and store in variables names
+              cumul.test <- glht(res1, linfct = cumul.test.form)
+            
+              assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
+              assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
+              assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
+            }
+          
+          
+            ##LAGS
+            cumul.lag0.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
+            cumul.lag0.se <- coef(summary(res1))[ "D.ln_sales_tax", "Cluster s.e."]
+            cumul.lag0.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
+          
+          
+            for(j in 1:4) {
+            
+              ## Create a name for estimate, se and pval of each lead
+              cumul.test.est.name <- paste("cumul.lag", j, ".est", sep = "")
+              cumul.test.se.name <- paste("cumul.lag", j, ".se", sep = "")
+              cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
+            
+              ## Create the formula to compute cumulative estimate at each lead/lag
+              cumul.test.form <- paste("D.ln_sales_tax + ", paste(paste0("L", 1:j, ".D.ln_sales_tax"), collapse = " + "), sep = "")
+              cumul.test.form <- paste(cumul.test.form, " = 0")
+            
+              ## Compute estimate and store in variables names
+              cumul.test <- glht(res1, linfct = cumul.test.form)
+            
+              assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
+              assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
+              assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
+            }
+          
           }
-          
-          
-          ##LAGS
-          cumul.lag0.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
-          cumul.lag0.se <- coef(summary(res1))[ "D.ln_sales_tax", "Cluster s.e."]
-          cumul.lag0.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
-          
-          
-          for(j in 1:4) {
-            
-            ## Create a name for estimate, se and pval of each lead
-            cumul.test.est.name <- paste("cumul.lag", j, ".est", sep = "")
-            cumul.test.se.name <- paste("cumul.lag", j, ".se", sep = "")
-            cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
-            
-            ## Create the formula to compute cumulative estimate at each lead/lag
-            cumul.test.form <- paste("D.ln_sales_tax + ", paste(paste0("L", 1:j, ".D.ln_sales_tax"), collapse = " + "), sep = "")
-            cumul.test.form <- paste(cumul.test.form, " = 0")
-            
-            ## Compute estimate and store in variables names
-            cumul.test <- glht(res1, linfct = cumul.test.form)
-            
-            assign(cumul.test.est.name, coef(summary(cumul.test))[[1]])
-            assign(cumul.test.se.name, sqrt(vcov(summary(cumul.test)))[[1]])
-            assign(cumul.test.pval.name, 2*(1 - pnorm(abs(coef(summary(cumul.test))[[1]]/sqrt(vcov(summary(cumul.test)))[[1]]))))
-          }
-          
-          
           
         }
       
         
+        if( any(is.na(vcov(res1))) == FALSE ) {
+          
+          ## Store results
+          res1.dt <- data.table(
+            rn = c("cumul.lead5.D.ln_sales_tax", "cumul.lead4.D.ln_sales_tax", "cumul.lead3.D.ln_sales_tax", "cumul.lead2.D.ln_sales_tax", "cumul.lead1.D.ln_sales_tax", "cumul.lag0.D.ln_sales_tax", "cumul.lag1.D.ln_sales_tax", "cumul.lag2.D.ln_sales_tax", "cumul.lag3.D.ln_sales_tax", "cumul.lag4.D.ln_sales_tax"),
+            Estimate = c(cumul.lead5.est, cumul.lead4.est, cumul.lead3.est, cumul.lead2.est, cumul.lead1.est, cumul.lag0.est, cumul.lag1.est, cumul.lag2.est, cumul.lag3.est, cumul.lag4.est),
+            `Std. Error` = c(cumul.lead5.se, cumul.lead4.se, cumul.lead3.se, cumul.lead2.se, cumul.lead1.se, cumul.lag0.se, cumul.lag1.se, cumul.lag2.se, cumul.lag3.se, cumul.lag4.se),
+            `Pr(>|t|)` = c(cumul.lead5.pval, cumul.lead4.pval, cumul.lead3.pval, cumul.lead2.pval, cumul.lead1.pval, cumul.lag0.pval, cumul.lag1.pval, cumul.lag2.pval, cumul.lag3.pval, cumul.lag4.pval),
+            outcome = Y,
+            controls = FE,
+            cohort = co)
+          
         
-        ## Store results
-        res1.dt <- data.table(
-          rn = c("cumul.lead5.D.ln_sales_tax", "cumul.lead4.D.ln_sales_tax", "cumul.lead3.D.ln_sales_tax", "cumul.lead2.D.ln_sales_tax", "cumul.lead1.D.ln_sales_tax", "cumul.lag0.D.ln_sales_tax", "cumul.lag1.D.ln_sales_tax", "cumul.lag2.D.ln_sales_tax", "cumul.lag3.D.ln_sales_tax", "cumul.lag4.D.ln_sales_tax"),
-          Estimate = c(cumul.lead5.est, cumul.lead4.est, cumul.lead3.est, cumul.lead2.est, cumul.lead1.est, cumul.lag0.est, cumul.lag1.est, cumul.lag2.est, cumul.lag3.est, cumul.lag4.est),
-          `Std. Error` = c(cumul.lead5.se, cumul.lead4.se, cumul.lead3.se, cumul.lead2.se, cumul.lead1.se, cumul.lag0.se, cumul.lag1.se, cumul.lag2.se, cumul.lag3.se, cumul.lag4.se),
-          `Pr(>|t|)` = c(cumul.lead5.pval, cumul.lead4.pval, cumul.lead3.pval, cumul.lead2.pval, cumul.lead1.pval, cumul.lag0.pval, cumul.lag1.pval, cumul.lag2.pval, cumul.lag3.pval, cumul.lag4.pval),
-          outcome = Y,
-          controls = FE,
-          cohort = co)
+        } else {
+          
+          res1.dt <- data.table(
+            rn = NA,
+            Estimate = NA,
+            `Std. Error` = NA,
+            `Pr(>|t|)` = NA,
+            outcome = Y,
+            controls = FE,
+            cohort = co)
+          
+          )
+        }
         
         # Add summary values
         res1.dt[, N_obs := nrow(all_pi)]
