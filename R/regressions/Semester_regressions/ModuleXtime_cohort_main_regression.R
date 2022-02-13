@@ -129,7 +129,7 @@ for(co in c_ids) {
           ## attach results
           flog.info("Writing results...")
           
-          if( any(is.na(vcov(res1)))==FALSE ) {
+          if( any(is.na(vcov(res1)))==FALSE & any(is.nan(coef(res1)))==FALSE ) {
             
             ##### Add the cumulative effect at each lead/lag (relative to -1)
             cumul.lead1.est <- 0
@@ -201,7 +201,7 @@ for(co in c_ids) {
           
           
           
-          if( any(is.na(vcov(res1))) == FALSE ) {
+          if( any(is.na(vcov(res1))) == FALSE & any(is.nan(coef(res1)))==FALSE ) {
             
             ## attach results
             flog.info("Writing results...")
@@ -267,7 +267,7 @@ for(co in c_ids) {
         }
       
         
-        if( any(is.na(vcov(res1))) == FALSE ) {
+        if( any(is.na(vcov(res1))) == FALSE & any(is.nan(coef(res1)))==FALSE ) {
           
           ## Store results
           res1.dt <- data.table(
@@ -291,8 +291,7 @@ for(co in c_ids) {
             controls = FE,
             cohort = co)
           
-          )
-        }
+          }
         
         # Add summary values
         res1.dt[, N_obs := nrow(all_pi)]
@@ -302,7 +301,7 @@ for(co in c_ids) {
         res1.dt[, N_years := uniqueN(all_pi, by = c("year"))]
         res1.dt[, N_county_modules := uniqueN(all_pi, by = c("fips_state", "fips_county",
                                                              "product_module_code"))]
-        res1.dt[, base.sales := sum(all_pi[cal_time == co,]$base.sales)]
+        res1.dt[, base.sales := sum(all_pi[module_by_time == co,]$base.sales)]
         
         
         LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
@@ -367,33 +366,48 @@ for (rep in 1:200) {
         
         }
         
-        ## attach results
-        #flog.info("Writing results...")
-        ##### Add the cumulative effect at each lead/lag (relative to -1)
-        ##LEADS
-        cumul.lead1.est <- 0
-        cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_sales_tax", "Estimate"]
-        cumul.lead3.est <- cumul.lead2.est - coef(summary(res1))[ "F2.D.ln_sales_tax", "Estimate"]
-        cumul.lead4.est <- cumul.lead3.est - coef(summary(res1))[ "F3.D.ln_sales_tax", "Estimate"]
-        cumul.lead5.est <- cumul.lead4.est - coef(summary(res1))[ "F4.D.ln_sales_tax", "Estimate"]
         
-        ##LAGS
-        cumul.lag0.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
-        cumul.lag1.est <- cumul.lag0.est + coef(summary(res1))[ "L1.D.ln_sales_tax", "Estimate"]
-        cumul.lag2.est <- cumul.lag1.est + coef(summary(res1))[ "L2.D.ln_sales_tax", "Estimate"]
-        cumul.lag3.est <- cumul.lag2.est + coef(summary(res1))[ "L3.D.ln_sales_tax", "Estimate"]
-        cumul.lag4.est <- cumul.lag3.est + coef(summary(res1))[ "L4.D.ln_sales_tax", "Estimate"]
+        if( any(is.na(vcov(res1))) == FALSE & any(is.nan(coef(res1)))==FALSE ) {
+          
+          ## attach results
+          #flog.info("Writing results...")
+          ##### Add the cumulative effect at each lead/lag (relative to -1)
+          ##LEADS
+          cumul.lead1.est <- 0
+          cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_sales_tax", "Estimate"]
+          cumul.lead3.est <- cumul.lead2.est - coef(summary(res1))[ "F2.D.ln_sales_tax", "Estimate"]
+          cumul.lead4.est <- cumul.lead3.est - coef(summary(res1))[ "F3.D.ln_sales_tax", "Estimate"]
+          cumul.lead5.est <- cumul.lead4.est - coef(summary(res1))[ "F4.D.ln_sales_tax", "Estimate"]
+        
+          ##LAGS
+          cumul.lag0.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
+          cumul.lag1.est <- cumul.lag0.est + coef(summary(res1))[ "L1.D.ln_sales_tax", "Estimate"]
+          cumul.lag2.est <- cumul.lag1.est + coef(summary(res1))[ "L2.D.ln_sales_tax", "Estimate"]
+          cumul.lag3.est <- cumul.lag2.est + coef(summary(res1))[ "L3.D.ln_sales_tax", "Estimate"]
+          cumul.lag4.est <- cumul.lag3.est + coef(summary(res1))[ "L4.D.ln_sales_tax", "Estimate"]
 
         
         
-        ## Store results
-        res1.dt <- data.table(
-          rn = c("cumul.lead5.D.ln_sales_tax", "cumul.lead4.D.ln_sales_tax", "cumul.lead3.D.ln_sales_tax", "cumul.lead2.D.ln_sales_tax", "cumul.lead1.D.ln_sales_tax", "cumul.lag0.D.ln_sales_tax", "cumul.lag1.D.ln_sales_tax", "cumul.lag2.D.ln_sales_tax", "cumul.lag3.D.ln_sales_tax", "cumul.lag4.D.ln_sales_tax"),
-          Estimate = c(cumul.lead5.est, cumul.lead4.est, cumul.lead3.est, cumul.lead2.est, cumul.lead1.est, cumul.lag0.est, cumul.lag1.est, cumul.lag2.est, cumul.lag3.est, cumul.lag4.est),
-          outcome = Y,
-          controls = FE,
-          cohort = co,
-          iteration = rep)
+          ## Store results
+          res1.dt <- data.table(
+            rn = c("cumul.lead5.D.ln_sales_tax", "cumul.lead4.D.ln_sales_tax", "cumul.lead3.D.ln_sales_tax", "cumul.lead2.D.ln_sales_tax", "cumul.lead1.D.ln_sales_tax", "cumul.lag0.D.ln_sales_tax", "cumul.lag1.D.ln_sales_tax", "cumul.lag2.D.ln_sales_tax", "cumul.lag3.D.ln_sales_tax", "cumul.lag4.D.ln_sales_tax"),
+            Estimate = c(cumul.lead5.est, cumul.lead4.est, cumul.lead3.est, cumul.lead2.est, cumul.lead1.est, cumul.lag0.est, cumul.lag1.est, cumul.lag2.est, cumul.lag3.est, cumul.lag4.est),
+            outcome = Y,
+            controls = FE,
+            cohort = co,
+            iteration = rep)
+          
+        } else {
+          
+          res1.dt <- data.table(
+            rn = NA,
+            Estimate = NA,
+            outcome = Y,
+            controls = FE,
+            cohort = co,
+            iteration = rep)
+          
+        }
         
         # Add summary values
         res1.dt[, N_obs := nrow(sampled.data)]
@@ -403,7 +417,7 @@ for (rep in 1:200) {
         res1.dt[, N_years := uniqueN(sampled.data, by = c("year"))]
         res1.dt[, N_county_modules := uniqueN(sampled.data, by = c("fips_state", "fips_county",
                                                              "product_module_code"))]
-        res1.dt[, base.sales := sum(sampled.data[cal_time == co,]$base.sales)]
+        res1.dt[, base.sales := sum(sampled.data[module_by_time == co,]$base.sales)]
         
         
         LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
@@ -417,3 +431,4 @@ for (rep in 1:200) {
   fwrite(LRdiff_boot, boot.results.file)
   
 }
+
