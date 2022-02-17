@@ -77,6 +77,14 @@ min(control$dm.ln_cpricei2, na.rm = T)
 ## Keep within the common support
 #all_pi <- all_pi[cs_price == 1,]
 
+all_pi[, cs_price := ifelse(dm.ln_cpricei2 > max(pct1.treated, pct1.control) & 
+                              dm.ln_cpricei2 < min(pct99treated, pct99.control), 1, 0)]
+# Make sure missings are 0s
+all_pi[, cs_price := ifelse(is.na(dm.ln_cpricei2), 0, cs_price)]
+
+## Keep within the common support
+all_pi <- all_pi[cs_price == 1,]
+
 
 
 outcomes <- c("w.ln_cpricei2", "w.ln_quantity3")
