@@ -54,17 +54,17 @@ treated <- all_pi[D.ln_sales_tax != 0,]
 
 #pct99.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=control$base.sales)
 #pct99treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=treated$base.sales)
-pct1.control <- quantile(control$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=control$base.sales)
-pct1.treated <- quantile(treated$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=treated$base.sales)
+pct2.control <- quantile(control$dm.ln_cpricei2, probs = 0.02, na.rm = T, weight=control$base.sales)
+pct2.treated <- quantile(treated$dm.ln_cpricei2, probs = 0.02, na.rm = T, weight=treated$base.sales)
 
-pct99.control <- quantile(control$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=control$base.sales)
-pct99.treated <- quantile(treated$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=treated$base.sales)
+pct98.control <- quantile(control$dm.ln_cpricei2, probs = 0.98, na.rm = T, weight=control$base.sales)
+pct98.treated <- quantile(treated$dm.ln_cpricei2, probs = 0.98, na.rm = T, weight=treated$base.sales)
 
 
-pct1.control
-pct1.treated
-pct99.control
-pct99.treated
+pct2.control
+pct2.treated
+pct98.control
+pct98.treated
 
 max(control$dm.ln_cpricei2, na.rm = T)
 min(control$dm.ln_cpricei2, na.rm = T)
@@ -77,8 +77,8 @@ min(control$dm.ln_cpricei2, na.rm = T)
 ## Keep within the common support
 #all_pi <- all_pi[cs_price == 1,]
 
-all_pi[, cs_price := ifelse(dm.ln_cpricei2 > max(pct1.treated, pct1.control) & 
-                              dm.ln_cpricei2 < min(pct99.treated, pct99.control), 1, 0)]
+all_pi[, cs_price := ifelse(dm.ln_cpricei2 > max(pct2.treated, pct2.control) & 
+                              dm.ln_cpricei2 < min(pct98.treated, pct98.control), 1, 0)]
 # Make sure missings are 0s
 all_pi[, cs_price := ifelse(is.na(dm.ln_cpricei2), 0, cs_price)]
 
