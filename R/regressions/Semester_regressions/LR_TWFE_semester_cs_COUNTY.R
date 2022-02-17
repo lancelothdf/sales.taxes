@@ -69,12 +69,12 @@ all_pi[, cs_price := ifelse(dm.L.ln_cpricei2 > max(pct1.treated, pct1.control) &
 all_pi[, cs_price := ifelse(is.na(dm.L.ln_cpricei2), 0, cs_price)]
 
 ## Keep within the common support
-all_pi <- all_pi[cs_price == 1,]
+#all_pi <- all_pi[cs_price == 1,]
 
-## cut the tails (keep between 1st and 99th percentile)
-pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sales)
-pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
-all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
+# ## cut the tails (keep between 1st and 99th percentile)
+# pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sales)
+# pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
+# all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
 #### Prepare Estimations
 
