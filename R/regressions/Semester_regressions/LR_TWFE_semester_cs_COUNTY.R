@@ -41,7 +41,7 @@ for (val in 1:4) {
 
   lead.X <- paste0("F", val, ".w.ln_sales_tax")
   all_pi[, (lead.X) := shift(w.ln_sales_tax, n=val, type="lead"),
-         by = .(store_code_uc, product_module_code)]
+         by = .(fips_state, fips_county, product_module_code)]
 }
 
 # Need to demean
