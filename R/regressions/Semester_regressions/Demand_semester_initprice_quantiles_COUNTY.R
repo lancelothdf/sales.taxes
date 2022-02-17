@@ -58,7 +58,7 @@ pct1.control <- quantile(control$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight
 pct1.treated <- quantile(treated$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=treated$base.sales)
 
 pct99.control <- quantile(control$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=control$base.sales)
-pct99treated <- quantile(treated$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=treated$base.sales)
+pct99.treated <- quantile(treated$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=treated$base.sales)
 
 
 pct1.control
