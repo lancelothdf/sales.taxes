@@ -32,9 +32,9 @@ theta.output.results.file <- "Data/Demand_theta_sat_initial_price_semester_boot_
 ### Set up Semester Data ---------------------------------
 
 # Create a categorical variable for county_by_module
+all_pi <- fread(data.semester)
 all_pi[, county_by_module := .GRP, by = .(fips_state, fips_county, product_module_code)]
 
-all_pi <- fread(data.semester)
 all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax), by = .(county_by_module)]
 all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2), by = .(county_by_module)]
 all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3), by = .(county_by_module)]
