@@ -35,7 +35,7 @@ boot.results.file <- "Data/Boot_cohort_TWFE.csv" ### Bootstrap
 
 ##### 
 all_pi <- fread(data.full.path)
-all_pi <- all_pi[, c("fips_state", "fips_county", "store_code_uc", "product_module_code", "year", "semester", "ln_cpricei2", "ln_quantity3", "ln_sales_tax", "base.sales", "sales", "store_by_module", "cal_time", "module_by_time", "module_by_state", "region_by_module_by_time", "division_by_module_by_time", "D.ln_sales_tax")]
+all_pi <- all_pi[, c("fips_state", "fips_county", "store_code_uc", "product_module_code", "year", "semester", "ln_cpricei2", "ln_quantity3", "ln_sales_tax", "base.sales", "sales", "store_by_module", "cal_time", "module_by_time", "module_by_state", "region_by_module_by_time", "division_by_module_by_time", "D.ln_sales_tax", "D.ln_cpricei2")]
 
 
 ## Create lagged value (initial)
