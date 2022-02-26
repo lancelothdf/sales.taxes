@@ -79,11 +79,43 @@ all_pi[, ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = store_b
 all_pi[, ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = store_by_module]
 all_pi[, ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = store_by_module]
 
+
 outcomes <- c("ln_cpricei2", "ln_quantity3")
 
 
 ### Keep only data between 2008-2014 (Note: previous and subsequent data is used to calculate lead and lagged variables)
 all_pi <- all_pi[year >= 2008 & year <= 2014,]
+
+## Collapse at county-level to save some memory
+all_pi <- all_pi[, list(ln_cpricei2 = weighted.mean(ln_cpricei2, w = base.sales), ln_quantity3 = mweighted.ean(ln_quantity3, w = sales), ln_sales_tax = weighted.mean(ln_sales_tax, w = sales), base.sales = sum(base.sales), sales = sum(sales)), by = .(fips_state, fips_county, product_module_code, year, semester)]
+
+
+## Re-create the FEs
+## Prep Census region/division data ------------------------------
+geo_dt <- structure(list(
+  fips_state = c(1L, 2L, 4L, 5L, 6L, 8L, 9L, 10L, 12L, 13L, 15L, 16L, 17L, 18L,
+                 19L, 20L, 21L, 22L, 23L, 24L, 25L, 26L, 27L, 28L, 29L, 30L,
+                 31L, 32L, 33L, 34L, 35L, 36L, 37L, 38L, 39L, 40L, 41L, 42L,
+                 44L, 45L, 46L, 47L, 48L, 49L, 50L, 51L, 53L, 54L, 55L, 56L),
+  region = c(3L, 4L, 4L, 3L, 4L, 4L, 1L, 3L, 3L, 3L, 4L, 4L, 2L, 2L, 2L, 2L, 3L,
+             3L, 1L, 3L, 1L, 2L, 2L, 3L, 2L, 4L, 2L, 4L, 1L, 1L, 4L, 1L, 3L, 2L,
+             2L, 3L, 4L, 1L, 1L, 3L, 2L, 3L, 3L, 4L, 1L, 3L, 4L, 3L, 2L, 4L),
+  division = c(6L, 9L, 8L,  7L, 9L, 8L, 1L, 5L, 5L, 5L, 9L, 8L, 3L, 3L, 4L, 4L,
+               6L, 7L, 1L, 5L, 1L, 3L, 4L, 6L, 4L, 8L, 4L, 8L, 1L, 2L, 8L, 2L,
+               5L, 4L, 3L,  7L, 9L, 2L, 1L, 5L, 4L, 6L, 7L, 8L, 1L, 5L, 9L, 5L, 3L, 8L)),
+  class = "data.frame", row.names = c(NA, -50L))
+setDT(geo_dt)
+
+
+####
+## Merge on the census region/division info
+all_pi <- merge(all_pi, geo_dt, by = "fips_state")
+
+all_pi[, cal_time := 2 * year + semester]
+all_pi[, module_by_state := .GRP, by = .(product_module_code, fips_state)]
+all_pi[, region_by_module_by_time := .GRP, by = .(region, product_module_code, cal_time)]
+all_pi[, division_by_module_by_time := .GRP, by = .(division, product_module_code, cal_time)]
+
 
 c_ids <- unique(sort(all_pi$region_by_module_by_time)) ## Define cohorts based on YearXsemesterXmoduleXCensus Region
 
@@ -94,22 +126,19 @@ LRdiff_res <- data.table(NULL)
 for(co in c_ids) {
   for (Y in c(outcomes)) {
         
-          
+    
+          flog.info("Cohort %s", co)
+    
           formula1 <- as.formula(paste0(
             Y, "~ ln_sales_tax"))
-          flog.info("Estimating with %s as outcome with no FEs.", Y)
+          #flog.info("Estimating with %s as outcome with no FEs.", Y)
           res1 <- lm(formula = formula1, data = all_pi[region_by_module_by_time == co,],
                        weights = all_pi[region_by_module_by_time == co,]$base.sales)
-          flog.info("Finished estimating with %s as outcome with no FEs.", Y)
+          #flog.info("Finished estimating with %s as outcome with no FEs.", Y)
           
           
           ## attach results
-          flog.info("Writing results...")
-        
-          
-            temp.est <- - coef(summary(res1))[ "ln_sales_tax", "Estimate"]
-            cumul.lead2.se <- coef(summary(res1))[ "ln_sales_tax", "Std. Error"]
-            cumul.lead2.pval <- coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"]
+          #flog.info("Writing results...")
           
           
           ## Store results
