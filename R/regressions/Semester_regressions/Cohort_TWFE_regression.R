@@ -142,6 +142,8 @@ for(co in c_ids) {
           
           
           ## Store results
+          if(is.na(coef(res1[2])) == T) {
+            
           res1.dt <- data.table(
             Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
             `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
@@ -151,6 +153,19 @@ for(co in c_ids) {
           
         res1.dt[, base.sales := sum(all_pi[region_by_module_by_time == co,]$base.sales)]
         res1.dt[, sales := sum(all_pi[region_by_module_by_time == co,]$sales)]
+        
+          } else {
+            
+            res1.dt <- data.table(
+              Estimate = NA,
+              `Std. Error` = NA,
+              `Pr(>|t|)` = NA,
+              outcome = Y,
+              cohort = co)
+            
+            res1.dt[, base.sales := sum(all_pi[region_by_module_by_time == co,]$base.sales)]
+            res1.dt[, sales := sum(all_pi[region_by_module_by_time == co,]$sales)]
+          }
         
         LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
         fwrite(LRdiff_res, output.results.file)
@@ -192,17 +207,33 @@ for (rep in 1:200) {
       
       
       ## Store results
-      res1.dt <- data.table(
-        Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
-        `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
-        `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
-        outcome = Y,
-        cohort = co,
-        iteration = rep)
+      ## Store results
+      if(is.na(coef(res1[2])) == T) {
+        
+        res1.dt <- data.table(
+          Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
+          `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
+          `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
+          outcome = Y,
+          cohort = co,
+          iteration = rep)
       
-      res1.dt[, base.sales := sum(all_pi[region_by_module_by_time == co,]$base.sales)]
-      res1.dt[, sales := sum(all_pi[region_by_module_by_time == co,]$sales)]
+        res1.dt[, base.sales := sum(all_pi[region_by_module_by_time == co,]$base.sales)]
+        res1.dt[, sales := sum(all_pi[region_by_module_by_time == co,]$sales)]
       
+      } else {
+        
+        res1.dt <- data.table(
+          Estimate = NA,
+          `Std. Error` = NA,
+          `Pr(>|t|)` = NA,
+          outcome = Y,
+          cohort = co)
+        
+        res1.dt[, base.sales := sum(all_pi[region_by_module_by_time == co,]$base.sales)]
+        res1.dt[, sales := sum(all_pi[region_by_module_by_time == co,]$sales)]
+          
+        }      
       LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
       #fwrite(LRdiff_res, output.results.file)
       
