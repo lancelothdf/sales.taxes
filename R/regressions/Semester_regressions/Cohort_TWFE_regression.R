@@ -87,7 +87,7 @@ outcomes <- c("ln_cpricei2", "ln_quantity3")
 all_pi <- all_pi[year >= 2008 & year <= 2014,]
 
 ## Collapse at county-level to save some memory
-all_pi <- all_pi[, list(ln_cpricei2 = weighted.mean(ln_cpricei2, w = base.sales), ln_quantity3 = weighted.mean(ln_quantity3, w = sales), ln_sales_tax = weighted.mean(ln_sales_tax, w = sales), base.sales = sum(base.sales), sales = sum(sales)), by = .(fips_state, fips_county, product_module_code, year, semester)]
+all_pi <- all_pi[, list(ln_cpricei2 = weighted.mean(ln_cpricei2, w = base.sales), ln_quantity3 = weighted.mean(ln_quantity3, w = base.sales), ln_sales_tax = weighted.mean(ln_sales_tax, w = base.sales), base.sales = sum(base.sales), sales = sum(sales)), by = .(fips_state, fips_county, product_module_code, year, semester)]
 
 
 ## Re-create the FEs
