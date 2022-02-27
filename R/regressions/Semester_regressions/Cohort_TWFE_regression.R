@@ -142,7 +142,7 @@ for(co in c_ids) {
           
           
           ## Store results
-          if(is.na(coef(res1[2])) == T) {
+          if(is.na(coef(res1[2])) == F) {
             
           res1.dt <- data.table(
             Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
@@ -208,7 +208,7 @@ for (rep in 1:200) {
       
       ## Store results
       ## Store results
-      if(is.na(coef(res1[2])) == T) {
+      if(is.na(coef(res1[2])) == F) {
         
         res1.dt <- data.table(
           Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
