@@ -202,8 +202,8 @@ for (rep in 1:200) {
         Y, "~ ln_sales_tax"))
 
       
-      res1 <- lm(formula = formula1, data = all_pi[region_by_module_by_time == co,],
-                 weights = all_pi[region_by_module_by_time == co,]$base.sales)
+      res1 <- lm(formula = formula1, data = sampled.data[region_by_module_by_time == co,],
+                 weights = sampled.data[region_by_module_by_time == co,]$base.sales)
       
       
       ## Store results

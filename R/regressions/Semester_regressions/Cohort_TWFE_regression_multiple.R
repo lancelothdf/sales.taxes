@@ -138,14 +138,19 @@ for(Y in outcomes) {
     flog.info("Finished estimating full sample regression with %s as outcome with %s FE.", Y, FE)
 
     
-    res1.dt <- data.table(
-      Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
-      `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
-      `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
-      outcome = Y,
-      specification = "No cohorts",
-      controls = FE,
-      cohort = NA)
+    #res1.dt <- data.table(
+    #  Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
+    #  `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
+    #  `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
+    #  outcome = Y,
+    #  specification = "No cohorts",
+    #  controls = FE,
+    #  cohort = NA)
+    res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+    res1.dt[, outcome := Y]
+    res1.dt[, specification := "No cohorts"]
+    res1.dt[, controls := FE]
+    res1.dt[, cohort := NA]
     
     res1.dt[, base.sales := sum(all_pi$base.sales)]
     res1.dt[, sales := sum(all_pi$sales)]
@@ -175,14 +180,19 @@ for(Y in outcomes) {
       #flog.info("Finished estimating full sample regression with %s as outcome with %s FE.", Y, FE)
       
       
-      res1.dt <- data.table(
-        Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
-        `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
-        `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
-        outcome = Y,
-        specification = "region cohorts",
-        controls = FE,
-        cohort = co)
+      #res1.dt <- data.table(
+      #  Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
+      #  `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
+      #  `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
+      #  outcome = Y,
+      #  specification = "region cohorts",
+      #  controls = FE,
+      #  cohort = co)
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, outcome := Y]
+      res1.dt[, specification := "region cohorts"]
+      res1.dt[, controls := FE]
+      res1.dt[, cohort := co]
       
       res1.dt[, base.sales := sum(all_pi[region == co,]$base.sales)]
       res1.dt[, sales := sum(all_pi[region == co,]$sales)]
@@ -214,14 +224,19 @@ for(Y in outcomes) {
       #flog.info("Finished estimating full sample regression with %s as outcome with %s FE.", Y, FE)
       
       
-      res1.dt <- data.table(
-        Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
-        `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
-        `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
-        outcome = Y,
-        specification = "division cohorts",
-        controls = FE,
-        cohort = co)
+      #res1.dt <- data.table(
+      #  Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
+      #  `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
+      #  `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
+      #  outcome = Y,
+      #  specification = "division cohorts",
+      #  controls = FE,
+      #  cohort = co)
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, outcome := Y]
+      res1.dt[, specification := "division cohorts"]
+      res1.dt[, controls := FE]
+      res1.dt[, cohort := co]
       
       res1.dt[, base.sales := sum(all_pi[division == co,]$base.sales)]
       res1.dt[, sales := sum(all_pi[division == co,]$sales)]
@@ -253,14 +268,19 @@ for(Y in outcomes) {
       #flog.info("Finished estimating full sample regression with %s as outcome with %s FE.", Y, FE)
       
       
-      res1.dt <- data.table(
-        Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
-        `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
-        `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
-        outcome = Y,
-        specification = "time cohorts",
-        controls = FE,
-        cohort = co)
+      #res1.dt <- data.table(
+      #  Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
+      #  `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
+      #  `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
+      #  outcome = Y,
+      #  specification = "time cohorts",
+      #  controls = FE,
+      #  cohort = co)
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, outcome := Y]
+      res1.dt[, specification := "time cohorts"]
+      res1.dt[, controls := FE]
+      res1.dt[, cohort := co]
       
       res1.dt[, base.sales := sum(all_pi[cal_time == co,]$base.sales)]
       res1.dt[, sales := sum(all_pi[cal_time == co,]$sales)]
@@ -292,14 +312,19 @@ for(Y in outcomes) {
       #flog.info("Finished estimating full sample regression with %s as outcome with %s FE.", Y, FE)
       
       
-      res1.dt <- data.table(
-        Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
-        `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
-        `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
-        outcome = Y,
-        specification = "module cohorts",
-        controls = FE,
-        cohort = co)
+      #res1.dt <- data.table(
+      #  Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
+      #  `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
+      #  `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
+      #  outcome = Y,
+      #  specification = "module cohorts",
+      #  controls = FE,
+      #  cohort = co)
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, outcome := Y]
+      res1.dt[, specification := "module cohorts"]
+      res1.dt[, controls := FE]
+      res1.dt[, cohort := co]
       
       res1.dt[, base.sales := sum(all_pi[product_module_code == co,]$base.sales)]
       res1.dt[, sales := sum(all_pi[product_module_code == co,]$sales)]
@@ -331,14 +356,19 @@ for(Y in outcomes) {
       #flog.info("Finished estimating full sample regression with %s as outcome with %s FE.", Y, FE)
       
       
-      res1.dt <- data.table(
-        Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
-        `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
-        `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
-        outcome = Y,
-        specification = "region by time cohorts",
-        controls = FE,
-        cohort = co)
+      #res1.dt <- data.table(
+      #  Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
+      #  `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
+      #  `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
+      #  outcome = Y,
+      #  specification = "region by time cohorts",
+      #  controls = FE,
+      #  cohort = co)
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, outcome := Y]
+      res1.dt[, specification := "region by time cohorts"]
+      res1.dt[, controls := FE]
+      res1.dt[, cohort := co]
       
       res1.dt[, base.sales := sum(all_pi[region_by_time == co,]$base.sales)]
       res1.dt[, sales := sum(all_pi[region_by_time == co,]$sales)]
@@ -370,14 +400,19 @@ for(Y in outcomes) {
       #flog.info("Finished estimating full sample regression with %s as outcome with %s FE.", Y, FE)
       
       
-      res1.dt <- data.table(
-        Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
-        `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
-        `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
-        outcome = Y,
-        specification = "division by time cohorts",
-        controls = FE,
-        cohort = co)
+      #res1.dt <- data.table(
+      #  Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
+      #  `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
+      #  `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
+      #  outcome = Y,
+      #  specification = "division by time cohorts",
+      #  controls = FE,
+      #  cohort = co)
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, outcome := Y]
+      res1.dt[, specification := "division by time cohorts"]
+      res1.dt[, controls := FE]
+      res1.dt[, cohort := co]
       
       res1.dt[, base.sales := sum(all_pi[division_by_time == co,]$base.sales)]
       res1.dt[, sales := sum(all_pi[division_by_time == co,]$sales)]
@@ -410,14 +445,19 @@ for(Y in outcomes) {
       #flog.info("Finished estimating full sample regression with %s as outcome with %s FE.", Y, FE)
       
       
-      res1.dt <- data.table(
-        Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
-        `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
-        `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
-        outcome = Y,
-        specification = "region by module cohorts",
-        controls = FE,
-        cohort = co)
+      #res1.dt <- data.table(
+      #  Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
+      #  `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
+      #  `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
+      #  outcome = Y,
+      #  specification = "region by module cohorts",
+      #  controls = FE,
+      #  cohort = co)
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, outcome := Y]
+      res1.dt[, specification := "region by module cohorts"]
+      res1.dt[, controls := FE]
+      res1.dt[, cohort := co]
       
       res1.dt[, base.sales := sum(all_pi[region_by_module == co,]$base.sales)]
       res1.dt[, sales := sum(all_pi[region_by_module == co,]$sales)]
@@ -449,14 +489,19 @@ for(Y in outcomes) {
       #flog.info("Finished estimating full sample regression with %s as outcome with %s FE.", Y, FE)
       
       
-      res1.dt <- data.table(
-        Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
-        `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
-        `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
-        outcome = Y,
-        specification = "division by module cohorts",
-        controls = FE,
-        cohort = co)
+      #res1.dt <- data.table(
+      #  Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
+      #  `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
+      #  `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
+      #  outcome = Y,
+      #  specification = "division by module cohorts",
+      #  controls = FE,
+      #  cohort = co)
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, outcome := Y]
+      res1.dt[, specification := "division by module cohorts"]
+      res1.dt[, controls := FE]
+      res1.dt[, cohort := co]
       
       res1.dt[, base.sales := sum(all_pi[division_by_module == co,]$base.sales)]
       res1.dt[, sales := sum(all_pi[division_by_module == co,]$sales)]
@@ -489,14 +534,19 @@ for(Y in outcomes) {
       #flog.info("Finished estimating full sample regression with %s as outcome with %s FE.", Y, FE)
       
       
-      res1.dt <- data.table(
-        Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
-        `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
-        `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
-        outcome = Y,
-        specification = "module by time cohorts",
-        controls = FE,
-        cohort = co)
+      #res1.dt <- data.table(
+      #  Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
+      #  `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
+      #  `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
+      #  outcome = Y,
+      #  specification = "module by time cohorts",
+      #  controls = FE,
+      #  cohort = co)
+      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+      res1.dt[, outcome := Y]
+      res1.dt[, specification := "module by time cohorts"]
+      res1.dt[, controls := FE]
+      res1.dt[, cohort := co]
       
       res1.dt[, base.sales := sum(all_pi[module_by_time == co,]$base.sales)]
       res1.dt[, sales := sum(all_pi[module_by_time == co,]$sales)]
