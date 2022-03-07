@@ -40,48 +40,48 @@ all_pi <- all_pi[, c("fips_state", "fips_county", "store_code_uc", "product_modu
 ## Create lagged value (initial)
 all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
 
-### need to demean lag price to compare appropiately
-#all_pi[, module_by_yr := .GRP, by = .(product_module_code, year)]
-#all_pi[, L.ln_cpricei2 := ln_cpricei2 - D.ln_cpricei2]
-#all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_yr]
-#all_pi[, dm.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = module_by_yr]
-#all_pi[, dm.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = module_by_yr]
+## need to demean lag price to compare appropiately
+all_pi[, module_by_yr := .GRP, by = .(product_module_code, year)]
+all_pi[, L.ln_cpricei2 := ln_cpricei2 - D.ln_cpricei2]
+all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_yr]
+all_pi[, dm.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = module_by_yr]
+all_pi[, dm.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = module_by_yr]
 
-## Defining common support
-#control <- all_pi[D.ln_sales_tax == 0,]
-#treated <- all_pi[D.ln_sales_tax != 0,]
+# Defining common support
+control <- all_pi[D.ln_sales_tax == 0,]
+treated <- all_pi[D.ln_sales_tax != 0,]
 
-## Price 
-#pct1.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=control$base.sales)
-#pct1.treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=treated$base.sales)
+# Price 
+pct1.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=control$base.sales)
+pct1.treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.01, na.rm = T, weight=treated$base.sales)
 
-#pct99.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=control$base.sales)
-#pct99treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=treated$base.sales)
+pct99.control <- quantile(control$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=control$base.sales)
+pct99treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weight=treated$base.sales)
 
-#all_pi[, cs_price := ifelse(dm.L.ln_cpricei2 > max(pct1.treated, pct1.control) & 
-#                              dm.L.ln_cpricei2 < min(pct99treated, pct99.control), 1, 0)]
-## Make sure missings are 0s
-#all_pi[, cs_price := ifelse(is.na(dm.L.ln_cpricei2), 0, cs_price)]
+all_pi[, cs_price := ifelse(dm.L.ln_cpricei2 > max(pct1.treated, pct1.control) & 
+                              dm.L.ln_cpricei2 < min(pct99treated, pct99.control), 1, 0)]
+# Make sure missings are 0s
+all_pi[, cs_price := ifelse(is.na(dm.L.ln_cpricei2), 0, cs_price)]
 
-### Keep within the common support
-#all_pi <- all_pi[cs_price == 1,]
+## Keep within the common support
+all_pi <- all_pi[cs_price == 1,]
 
-### cut the tails (keep between 1st and 99th percentile)
-#pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sales)
-#pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
-#all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
+## cut the tails (keep between 1st and 99th percentile)
+pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sales)
+pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
+all_pi <- all_pi[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 
 
+### Keep only data between 2008-2014 (Note: previous and subsequent data is used to calculate lead and lagged variables)
+all_pi <- all_pi[year >= 2008 & year <= 2014,]
 
-### De-mean variable used in regressions
+
+## De-mean variable used in regressions
 all_pi[, ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = store_by_module]
 all_pi[, ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = store_by_module]
 all_pi[, ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = store_by_module]
 
 
-
-### Keep only data between 2008-2014 (Note: previous and subsequent data is used to calculate lead and lagged variables)
-all_pi <- all_pi[year >= 2008 & year <= 2014,]
 
 ## Collapse at county-level to save some memory
 all_pi <- all_pi[, list(ln_cpricei2 = weighted.mean(ln_cpricei2, w = base.sales), ln_quantity3 = weighted.mean(ln_quantity3, w = base.sales), ln_sales_tax = weighted.mean(ln_sales_tax, w = base.sales), base.sales = sum(base.sales), sales = sum(sales)), by = .(fips_state, fips_county, product_module_code, year, semester)]
