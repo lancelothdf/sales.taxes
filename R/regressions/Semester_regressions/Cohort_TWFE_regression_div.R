@@ -193,7 +193,8 @@ for (rep in 1:200) {
   # Merge data to actual data
   sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
 
-  
+  ## Remake list of unique division by module by time 
+  c_ids <- unique(sort(all_pi$division_by_module_by_time)) ## Define cohorts based on YearXsemesterXmoduleXCensus Region
   LRdiff_res <- data.table(NULL)
   for(co in c_ids) {
     for (Y in c(outcomes)) {
