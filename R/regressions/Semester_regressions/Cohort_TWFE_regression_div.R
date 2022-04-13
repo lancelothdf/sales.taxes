@@ -194,7 +194,7 @@ for (rep in 1:200) {
   sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
 
   ## Remake list of unique division by module by time 
-  c_ids <- unique(sort(all_pi$division_by_module_by_time)) ## Define cohorts based on YearXsemesterXmoduleXCensus Region
+  c_ids <- unique(sort(sampled.data$division_by_module_by_time)) ## Define cohorts based on YearXsemesterXmoduleXCensus Region
   LRdiff_res <- data.table(NULL)
   for(co in c_ids) {
     for (Y in c(outcomes)) {
