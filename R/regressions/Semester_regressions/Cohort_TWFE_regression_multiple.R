@@ -37,7 +37,7 @@ all_pi <- fread(data.full.path)
 all_pi <- all_pi[, c("fips_state", "fips_county", "store_code_uc", "product_module_code", "year", "semester", "ln_cpricei2", "ln_quantity3", "ln_sales_tax", "base.sales", "sales", "store_by_module", "cal_time", "module_by_time", "module_by_state", "region_by_module_by_time", "division_by_module_by_time", "D.ln_sales_tax", "D.ln_cpricei2")]
 
 ### Keep only data between 2008-2014 (Note: previous and subsequent data is used to calculate lead and lagged variables)
-all_pi <- all_pi[year >= 2008 & year <= 2014,]
+#all_pi <- all_pi[year >= 2008 & year <= 2014,]
 
 
 #### Create lagged value (initial)
