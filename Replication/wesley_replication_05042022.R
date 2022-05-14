@@ -230,6 +230,7 @@ all_pi[, L.ln_cpricei2 := ln_cpricei2 - D.ln_cpricei2]
 all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = module_by_time]
+all_pi[, L.ln_pricei2 := ln_pricei2 - D.ln_pricei2]
 all_pi[, dm.L.ln_pricei2 := L.ln_pricei2 - mean(L.ln_pricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.ln_pricei2 := ln_pricei2 - mean(ln_pricei2, na.rm = T), by = module_by_time]
 
@@ -258,7 +259,7 @@ all_pi_cs <- all_pi[cs_price == 1,]
 pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sales)
 pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
 all_pi_cs <- all_pi_cs[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
-all_pi_cs <- all_pi_cs[, c("year", "semester", "fips_state", "fips_county" , "product_module_code")]
+all_pi_cs <- all_pi_cs[, c("year", "semester", "fips_state", "fips_county", "product_module_code", "store_code_uc")]
 
 ##### Merges
 
@@ -297,12 +298,16 @@ for (Td in LLs) {
 
 # Keeping common support
 # Spillovers
-all_pi_spill <- merge(all_pi_spill, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code"))
-all_pi_spill_econ <- merge(all_pi_spill_econ, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code"))
+#dup <- all_pi_spill[!duplicated(all_pi_spill), ]
+#dup2 <- all_pi_cs[!duplicated(all_pi_cs), ]
+#test_all_pi_spill <- merge(all_pi_spill, dup2, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"))
+
+all_pi_spill <- merge(all_pi_spill, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"), all.y=TRUE)
+all_pi_spill_econ <- merge(all_pi_spill_econ, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"), all.y=TRUE)
 # Main data w. econ vars
-all_pi_econ <- merge(all_pi_econ, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code"))
+all_pi_econ <- merge(all_pi_econ, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"), all.y=TRUE)
 # Main data set
-all_pi <- merge(all_pi, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code"))
+all_pi <- merge(all_pi, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"), all.y=TRUE)
 
 
 
