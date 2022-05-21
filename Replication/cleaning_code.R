@@ -18,7 +18,7 @@ library(pracma)
 
 
 setwd("/project2/igaarder")
-
+rm(list = ls())
 
 ## input filepaths -----------------------------------------------
 data.semester <- "Data/Nielsen/semester_nielsen_data.csv"

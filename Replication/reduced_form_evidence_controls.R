@@ -17,6 +17,7 @@ library(MASS)
 library(pracma)
 
 setwd("/project2/igaarder")
+rm(list = ls())
 
 ## input filepath ----------------------------------------------
 all_pi <- fread("Data/Replication/all_pi_econ.csv")

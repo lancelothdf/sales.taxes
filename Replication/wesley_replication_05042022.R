@@ -40,7 +40,7 @@ output.results.file.crossec <- "Data/Replication/LRdiff_cross_sectional_design.c
 output.results.file.TWFE <- "Data/Replication/LR_TWFE_dessign.csv"
 iv.output.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_boot_r.csv"
 theta.output.results.file <- "Data/Replication/Demand_theta_sat_initial_price_semester_boot_r.csv"
-theta.berstein <- "Data/Replication/Demand_gamma_sat_initial_price_semester_boot_r_K"
+theta.bernstein <- "Data/Replication/Demand_gamma_sat_initial_price_semester_boot_r_K"
 pq.output.results.file <- "Data/Replication/Demand_pq_sat_initial_price_semester_boot_r.csv"
 output.table.avelas <- "Data/Replication/summary_elasticity_states.csv"
 out.file.elast <- "Data/Replication/elasticity_bounds_table_berns_monot_mincreterion_d.csv"
@@ -51,7 +51,7 @@ iv.output.salience.results.file <- "Data/Replication/Demand_iv_sat_initial_price
 theta.output.salience.results.file <- "Data/Replication/Demand_theta_sat_initial_price_semester_salience.csv"
 conduct.parameter.file <- "Data/Replication/salience_conduct_parameter_at_p.csv"
 pq.output.salience.results.file <- "Data/Replication/Demand_pq_sat_initial_price_semester_salience.csv"
-theta.berstein.sal <- "Data/Replication/Demand_gamma_sat_initial_price_semester_salience_K"
+theta.bernstein.sal <- "Data/Replication/Demand_gamma_sat_initial_price_semester_salience_K"
 out.file.hyp.nonmarginal <- "Data/Replication/nonmarginal_hypothetical_def2.csv"
 out.file.hyp.marginal <- "Data/Replication/marginal_hypothetical_def2.csv"
 out.file.mc.welf.hyp <- "Data/Replication/mincriteria_all.csv"
@@ -1389,7 +1389,7 @@ for (n.g in 1:5) {
     gamma[, iter := 0]
     
     ## Read Previous and write
-    theta.output.results.file <- paste0(theta.bernestein, K,"_bern.csv")
+    theta.output.results.file <- paste0(theta.bernstein, K,"_bern.csv")
     
     if (n.g == 1) {
       fwrite(gamma, theta.output.results.file)
