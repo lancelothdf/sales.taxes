@@ -298,7 +298,7 @@ for (Td in LLs) {
 
 # Keeping common support
 # Spillovers
-#dup <- all_pi_spill[!duplicated(all_pi_spill), ]
+#dup <- all_pi_spill[!duplicated(all_p  i_spill), ]
 #dup2 <- all_pi_cs[!duplicated(all_pi_cs), ]
 #test_all_pi_spill <- merge(all_pi_spill, dup2, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"))
 
