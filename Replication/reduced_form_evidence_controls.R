@@ -20,7 +20,7 @@ setwd("/project2/igaarder")
 rm(list = ls())
 
 ## input filepath ----------------------------------------------
-all_pi <- fread("Data/Replication/all_pi_econ.csv")
+all_pi_econ <- fread("Data/Replication/all_pi_econ.csv")
 
 ## output filepath ----------------------------------------------
 output.results.file.econ <- "Data/Replication/LRdiff_semesterly_w_econ.csv"
