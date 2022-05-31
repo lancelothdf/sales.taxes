@@ -52,7 +52,7 @@ for (Y in c(outcomes)) {
       # Create list of economic controls  
       lag.home <- paste(paste0("L", i:1, ".D.ln_home_price"), collapse = " + ")
       lag.unemp <- paste(paste0("L", i:1, ".D.ln_unemp"), collapse = " + ")
-      lag.econ <- paste(lag.home, lag.unemp, lag.wage, sep = " + ")
+      lag.econ <- paste(lag.home, lag.unemp, sep = " + ")
       
       
       formula1 <- as.formula(paste0(

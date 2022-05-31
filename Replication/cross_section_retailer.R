@@ -28,6 +28,9 @@ output.results.file.crossec <- "Data/Replication/LRdiff_cross_sectional_design.c
 
 ### 4A. Cross-Sectional Estimates Retailer Data -----------------------
 ### Price
+cohort.weights <- rep(1, 7) ##Construct weights to average across cohorts/years.  Start with equal weights
+cohort.weights <- cohort.weights/sum(cohort.weights)
+
 formula0 <- as.formula(paste0(
   "ln_cpricei2 ~ ln_sales_tax:year | module_by_time + store_by_time | 0 | state_by_module "
 ))

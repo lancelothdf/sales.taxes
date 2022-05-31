@@ -36,6 +36,31 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 outcomes <- c("D.ln_cpricei2", "D.ln_quantity3")
 samples <- c("all_taxable", "all_taxexempt")
 
+all_pi_spill_econ[, tax_exempt := taxability == 0]
+all_pi_spill_econ[, taxable := taxability == 1]
+all_pi_spill_econ[, T_tax_exempt := sum(tax_exempt), by = .(store_by_module)]
+all_pi_spill_econ[, T_taxable := sum(taxable), by = .(store_by_module)]
+all_pi_spill_econ[, T_total := .N, by = .(store_by_module)]
+all_pi_spill_econ[, all_taxable:= ifelse(T_taxable == T_total,1,0)]
+all_pi_spill_econ[, all_taxexempt:= ifelse(T_tax_exempt == T_total,1,0)]
+
+all_pi_spill_econ[, ln_statutory_tax := max(ln_sales_tax, na.rm = T), by = .(fips_state, fips_county, year, semester)]
+all_pi_spill_econ[, ln_statutory_tax := ifelse(taxability == 1, ln_sales_tax, ln_statutory_tax)]
+
+# Create statutory leads and lags
+LLs <- c(paste0("L", 1:4, ".D"), paste0("F", 1:4, ".D"), "D")
+for (Td in LLs) {
+  
+  actual <- paste0(Td, ".ln_sales_tax")
+  statu <- paste0(Td, ".ln_statutory_tax")
+  
+  all_pi_spill[, (statu) := max(get(actual), na.rm = T), by = .(fips_state, fips_county, year, semester)]
+  all_pi_spill[, (statu) := ifelse(taxability == 1, get(actual), get(statu))]
+  
+  all_pi_spill_econ[, (statu) := max(get(actual), na.rm = T), by = .(fips_state, fips_county, year, semester)]
+  all_pi_spill_econ[, (statu) := ifelse(taxability == 1, get(actual), get(statu))]
+  
+}
 
 ## for linear hypothesis tests
 lead.vars <- paste(paste0("F", 4:1, ".D.ln_statutory_tax"), collapse = " + ")
@@ -61,7 +86,7 @@ for (sam in samples) {
           # Create list of economic controls  
           lag.home <- paste(paste0("L", i:1, ".D.ln_home_price"), collapse = " + ")
           lag.unemp <- paste(paste0("L", i:1, ".D.ln_unemp"), collapse = " + ")
-          lag.econ <- paste(lag.home, lag.unemp, lag.wage, sep = " + ")
+          lag.econ <- paste(lag.home, lag.unemp, sep = " + ")
           
           
           formula1 <- as.formula(paste0(
