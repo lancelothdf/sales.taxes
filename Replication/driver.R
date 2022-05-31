@@ -21,7 +21,7 @@ library(pracma)
 setwd("/project2/igaarder")
 
 ###Run Code
-source("cleaning_code.R") #NEED TO RERUN
+source("cleaning_code.R") #DONE
 source("reduced_form_evidence.R") #DONE
 source("reduced_form_evidence_controls.R")
 source("reduced_form_evidence_spillovers.R")
