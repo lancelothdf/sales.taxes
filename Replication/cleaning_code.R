@@ -312,12 +312,12 @@ for (Td in LLs) {
 
 # Keeping common support
 # Spillovers
-all_pi_spill <- merge(all_pi_spill, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"), all.y=TRUE)
-all_pi_spill_econ <- merge(all_pi_spill_econ, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"), all.y=TRUE)
+all_pi_spill <- merge(all_pi_spill, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"))
+all_pi_spill_econ <- merge(all_pi_spill_econ, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"))
 # Main data w. econ vars
-all_pi_econ <- merge(all_pi_econ, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"), all.y=TRUE)
+all_pi_econ <- merge(all_pi_econ, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"))
 # Main data set
-all_pi <- merge(all_pi, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"), all.y=TRUE)
+all_pi <- merge(all_pi, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"))
 
 # Save Datasets
 fwrite(all_pi, "Data/Replication/all_pi.csv")
