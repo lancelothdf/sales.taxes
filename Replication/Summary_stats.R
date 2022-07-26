@@ -38,10 +38,8 @@ max <- all_pi[, lapply(.SD, max, na.rm = T), .SDcols = outcomes]
 means[, `:=` (stat = "mean", sample = "full")]
 sd[, `:=` (stat = "sd", sample = "full")]
 min[, `:=` (stat = "min", sample = "full")]
-max[, `:=` (stat = "mean", max = "full")]
+max[, `:=` (stat = "mean", sample = "full")]
 
-head(max)
-head(means)
 stats <- rbind(stats, 
                means, sd, min, max)
 
@@ -54,7 +52,7 @@ max <- all_pi[, lapply(.SD, max, na.rm = T), by = .(treated), .SDcols = outcomes
 means[, `:=` (stat = "mean", sample = "full")]
 sd[, `:=` (stat = "sd", sample = "full")]
 min[, `:=` (stat = "min", sample = "full")]
-max[, `:=` (stat = "mean", max = "full")]
+max[, `:=` (stat = "mean", sample = "full")]
 
 stats <- rbind(stats, 
                means, sd, min, max, fill=T)
@@ -68,7 +66,7 @@ max <- all_pi[, lapply(.SD, max, na.rm = T), by = .(year, semester), .SDcols = o
 means[, `:=` (stat = "mean", sample = "semester")]
 sd[, `:=` (stat = "sd", sample = "semester")]
 min[, `:=` (stat = "min", sample = "semester")]
-max[, `:=` (stat = "mean", max = "semester")]
+max[, `:=` (stat = "mean", sample = "semester")]
 
 stats <- rbind(stats, 
                means, sd, min, max, fill=T)
@@ -82,7 +80,7 @@ max <- all_pi[, lapply(.SD, max, na.rm = T), by = .(year, semester, treated), .S
 means[, `:=` (stat = "mean", sample = "semester")]
 sd[, `:=` (stat = "sd", sample = "semester")]
 min[, `:=` (stat = "min", sample = "semester")]
-max[, `:=` (stat = "mean", max = "semester")]
+max[, `:=` (stat = "mean", sample = "semester")]
 
 stats <- rbind(stats, 
                means, sd, min, max, fill=T)
