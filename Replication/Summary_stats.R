@@ -20,9 +20,9 @@ output.results.file <- "Data/Replication/Summary_data.csv"
 
 
 ## Variables to examine
-outcomes <- c("ln_cpricei", "ln_cpricei2", 
-              "ln_quantity", "ln_quantity2", "ln_quantity3", 
-              "ln_sales_share", "ln_sales_tax")
+outcomes <- c("D.ln_cpricei", "D.ln_cpricei2", 
+              "D.ln_quantity", "D.ln_quantity2", "D.ln_quantity3", 
+              "D.ln_sales_share", "D.ln_sales_tax")
 
 ## Key subsets
 all_pi[, treated := ifelse(D.ln_sales_tax == 0, 0, 1)]
