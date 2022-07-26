@@ -40,6 +40,8 @@ sd[, `:=` (stat = "sd", sample = "full")]
 min[, `:=` (stat = "min", sample = "full")]
 max[, `:=` (stat = "mean", max = "full")]
 
+head(max)
+head(means)
 stats <- rbind(stats, 
                means, sd, min, max)
 
