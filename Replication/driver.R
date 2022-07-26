@@ -5,18 +5,7 @@
 #' full code. We call individual scripts to perform specific
 #' tasks here.
 
-library(data.table)
-library(futile.logger)
-library(lfe)
-library(multcomp)
-library(Matrix)
-library(zoo)
-library(tidyverse)
-library(stringr)
-library(nloptr)
-library(doParallel)
-library(MASS)
-library(pracma)
+
 
 setwd("/project2/igaarder")
 

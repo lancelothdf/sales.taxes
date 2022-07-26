@@ -6,15 +6,7 @@
 library(data.table)
 library(futile.logger)
 library(lfe)
-library(multcomp)
-library(Matrix)
-library(zoo)
-library(tidyverse)
-library(stringr)
-library(nloptr)
-library(doParallel)
-library(MASS)
-library(pracma)
+
 
 setwd("/project2/igaarder")
 rm(list = ls())
