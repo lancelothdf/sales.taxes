@@ -30,10 +30,10 @@ all_pi[, treated := ifelse(D.ln_sales_tax == 0, 0, 1)]
 ### Produce summary stats
 stats <- data.table(NULL)
 ## Stats for whole data set
-means <- all_pi[, .(c(outcomes) = lapply(.SD, mean, na.rm = T)), .SDcols = outcomes]
-sd <- all_pi[, .(c(outcomes) = lapply(.SD, sd, na.rm = T)), .SDcols = outcomes]
-min <- all_pi[, .(c(outcomes) = lapply(.SD, min, na.rm = T)), .SDcols = outcomes]
-max <- all_pi[, .(c(outcomes) = lapply(.SD, max, na.rm = T)), .SDcols = outcomes]
+means <- all_pi[, lapply(.SD, mean, na.rm = T), .SDcols = outcomes]
+sd <- all_pi[, lapply(.SD, sd, na.rm = T), .SDcols = outcomes]
+min <- all_pi[, lapply(.SD, min, na.rm = T), .SDcols = outcomes]
+max <- all_pi[, lapply(.SD, max, na.rm = T), .SDcols = outcomes]
 
 means[, `:=` (stat = "mean", sample = "full")]
 sd[, `:=` (stat = "sd", sample = "full")]
@@ -44,10 +44,10 @@ stats <- rbind(stats,
                means, sd, min, max)
 
 ## Stats for whole data set by treatment
-means <- all_pi[, .(c(outcomes) = lapply(.SD, mean, na.rm = T)), by = .(treated) , .SDcols = outcomes]
-sd <- all_pi[, .(c(outcomes) = lapply(.SD, sd, na.rm = T)), by = .(treated), .SDcols = outcomes]
-min <- all_pi[, .(c(outcomes) = lapply(.SD, min, na.rm = T)), by = .(treated), .SDcols = outcomes]
-max <- all_pi[, .(c(outcomes) = lapply(.SD, max, na.rm = T)), by = .(treated), .SDcols = outcomes]
+means <- all_pi[, lapply(.SD, mean, na.rm = T), by = .(treated) , .SDcols = outcomes]
+sd <- all_pi[, lapply(.SD, sd, na.rm = T), by = .(treated), .SDcols = outcomes]
+min <- all_pi[, lapply(.SD, min, na.rm = T), by = .(treated), .SDcols = outcomes]
+max <- all_pi[, lapply(.SD, max, na.rm = T), by = .(treated), .SDcols = outcomes]
 
 means[, `:=` (stat = "mean", sample = "full")]
 sd[, `:=` (stat = "sd", sample = "full")]
@@ -58,10 +58,10 @@ stats <- rbind(stats,
                means, sd, min, max, fill=T)
 
 ## Stats for by semester
-means <- all_pi[, .(c(outcomes) = lapply(.SD, mean, na.rm = T)), by = .(year, semester) , .SDcols = outcomes]
-sd <- all_pi[, .(c(outcomes) = lapply(.SD, sd, na.rm = T)), by = .(year, semester), .SDcols = outcomes]
-min <- all_pi[, .(c(outcomes) = lapply(.SD, min, na.rm = T)), by = .(year, semester), .SDcols = outcomes]
-max <- all_pi[, .(c(outcomes) = lapply(.SD, max, na.rm = T)), by = .(year, semester), .SDcols = outcomes]
+means <- all_pi[, lapply(.SD, mean, na.rm = T), by = .(year, semester) , .SDcols = outcomes]
+sd <- all_pi[, lapply(.SD, sd, na.rm = T), by = .(year, semester), .SDcols = outcomes]
+min <- all_pi[, lapply(.SD, min, na.rm = T), by = .(year, semester), .SDcols = outcomes]
+max <- all_pi[, lapply(.SD, max, na.rm = T), by = .(year, semester), .SDcols = outcomes]
 
 means[, `:=` (stat = "mean", sample = "semester")]
 sd[, `:=` (stat = "sd", sample = "semester")]
@@ -72,10 +72,10 @@ stats <- rbind(stats,
                means, sd, min, max, fill=T)
 
 ## Stats for by semester and treatment
-means <- all_pi[, .(c(outcomes) = lapply(.SD, mean, na.rm = T)), by = .(year, semester, treated) , .SDcols = outcomes]
-sd <- all_pi[, .(c(outcomes) = lapply(.SD, sd, na.rm = T)), by = .(year, semester, treated), .SDcols = outcomes]
-min <- all_pi[, .(c(outcomes) = lapply(.SD, min, na.rm = T)), by = .(year, semester, treated), .SDcols = outcomes]
-max <- all_pi[, .(c(outcomes) = lapply(.SD, max, na.rm = T)), by = .(year, semester, treated), .SDcols = outcomes]
+means <- all_pi[, lapply(.SD, mean, na.rm = T), by = .(year, semester, treated) , .SDcols = outcomes]
+sd <- all_pi[, lapply(.SD, sd, na.rm = T), by = .(year, semester, treated), .SDcols = outcomes]
+min <- all_pi[, lapply(.SD, min, na.rm = T), by = .(year, semester, treated), .SDcols = outcomes]
+max <- all_pi[, lapply(.SD, max, na.rm = T), by = .(year, semester, treated), .SDcols = outcomes]
 
 means[, `:=` (stat = "mean", sample = "semester")]
 sd[, `:=` (stat = "sd", sample = "semester")]
