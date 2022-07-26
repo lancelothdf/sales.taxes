@@ -17,6 +17,7 @@ setwd("/project2/igaarder")
 sales_data_path <- "Data/sales_quarterly_2006-2016.csv"
 quarterly_tax_path <- "Data/quarterly_tax_rates.csv"
 all_goods_pi_path <- "Data/all_nielsen_data_2006_2016_quarterly.csv"
+all_goods_pi_path <- "Data/all_nielsen_data_2006_2016_quarterly_old.csv"
 FE_pindex_path <- "Data/Nielsen/Pindex_FE_yearly_all_years.csv"
 output_semester <- "Data/Nielsen/semester_nielsen_data.csv"
 output_semester_old <- "Data/Nielsen/semester_nielsen_data_old.csv"
@@ -31,22 +32,25 @@ quantity_index_path <- "Data/Nielsen/Quarterly_quantity_quality_indices.csv"
 ############## Add some more variables, measures,... and difference the data to get a "master file"
 ### Prepare the data
 all_pi <- fread(all_goods_pi_path)
+all_pi_old <-  fread(all_goods_pi_path_old)
 all_pi <- all_pi[year %in% 2006:2016 & !is.na(cpricei)]
-
+all_pi_old <-  all_pi_old[year %in% 2006:2016 & !is.na(cpricei)]
 
 ### Choose the sales weighted tax rate as main measure of taxes
 all_pi[, sales_tax2 := sales_tax]
 all_pi[, sales_tax := sales_tax_wtd]
+all_pi_old[, sales_tax2 := sales_tax]
+all_pi_old[, sales_tax := sales_tax_wtd]
 
 
 ###
 # Merge to additional measures (FE quantity and quality indices)
 quant_pi <- fread(quantity_index_path)
 all_pi <- merge(all_pi, quant_pi, by = c("store_code_uc", "product_module_code", "year", "quarter"))
+all_pi_old <- merge(all_pi_old, quant_pi, by = c("store_code_uc", "product_module_code", "year", "quarter"))
 rm(quant_pi)
 
 ## OLD Version: 
-all_pi_old <- copy(all_pi)
 # impute tax rates prior to 2008 and after 2014
 all_pi_old[, sales_tax := ifelse(year < 2008, sales_tax[year == 2008 & quarter == 1], sales_tax),
        by = .(store_code_uc, product_module_code)]
