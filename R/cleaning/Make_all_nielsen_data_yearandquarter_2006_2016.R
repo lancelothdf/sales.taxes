@@ -1,4 +1,5 @@
 ### In this R-file we create a quarterly and a yearly file with all Nielsen data and tax rate information
+### Do we want to make old versions for yearly and quarterly clean versions?
 
 library(data.table)
 library(lfe)
@@ -12,8 +13,9 @@ setwd("/project2/igaarder")
 ## Useful filepaths ------------------------------------------------------------
 sales_data_path <- "Data/sales_quarterly_2006-2016.csv"
 quarterly_tax_path <- "Data/quarterly_tax_rates.csv"
-quarterly_tax_path <- "Data/quarterly_tax_rates_old.csv"
+quarterly_tax_path_old <- "Data/quarterly_tax_rates_old.csv"
 all_goods_pi_path <- "Data/all_nielsen_data_2006_2016_quarterly.csv"
+all_goods_pi_path_old <- "Data/all_nielsen_data_2006_2016_quarterly_old.csv"
 FE_pindex_path <- "Data/Nielsen/Pindex_FE_yearly_all_years.csv"
 input_old_pi_path <- "Data/Nielsen/Quarterly_old_pi.csv"
 quantity_index_path <- "Data/Nielsen/Quarterly_quantity_quality_indices.csv"
@@ -59,16 +61,22 @@ gc()
 all.tax <- fread(quarterly_tax_path)
 all_pi <- merge(all_pi, all.tax, by = c("store_code_uc", "product_module_code",
                                         "year", "quarter"), all.x = T)
+all.tax_old <- fread(quarterly_tax_path_old)
+all_pi_old <- merge(all_pi, all.tax, by = c("store_code_uc", "product_module_code",
+                                        "year", "quarter"), all.x = T)
 rm(all.tax)
 
 
 ### Create Consumer Price Index 2
 all_pi <- all_pi[, ln_cpricei2 := ln_pricei2 + log(sales_tax_wtd)]
+all_pi_old <- all_pi_old[, ln_cpricei2 := ln_pricei2 + log(sales_tax_wtd)]
 
 ## Also need to create consumer price with pricei - (replace the one in the original file because imputed tax rate is not correct)
 all_pi <- all_pi[, cpricei := pricei*sales_tax_wtd]
+all_pi_old <- all_pi_old[, cpricei := pricei*sales_tax_wtd]
 
 fwrite(all_pi, all_goods_pi_path)
+fwrite(all_pi_old, all_goods_pi_path_old)
 rm(all_pi)
 
 ########################################
@@ -76,6 +84,7 @@ rm(all_pi)
 all_pi <- fread(all_goods_pi_path)
 all_pi <- all_pi[year %in% 2006:2016 & !is.na(cpricei)]
 
+all_pi_old <- fread(all_goods_pi_path_old)
 
 ## balance on store-module level (only keep observations that are in every quarter)
 keep_store_modules <- all_pi[, list(n = .N),
