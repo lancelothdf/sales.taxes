@@ -16,8 +16,8 @@ setwd("/project2/igaarder")
 rm(list = ls())
 
 ## input filepaths -----------------------------------------------
-data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
-#data.semester <- "Data/Nielsen/semester_nielsen_data_old.csv"
+#data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
+data.semester <- "Data/Nielsen/semester_nielsen_data_old.csv"
 data.taxability <- "Data/taxability_state_panel.csv"
 zillow_path <- "Data/covariates/zillow_long_by_county_clean.csv"
 zillow_state_path <- "Data/covariates/zillow_long_by_state_clean.csv"
