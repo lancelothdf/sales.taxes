@@ -1,8 +1,9 @@
 ###
 ### We create semesterly data.  We start from the quarterly data and take averages of consecutive quarters in the same semester.
 ## This version of the code ouputs 2 versions of data: 
-# 1) New expanded dataset (206-207 and 2015-2016 using state data + old local) and 
+# 1) New expanded dataset (2006-2007 and 2015-2016 using state data + old local) and 
 # 2) old (extend 2008 backwards and 2014 onwards)
+# For 2 this version is also using the old output of the tax panel
 
 library(data.table)
 library(lfe)
@@ -17,7 +18,7 @@ setwd("/project2/igaarder")
 sales_data_path <- "Data/sales_quarterly_2006-2016.csv"
 quarterly_tax_path <- "Data/quarterly_tax_rates.csv"
 all_goods_pi_path <- "Data/all_nielsen_data_2006_2016_quarterly.csv"
-all_goods_pi_path <- "Data/all_nielsen_data_2006_2016_quarterly_old.csv"
+all_goods_pi_path_old <- "Data/all_nielsen_data_2006_2016_quarterly_old.csv"
 FE_pindex_path <- "Data/Nielsen/Pindex_FE_yearly_all_years.csv"
 output_semester <- "Data/Nielsen/semester_nielsen_data.csv"
 output_semester_old <- "Data/Nielsen/semester_nielsen_data_old.csv"
