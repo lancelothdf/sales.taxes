@@ -23,6 +23,9 @@ quarterly_output_path <- "Data/quarterly_tax_rates_old.csv"
 
 #####################################################
 ##### Quarterly
+# Checing permision is working
+file.create(quarterly_output_path)
+
 ### Make quarterly tax rates
 sales.data <- fread(sales_data_path)
 tax.data <- fread(tax_rate_data_path)
@@ -53,7 +56,7 @@ sales.data <- sales.data[, list(sales_tax = mean(sales_tax), sales_tax_wtd = wei
 
 
 ### Save CSVs
-fwrite(sales.data, quarterly_output_path)
+fwrite(sales.data, quarterly_output_path, showProgress=T)
 rm(quarterly_output_path)
 
 ### Make monthly tax rates
