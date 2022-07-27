@@ -46,6 +46,7 @@ sales.data[, quarter := ceiling(month/3)]
 
 ## Create tax rates
 sales.data[, sales_tax := 1 + sales_tax]
+sales.data[, reduced_rate := 1 + reduced_rate]
 sales.data[, sales_tax := ifelse(taxability == 0, 1, sales_tax)]
 sales.data[, sales_tax := ifelse(taxability == 2, NA, sales_tax)]
 sales.data[, sales_tax := ifelse(is.na(reduced_rate) == F, reduced_rate, sales_tax)]
@@ -77,6 +78,7 @@ sales.data <- merge(sales.data, tax.data, by = c("fips_state", "fips_county", "y
 
 
 sales.data[, sales_tax := 1 + sales_tax]
+sales.data[, reduced_rate := 1 + reduced_rate]
 sales.data[, sales_tax := ifelse(taxability == 0, 1, sales_tax)]
 sales.data[, sales_tax := ifelse(taxability == 2, NA, sales_tax)]
 sales.data[, sales_tax := ifelse(is.na(reduced_rate) == F, reduced_rate, sales_tax)]

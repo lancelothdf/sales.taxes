@@ -24,37 +24,6 @@ zillow_state_path <- "Data/covariates/zillow_long_by_state_clean.csv"
 unemp.path <- "Data/covariates/county_monthly_unemp_clean.csv"
 wage.path <- "Data/covariates/qcew_quarterly_clean.csv"
 data.hh <- "Data/Nielsen/Household_panel/cleaning/consumer_panel_q_hh_group_2006-2016.csv"
-data.year <- "Data/Nielsen/yearly_nielsen_data.csv"
-
-## output filepaths ----------------------------------------------
-output.results.file <- "Data/Replication/LRdiff_semesterly_main.csv"
-output.results.file.econ <- "Data/Replication/LRdiff_semesterly_w_econ.csv"
-results.file.spillovers <- "Data/Replication/DiD_spillover_estimates_csinitprice_semester.csv"
-output.results.file.hh <- "Data/Replication/HH_cross_sectional_design_income_salesweight.csv"
-output.results.file.crossec <- "Data/Replication/LRdiff_cross_sectional_design.csv"
-output.results.file.TWFE <- "Data/Replication/LR_TWFE_dessign.csv"
-iv.output.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_boot_r.csv"
-theta.output.results.file <- "Data/Replication/Demand_theta_sat_initial_price_semester_boot_r.csv"
-theta.berstein <- "Data/Replication/Demand_gamma_sat_initial_price_semester_boot_r_K"
-pq.output.results.file <- "Data/Replication/Demand_pq_sat_initial_price_semester_boot_r.csv"
-output.table.avelas <- "Data/Replication/summary_elasticity_states.csv"
-out.file.elast <- "Data/Replication/elasticity_bounds_table_berns_monot_mincreterion_d.csv"
-out.file.mc <-  "Data/Replication/table_berns_monot_mincreteria_d.csv"
-iv.output.results.pretax <- "Data/Replication/DID_iv_sat_initial_price_pretax_semester.csv"
-theta.output.results.pretax <- "Data/Replication/Demand_theta_sat_initial_price_pretax_semester.csv"
-iv.output.salience.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_salience.csv"
-theta.output.salience.results.file <- "Data/Replication/Demand_theta_sat_initial_price_semester_salience.csv"
-conduct.parameter.file <- "Data/Replication/salience_conduct_parameter_at_p.csv"
-pq.output.salience.results.file <- "Data/Replication/Demand_pq_sat_initial_price_semester_salience.csv"
-theta.berstein.sal <- "Data/Replication/Demand_gamma_sat_initial_price_semester_salience_K"
-out.file.hyp.nonmarginal <- "Data/Replication/nonmarginal_hypothetical_def2.csv"
-out.file.hyp.marginal <- "Data/Replication/marginal_hypothetical_def2.csv"
-out.file.mc.welf.hyp <- "Data/Replication/mincriteria_all.csv"
-binned.data.price <- "Data/Replication/extraction_state_binned_price.csv"
-binned.data.tax <- "Data/Replication/extraction_state_binned_tax.csv"
-out.file.marginal <- "Data/Replication/marginal_extrapoaltion_state_priority.csv"
-out.file.nonmarginal <- "Data/Replication/nonmarginal_extrapoaltion_state_priority.csv"
-out.file.average <- "Data/Replication/average_extrapolation_state_priority.csv"
 
 
 ## Open Data ----------------
@@ -76,8 +45,7 @@ taxability[, taxability := ifelse(!is.nan(reduced_rate), 2, taxability)]
 ## Open clean Household Panel
 purchases.sample <- fread(data.hh)
 
-# Yearly Data
-yearly_data <- fread(data.year)
+
 
 #### Prepare Household Panel -----------------------
 
@@ -193,10 +161,6 @@ for (lag.val in 1:4) {
 }
 
 
-## Nielsen Retailer Data Cleaning. Yearly Data -----------------------
-### Drop observations for which the sales tax rate is imputed
-yearly_data <- yearly_data[year >= 2008 & year <= 2014]
-yearly_data$year <- factor(yearly_data$year) ##Convert the indicator for year to a factor variable (needed for interaction in the regression between ln_sales_tax and dummy for year)
 
 cohort.weights <- rep(1, 7) ##Construct weights to average across cohorts/years.  Start with equal weights
 cohort.weights <- cohort.weights/sum(cohort.weights)
@@ -320,5 +284,6 @@ fwrite(all_pi, "Data/Replication/all_pi.csv")
 fwrite(all_pi_spill, "Data/Replication/all_pi_spill.csv")
 fwrite(all_pi_spill_econ, "Data/Replication/all_pi_spill_econ.csv")
 fwrite(all_pi_econ, "Data/Replication/all_pi_econ.csv")
+fwrite(purchases.sample, "Data/Replication/purchases.sample.csv")
 
 
