@@ -18,7 +18,7 @@ taxability_data_path <- "Data/taxability_state_panel.csv"
 
 ## output ----
 monthly_output_path <- "Data/monthly_tax_rates_old.csv"
-quarterly_output_path <- "Data/quarterly_tax_rates_old.csv"
+quarterly_output_path <- "Data/quarterly_tax_rates_older.csv"
 
 
 #####################################################
