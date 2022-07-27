@@ -21,34 +21,6 @@ monthly_output_path <- "Data/monthly_tax_rates_old.csv"
 quarterly_output_path <- "Data/quarterly_tax_rates_old.csv"
 
 
-### Make monthly tax rates
-sales.data <- fread(sales_data_path)
-tax.data <- fread(tax_rate_data_path)
-taxability.data <- fread(taxability_data_path)
-
-
-### Keep only relevant variables
-sales.data <- sales.data[, c("store_code_uc", "product_module_code", "year", "month", "fips_state", "fips_county")]
-taxability.data <- taxability.data[, c("year", "month", "fips_state", "product_module_code", "taxability", "reduced_rate")]
-tax.data <- tax.data[, c("year", "month", "fips_state", "fips_county", "sales_tax")]
-
-
-### Merge Datasets
-sales.data <- merge(sales.data, taxability.data, by = c("fips_state", "product_module_code", "year", "month"), all.x = T)
-sales.data <- merge(sales.data, tax.data, by = c("fips_state", "fips_county", "year", "month"))
-
-
-sales.data[, sales_tax := 1 + sales_tax]
-sales.data[, sales_tax := ifelse(taxability == 0, 1, sales_tax)]
-sales.data[, sales_tax := ifelse(taxability == 2, NA, sales_tax)]
-sales.data[, sales_tax := ifelse(is.na(reduced_rate) == F, reduced_rate, sales_tax)]
-
-
-sales.data <- sales.data[, c("store_code_uc", "product_module_code", "year", "month", "sales_tax", "taxability")]
-fwrite(sales.data, monthly_output_path)
-rm(monthly_output_path)
-
-
 #####################################################
 ##### Quarterly
 ### Make quarterly tax rates
@@ -83,3 +55,31 @@ sales.data <- sales.data[, list(sales_tax = mean(sales_tax), sales_tax_wtd = wei
 ### Save CSVs
 fwrite(sales.data, quarterly_output_path)
 rm(quarterly_output_path)
+
+### Make monthly tax rates
+sales.data <- fread(sales_data_path)
+tax.data <- fread(tax_rate_data_path)
+taxability.data <- fread(taxability_data_path)
+
+
+### Keep only relevant variables
+sales.data <- sales.data[, c("store_code_uc", "product_module_code", "year", "month", "fips_state", "fips_county")]
+taxability.data <- taxability.data[, c("year", "month", "fips_state", "product_module_code", "taxability", "reduced_rate")]
+tax.data <- tax.data[, c("year", "month", "fips_state", "fips_county", "sales_tax")]
+
+
+### Merge Datasets
+sales.data <- merge(sales.data, taxability.data, by = c("fips_state", "product_module_code", "year", "month"), all.x = T)
+sales.data <- merge(sales.data, tax.data, by = c("fips_state", "fips_county", "year", "month"))
+
+
+sales.data[, sales_tax := 1 + sales_tax]
+sales.data[, sales_tax := ifelse(taxability == 0, 1, sales_tax)]
+sales.data[, sales_tax := ifelse(taxability == 2, NA, sales_tax)]
+sales.data[, sales_tax := ifelse(is.na(reduced_rate) == F, reduced_rate, sales_tax)]
+
+
+sales.data <- sales.data[, c("store_code_uc", "product_module_code", "year", "month", "sales_tax", "taxability")]
+fwrite(sales.data, monthly_output_path)
+rm(monthly_output_path)
+
