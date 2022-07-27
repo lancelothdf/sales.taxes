@@ -16,7 +16,6 @@ rm(list = ls())
 all_pi <- fread("Data/Replication/all_pi.csv")
 
 ## output filepath ----------------------------------------------
-output.results.file <- "Data/Replication/LRdiff_semesterly_main.csv"
 output.results.file.TWFE <- "Data/Replication/LR_TWFE_design.csv"
 
 
@@ -54,7 +53,7 @@ for (Y in c(outcomes)) {
     res1.dt[, N_county_modules := uniqueN(all_pi, by = c("fips_state", "fips_county",
                                                          "product_module_code"))]
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-    fwrite(LRdiff_res, output.results.file)
+    fwrite(LRdiff_res, output.results.file.TWFE)
     
     ## Run pre-trends
     RHS <- "ln_sales_tax"
