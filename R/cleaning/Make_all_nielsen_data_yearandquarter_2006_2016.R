@@ -59,12 +59,12 @@ rm(sales_data)
 gc()
 
 all.tax <- fread(quarterly_tax_path)
+all.tax_old <- fread(quarterly_tax_path_old)
+all_pi_old <- merge(all_pi, all.tax_old, by = c("store_code_uc", "product_module_code",
+                                        "year", "quarter"), all.x = T)
 all_pi <- merge(all_pi, all.tax, by = c("store_code_uc", "product_module_code",
                                         "year", "quarter"), all.x = T)
-all.tax_old <- fread(quarterly_tax_path_old)
-all_pi_old <- merge(all_pi, all.tax, by = c("store_code_uc", "product_module_code",
-                                        "year", "quarter"), all.x = T)
-rm(all.tax)
+rm(all.tax, all.tax_old)
 
 
 ### Create Consumer Price Index 2
