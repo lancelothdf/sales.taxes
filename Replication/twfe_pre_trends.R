@@ -66,7 +66,7 @@ for (Y in c(outcomes)) {
       flog.info("Estimating pretrend %s with %s as outcome with %s FE.", k, Y, FE)
       res1 <- felm(formula = formula1, data = all_pi,
                    weights = all_pi$base.sales)
-      flog.info("Finished estimating with %s as outcome with %s FE.", k, Y, FE)
+      flog.info("Finished estimating pretrend %s with %s as outcome with %s FE.", k, Y, FE)
       
       
       ## attach results
