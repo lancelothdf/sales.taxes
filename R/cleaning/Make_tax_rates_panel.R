@@ -65,20 +65,19 @@ head(skel)
 print(nrow(skel))
 
 # Acommodate to skeleton
-expanded.data <- merge(skel, expanded.data, by = c("fips_state", "year", "month")) # must be in both data sets
+expanded.data.pre <- merge(skel, expanded.data, by = c("fips_state", "year", "month")) # must be in both data sets
 rm(skel)
-head(expanded.data)
+head(expanded.data.pre)
 
-all.tax <- rbind(tax.data, expanded.data, fill = T)
-head(all.tax[year < 2008])
-all.tax[year < 2008, sales_tax := sales_tax - state_tax2008 + state_tax]
-head(all.tax[year < 2008])
+head(expanded.data.pre[year < 2008])
+expanded.data.pre[year < 2008, sales_tax := sales_tax - state_tax2008 + state_tax]
+head(expanded.data.pre[year < 2008])
 
 # 2015/16
 # Create skeleton for missing years
 all_counties <- unique(sales.data[, .(fips_state, fips_county)])
-all_counties <- merge(all_counties, tax.data[year == 2008 & month == 1,], by = c("fips_state", "fips_county"))
-setnames(all_counties, "state_tax", "state_tax2008")
+all_counties <- merge(all_counties, tax.data[year == 2014 & month == 12,], by = c("fips_state", "fips_county"))
+setnames(all_counties, "state_tax", "state_tax2014")
 skel <- data.table(NULL)
 for (y in c(2015,2016)) {
   for (m in 1:12) {
@@ -91,16 +90,19 @@ head(skel)
 print(nrow(skel))
 
 # Acommodate to skeleton
-expanded.data <- merge(skel, expanded.data, by = c("fips_state", "year", "month")) # must be in both data sets
+expanded.data.post <- merge(skel, expanded.data, by = c("fips_state", "year", "month")) # must be in both data sets
 rm(skel)
-head(expanded.data)
+head(expanded.data.post)
 
-all.tax <- rbind(tax.data, expanded.data, fill = T)
-head(all.tax[year > 2014])
-all.tax[year > 2014, sales_tax := sales_tax - state_tax2008 + state_tax]
-head(all.tax[year > 2014])
+head(expanded.data.post[year > 2014])
+expanded.data.post[year > 2014, sales_tax := sales_tax - state_tax2014 + state_tax]
+head(expanded.data.post[year > 2014])
 
+expanded.data.pre <- expanded.data.pre[, c("year", "month", "fips_state", "fips_county", "sales_tax", "state_tax")]
+expanded.data.post <- expanded.data.post[, c("year", "month", "fips_state", "fips_county", "sales_tax", "state_tax")]
 
+all.tax <- rbind(tax.data, expanded.data.pre, expanded.data.post, fill = T)
+rm(expanded.data, expanded.data.post, expanded.data)
 
 ### Merge Datasets
 sales.data <- merge(sales.data, taxability.data, by = c("fips_state", "product_module_code", "year", "month"), all.x = T)
