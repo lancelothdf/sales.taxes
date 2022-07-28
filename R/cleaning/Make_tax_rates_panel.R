@@ -48,7 +48,7 @@ tax.data <- tax.data[, c("year", "month", "fips_state", "fips_county", "sales_ta
 sales.data.old <- copy(sales.data)
 
 ### Generate New Tax Variables for 2006/07 & 2015/16 in new version
-all.tax <- rbind(tax.data, expanded.data)
+all.tax <- rbind(tax.data, expanded.data, fill = T)
 all.tax <- all.tax[year < 2008, 
                    sales_tax := sales_tax[year == 2008 & month == 1] - 
                      state_tax[year == 2008 & month == 1] + state_tax,
