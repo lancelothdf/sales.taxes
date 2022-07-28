@@ -40,7 +40,7 @@ setnames(expanded.data, "sales_tax_rate", "state_tax")
 
 ### Keep only relevant variables
 expanded.data <- expanded.data[, c("year", "month", "fips_state", "state_tax")]
-sales.data <- sales.data[, c("store_code_uc", "product_module_code", "year", "month", "fips_state", "fips_county")]
+sales.data <- sales.data[, c("store_code_uc", "product_module_code", "year", "month", "sales", "fips_state", "fips_county")]
 taxability.data <- taxability.data[, c("year", "month", "fips_state", "product_module_code", "taxability", "reduced_rate")]
 tax.data <- tax.data[, c("year", "month", "fips_state", "fips_county", "sales_tax", "state_tax")]
 
