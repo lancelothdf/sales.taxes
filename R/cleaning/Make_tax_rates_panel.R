@@ -103,6 +103,10 @@ sales.data[, quarter := ceiling(month/3)]
 sales.data.old[, sales := sales*nweeks]
 sales.data.old[, quarter := ceiling(month/3)]
 
+head(sales.data)
+head(sales.data.old)
+print(nrow(sales.data[!is.na(sales_tax)]))
+print(nrow(sales.data.old[!is.na(sales_tax)]))
 
 sales.data.t <- copy(sales.data)
 sales.data.old.t <- copy(sales.data.old)
@@ -128,6 +132,10 @@ sales.data[, taxability := ifelse(taxability == 2, NA, taxability)]
 sales.data.old <- sales.data.old[, list(sales_tax = mean(sales_tax), sales_tax_wtd = weighted.mean(sales_tax, w = sales), taxability = getmode(taxability)), by = .(store_code_uc, product_module_code, year, quarter)]
 sales.data.old[, taxability := ifelse(taxability == 2, NA, taxability)]
 
+head(sales.data)
+head(sales.data.old)
+print(nrow(sales.data[!is.na(sales_tax)]))
+print(nrow(sales.data.old[!is.na(sales_tax)]))
 
 ### Save CSVs
 fwrite(sales.data, quarterly_output_path)
