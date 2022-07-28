@@ -64,8 +64,8 @@ all.tax <- fread(quarterly_tax_path)
 all.tax_old <- fread(quarterly_tax_path_old)
 head(all.tax)
 head(all.tax_old)
-print(nrow(all.tax[,!is.na(sales_tax)]))
-print(nrow(all.tax_old[,!is.na(sales_tax)]))
+print(nrow(all.tax[!is.na(sales_tax)]))
+print(nrow(all.tax_old[!is.na(sales_tax)]))
 
 all_pi_old <- merge(all_pi, all.tax_old, by = c("store_code_uc", "product_module_code",
                                                 "year", "quarter"), all.x = T)
@@ -93,8 +93,8 @@ all_pi_old <-  all_pi_old[year %in% 2006:2016 & !is.na(cpricei)]
 
 head(all_pi)
 head(all_pi_old)
-print(nrow(all_pi[,!is.na(sales_tax)]))
-print(nrow(all_pi_old[,!is.na(sales_tax)]))
+print(nrow(all_pi[!is.na(sales_tax)]))
+print(nrow(all_pi_old[!is.na(sales_tax)]))
 ### Choose the sales weighted tax rate as main measure of taxes
 all_pi[, sales_tax2 := sales_tax]
 all_pi[, sales_tax := sales_tax_wtd]
