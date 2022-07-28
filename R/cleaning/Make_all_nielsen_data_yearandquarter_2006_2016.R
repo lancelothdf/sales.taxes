@@ -85,6 +85,7 @@ all_pi <- fread(all_goods_pi_path)
 all_pi <- all_pi[year %in% 2006:2016 & !is.na(cpricei)]
 
 all_pi_old <- fread(all_goods_pi_path_old)
+all_pi_old <- all_pi_old[year %in% 2006:2016 & !is.na(cpricei)]
 
 ## balance on store-module level (only keep observations that are in every quarter)
 keep_store_modules <- all_pi[, list(n = .N),
