@@ -36,7 +36,6 @@ expanded.data <- fread(expanded_data_path)
 expanded.data$year<-as.numeric(str_sub(expanded.data$date, -4, -1)) #Create year variable
 expanded.data$month<-rep(seq(1,12,1), nrow(expanded.data)/12)  # Create month variable
 expanded.data$state_tax<-expanded.data$sales_tax_rate/100
-setnames(expanded.data, "sales_tax_rate", "state_tax")
 
 ### Keep only relevant variables
 expanded.data <- expanded.data[, c("year", "month", "fips_state", "state_tax")]
@@ -49,15 +48,19 @@ sales.data.old <- copy(sales.data)
 
 ### Generate New Tax Variables for 2006/07 & 2015/16 in new version
 all.tax <- rbind(tax.data, expanded.data, fill = T)
+head(all.tax[year < 2008])
 all.tax <- all.tax[year < 2008, 
                    sales_tax := sales_tax[year == 2008 & month == 1] - 
                      state_tax[year == 2008 & month == 1] + state_tax,
                    by = c("fips_state", "fips_county", "year", "month")]
+head(all.tax[year < 2008])
 
+head(all.tax[year > 2014])
 all.tax <- all.tax[year > 2014, 
                    sales_tax := sales_tax[year == 2014 & month == 12] - 
                      state_tax[year == 2014 & month == 12] + state_tax,
                    by = c("fips_state", "fips_county", "year", "month")]
+head(all.tax[year > 2014])
 
 
 ### Merge Datasets
@@ -92,21 +95,39 @@ sales.data.old[, sales := sales*nweeks]
 sales.data.old[, quarter := ceiling(month/3)]
 
 
-sales.data.t <- sales.data[, c("store_code_uc", "product_module_code", "year", "month", "sales_tax", "taxability")]
-sales.data.old.t <- sales.data.old[, c("store_code_uc", "product_module_code", "year", "month", "sales_tax", "taxability")]
+sales.data.t <- copy(sales.data)
+sales.data.old.t <- copy(sales.data.old)
+
+sales.data.t <- sales.data.t[, c("store_code_uc", "product_module_code", "year", "month", "sales_tax", "taxability")]
+sales.data.old.t <- sales.data.old.t[, c("store_code_uc", "product_module_code", "year", "month", "sales_tax", "taxability")]
 fwrite(sales.data.t, monthly_output_path)
 fwrite(sales.data.old.t, monthly_output_path_old)
 rm(sales.data.t, sales.data.old.t, monthly_output_path, monthly_output_path_old)
 
+
+# Create mode function
+getmode <- function(v) {
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
 ## Collapse to Quarterly data
-sales.data <- sales.data[, list(sales_tax = mean(sales_tax), sales_tax_wtd = weighted.mean(sales_tax, w = sales), taxability = mode(taxability)), by = .(store_code_uc, product_module_code, year, quarter)]
+sales.data <- sales.data[, list(sales_tax = mean(sales_tax), sales_tax_wtd = weighted.mean(sales_tax, w = sales), taxability = getmode(taxability)), by = .(store_code_uc, product_module_code, year, quarter)]
 sales.data[, taxability := ifelse(taxability == 2, NA, taxability)]
 
-sales.data.old <- sales.data.old[, list(sales_tax = mean(sales_tax), sales_tax_wtd = weighted.mean(sales_tax, w = sales), taxability = mode(taxability)), by = .(store_code_uc, product_module_code, year, quarter)]
+
+sales.data.old <- sales.data.old[, list(sales_tax = mean(sales_tax), sales_tax_wtd = weighted.mean(sales_tax, w = sales), taxability = getmode(taxability)), by = .(store_code_uc, product_module_code, year, quarter)]
 sales.data.old[, taxability := ifelse(taxability == 2, NA, taxability)]
 
 
 ### Save CSVs
 fwrite(sales.data, quarterly_output_path)
 fwrite(sales.data.old, quarterly_output_path_old)
+rm(quarterly_output_path)
+
+
+
+
+### Save CSVs
+fwrite(sales.data, quarterly_output_path)
 rm(quarterly_output_path)
