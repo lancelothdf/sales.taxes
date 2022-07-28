@@ -49,14 +49,20 @@ sales.data.old <- copy(sales.data)
 ### Generate New Tax Variables for 2006/07 & 2015/16 in new version
 
 # Create skeleton for missing years
-
-skel <- tax.data[year == 2008 & month == 1]
-skel <- skel[, c("fips_state", "fips_county")]
+all_counties <- unique(sales.data[, .(fips_state, fips_county)])
+skel <- data.table(NULL)
+for (y in c(2006,2007,2015,2016)) {
+  for (m in 1:12) {
+    skel[, year := y]
+    skel[, month := m]
+    county_skeleton <- rbind(county_skeleton, all_counties)
+  }
+}
 head(skel)
 print(nrow(skel))
 
 # Acommodate to skeleton
-expanded.data <- merge(skel, expanded.data, by = "fips_state") # must be in both data sets
+expanded.data <- merge(skel, expanded.data, by = c("fips_state", "year", "month")) # must be in both data sets
 rm(skel)
 head(expanded.data)
 
