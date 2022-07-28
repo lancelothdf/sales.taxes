@@ -29,14 +29,71 @@ quantity_index_path <- "Data/Nielsen/Quarterly_quantity_quality_indices.csv"
 #tr_groups_path <- "Data/tr_groups_comprehensive_firstonly_no2012q4_2013q1q2.csv"
 
 
+
+#### First Step: Make quarterly data (all_nielsen_data_2006_2016_quarterly.csv)
+nonfood_pi <- read.dta13("Data/Nielsen/Price_quantity_indices_nonfood.dta")
+nonfood_pi <- as.data.table(nonfood_pi)
+
+food_pi <- fread("Data/Nielsen/price_quantity_indices_food.csv")
+food_pi[, c("fips_state", "fips_county") := NULL]
+
+all_pi <- rbind(food_pi, nonfood_pi)
+all_pi <- all_pi[year <= 2016]
+rm(nonfood_pi, food_pi)
+gc()
+
+### Attach the old price indices
+old_pi <- fread(input_old_pi_path)
+all_pi <- merge(all_pi, old_pi, by = c("store_code_uc", "product_module_code", "year", "quarter"))
+rm(old_pi)
+
+
+### Attach county and state FIPS codes, sales ----------------------------------
+sales_data <- fread(sales_data_path)
+sales_data <- sales_data[, .(store_code_uc, product_module_code, fips_county,
+                             fips_state, quarter, year, sales)]
+sales_data <- sales_data[year <= 2016]
+
+all_pi <- merge(all_pi, sales_data, by = c("store_code_uc", "quarter", "year",
+                                           "product_module_code" ))
+rm(sales_data)
+gc()
+
+all.tax <- fread(quarterly_tax_path)
+all.tax_old <- fread(quarterly_tax_path_old)
+head(all.tax)
+head(all.tax_old)
+print(nrow(all.tax[,!is.na(sales_tax)]))
+print(nrow(all.tax_old[,!is.na(sales_tax)]))
+
+all_pi_old <- merge(all_pi, all.tax_old, by = c("store_code_uc", "product_module_code",
+                                                "year", "quarter"), all.x = T)
+all_pi <- merge(all_pi, all.tax, by = c("store_code_uc", "product_module_code",
+                                        "year", "quarter"), all.x = T)
+rm(all.tax, all.tax_old)
+
+
+### Create Consumer Price Index 2
+all_pi <- all_pi[, ln_cpricei2 := ln_pricei2 + log(sales_tax_wtd)]
+all_pi_old <- all_pi_old[, ln_cpricei2 := ln_pricei2 + log(sales_tax_wtd)]
+
+## Also need to create consumer price with pricei - (replace the one in the original file because imputed tax rate is not correct)
+all_pi <- all_pi[, cpricei := pricei*sales_tax_wtd]
+all_pi_old <- all_pi_old[, cpricei := pricei*sales_tax_wtd]
+
+fwrite(all_pi, all_goods_pi_path)
+fwrite(all_pi_old, all_goods_pi_path_old)
+
 ##############
 ############## Add some more variables, measures,... and difference the data to get a "master file"
 ### Prepare the data
-all_pi <- fread(all_goods_pi_path)
-all_pi_old <-  fread(all_goods_pi_path_old)
 all_pi <- all_pi[year %in% 2006:2016 & !is.na(cpricei)]
 all_pi_old <-  all_pi_old[year %in% 2006:2016 & !is.na(cpricei)]
 
+head(all_pi)
+head(all_pi_old)
+print(nrow(all_pi[,!is.na(sales_tax)]))
+print(nrow(all_pi_old[,!is.na(sales_tax)]))
 ### Choose the sales weighted tax rate as main measure of taxes
 all_pi[, sales_tax2 := sales_tax]
 all_pi[, sales_tax := sales_tax_wtd]
