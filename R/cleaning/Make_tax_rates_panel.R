@@ -48,10 +48,13 @@ sales.data.old <- copy(sales.data)
 
 ### Generate New Tax Variables for 2006/07 & 2015/16 in new version
 
+# 2006/07
 # Create skeleton for missing years
 all_counties <- unique(sales.data[, .(fips_state, fips_county)])
+all_counties <- merge(all_counties, tax.data[year == 2008 & month == 1,], by = c("fips_state", "fips_county"))
+setnames(all_counties, "state_tax", "state_tax2008")
 skel <- data.table(NULL)
-for (y in c(2006,2007,2015,2016)) {
+for (y in c(2006,2007)) {
   for (m in 1:12) {
     all_counties[, year := y]
     all_counties[, month := m]
@@ -68,18 +71,35 @@ head(expanded.data)
 
 all.tax <- rbind(tax.data, expanded.data, fill = T)
 head(all.tax[year < 2008])
-all.tax[year < 2008, 
-         sales_tax := sales_tax[year == 2008 & month == 1] - 
-           state_tax[year == 2008 & month == 1] + state_tax,
-         by = c("fips_state", "fips_county")]
+all.tax[year < 2008, sales_tax := sales_tax - state_tax2008 + state_tax]
 head(all.tax[year < 2008])
 
+# 2015/16
+# Create skeleton for missing years
+all_counties <- unique(sales.data[, .(fips_state, fips_county)])
+all_counties <- merge(all_counties, tax.data[year == 2008 & month == 1,], by = c("fips_state", "fips_county"))
+setnames(all_counties, "state_tax", "state_tax2008")
+skel <- data.table(NULL)
+for (y in c(2015,2016)) {
+  for (m in 1:12) {
+    all_counties[, year := y]
+    all_counties[, month := m]
+    skel <- rbind(skel, all_counties)
+  }
+}
+head(skel)
+print(nrow(skel))
+
+# Acommodate to skeleton
+expanded.data <- merge(skel, expanded.data, by = c("fips_state", "year", "month")) # must be in both data sets
+rm(skel)
+head(expanded.data)
+
+all.tax <- rbind(tax.data, expanded.data, fill = T)
 head(all.tax[year > 2014])
-all.tax[year > 2014, 
-         sales_tax := sales_tax[year == 2014 & month == 12] - 
-           state_tax[year == 2014 & month == 12] + state_tax,
-         by = c("fips_state", "fips_county")]
+all.tax[year > 2014, sales_tax := sales_tax - state_tax2008 + state_tax]
 head(all.tax[year > 2014])
+
 
 
 ### Merge Datasets
