@@ -40,7 +40,7 @@ setnames(expanded.data, "sales_tax_rate", "state_tax")
 
 ### Keep only relevant variables
 expanded.data <- expanded.data[, c("year", "month", "fips_state", "state_tax")]
-sales.data <- sales.data[, c("store_code_uc", "product_module_code", "year", "month", "sales", "fips_state", "fips_county")]
+sales.data <- sales.data[, c("store_code_uc", "product_module_code", "year", "month", "sales", "nweeks", "fips_state", "fips_county")]
 taxability.data <- taxability.data[, c("year", "month", "fips_state", "product_module_code", "taxability", "reduced_rate")]
 tax.data <- tax.data[, c("year", "month", "fips_state", "fips_county", "sales_tax", "state_tax")]
 
@@ -85,16 +85,20 @@ sales.data.old[, sales_tax := ifelse(taxability == 0, 1, sales_tax)]
 sales.data.old[, sales_tax := ifelse(taxability == 2, NA, sales_tax)]
 sales.data.old[, sales_tax := ifelse(is.na(reduced_rate) == F, reduced_rate, sales_tax)]
 
+## Create sales weights
+sales.data[, sales := sales*nweeks]
+sales.data[, quarter := ceiling(month/3)]
+sales.data.old[, sales := sales*nweeks]
+sales.data.old[, quarter := ceiling(month/3)]
 
-sales.data <- sales.data[, c("store_code_uc", "product_module_code", "year", "month", "sales_tax", "taxability")]
-sales.data.old <- sales.data.old[, c("store_code_uc", "product_module_code", "year", "month", "sales_tax", "taxability")]
-fwrite(sales.data, monthly_output_path)
-fwrite(sales.data.old, monthly_output_path_old)
-rm(monthly_output_path, monthly_output_path_old)
+
+sales.data.t <- sales.data[, c("store_code_uc", "product_module_code", "year", "month", "sales_tax", "taxability")]
+sales.data.old.t <- sales.data.old[, c("store_code_uc", "product_module_code", "year", "month", "sales_tax", "taxability")]
+fwrite(sales.data.t, monthly_output_path)
+fwrite(sales.data.old.t, monthly_output_path_old)
+rm(sales.data.t, sales.data.old.t, monthly_output_path, monthly_output_path_old)
 
 ## Collapse to Quarterly data
-sales.data[, quarter := ceiling(month/3)]
-sales.data.old[, quarter := ceiling(month/3)]
 sales.data[, taxability := ifelse(taxability == 2, NA, taxability)]
 sales.data <- sales.data[, list(sales_tax = mean(sales_tax), sales_tax_wtd = weighted.mean(sales_tax, w = sales), taxability = mode(taxability)), by = .(store_code_uc, product_module_code, year, quarter)]
 
