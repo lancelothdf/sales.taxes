@@ -68,17 +68,17 @@ head(expanded.data)
 
 all.tax <- rbind(tax.data, expanded.data, fill = T)
 head(all.tax[year < 2008])
-all.tax <- all.tax[year < 2008, 
-                   sales_tax := sales_tax[year == 2008 & month == 1] - 
-                     state_tax[year == 2008 & month == 1] + state_tax,
-                   by = c("fips_state", "fips_county")]
+all.tax[year < 2008, 
+         sales_tax := sales_tax[year == 2008 & month == 1] - 
+           state_tax[year == 2008 & month == 1] + state_tax,
+         by = c("fips_state", "fips_county")]
 head(all.tax[year < 2008])
 
 head(all.tax[year > 2014])
-all.tax <- all.tax[year > 2014, 
-                   sales_tax := sales_tax[year == 2014 & month == 12] - 
-                     state_tax[year == 2014 & month == 12] + state_tax,
-                   by = c("fips_state", "fips_county")]
+all.tax[year > 2014, 
+         sales_tax := sales_tax[year == 2014 & month == 12] - 
+           state_tax[year == 2014 & month == 12] + state_tax,
+         by = c("fips_state", "fips_county")]
 head(all.tax[year > 2014])
 
 
