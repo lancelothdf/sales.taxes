@@ -52,8 +52,11 @@ sales.data.old <- copy(sales.data)
 
 skel <- tax.data[year == 2008 & month == 1]
 skel <- skel[, c("fips_state", "fips_county")]
+head(skel)
+print(nrows(skel))
+
 # Acommodate to skeleton
-expanded.data <- merge(expanded.data, skel, by = "fips_state") # must be in both data sets
+expanded.data <- merge(skel, expanded.data, by = "fips_state") # must be in both data sets
 rm(skel)
 head(expanded.data)
 
