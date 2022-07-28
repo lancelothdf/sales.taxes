@@ -64,10 +64,6 @@ all.tax <- all.tax[year > 2014,
 sales.data <- merge(sales.data, taxability.data, by = c("fips_state", "product_module_code", "year", "month"), all.x = T)
 sales.data <- merge(sales.data, all.tax, by = c("fips_state", "fips_county", "year", "month"))
 
-## Create sales weights
-sales.data[, sales := sales*nweeks]
-sales.data[, quarter := ceiling(month/3)]
-
 ## Create tax rates
 sales.data[, sales_tax := 1 + sales_tax]
 sales.data[, reduced_rate := 1 + reduced_rate]
@@ -80,11 +76,6 @@ sales.data[, sales_tax := ifelse(is.na(reduced_rate) == F, reduced_rate, sales_t
 # old version
 sales.data.old <- merge(sales.data.old, taxability.data, by = c("fips_state", "product_module_code", "year", "month"), all.x = T)
 sales.data.old <- merge(sales.data.old, tax.data, by = c("fips_state", "fips_county", "year", "month"))
-
-
-## Create sales weights
-sales.data.old[, sales := sales*nweeks]
-sales.data.old[, quarter := ceiling(month/3)]
 
 
 ## Create tax rates
@@ -102,6 +93,8 @@ fwrite(sales.data.old, monthly_output_path_old)
 rm(monthly_output_path, monthly_output_path_old)
 
 ## Collapse to Quarterly data
+sales.data[, quarter := ceiling(month/3)]
+sales.data.old[, quarter := ceiling(month/3)]
 sales.data[, taxability := ifelse(taxability == 2, NA, taxability)]
 sales.data <- sales.data[, list(sales_tax = mean(sales_tax), sales_tax_wtd = weighted.mean(sales_tax, w = sales), taxability = mode(taxability)), by = .(store_code_uc, product_module_code, year, quarter)]
 
