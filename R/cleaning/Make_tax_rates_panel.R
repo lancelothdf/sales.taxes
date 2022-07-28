@@ -55,7 +55,7 @@ for (y in c(2006,2007,2015,2016)) {
   for (m in 1:12) {
     skel[, year := y]
     skel[, month := m]
-    county_skeleton <- rbind(county_skeleton, all_counties)
+    skel <- rbind(county_skeleton, all_counties)
   }
 }
 head(skel)
