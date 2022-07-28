@@ -66,12 +66,8 @@ print(nrow(skel))
 
 # Acommodate to skeleton
 expanded.data.pre <- merge(skel, expanded.data, by = c("fips_state", "year", "month")) # must be in both data sets
-rm(skel)
-head(expanded.data.pre)
-
-head(expanded.data.pre[year < 2008])
 expanded.data.pre[year < 2008, sales_tax := sales_tax - state_tax2008 + state_tax]
-head(expanded.data.pre[year < 2008])
+rm(skel)
 
 # 2015/16
 # Create skeleton for missing years
@@ -91,18 +87,14 @@ print(nrow(skel))
 
 # Acommodate to skeleton
 expanded.data.post <- merge(skel, expanded.data, by = c("fips_state", "year", "month")) # must be in both data sets
-rm(skel)
-head(expanded.data.post)
-
-head(expanded.data.post[year > 2014])
 expanded.data.post[year > 2014, sales_tax := sales_tax - state_tax2014 + state_tax]
-head(expanded.data.post[year > 2014])
+rm(skel)
 
 expanded.data.pre <- expanded.data.pre[, c("year", "month", "fips_state", "fips_county", "sales_tax", "state_tax")]
 expanded.data.post <- expanded.data.post[, c("year", "month", "fips_state", "fips_county", "sales_tax", "state_tax")]
 
 all.tax <- rbind(tax.data, expanded.data.pre, expanded.data.post, fill = T)
-rm(expanded.data, expanded.data.post, expanded.data)
+rm(expanded.data, expanded.data.post, expanded.data.pre)
 
 ### Merge Datasets
 sales.data <- merge(sales.data, taxability.data, by = c("fips_state", "product_module_code", "year", "month"), all.x = T)
@@ -140,6 +132,7 @@ head(sales.data.old)
 print(nrow(sales.data[!is.na(sales_tax)]))
 print(nrow(sales.data.old[!is.na(sales_tax)]))
 
+### Save CSVs of monthly data
 sales.data.t <- copy(sales.data)
 sales.data.old.t <- copy(sales.data.old)
 
@@ -150,18 +143,12 @@ fwrite(sales.data.old.t, monthly_output_path_old)
 rm(sales.data.t, sales.data.old.t, monthly_output_path, monthly_output_path_old)
 
 
-# Create mode function
-getmode <- function(v) {
-  uniqv <- unique(v)
-  uniqv[which.max(tabulate(match(v, uniqv)))]
-}
-
 ## Collapse to Quarterly data
-sales.data <- sales.data[, list(sales_tax = mean(sales_tax), sales_tax_wtd = weighted.mean(sales_tax, w = sales), taxability = getmode(taxability)), by = .(store_code_uc, product_module_code, year, quarter)]
+sales.data <- sales.data[, list(sales_tax = mean(sales_tax), sales_tax_wtd = weighted.mean(sales_tax, w = sales), taxability = mode(taxability)), by = .(store_code_uc, product_module_code, year, quarter)]
 sales.data[, taxability := ifelse(taxability == 2, NA, taxability)]
 
 
-sales.data.old <- sales.data.old[, list(sales_tax = mean(sales_tax), sales_tax_wtd = weighted.mean(sales_tax, w = sales), taxability = getmode(taxability)), by = .(store_code_uc, product_module_code, year, quarter)]
+sales.data.old <- sales.data.old[, list(sales_tax = mean(sales_tax), sales_tax_wtd = weighted.mean(sales_tax, w = sales), taxability = mode(taxability)), by = .(store_code_uc, product_module_code, year, quarter)]
 sales.data.old[, taxability := ifelse(taxability == 2, NA, taxability)]
 
 head(sales.data)
@@ -172,11 +159,4 @@ print(nrow(sales.data.old[!is.na(sales_tax)]))
 ### Save CSVs
 fwrite(sales.data, quarterly_output_path)
 fwrite(sales.data.old, quarterly_output_path_old)
-rm(quarterly_output_path)
 
-
-
-
-### Save CSVs
-fwrite(sales.data, quarterly_output_path)
-rm(quarterly_output_path)
