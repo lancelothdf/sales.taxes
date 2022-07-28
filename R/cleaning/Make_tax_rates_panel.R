@@ -102,7 +102,7 @@ rm(sales.data.t, sales.data.old.t, monthly_output_path, monthly_output_path_old)
 sales.data[, taxability := ifelse(taxability == 2, NA, taxability)]
 sales.data <- sales.data[, list(sales_tax = mean(sales_tax), sales_tax_wtd = weighted.mean(sales_tax, w = sales), taxability = mode(taxability)), by = .(store_code_uc, product_module_code, year, quarter)]
 
-sales.data.old <- sales.data.old[, list(sales_tax = mean(sales_tax), sales_tax_wtd = weighted.mean(sales_tax, w = sales), taxability = getmode(taxability)), by = .(store_code_uc, product_module_code, year, quarter)]
+sales.data.old <- sales.data.old[, list(sales_tax = mean(sales_tax), sales_tax_wtd = weighted.mean(sales_tax, w = sales), taxability = mode(taxability)), by = .(store_code_uc, product_module_code, year, quarter)]
 sales.data.old[, taxability := ifelse(taxability == 2, NA, taxability)]
 
 
