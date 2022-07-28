@@ -50,7 +50,8 @@ sales.data.old <- copy(sales.data)
 
 # Create skeleton for missing years
 
-skel <- tax.data[year == 2008 & month == 1, c("fips_state", "fips_county"), with = F]
+skel <- tax.data[year == 2008 & month == 1]
+skel <- skel[, c("fips_state", "fips_county")]
 # Acommodate to skeleton
 expanded.data <- merge(expanded.data, skel, by = "fips_state") # must be in both data sets
 rm(skel)
