@@ -17,6 +17,7 @@ setwd("/project2/igaarder")
 ## useful filepaths ------------------------------------------------------------
 sales_data_path <- "Data/sales_quarterly_2006-2016.csv"
 quarterly_tax_path <- "Data/quarterly_tax_rates.csv"
+quarterly_tax_path_old <- "Data/quarterly_tax_rates_older.csv"
 all_goods_pi_path <- "Data/all_nielsen_data_2006_2016_quarterly.csv"
 all_goods_pi_path_old <- "Data/all_nielsen_data_2006_2016_quarterly_old.csv"
 FE_pindex_path <- "Data/Nielsen/Pindex_FE_yearly_all_years.csv"
