@@ -220,6 +220,13 @@ pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sa
 all_pi_cs <- all_pi_cs[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 all_pi_cs <- all_pi_cs[, c("year", "semester", "fips_state", "fips_county", "product_module_code", "store_code_uc")]
 
+# Define samples
+all_pi_cs[, all := 1]
+all_pi_cs[(year > 2007 & year < 2015) 
+          & !(year ==2008 & semester == 1) 
+          & !(year ==2014 & semester == 2) 
+          , non_imp_tax := 1]
+
 ##### Merges
 
 # Merge econ data to price and quantity data then run estimations
