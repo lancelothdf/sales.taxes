@@ -16,8 +16,8 @@ setwd("/project2/igaarder")
 rm(list = ls())
 
 ## input filepaths -----------------------------------------------
-#data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
-data.semester <- "Data/Nielsen/semester_nielsen_data_old.csv"
+data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
+#data.semester <- "Data/Nielsen/semester_nielsen_data_old.csv"
 data.taxability <- "Data/taxability_state_panel.csv"
 zillow_path <- "Data/covariates/zillow_long_by_county_clean.csv"
 zillow_state_path <- "Data/covariates/zillow_long_by_state_clean.csv"
@@ -269,6 +269,7 @@ for (Td in LLs) {
   all_pi_spill_econ[, (statu) := ifelse(taxability == 1, get(actual), get(statu))]
   
 }
+warnings()
 
 # Keeping common support
 # Spillovers
@@ -280,10 +281,10 @@ all_pi_econ <- merge(all_pi_econ, all_pi_cs, by = c("year", "semester", "fips_st
 all_pi <- merge(all_pi, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"))
 
 # Save Datasets
-fwrite(all_pi, "Data/Replication/all_pi.csv")
-fwrite(all_pi_spill, "Data/Replication/all_pi_spill.csv")
-fwrite(all_pi_spill_econ, "Data/Replication/all_pi_spill_econ.csv")
-fwrite(all_pi_econ, "Data/Replication/all_pi_econ.csv")
-fwrite(purchases.sample, "Data/Replication/purchases.sample.csv")
+fwrite(all_pi, "Data/Replication/all_pi.csv", showProgress = T)
+fwrite(all_pi_spill, "Data/Replication/all_pi_spill.csv", showProgress = T)
+fwrite(all_pi_spill_econ, "Data/Replication/all_pi_spill_econ.csv", showProgress = T)
+fwrite(all_pi_econ, "Data/Replication/all_pi_econ.csv", showProgress = T)
+fwrite(purchases.sample, "Data/Replication/purchases.sample.csv", showProgress = T)
 
 
