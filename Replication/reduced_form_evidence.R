@@ -181,13 +181,13 @@ for (s in samples) {
     }
   }
 
-  LRdiff_res[sample == s]$N_obs <- nrow(data.est)
-  LRdiff_res[sample == s]$N_modules <- length(unique(data.est$product_module_code))
-  LRdiff_res[sample == s]$N_stores <- length(unique(data.est$store_code_uc))
-  LRdiff_res[sample == s]$N_counties <- uniqueN(data.est, by = c("fips_state", "fips_county"))
-  LRdiff_res[sample == s]$N_years <- uniqueN(data.est, by = c("year")) # should be 6 (we lose one because we difference)
-  LRdiff_res[sample == s]$N_county_modules <- uniqueN(data.est, by = c("fips_state", "fips_county",
-                                                        "product_module_code"))
+  LRdiff_res[sample == s, N_obs := nrow(data.est)]
+  LRdiff_res[sample == s, N_modules := length(unique(data.est$product_module_code))]
+  LRdiff_res[sample == s, N_stores := length(unique(data.est$store_code_uc))]
+  LRdiff_res[sample == s, N_counties := uniqueN(data.est, by = c("fips_state", "fips_county"))]
+  LRdiff_res[sample == s, N_years := uniqueN(data.est, by = c("year"))] # should be 7 (we lose one because we difference)
+  LRdiff_res[sample == s, N_county_modules := uniqueN(data.est, by = c("fips_state", "fips_county",
+                                                        "product_module_code"))]
   fwrite(LRdiff_res, output.results.file)
 }
 
