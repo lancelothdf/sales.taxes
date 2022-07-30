@@ -155,9 +155,9 @@ for (s in samples) {
           cumul.lead1.pval <- NA
           
           #cumul.lead3.est is just equal to minus the change between -2 and -1
-          cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_sales_tax", "Estimate"]
-          cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Cluster s.e."]
-          cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_sales_tax", "Pr(>|t|)"]
+          cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_statutory_tax", "Estimate"]
+          cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_statutory_tax", "Cluster s.e."]
+          cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_statutory_tax", "Pr(>|t|)"]
           
           ##LEADS
           for(j in 3:5) {
@@ -168,7 +168,7 @@ for (s in samples) {
             cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
             
             ## Create the formula to compute cumulative estimate at each lead/lag
-            cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_sales_tax"), collapse = " - "))
+            cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_statutory_tax"), collapse = " - "))
             cumul.test.form <- paste(cumul.test.form, " = 0")
             
             ## Compute estimate and store in variables names
@@ -182,9 +182,9 @@ for (s in samples) {
           
           ##LAGS
           ## On Impact --> Effect = coefficient on D.ln_sales_tax + F1.D.ln_sales_tax
-          cumul.lag0.est <- coef(summary(res1))[ "D.ln_sales_tax", "Estimate"]
-          cumul.lag0.se <- coef(summary(res1))[ "D.ln_sales_tax", "Cluster s.e."]
-          cumul.lag0.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
+          cumul.lag0.est <- coef(summary(res1))[ "D.ln_statutory_tax", "Estimate"]
+          cumul.lag0.se <- coef(summary(res1))[ "D.ln_statutory_tax", "Cluster s.e."]
+          cumul.lag0.pval <- coef(summary(res1))[ "D.ln_statutory_tax", "Pr(>|t|)"]
           
           
           for(j in 1:4) {
@@ -195,7 +195,7 @@ for (s in samples) {
             cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
             
             ## Create the formula to compute cumulative estimate at each lead/lag
-            cumul.test.form <- paste("D.ln_sales_tax + ", paste(paste0("L", 1:j, ".D.ln_sales_tax"), collapse = " + "), sep = "")
+            cumul.test.form <- paste("D.ln_statutory_tax + ", paste(paste0("L", 1:j, ".D.ln_statutory_tax"), collapse = " + "), sep = "")
             cumul.test.form <- paste(cumul.test.form, " = 0")
             
             ## Compute estimate and store in variables names
