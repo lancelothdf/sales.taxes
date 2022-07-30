@@ -1,6 +1,6 @@
-##### Wesley Janson
+##### Wesley Janson and Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 5/21/2022
+#' Replication File. Updated on 7/30/2022
 #' Cleaning portion of replication
 
 library(data.table)

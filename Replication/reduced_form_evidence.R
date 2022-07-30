@@ -1,6 +1,6 @@
-##### Wesley Janson
+##### Wesley Janson and Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 5/21/2022
+#' Replication File. Updated on 7/30/2022
 #' Step 1: Reduced Form Evidence portion of replication
 
 library(data.table)
@@ -50,10 +50,10 @@ for (s in samples) {
       formula1 <- as.formula(paste0(
         Y, "~", formula_RHS, "| ", FE, " | 0 | module_by_state"
       ))
-      flog.info("Estimating with %s as outcome with %s FE.", Y, FE)
+      flog.info("Estimating with %s as outcome with %s FE in sample %s.", Y, FE, s)
       res1 <- felm(formula = formula1, data = data.est,
                    weights = data.est$base.sales)
-      flog.info("Finished estimating with %s as outcome with %s FE.", Y, FE)
+      flog.info("Finished estimating with %s as outcome with %s FE in sample %s.", Y, FE, s)
       
       
       ## attach results
