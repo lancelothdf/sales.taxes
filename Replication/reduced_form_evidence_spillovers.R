@@ -52,6 +52,13 @@ for (s in samples) {
   for (sam in subsamples) {
     all_pi_spill[, sample := get(sam)]
     all_pi_spill_econ[, sample := get(sam)]
+    sample <- all_pi_spill_econ[sample == 1 & get(s) == 1]
+    
+    # Print basic stats of sample as double check
+    print(nrow(sample))
+    print(nrow(sample[!is.na(D.ln_statutory_tax) & is.finite(D.ln_statutory_tax) ]))
+    print(mean(sample[is.finite(D.ln_statutory_tax)]$D.ln_statutory_tax, na.rm = T))
+    
     for (Y in c(outcomes)) {
       for (FE in FE_opts) {
         
@@ -59,7 +66,6 @@ for (s in samples) {
           
           if (i>0) {
             
-            sample <- all_pi_spill_econ[sample == 1 & get(s) == 1]
             # Create list of economic controls  
             lag.home <- paste(paste0("L", i:1, ".D.ln_home_price"), collapse = " + ")
             lag.unemp <- paste(paste0("L", i:1, ".D.ln_unemp"), collapse = " + ")
@@ -69,7 +75,7 @@ for (s in samples) {
             formula1 <- as.formula(paste0(
               Y, "~", formula_RHS, " + ", lag.econ, "| ", FE, " | 0 | module_by_state"
             ))
-            flog.info("Estimating with %s as outcome with %s FE in samples %s and %s.", Y, FE, s, sam)
+            flog.info("Estimating with %s as outcome with %s FE in samples %s and %s. Econ control %s", Y, FE, s, sam, i)
             res1 <- felm(formula = formula1, data = sample,
                          weights = sample$base.sales)
             flog.info("Finished estimating with %s as outcome with %s FE in samples %s and %s.", Y, FE, s, sam)
@@ -78,7 +84,6 @@ for (s in samples) {
             
           } else {
             
-            sample <- all_pi_spill[sample == 1 & get(s) == 1]
             formula1 <- as.formula(paste0(
               Y, "~", formula_RHS, "| ", FE, " | 0 | module_by_state"
             ))
