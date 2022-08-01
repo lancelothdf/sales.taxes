@@ -37,6 +37,11 @@ outcomes <- c("D.ln_cpricei2", "D.ln_quantity3")
 subsamples <- c("all_taxable", "all_taxexempt")
 samples <- c("all", "non_imp_tax")
 
+head(all_pi_spill)
+head(all_pi_spill[all_taxable])
+head(all_pi_spill[all_taxexempt])
+head(all_pi_spill[all_taxable & non_imp_tax])
+head(all_pi_spill[all_taxexempt & non_imp_tax])
 
 ## for linear hypothesis tests
 lead.vars <- paste(paste0("F", 4:1, ".D.ln_statutory_tax"), collapse = " + ")
