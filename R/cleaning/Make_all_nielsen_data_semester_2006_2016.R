@@ -115,6 +115,10 @@ all_pi_old[, sales_tax := ifelse(year < 2008, sales_tax[year == 2008 & quarter =
        by = .(store_code_uc, product_module_code)]
 all_pi_old[, sales_tax := ifelse(year > 2014, sales_tax[year == 2014 & quarter == 4], sales_tax),
        by = .(store_code_uc, product_module_code)]
+all_pi_old[, sales_tax2 := ifelse(year < 2008, sales_tax2[year == 2008 & quarter == 1], sales_tax2),
+           by = .(store_code_uc, product_module_code)]
+all_pi_old[, sales_tax2 := ifelse(year > 2014, sales_tax2[year == 2014 & quarter == 4], sales_tax2),
+           by = .(store_code_uc, product_module_code)]
 
 # create necessary variables
 all_pi[, ln_cpricei := log(cpricei)]

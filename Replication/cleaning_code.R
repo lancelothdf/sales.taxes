@@ -227,16 +227,12 @@ all_pi_cs[(year > 2007 & year < 2015)
           & !(year ==2014 & semester == 2) 
           , non_imp_tax := 1]
 
-##### Merges
 
-# Merge econ data to price and quantity data then run estimations
-all_pi_econ <- merge(all_pi, zillow_dt, by = c("fips_state", "fips_county", "year", "semester"))
+
+#### Spillovers data: identify statutory' tax rate
 
 # Merge to create data set for spillovers
-all_pi_spill_econ <- merge(all_pi_econ, taxability, by = c("year", "semester", "fips_state", "product_module_code"), all.x = T)
 all_pi_spill <- merge(all_pi, taxability, by = c("year", "semester", "fips_state", "product_module_code"), all.x = T)
-
-##### Additional set up and CS restrictions
 
 # Identify always taxable and always tax-exempt
 all_pi_spill[, tax_exempt := taxability == 0]
@@ -247,36 +243,76 @@ all_pi_spill[, T_total := .N, by = .(store_by_module)]
 all_pi_spill[, all_taxable:= ifelse(T_taxable == T_total,1,0)]
 all_pi_spill[, all_taxexempt:= ifelse(T_tax_exempt == T_total,1,0)]
 
-all_pi_spill_econ[, tax_exempt := taxability == 0]
-all_pi_spill_econ[, taxable := taxability == 1]
-all_pi_spill_econ[, T_tax_exempt := sum(tax_exempt), by = .(store_by_module)]
-all_pi_spill_econ[, T_taxable := sum(taxable), by = .(store_by_module)]
-all_pi_spill_econ[, T_total := .N, by = .(store_by_module)]
-all_pi_spill_econ[, all_taxable:= ifelse(T_taxable == T_total,1,0)]
-all_pi_spill_econ[, all_taxexempt:= ifelse(T_tax_exempt == T_total,1,0)]
-
 # Identify statutory tax rate
 all_pi_spill[, ln_statutory_tax := max(ln_sales_tax, na.rm = T), by = .(fips_state, fips_county, year, semester)]
 all_pi_spill[, ln_statutory_tax := ifelse(taxability == 1, ln_sales_tax, ln_statutory_tax)]
 
-all_pi_spill_econ[, ln_statutory_tax := max(ln_sales_tax, na.rm = T), by = .(fips_state, fips_county, year, semester)]
-all_pi_spill_econ[, ln_statutory_tax := ifelse(taxability == 1, ln_sales_tax, ln_statutory_tax)]
+# Make sure this step worked correctly
+print("No controls check.")
+print(paste0("Total rows: ", nrow(all_pi_spill)))
+print(paste0("Total nonmissing rows: ", 
+             nrow(all_pi_spill[!is.na(ln_sales_tax) & is.finite(ln_sales_tax)])))
+print(paste0("Total nonmissing rows statutory: ", 
+             nrow(all_pi_spill[!is.na(ln_statutory_tax) & is.finite(ln_statutory_tax)])))
+print(paste0("Total nonmissing rows statutory taxable: ", 
+             nrow(all_pi_spill[taxability == 1 & !is.na(ln_statutory_tax) & is.finite(ln_statutory_tax)])))
+print(paste0("Total nonmissing rows statutory non-taxable: ", 
+             nrow(all_pi_spill[taxability != 1 & !is.na(ln_statutory_tax) & is.finite(ln_statutory_tax)])))
 
-# Create statutory leads and lags
-LLs <- c(paste0("L", 1:4, ".D"), paste0("F", 1:4, ".D"), "D")
-for (Td in LLs) {
-  
-  actual <- paste0(Td, ".ln_sales_tax")
-  statu <- paste0(Td, ".ln_statutory_tax")
-  
-  all_pi_spill[, (statu) := max(get(actual), na.rm = T), by = .(fips_state, fips_county, year, semester)]
-  all_pi_spill[, (statu) := ifelse(taxability == 1, get(actual), get(statu))]
-  
-  all_pi_spill_econ[, (statu) := max(get(actual), na.rm = T), by = .(fips_state, fips_county, year, semester)]
-  all_pi_spill_econ[, (statu) := ifelse(taxability == 1, get(actual), get(statu))]
-  
+print(paste0("mean log sales tax taxable: ", mean(all_pi_spill[taxability ==1]$ln_sales_tax, na.rm = T)))
+print(paste0("mean log statu tax taxable: ", mean(all_pi_spill[taxability ==1]$ln_statutory_tax, na.rm = T)))
+
+print(paste0("mean log sales tax non-taxable: ", mean(all_pi_spill[taxability !=1]$ln_sales_tax, na.rm = T)))
+print(paste0("mean log statu tax non-taxable: ", mean(all_pi_spill[taxability !=1]$ln_statutory_tax, na.rm = T)))
+
+
+# Create statutory leads and lags (new way)
+all_pi_spill[, cal_time := 2 * year + semester]
+all_pi_spill <- all_pi_spill[order(store_code_uc, product_module_code, cal_time),] ##Sort on store by year-quarter (in ascending order)
+
+# new version
+all_pi_spill[, D.ln_statutory_tax := ln_statutory_tax - shift(ln_statutory_tax, n=1, type="lag"),
+             by = .(store_code_uc, product_module_code)]
+for (lag.val in 1:4) {
+  lag.X <- paste0("L", lag.val, "D.ln_statutory_tax")
+  all_pi_spill[, (lag.X) := shift(D.ln_statutory_tax, n=lag.val, type="lag"),
+         by = .(store_code_uc, product_module_code)]
+
+    
+  lead.X <- paste0("F", lag.val, "D.ln_statutory_tax")
+  all_pi_spill[, (lead.X) := shift(D.ln_statutory_tax, n=lag.val, type="lead"),
+         by = .(store_code_uc, product_module_code)]
+
 }
-warnings()
+
+
+# # Create statutory leads and lags (old way)
+# LLs <- c(paste0("L", 1:4, ".D"), paste0("F", 1:4, ".D"), "D")
+# for (Td in LLs) {
+#   
+#   actual <- paste0(Td, ".ln_sales_tax")
+#   statu <- paste0(Td, ".ln_statutory_tax")
+#   
+#   all_pi_spill[, (statu) := max(get(actual), na.rm = T), by = .(fips_state, fips_county, year, semester)]
+#   all_pi_spill[, (statu) := ifelse(taxability == 1, get(actual), get(statu))]
+#   
+#   
+# }
+# warnings()
+
+
+##### Merges
+
+# Merge econ data to price and quantity data 
+all_pi_econ <- merge(all_pi, zillow_dt, by = c("fips_state", "fips_county", "year", "semester"))
+
+# Merge econ data to price and quantity data and spillovers data
+all_pi_spill_econ <- merge(all_pi_spill, zillow_dt, by = c("year", "semester", "fips_state", "fips_county"))
+
+
+
+
+##### Additional set up and CS restrictions
 
 # Keeping common support
 # Spillovers
