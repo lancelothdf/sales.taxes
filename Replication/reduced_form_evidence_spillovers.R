@@ -28,8 +28,8 @@ results.file.spillovers <- "Data/Replication/LRdiff_semesterly_spillovers.csv"
 
 
 ### 3. Reduced Form Evidence spillovers -----------------
-formula_lags <- paste0("L", 1:4, ".D.ln_statutory_tax", collapse = "+")
-formula_leads <- paste0("F", 1:4, ".D.ln_statutory_tax", collapse = "+")
+formula_lags <- paste0("L", 1:4, "D.ln_statutory_tax", collapse = "+")
+formula_leads <- paste0("F", 1:4, "D.ln_statutory_tax", collapse = "+")
 formula_RHS <- paste0("D.ln_statutory_tax + ", formula_lags, "+", formula_leads)
 
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
@@ -37,15 +37,9 @@ outcomes <- c("D.ln_cpricei2", "D.ln_quantity3")
 subsamples <- c("all_taxable", "all_taxexempt")
 samples <- c("all", "non_imp_tax")
 
-head(all_pi_spill)
-head(all_pi_spill[all_taxable ==1 & year == 2009])
-head(all_pi_spill[all_taxexempt ==1 & year == 2009])
-head(all_pi_spill[all_taxable ==1 & year == 2009 & non_imp_tax ==1])
-head(all_pi_spill[all_taxexempt ==1 & year == 2009 & non_imp_tax==1])
-
 ## for linear hypothesis tests
-lead.vars <- paste(paste0("F", 4:1, ".D.ln_statutory_tax"), collapse = " + ")
-lag.vars <- paste(paste0("L", 4:1, ".D.ln_statutory_tax"), collapse = " + ")
+lead.vars <- paste(paste0("F", 4:1, "D.ln_statutory_tax"), collapse = " + ")
+lag.vars <- paste(paste0("L", 4:1, "D.ln_statutory_tax"), collapse = " + ")
 lead.lp.restr <- paste(lead.vars, "= 0")
 lag.lp.restr <- paste(lag.vars, "+ D.ln_statutory_tax = 0")
 total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_statutory_tax = 0")
@@ -165,9 +159,9 @@ for (s in samples) {
           cumul.lead1.pval <- NA
           
           #cumul.lead3.est is just equal to minus the change between -2 and -1
-          cumul.lead2.est <- - coef(summary(res1))[ "F1.D.ln_statutory_tax", "Estimate"]
-          cumul.lead2.se <- coef(summary(res1))[ "F1.D.ln_statutory_tax", "Cluster s.e."]
-          cumul.lead2.pval <- coef(summary(res1))[ "F1.D.ln_statutory_tax", "Pr(>|t|)"]
+          cumul.lead2.est <- - coef(summary(res1))[ "F1D.ln_statutory_tax", "Estimate"]
+          cumul.lead2.se <- coef(summary(res1))[ "F1D.ln_statutory_tax", "Cluster s.e."]
+          cumul.lead2.pval <- coef(summary(res1))[ "F1D.ln_statutory_tax", "Pr(>|t|)"]
           
           ##LEADS
           for(j in 3:5) {
@@ -178,7 +172,7 @@ for (s in samples) {
             cumul.test.pval.name <- paste("cumul.lead", j, ".pval", sep = "")
             
             ## Create the formula to compute cumulative estimate at each lead/lag
-            cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, ".D.ln_statutory_tax"), collapse = " - "))
+            cumul.test.form <- paste0("-", paste(paste0("F", (j-1):1, "D.ln_statutory_tax"), collapse = " - "))
             cumul.test.form <- paste(cumul.test.form, " = 0")
             
             ## Compute estimate and store in variables names
@@ -205,7 +199,7 @@ for (s in samples) {
             cumul.test.pval.name <- paste("cumul.lag", j, ".pval", sep = "")
             
             ## Create the formula to compute cumulative estimate at each lead/lag
-            cumul.test.form <- paste("D.ln_statutory_tax + ", paste(paste0("L", 1:j, ".D.ln_statutory_tax"), collapse = " + "), sep = "")
+            cumul.test.form <- paste("D.ln_statutory_tax + ", paste(paste0("L", 1:j, "D.ln_statutory_tax"), collapse = " + "), sep = "")
             cumul.test.form <- paste(cumul.test.form, " = 0")
             
             ## Compute estimate and store in variables names
