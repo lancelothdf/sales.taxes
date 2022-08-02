@@ -49,6 +49,12 @@ purchases.sample <- fread(data.hh)
 
 #### Prepare Household Panel -----------------------
 
+# Drop "magnet" households: 
+purchases.sample <- purchases.sample[!is.na(projection_factor)]
+
+# Drop households without sales tax data
+purchases.sample <- purchases.sample[!is.na(ln_sales_tax)]
+
 
 ### Drop observations for which the sales tax rate is imputed
 purchases.sample <- purchases.sample[year >= 2008 & year <= 2014]
@@ -68,9 +74,6 @@ purchases.sample <- purchases.sample[!is.na(projection_factor)]
 purchases.sample[, income_by_group_by_time := .GRP, by = .(household_income, product_group_code, year)]
 purchases.sample[, group_by_time := .GRP, by = .(product_group_code, year)]
 purchases.sample[, household_by_time := .GRP, by = .(year, household_code)]
-
-cohort.weights <- rep(1, 7) ##Construct weights to average across cohorts/years.  Start with equal weights
-cohort.weights <- cohort.weights/sum(cohort.weights)
 
 
 #### Prepare the unemployment, house price data and quarterly wage data --------------------------
