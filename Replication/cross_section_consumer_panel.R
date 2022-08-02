@@ -27,6 +27,9 @@ output.results.file <- "Data/Replication/LRdiff_cross_sectional_design_hh.csv"
 
 
 ### 4B. Cross-Sectional Estimates from Consumer Panel ------------------
+
+purchases.sample$year <- factor(purchases.sample$year) ##Convert the indicator for year to a factor variable (needed for interaction in the regression between ln_sales_tax and dummy for year)
+
 ##Construct weights to average across cohorts/years.  Equal weights
 cohort.weights <- rep(1, 7) 
 cohort.weights <- cohort.weights/sum(cohort.weights)
