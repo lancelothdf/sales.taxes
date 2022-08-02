@@ -51,7 +51,7 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 
 
-
+LRdiff_res <- data.table(NULL)
 for (FE in FE_opts) {
   
   ## Capture cohort ids
@@ -61,7 +61,7 @@ for (FE in FE_opts) {
   ## Capture cohort weights
   all_pi_co <- all_pi[, .(base.sales = sum(base.sales)), by = c(FE)]
   all_pi_co[, base.sales := base.sales/sum(base.sales)]
-  setorder(all_pi_co, FE)
+  setorder(all_pi_co, cols = c(FE))
   cohort.weights <- all_pi_co$base.sales
   
   ## Capture formula for linear test: weighted sum
@@ -86,7 +86,7 @@ for (FE in FE_opts) {
     res1.dt[, FEd := FE]
     res1.dt[, Rsq := summary(res1)$r.squared]
     res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-    LRdiff_res <- res1.dt ### Create table LRdiff_res in which we store all results (we start with the results we had just stored in res1.dt)
+    LRdiff_res <- rbind(LRdiff_res,res1.dt) ### Create table LRdiff_res in which we store all results (we start with the results we had just stored in res1.dt)
     fwrite(LRdiff_res, output.results.file.fs)  ## Write results to a csv file 
     
     
