@@ -54,8 +54,8 @@ cohort.weights <- cohort.weights/sum(cohort.weights)
 
 
 # outcomes of interest
-outcomes <- c("ln_cpricei2", "ln_quantity3")
-
+outcomes <- c("ln_cpricei2", "ln_sales", "ln_quantity3")
+LRdiff_res <- data.table(NULL)
 for (Y in outcomes) {
   
   # Formula
@@ -75,7 +75,7 @@ for (Y in outcomes) {
   res1.dt[, outcome := Y]
   res1.dt[, Rsq := summary(res0)$r.squared]
   res1.dt[, adj.Rsq := summary(res0)$adj.r.squared]
-  LRdiff_res <- res1.dt ### Create table LRdiff_res in which we store all results (we start with the results we had just stored in res1.dt)
+  LRdiff_res <- rbind(LRdiff_res, res1.dt) ### Create table LRdiff_res in which we store all results (we start with the results we had just stored in res1.dt)
   fwrite(LRdiff_res, output.results.file.crossec)  ## Write results to a csv file 
   
   
