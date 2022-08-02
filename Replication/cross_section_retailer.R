@@ -39,6 +39,7 @@ yearly_data <- all_pi[, list(ln_cpricei2 = log(mean(exp(ln_cpricei2))),
 rm(all_pi)
 
 yearly_data[, store_by_time := .GRP, by = .(store_code_uc, year)]
+yearly_data[, ln_sales := log(sales)]
 
 
 # Restrict to relevant tax data span
