@@ -1,6 +1,6 @@
-##### Wesley Janson
+##### Wesley Janson and Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 5/21/2022
+#' Replication File. Updated on 8/2/2022
 #' Step 4A: Cross-sectional estimates using retailer data portion of replication
 
 library(data.table)
@@ -35,9 +35,12 @@ yearly_data <- all_pi[, list(ln_cpricei2 = log(mean(exp(ln_cpricei2))),
                              base.sales = sum(base.sales), 
                              sales = sum(sales), 
                              ln_sales_tax = log(weighted.mean(exp(ln_sales_tax), w = sales))), 
-                      by = .(store_code_uc, product_module_code, product_group_code, fips_state, 
-                             fips_county, year, state_by_module, module_by_time, store_by_time)]
+                      by = .(store_code_uc, product_module_code,  fips_state, 
+                             fips_county, year, module_by_state, module_by_time)]
 rm(all_pi)
+
+yearly_data[, store_by_time := .GRP, by = .(store_code_uc, year)]
+
 
 # Restrict to relevant tax data span
 yearly_data <- yearly_data[year >= 2008 & year <= 2014]
@@ -58,7 +61,7 @@ for (Y in outcomes) {
   
   # Formula
   formula0 <- as.formula(paste0(
-    Y, " ~ ln_sales_tax:year | module_by_time + store_by_time | 0 | state_by_module "
+    Y, " ~ ln_sales_tax:year | module_by_time + store_by_time | 0 | module_by_state "
   ))
   
   # Regression
