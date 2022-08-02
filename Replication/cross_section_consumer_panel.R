@@ -1,6 +1,6 @@
-##### Wesley Janson
+##### Wesley Janson and Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 5/21/2022
+#' Replication File. Updated on 8/2/2022
 #' Step 4B: Cross-sectional estimates using consumer panel data portion of replication
 
 library(data.table)
@@ -20,10 +20,10 @@ setwd("/project2/igaarder")
 rm(list = ls())
 
 ## input filepath ----------------------------------------------
-yearly_data <- fread("")
+purchases.sample <-  fread("Data/Replication/purchases.sample.csv")
 
 ## output filepath ----------------------------------------------
-output.results.file <- "Data/Replication/LRdiff_semesterly_main.csv"
+output.results.file <- "Data/Replication/LRdiff_cross_sectional_design_hh.csv"
 
 
 ### 4B. Cross-Sectional Estimates from Consumer Panel ------------------

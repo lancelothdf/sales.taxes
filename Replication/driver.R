@@ -14,9 +14,9 @@ source("cleaning_code.R") #DONE
 source("reduced_form_evidence.R") #DONE
 source("reduced_form_evidence_controls.R") #DONE
 source("reduced_form_evidence_spillovers.R") #DONE
-source("cross_section_retailer.R")
-source("cross_section_consumer_panel.R")
-source("twfe_pre_trends.R")
+source("cross_section_retailer.R") #DONE
+source("cross_section_consumer_panel.R") #DONE
+source("twfe_pre_trends.R") #DONE
 source("point_estimates_bootstrap.R")
 
 
