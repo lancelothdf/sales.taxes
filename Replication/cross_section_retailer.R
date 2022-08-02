@@ -30,7 +30,6 @@ output.results.file.crossec <- "Data/Replication/LRdiff_cross_sectional_design.c
 colnames(all_pi)
 ## Collapse to yearly data
 yearly_data <- all_pi[, list(ln_cpricei2 = log(mean(exp(ln_cpricei2))), 
-                             ln_quantity2 = log(mean(exp(ln_quantity2))),
                              ln_quantity3 = log(mean(exp(ln_quantity3))), 
                              base.sales = sum(base.sales), 
                              sales = sum(sales), 
@@ -55,7 +54,7 @@ cohort.weights <- cohort.weights/sum(cohort.weights)
 
 
 # outcomes of interest
-outcomes <- c("ln_cpricei2", "ln_quantity2", "ln_quantity3")
+outcomes <- c("ln_cpricei2", "ln_quantity3")
 
 for (Y in outcomes) {
   
