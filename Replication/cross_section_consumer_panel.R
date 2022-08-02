@@ -56,7 +56,11 @@ for (FE in FE_opts) {
   fwrite(LRdiff_res, output.results.file)
   
   ### Take linear combinations of coefficients and attach results (this is the coefficient of interest)
-  lc.lr0 <- paste0(cohort.weights[1], "*ln_sales_tax:year2008 + ", cohort.weights[2], "*ln_sales_tax:year2009 + ", cohort.weights[3], "*ln_sales_tax:year2010 + ", cohort.weights[4], "*ln_sales_tax:year2011 + ", cohort.weights[5], "*ln_sales_tax:year2012 + ", cohort.weights[6], "*ln_sales_tax:year2013 + ", cohort.weights[7], "*ln_sales_tax:year2014", sep = "")
+  lc.lr0 <- paste0(cohort.weights[1], "*ln_sales_tax:year2008 + ", cohort.weights[2], 
+                   "*ln_sales_tax:year2009 + ", cohort.weights[3], "*ln_sales_tax:year2010 + ", 
+                   cohort.weights[4], "*ln_sales_tax:year2011 + ", cohort.weights[5], 
+                   "*ln_sales_tax:year2012 + ", cohort.weights[6], "*ln_sales_tax:year2013 + ", 
+                   cohort.weights[7], "*ln_sales_tax:year2014", sep = "")
   lc.formula0 <- paste0(lc.lr0, " = 0", sep = "")
   lc.test0 <- glht(res1, linfct = c(lc.formula0))
   
