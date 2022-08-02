@@ -27,6 +27,9 @@ output.results.file <- "Data/Replication/LRdiff_cross_sectional_design_hh.csv"
 
 
 ### 4B. Cross-Sectional Estimates from Consumer Panel ------------------
+##Construct weights to average across cohorts/years.  Equal weights
+cohort.weights <- rep(1, 7) 
+cohort.weights <- cohort.weights/sum(cohort.weights)
 
 FE_opts <- c("income_by_group_by_time", "group_by_time")
 
