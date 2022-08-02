@@ -31,12 +31,14 @@ colnames(all_pi)
 ## Collapse to yearly data
 yearly_data <- all_pi[, list(ln_cpricei2 = log(mean(exp(ln_cpricei2))), 
                              ln_quantity3 = log(mean(exp(ln_quantity3))), 
-                             base.sales = sum(base.sales), 
                              sales = sum(sales), 
                              ln_sales_tax = log(weighted.mean(exp(ln_sales_tax), w = sales))), 
                       by = .(store_code_uc, product_module_code,  fips_state, 
                              fips_county, year, module_by_state, module_by_time)]
 rm(all_pi)
+
+yearly_data[, base.sales := sales[year == 2008],
+       by = .(store_code_uc, product_module_code)]
 
 yearly_data[, store_by_time := .GRP, by = .(store_code_uc, year)]
 yearly_data[, ln_sales := log(sales)]

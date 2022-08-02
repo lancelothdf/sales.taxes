@@ -163,11 +163,6 @@ for (lag.val in 1:4) {
   
 }
 
-
-
-cohort.weights <- rep(1, 7) ##Construct weights to average across cohorts/years.  Start with equal weights
-cohort.weights <- cohort.weights/sum(cohort.weights)
-
 ## Nielsen Retailer Data Cleaning. Semester -----------------------
 
 #### Create Variables
