@@ -61,7 +61,7 @@ for (FE in FE_opts) {
   ## Capture cohort weights
   all_pi_co <- all_pi[, .(base.sales = sum(base.sales)), by = c(FE)]
   all_pi_co[, base.sales := base.sales/sum(base.sales)]
-  setorder(all_pi_co, cols = c(FE))
+  setorder(all_pi_co, cols = get(FE))
   cohort.weights <- all_pi_co$base.sales
   
   ## Capture formula for linear test: weighted sum
