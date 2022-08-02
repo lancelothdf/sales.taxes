@@ -37,10 +37,10 @@ for (FE in FE_opts) {
   formula1 <- as.formula(paste0(
     "ln_expenditures ~ ln_sales_tax:year | household_by_time + ", FE, " | 0 | household_code"
   ))
-  flog.info("Estimating with %s as outcome", Y)
+  flog.info("Estimating with %s as FE", FE)
   res1 <- felm(formula = formula1, data = data.est,
                weights = data.est$projection_factor)
-  flog.info("Finished estimating with %s as outcome", Y)
+  flog.info("Finished estimating with %s as FE", FE)
   
   ## attach results
   flog.info("Writing results...")
