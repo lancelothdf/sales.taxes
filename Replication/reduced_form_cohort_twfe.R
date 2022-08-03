@@ -87,7 +87,6 @@ for (FE in FE_opts) {
   ## Capture formula for linear test: weighted sum
   lh.form <-  paste0(cohort.weights, paste0("*ln_sales_tax:", FE), ids
                     , collapse = " + ")
-  print(lh.form)
   lc.formula0 <- paste0(lh.form, " = 0")
   
   for (Y in c(outcomes)) {
