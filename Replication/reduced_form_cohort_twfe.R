@@ -141,11 +141,10 @@ for (FE in FE_opts) {
 
   c_ids <- unique(sort(all_pi[[FE]])) ## Define cohorts based on YearXsemesterXmoduleXCensus Region/division
   for(co in c_ids) {
+    flog.info("Cohort %s", co)
+    co.data <- all_pi[get(FE) == co,]
     for (Y in c(outcomes)) {
-
-      flog.info("Cohort %s", co)
-      co.data <- all_pi[get(FE) == co,]
-
+      
       formula1 <- as.formula(paste0(
         Y, "~ w.ln_sales_tax"))
       # Run regression
@@ -207,6 +206,7 @@ for (rep in 1:200) {
   sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
 
   for (FE in FE_opts) {
+    flog.info("FE %s", FE)
     ## Remake list of unique division/region by module by time
     c_ids <- unique(sort(sampled.data[[FE]])) ## Define cohorts based on YearXsemesterXmoduleXCensus division/Region
     LRdiff_res <- data.table(NULL)
