@@ -38,8 +38,13 @@ yearly_data <- all_pi[, list(ln_cpricei2 = log(mean(exp(ln_cpricei2))),
 rm(all_pi)
 
 setkey(yearly_data, store_code_uc, product_module_code)
-yearly_data[, base.sales := sales[year == 2008],
-       by = .(store_code_uc, product_module_code)]
+
+# Redefine base.sales
+base <- yearly_data[year == 2008]
+setnames(base, "sales", "base.sales")
+base <- base[, c("base.sales", "store_code_uc", "product_module_code")]
+yearly_data<- merge(yearly_data, base, by = c("store_code_uc", "product_module_code")) 
+rm(base)
 
 yearly_data[, store_by_time := .GRP, by = .(store_code_uc, year)]
 yearly_data[, ln_sales := log(sales)]
