@@ -147,7 +147,7 @@ for (FE in FE_opts) {
       co.data <- all_pi[get(FE) == co,]
 
       formula1 <- as.formula(paste0(
-        Y, "~ ln_sales_tax"))
+        Y, "~ w.ln_sales_tax"))
       # Run regression
       res1 <- lm(formula = formula1, data = co.data,
                  weights = co.data$base.sales)
@@ -156,9 +156,9 @@ for (FE in FE_opts) {
       if(is.na(coef(res1)[2]) == F) {
 
         res1.dt <- data.table(
-          Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
-          `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
-          `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
+          Estimate = coef(summary(res1))[ "w.ln_sales_tax", "Estimate"],
+          `Std. Error` = coef(summary(res1))[ "w.ln_sales_tax", "Std. Error"],
+          `Pr(>|t|)` = coef(summary(res1))[ "w.ln_sales_tax", "Pr(>|t|)"],
           outcome = Y,
           cohort = co,
           `FE` = FE)
@@ -214,7 +214,7 @@ for (rep in 1:200) {
       for (Y in c(outcomes)) {
   
         formula1 <- as.formula(paste0(
-          Y, "~ ln_sales_tax"))
+          Y, "~ w.ln_sales_tax"))
   
   
         # Run regression
@@ -226,9 +226,9 @@ for (rep in 1:200) {
         if(is.na(coef(res1)[2]) == F) {
   
           res1.dt <- data.table(
-            Estimate = coef(summary(res1))[ "ln_sales_tax", "Estimate"],
-            `Std. Error` = coef(summary(res1))[ "ln_sales_tax", "Std. Error"],
-            `Pr(>|t|)` = coef(summary(res1))[ "ln_sales_tax", "Pr(>|t|)"],
+            Estimate = coef(summary(res1))[ "w.ln_sales_tax", "Estimate"],
+            `Std. Error` = coef(summary(res1))[ "w.ln_sales_tax", "Std. Error"],
+            `Pr(>|t|)` = coef(summary(res1))[ "w.ln_sales_tax", "Pr(>|t|)"],
             outcome = Y,
             cohort = co,
             `FE` = FE,
