@@ -23,7 +23,7 @@ zillow_path <- "Data/covariates/zillow_long_by_county_clean.csv"
 zillow_state_path <- "Data/covariates/zillow_long_by_state_clean.csv"
 unemp.path <- "Data/covariates/county_monthly_unemp_clean.csv"
 wage.path <- "Data/covariates/qcew_quarterly_clean.csv"
-data.hh <- "Data/Nielsen/Household_panel/cleaning/consumer_panel_q_hh_group_2006-2016.csv"
+data.hh <- "Data/Nielsen/Household_panel/cleaning/consumer_panel_y_hh_group_2006-2016.csv"
 
 
 ## Open Data ----------------
