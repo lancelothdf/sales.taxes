@@ -34,7 +34,7 @@ output.results.file <- "Data/Cohort_TWFE_div.csv" ### Main results county separa
 boot.results.file <- "Data/Boot_cohort_TWFE_div.csv" ### Bootstrap county separate
 
 
-##### 
+##### Slight modifications to data -----
 all_pi <- fread("Data/Replication/all_pi.csv")
 
 # Restrict to non-imputed tax
@@ -43,6 +43,21 @@ all_pi <- all_pi[non_imp_tax == 1,]
 # Make FEs a factor variable to precisely interact
 all_pi[, region_by_module_by_time := factor(region_by_module_by_time)]
 all_pi[, division_by_module_by_time := factor(division_by_module_by_time)]
+
+##### Collapsing to county level -----
+# We have attempted to run estimation at the store/product/semester level
+# We get a memory error: "Error: cannot allocate vector of size 3578.9 Gb"
+# Since tax variation comes at county level, we will collapse it at this level (county/product/semester level)
+
+## Collapse at county-level to save some memory
+all_pi <- all_pi[, list(ln_cpricei2 = weighted.mean(ln_cpricei2, w = base.sales),
+                        ln_quantity3 = weighted.mean(ln_quantity3, w = base.sales),
+                        ln_sales_tax = weighted.mean(ln_sales_tax, w = base.sales),
+                        base.sales = sum(base.sales),
+                        sales = sum(sales)),
+                 by = .(fips_state, fips_county, product_module_code, year, semester,
+                        region_by_module_by_time, division_by_module_by_time, module_by_state,
+                        cal_time)]
 
 
 ## By-cohort TWFE
@@ -65,7 +80,8 @@ for (FE in FE_opts) {
   cohort.weights <- all_pi_co$base.sales
   
   ## Capture formula for linear test: weighted sum
-  lh.form <-  paste0(cohort.weights, paste0("*ln_sales_tax:", FE), ids, sep = " + ")
+  lh.form <-  paste0(cohort.weights, paste0("*ln_sales_tax:", FE), ids
+                    , collapse = " + ")
   print(lh.form)
   lc.formula0 <- paste0(lh.form, " = 0")
   
@@ -124,15 +140,6 @@ for (FE in FE_opts) {
 # 
 # 
 # 
-# ## Collapse at county-level to save some memory
-# all_pi <- all_pi[, list(ln_cpricei2 = weighted.mean(ln_cpricei2, w = base.sales),
-#                         ln_quantity3 = weighted.mean(ln_quantity3, w = base.sales), 
-#                         ln_sales_tax = weighted.mean(ln_sales_tax, w = base.sales), 
-#                         base.sales = sum(base.sales), 
-#                         sales = sum(sales)), 
-#                  by = .(fips_state, fips_county, product_module_code, year, semester,
-#                         region_by_module_by_time, division_by_module_by_time, module_by_state,
-#                         cal_time)]
 # 
 # 
 # FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
