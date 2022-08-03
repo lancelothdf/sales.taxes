@@ -51,6 +51,7 @@ all_pi[, division_by_module_by_time := factor(division_by_module_by_time)]
 
 ## Collapse at county-level to save some memory
 all_pi <- all_pi[, list(ln_cpricei2 = weighted.mean(ln_cpricei2, w = base.sales),
+                        ln_pricei2 = weighted.mean(ln_pricei2, w = base.sales),
                         ln_quantity3 = weighted.mean(ln_quantity3, w = base.sales),
                         ln_sales_tax = weighted.mean(ln_sales_tax, w = base.sales),
                         base.sales = sum(base.sales),
@@ -59,6 +60,10 @@ all_pi <- all_pi[, list(ln_cpricei2 = weighted.mean(ln_cpricei2, w = base.sales)
                         region_by_module_by_time, division_by_module_by_time, module_by_state,
                         cal_time)]
 
+### De-mean variable used in regressions
+all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = store_by_module]
+all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = store_by_module]
+all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = store_by_module]
 
 ## By-cohort TWFE
 outcomes <- c("w.ln_cpricei2", "w.ln_quantity3", "w.ln_pricei2", "w.ln_sales")
@@ -133,10 +138,6 @@ for (FE in FE_opts) {
 
 # 
 # 
-# ### De-mean variable used in regressions
-# all_pi[, ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = store_by_module]
-# all_pi[, ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = store_by_module]
-# all_pi[, ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = store_by_module]
 # 
 # 
 # 
