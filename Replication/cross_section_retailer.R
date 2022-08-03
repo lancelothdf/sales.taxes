@@ -29,15 +29,28 @@ output.results.file.crossec <- "Data/Replication/LRdiff_cross_sectional_design.c
 ### Clean data ----
 colnames(all_pi)
 ## Collapse to yearly data
-yearly_data <- all_pi[, list(ln_cpricei2 = log(mean(exp(ln_cpricei2))), 
-                             ln_quantity3 = log(mean(exp(ln_quantity3))), 
-                             sales = sum(sales), 
-                             ln_sales_tax = log(weighted.mean(exp(ln_sales_tax), w = sales))), 
+nrow(all_pi)
+yearly_data <- all_pi[, .(ln_cpricei2 = log(mean(exp(ln_cpricei2))), 
+                          ln_quantity3 = log(mean(exp(ln_quantity3))), 
+                          sales = sum(sales), 
+                          ln_sales_tax = log(weighted.mean(exp(ln_sales_tax), w = sales))), 
                       by = .(store_code_uc, product_module_code,  fips_state, 
                              fips_county, year, module_by_state, module_by_time)]
 rm(all_pi)
+nrow(yearly_data)
+
+
+## Re-balance the sample
+keep_store_modules <- yearly_data[, list(n = .N),
+                                  by = .(store_code_uc, product_module_code)]
+keep_store_modules <- keep_store_modules[n == (2016 - 2005)]
 
 setkey(yearly_data, store_code_uc, product_module_code)
+setkey(keep_store_modules, store_code_uc, product_module_code)
+
+yearly_data <- yearly_data[keep_store_modules]
+
+nrow(yearly_data)
 
 # Redefine base.sales
 base <- yearly_data[year == 2008, .(base.sales = mean(sales)), by = c("store_code_uc", "product_module_code")]
@@ -51,6 +64,7 @@ yearly_data[, ln_sales := log(sales)]
 # Restrict to relevant tax data span
 yearly_data <- yearly_data[year >= 2008 & year <= 2014]
 yearly_data$year <- factor(yearly_data$year) ##Convert the indicator for year to a factor variable (needed for interaction in the regression between ln_sales_tax and dummy for year)
+nrow(yearly_data)
 
 ##Construct weights to average across cohorts/years.  Equal weights
 cohort.weights <- rep(1, 7) 
