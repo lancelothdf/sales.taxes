@@ -37,6 +37,7 @@ yearly_data <- all_pi[, list(ln_cpricei2 = log(mean(exp(ln_cpricei2))),
                              fips_county, year, module_by_state, module_by_time)]
 rm(all_pi)
 
+setkey(yearly_data, store_code_uc, product_module_code)
 yearly_data[, base.sales := sales[year == 2008],
        by = .(store_code_uc, product_module_code)]
 
