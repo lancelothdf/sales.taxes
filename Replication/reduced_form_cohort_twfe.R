@@ -143,38 +143,55 @@ reg.output.co <- function(X, dep.var, indep.var, data, FE, w) {
   co.data <- data[get(FE) == X,]
   print(head(co.data))
   
-  # Run regression
-  res1 <- lm(formula = formula1, 
-             data = co.data,
-             weights = co.data[[w]])
-  
-  ## Store results
-  if(!is.na(coef(res1)[2])) {
+  # Check number of observations. Don't even estimate if N < 3
+  if (nrow(co.data[!is.na(get(dep.var)) & !is.na(get(w))]) < 3) {
     
     res1.dt <- data.table(
       Estimate = coef(summary(res1))[ indep.var, "Estimate"],
       `Std. Error` = coef(summary(res1))[ indep.var, "Std. Error"],
       `Pr(>|t|)` = coef(summary(res1))[ indep.var, "Pr(>|t|)"],
-      outcome = Y,
-      cohort = X,
+      outcome = dep.var,
+      cohort = indep.var,
       `FE` = FE)
-
-  } else {
     
-    res1.dt <- data.table(
-      Estimate = NA,
-      `Std. Error` = NA,
-      `Pr(>|t|)` = NA,
-      outcome = Y,
-      cohort = X,
-      `FE` = FE)
+    
+  }
+  else {
+    # Run regression
+    res1 <- lm(formula = formula1, 
+               data = co.data,
+               weights = co.data[[w]])
+    
+    ## Store results
+    if(!is.na(coef(res1)[2])) {
+      
+      res1.dt <- data.table(
+        Estimate = coef(summary(res1))[ indep.var, "Estimate"],
+        `Std. Error` = coef(summary(res1))[ indep.var, "Std. Error"],
+        `Pr(>|t|)` = coef(summary(res1))[ indep.var, "Pr(>|t|)"],
+        outcome = dep.var,
+        cohort = indep.var,
+        `FE` = FE)
+      
+    } else { # just in case...
+      
+      res1.dt <- data.table(
+        Estimate = NA,
+        `Std. Error` = NA,
+        `Pr(>|t|)` = NA,
+        outcome = dep.var,
+        cohort = indep.var,
+        `FE` = FE)
+      
+    }
+    
+    res1.dt[, paste0(w) := sum(data[get(FE) == indep.var,][[w]])]
+    if ("base.sales" %in% colnames(data) & "sales" %in% colnames(data)) {
+      res1.dt[, sales := sum(data[get(FE) == indep.var,]$sales)]
+    }
     
   }
   
-  res1.dt[, paste0(w) := sum(data[get(FE) == X,][[w]])]
-  if ("base.sales" %in% colnames(data) & "sales" %in% colnames(data)) {
-    res1.dt[, sales := sum(data[get(FE) == X,]$sales)]
-  }
   
   return(res1.dt)
 }
