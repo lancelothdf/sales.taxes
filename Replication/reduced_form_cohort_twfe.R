@@ -180,9 +180,9 @@ reg.output.co <- function(co, Y, X, data, FE) {
 LRdiff_res <- data.table(NULL)
 for (fe in FE_opts) {
 
-  c_ids <- unique(sort(all_pi[[FE]])) ## Define cohorts based on YearXsemesterXmoduleXCensus Region/division
+  c_ids <- unique(sort(all_pi[[fe]])) ## Define cohorts based on YearXsemesterXmoduleXCensus Region/division
   for (Y in c(outcomes)) {
-    flog.info("Iteration 0. Estimating on %s using %s as FE", Y, FE)
+    flog.info("Iteration 0. Estimating on %s using %s as FE", Y, fe)
     res.l <- sapply(c_ids, reg.output.co, 
                     Y = Y, X = "w.ln_sales_tax", 
                     data = all_pi, FE = fe, simplify = F)
@@ -214,7 +214,7 @@ for (rep in 1:200) {
     c_ids <- unique(sort(sampled.data[[FE]])) ## Define cohorts based on YearXsemesterXmoduleXCensus division/Region
     for (Y in c(outcomes)) {
   
-      flog.info("Estimating on %s using %s as FE", Y, FE)
+      flog.info("Estimating on %s using %s as FE", Y, fe)
       res.l <- sapply(c_ids, reg.output.co, 
                       Y = Y, X = "w.ln_sales_tax", 
                       data = sampled.data, FE = fe, simplify = F)
