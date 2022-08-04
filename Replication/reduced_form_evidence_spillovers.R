@@ -41,6 +41,7 @@ outcomes <- c("w.ln_cpricei2", "w.ln_quantity3", "w.ln_pricei2", "w.ln_sales")
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 # Define samples
+subsamples <- c("all_taxable", "all_taxexempt")
 samples <- c("all", "non_imp_tax")
 
 
