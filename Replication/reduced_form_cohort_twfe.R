@@ -134,55 +134,62 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 ####### Alternative: separate by-cohort county-level ------
 
+reg.output.co <- function(co, Y, X, data, FE) {
+  
+  # Capture formula
+  formula1 <- as.formula(
+    paste0(Y, "~ ", X)
+    )
+  # Capture subset of data relevant
+  co.data <- data[get(FE) == co,]
+  
+  # Run regression
+  res1 <- lm(formula = formula1, data = co.data,
+             weights = co.data$base.sales)
+  
+  ## Store results
+  if(!is.na(coef(res1)[2])) {
+    
+    res1.dt <- data.table(
+      Estimate = coef(summary(res1))[ X, "Estimate"],
+      `Std. Error` = coef(summary(res1))[ X, "Std. Error"],
+      `Pr(>|t|)` = coef(summary(res1))[ X, "Pr(>|t|)"],
+      outcome = Y,
+      cohort = co,
+      `FE` = FE)
 
-flog.info("Iteration 0")
+  } else {
+    
+    res1.dt <- data.table(
+      Estimate = NA,
+      `Std. Error` = NA,
+      `Pr(>|t|)` = NA,
+      outcome = Y,
+      cohort = co,
+      `FE` = FE)
+    
+  }
+  
+  if ("base.sales" %in% colnames(data) & "sales" %in% colnames(data))
+  res1.dt[, base.sales := sum(data[get(FE) == co,]$base.sales)]
+  res1.dt[, sales := sum(data[get(FE) == co,]$sales)]
+  
+  return(res1.dt)
+}
+
 LRdiff_res <- data.table(NULL)
-for (FE in FE_opts) {
+for (fe in FE_opts) {
 
   c_ids <- unique(sort(all_pi[[FE]])) ## Define cohorts based on YearXsemesterXmoduleXCensus Region/division
-  for(co in c_ids) {
-    flog.info("Cohort %s", co)
-    co.data <- all_pi[get(FE) == co,]
-    for (Y in c(outcomes)) {
-      
-      formula1 <- as.formula(paste0(
-        Y, "~ w.ln_sales_tax"))
-      # Run regression
-      res1 <- lm(formula = formula1, data = co.data,
-                 weights = co.data$base.sales)
-
-      ## Store results
-      if(is.na(coef(res1)[2]) == F) {
-
-        res1.dt <- data.table(
-          Estimate = coef(summary(res1))[ "w.ln_sales_tax", "Estimate"],
-          `Std. Error` = coef(summary(res1))[ "w.ln_sales_tax", "Std. Error"],
-          `Pr(>|t|)` = coef(summary(res1))[ "w.ln_sales_tax", "Pr(>|t|)"],
-          outcome = Y,
-          cohort = co,
-          `FE` = FE)
-
-        res1.dt[, base.sales := sum(all_pi[division_by_module_by_time == co,]$base.sales)]
-        res1.dt[, sales := sum(all_pi[division_by_module_by_time == co,]$sales)]
-
-      } else {
-
-        res1.dt <- data.table(
-          Estimate = NA,
-          `Std. Error` = NA,
-          `Pr(>|t|)` = NA,
-          outcome = Y,
-          cohort = co,
-          `FE` = FE)
-
-        res1.dt[, base.sales := sum(all_pi[division_by_module_by_time == co,]$base.sales)]
-        res1.dt[, sales := sum(all_pi[division_by_module_by_time == co,]$sales)]
-      }
-
-      LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-      fwrite(LRdiff_res, output.results.file)
-
-    }
+  for (Y in c(outcomes)) {
+    flog.info("Iteration 0. Estimating on %s using %s as FE", Y, FE)
+    res.l <- sapply(c_ids, reg.output.co, 
+                    Y = Y, X = "w.ln_sales_tax", 
+                    data = all_pi, FE = fe, simplify = F)
+    flog.info("Writing results...")
+    res1.dt = as.data.table(data.table::rbindlist(res.l))
+    LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+    fwrite(LRdiff_res, output.results.file)
   }
 }
 
@@ -193,73 +200,30 @@ for (FE in FE_opts) {
 set.seed(1941)
 ids <- unique(all_pi$module_by_state)
 LRdiff_boot <- data.table(NULL)
-
-
 for (rep in 1:200) {
 
   flog.info("Iteration %s", rep)
 
   # Sample by block
   sampled.ids <- data.table(module_by_state = sample(ids, replace = T))
-
   # Merge data to actual data
   sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
-
-  for (FE in FE_opts) {
-    flog.info("FE %s", FE)
+  
+  for (fe in FE_opts) {
     ## Remake list of unique division/region by module by time
     c_ids <- unique(sort(sampled.data[[FE]])) ## Define cohorts based on YearXsemesterXmoduleXCensus division/Region
-    LRdiff_res <- data.table(NULL)
-    for(co in c_ids) {
-      for (Y in c(outcomes)) {
+    for (Y in c(outcomes)) {
   
-        formula1 <- as.formula(paste0(
-          Y, "~ w.ln_sales_tax"))
-  
-  
-        # Run regression
-        res1 <- lm(formula = formula1, data = sampled.data[get(FE) == co,],
-                   weights = sampled.data[get(FE) == co,]$base.sales)
-  
-  
-        ## Store results
-        if(is.na(coef(res1)[2]) == F) {
-  
-          res1.dt <- data.table(
-            Estimate = coef(summary(res1))[ "w.ln_sales_tax", "Estimate"],
-            `Std. Error` = coef(summary(res1))[ "w.ln_sales_tax", "Std. Error"],
-            `Pr(>|t|)` = coef(summary(res1))[ "w.ln_sales_tax", "Pr(>|t|)"],
-            outcome = Y,
-            cohort = co,
-            `FE` = FE,
-            iteration = rep)
-  
-          res1.dt[, base.sales := sum(all_pi[get(FE) == co,]$base.sales)]
-          res1.dt[, sales := sum(all_pi[get(FE) == co,]$sales)]
-  
-        } else {
-  
-          res1.dt <- data.table(
-            Estimate = NA,
-            `Std. Error` = NA,
-            `Pr(>|t|)` = NA,
-            outcome = Y,
-            `FE` = FE,
-            cohort = co)
-  
-          res1.dt[, base.sales := sum(all_pi[get(FE) == co,]$base.sales)]
-          res1.dt[, sales := sum(all_pi[get(FE) == co,]$sales)]
-  
-          }
-        ## Append each iteration
-        LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-      }
+      flog.info("Estimating on %s using %s as FE", Y, FE)
+      res.l <- sapply(c_ids, reg.output.co, 
+                      Y = Y, X = "w.ln_sales_tax", 
+                      data = sampled.data, FE = fe, simplify = F)
+      flog.info("Writing results...")
+      res1.dt = as.data.table(data.table::rbindlist(res.l))
+      res1.dt[, iter := rep]
+      LRdiff_boot <- rbind(LRdiff_boot, res1.dt, fill = T)
+      fwrite(LRdiff_boot, boot.results.file)
     }
   }
-
-  ## Append each spec
-  LRdiff_boot <- rbind(LRdiff_boot, LRdiff_res, fill = T)
-  fwrite(LRdiff_boot, boot.results.file)
-
 }
 
