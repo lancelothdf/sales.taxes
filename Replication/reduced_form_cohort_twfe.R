@@ -134,13 +134,13 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 ####### Alternative: separate by-cohort county-level ------
 
-reg.output.co <- function(co, Y, X, data, FE, w) {
+reg.output.co <- function(X, dep.var, indep.var, data, FE, w) {
   
   # Capture formula
-  formula1 <- as.formula(paste0(Y, " ~ ", X))
+  formula1 <- as.formula(paste0(dep.var, " ~ ", indep.var))
   print(formula1)
   # Capture subset of data relevant
-  co.data <- data[get(FE) == co,]
+  co.data <- data[get(FE) == X,]
   print(head(co.data))
   
   # Run regression
@@ -152,11 +152,11 @@ reg.output.co <- function(co, Y, X, data, FE, w) {
   if(!is.na(coef(res1)[2])) {
     
     res1.dt <- data.table(
-      Estimate = coef(summary(res1))[ X, "Estimate"],
-      `Std. Error` = coef(summary(res1))[ X, "Std. Error"],
-      `Pr(>|t|)` = coef(summary(res1))[ X, "Pr(>|t|)"],
+      Estimate = coef(summary(res1))[ indep.var, "Estimate"],
+      `Std. Error` = coef(summary(res1))[ indep.var, "Std. Error"],
+      `Pr(>|t|)` = coef(summary(res1))[ indep.var, "Pr(>|t|)"],
       outcome = Y,
-      cohort = co,
+      cohort = X,
       `FE` = FE)
 
   } else {
@@ -166,14 +166,14 @@ reg.output.co <- function(co, Y, X, data, FE, w) {
       `Std. Error` = NA,
       `Pr(>|t|)` = NA,
       outcome = Y,
-      cohort = co,
+      cohort = X,
       `FE` = FE)
     
   }
   
-  res1.dt[, paste0(w) := sum(data[get(FE) == co,][[w]])]
+  res1.dt[, paste0(w) := sum(data[get(FE) == X,][[w]])]
   if ("base.sales" %in% colnames(data) & "sales" %in% colnames(data)) {
-    res1.dt[, sales := sum(data[get(FE) == co,]$sales)]
+    res1.dt[, sales := sum(data[get(FE) == X,]$sales)]
   }
   
   return(res1.dt)
@@ -186,7 +186,7 @@ for (fe in FE_opts) {
   for (y in c(outcomes)) {
     flog.info("Iteration 0. Estimating on %s using %s as FE", y, fe)
     res.l <- sapply(c_ids, FUN = reg.output.co, 
-                    Y = y, X = "w.ln_sales_tax", 
+                    dep.var = y, indep.var = "w.ln_sales_tax", 
                     data = all_pi, FE = fe, w = "base.sales",
                     simplify = F)
     flog.info("Writing results...")
@@ -219,7 +219,7 @@ for (rep in 1:200) {
   
       flog.info("Estimating on %s using %s as FE", y, fe)
       res.l <- sapply(c_ids, FUN =  reg.output.co, 
-                      Y = y, X = "w.ln_sales_tax", 
+                      dep.var = y, indep.var = "w.ln_sales_tax", 
                       data = sampled.data, FE = fe, w = "base.sales",
                       simplify = F)
       flog.info("Writing results...")
