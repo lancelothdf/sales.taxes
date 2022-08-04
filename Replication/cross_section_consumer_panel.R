@@ -54,9 +54,9 @@ for (FE in FE_opts) {
   res1.dt[, outcome := "ln_expenditures"]
   res1.dt[, Rsq := summary(res1)$r.squared]
   res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-  res1.dt[, N.obs := nrow(data.est[!is.na(get(Y))])]
-  res1.dt[, N_hholds := uniqueN(data.est[!is.na(get(Y))], by = c("household_code"))]
-  res1.dt[, N_groups := uniqueN(data.est[!is.na(get(Y))], by = c("product_group_code"))]
+  res1.dt[, N.obs := nrow(data.est[!is.na(ln_expenditures)])]
+  res1.dt[, N_hholds := uniqueN(data.est[!is.na(ln_expenditures)], by = c("household_code"))]
+  res1.dt[, N_groups := uniqueN(data.est[!is.na(ln_expenditures)], by = c("product_group_code"))]
   res1.dt[, FE_d := FE]
   LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
   fwrite(LRdiff_res, output.results.file)
@@ -83,8 +83,8 @@ for (FE in FE_opts) {
     Rsq = summary(res1)$r.squared,
     adj.Rsq = summary(res1)$adj.r.squared,
     N.obs = nrow(data.est),
-    N_hholds = uniqueN(data.est[!is.na(get(Y))], by = c("household_code")),
-    N_groups = uniqueN(data.est[!is.na(get(Y))], by = c("product_group_code")),
+    N_hholds = uniqueN(data.est[!is.na(ln_expenditures)], by = c("household_code")),
+    N_groups = uniqueN(data.est[!is.na(ln_expenditures)], by = c("product_group_code")),
     FE_d = FE
   )
   LRdiff_res <- rbind(LRdiff_res, lp.dt, fill = T) ## Merge results to LRdiff_res
