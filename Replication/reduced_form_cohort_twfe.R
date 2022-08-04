@@ -138,11 +138,9 @@ reg.output.co <- function(X, dep.var, indep.var, data, FE, w) {
   
   # Capture formula
   formula1 <- as.formula(paste0(dep.var, " ~ ", indep.var))
-  print(formula1)
   # Capture subset of data relevant
   co.data <- data[get(FE) == X,]
-  print(head(co.data))
-  
+
   # Check number of observations. Don't even estimate if N < 3
   if (nrow(co.data[!is.na(get(dep.var)) & !is.na(get(w))]) < 3) {
     
