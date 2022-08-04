@@ -45,6 +45,7 @@ lag.lp.restr <- paste(lag.vars, "+ D.ln_statutory_tax = 0")
 total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_statutory_tax = 0")
 
 
+### Distributed lag model - semester -----------------
 LRdiff_res <- data.table(NULL)
 ## FE vary across subsamples
 for (s in samples) {
@@ -103,7 +104,7 @@ for (s in samples) {
           res1.dt[, sample := s]
           res1.dt[, subsample := sam]
           res1.dt[, econ := i]
-          res1.dt[, spec := DL]
+          res1.dt[, spec := "DL"]
           res1.dt$Rsq <- summary(res1)$r.squared
           res1.dt$adj.Rsq <- summary(res1)$adj.r.squared
           
@@ -149,7 +150,7 @@ for (s in samples) {
             sample = s,
             subsample = sam,
             econ = i,
-            spec = DL,
+            spec = "DL",
             Rsq = summary(res1)$r.squared,
             adj.Rsq = summary(res1)$adj.r.squared
           )
@@ -225,7 +226,7 @@ for (s in samples) {
             sample = s,
             subsample = sam,
             econ = i,
-            spec = DL,
+            spec = "DL",
             Rsq = summary(res1)$r.squared,
             adj.Rsq = summary(res1)$adj.r.squared
           )
@@ -264,7 +265,6 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 samples <- c("all", "non_imp_tax")
 
 
-LRdiff_res <- data.table(NULL)
 ## Run
 for (s in samples) {
   
@@ -291,6 +291,7 @@ for (s in samples) {
         res1.dt[, outcome := Y]
         res1.dt[, controls := FE]
         res1.dt[, sample := s]
+        res1.dt[, spec := "TWFE"]
         # Add summary values
         res1.dt[, Rsq := summary(res1)$r.squared]
         res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
@@ -322,6 +323,7 @@ for (s in samples) {
           res1.dt[, outcome := Y]
           res1.dt[, controls := FE]
           res1.dt[, sample := s]
+          res1.dt[, spec := "TWFE"]
           # Add summary values
           res1.dt[, Rsq := summary(res1)$r.squared]
           res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
@@ -341,7 +343,7 @@ for (s in samples) {
 }
 
 
-####### DL model Using yearly data ------
+### Distributed lag model - yearly -----------------
 
 
 ## Collapse to yearly data
@@ -361,8 +363,33 @@ base <- yearly_data[year == 2008, .(base.sales = mean(sales)), by = c("store_cod
 yearly_data<- merge(yearly_data, base, by = c("store_code_uc", "product_module_code")) 
 
 yearly_data[, store_by_time := .GRP, by = .(store_code_uc, year)]
+yearly_data[, store_by_time := .GRP, by = .(store_code_uc, year)]
 yearly_data[, module_by_time := .GRP, by = .(product_module_code, year)]
 yearly_data[, ln_sales := log(sales)]
+
+## Create census region/division info to recover FEs
+geo_dt <- structure(list(
+  fips_state = c(1L, 2L, 4L, 5L, 6L, 8L, 9L, 10L, 12L, 13L, 15L, 16L, 17L, 18L,
+                 19L, 20L, 21L, 22L, 23L, 24L, 25L, 26L, 27L, 28L, 29L, 30L,
+                 31L, 32L, 33L, 34L, 35L, 36L, 37L, 38L, 39L, 40L, 41L, 42L,
+                 44L, 45L, 46L, 47L, 48L, 49L, 50L, 51L, 53L, 54L, 55L, 56L),
+  region = c(3L, 4L, 4L, 3L, 4L, 4L, 1L, 3L, 3L, 3L, 4L, 4L, 2L, 2L, 2L, 2L, 3L,
+             3L, 1L, 3L, 1L, 2L, 2L, 3L, 2L, 4L, 2L, 4L, 1L, 1L, 4L, 1L, 3L, 2L,
+             2L, 3L, 4L, 1L, 1L, 3L, 2L, 3L, 3L, 4L, 1L, 3L, 4L, 3L, 2L, 4L),
+  division = c(6L, 9L, 8L,  7L, 9L, 8L, 1L, 5L, 5L, 5L, 9L, 8L, 3L, 3L, 4L, 4L,
+               6L, 7L, 1L, 5L, 1L, 3L, 4L, 6L, 4L, 8L, 4L, 8L, 1L, 2L, 8L, 2L,
+               5L, 4L, 3L,  7L, 9L, 2L, 1L, 5L, 4L, 6L, 7L, 8L, 1L, 5L, 9L, 5L, 3L, 8L)),
+  class = "data.frame", row.names = c(NA, -50L))
+setDT(geo_dt)
+
+
+## merge on the census region/division info
+yearly_data <- merge(yearly_data, geo_dt, by = "fips_state")
+
+## Define FEs
+yearly_data[, region_by_module_by_time := .GRP, by = .(region, product_module_code, year)]
+yearly_data[, division_by_module_by_time := .GRP, by = .(division, product_module_code, year)]
+
 
 
 # Identify always taxable and always tax-exempt
@@ -418,7 +445,6 @@ lag.lp.restr <- paste(lag.vars, "+ D.ln_statutory_tax = 0")
 total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_statutory_tax = 0")
 
 
-LRdiff_res <- data.table(NULL)
 ## FE vary across subsamples
 for (s in samples) {
   for (sam in subsamples) {
@@ -450,7 +476,7 @@ for (s in samples) {
         res1.dt[, controls := FE]
         res1.dt[, sample := s]
         res1.dt[, subsample := sam]
-        res1.dt[, spec := DL_year]
+        res1.dt[, spec := "DL year"]
         res1.dt$Rsq <- summary(res1)$r.squared
         res1.dt$adj.Rsq <- summary(res1)$adj.r.squared
         
@@ -495,7 +521,7 @@ for (s in samples) {
           controls = FE,
           sample = s,
           subsample = sam,
-          spec = DL_year,
+          spec = "DL year",
           Rsq = summary(res1)$r.squared,
           adj.Rsq = summary(res1)$adj.r.squared
         )
@@ -570,8 +596,7 @@ for (s in samples) {
           controls = FE,
           sample = s,
           subsample = sam,
-          econ = i,
-          spec = DL,
+          spec = "DL year",
           Rsq = summary(res1)$r.squared,
           adj.Rsq = summary(res1)$adj.r.squared
         )
