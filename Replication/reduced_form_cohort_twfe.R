@@ -170,9 +170,10 @@ reg.output.co <- function(co, Y, X, data, FE) {
     
   }
   
-  if ("base.sales" %in% colnames(data) & "sales" %in% colnames(data))
-  res1.dt[, base.sales := sum(data[get(FE) == co,]$base.sales)]
-  res1.dt[, sales := sum(data[get(FE) == co,]$sales)]
+  if ("base.sales" %in% colnames(data) & "sales" %in% colnames(data)) {
+    res1.dt[, base.sales := sum(data[get(FE) == co,]$base.sales)]
+    res1.dt[, sales := sum(data[get(FE) == co,]$sales)]
+  }
   
   return(res1.dt)
 }
@@ -183,7 +184,7 @@ for (fe in FE_opts) {
   c_ids <- unique(sort(all_pi[[fe]])) ## Define cohorts based on YearXsemesterXmoduleXCensus Region/division
   for (Y in c(outcomes)) {
     flog.info("Iteration 0. Estimating on %s using %s as FE", Y, fe)
-    res.l <- sapply(c_ids, reg.output.co, 
+    res.l <- sapply(c_ids, FUN = reg.output.co, 
                     Y = Y, X = "w.ln_sales_tax", 
                     data = all_pi, FE = fe, simplify = F)
     flog.info("Writing results...")
@@ -215,7 +216,7 @@ for (rep in 1:200) {
     for (Y in c(outcomes)) {
   
       flog.info("Estimating on %s using %s as FE", Y, fe)
-      res.l <- sapply(c_ids, reg.output.co, 
+      res.l <- sapply(c_ids, FUN =  reg.output.co, 
                       Y = Y, X = "w.ln_sales_tax", 
                       data = sampled.data, FE = fe, simplify = F)
       flog.info("Writing results...")
