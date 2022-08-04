@@ -137,11 +137,11 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 reg.output.co <- function(co, Y, X, data, FE, w) {
   
   # Capture formula
-  formula1 <- as.formula(
-    paste0(Y, "~ ", X)
-    )
+  formula1 <- as.formula(paste0(Y, " ~ ", X))
+  print(formula1)
   # Capture subset of data relevant
   co.data <- data[get(FE) == co,]
+  print(head(co.data))
   
   # Run regression
   res1 <- lm(formula = formula1, 
