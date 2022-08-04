@@ -47,7 +47,7 @@ total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_statutory_tax = 0")
 ####### TWFE specification ------
 
 ## De-mean statutory tax rate
-all_pi_spill[, w.ln_sales_tax := ln_statutory_tax - mean(ln_statutory_tax, na.rm = T), by = store_by_module]
+all_pi_spill[, w.ln_statutory_tax := ln_statutory_tax - mean(ln_statutory_tax, na.rm = T), by = store_by_module]
 
 
 outcomes <- c("w.ln_cpricei2", "w.ln_quantity3", "w.ln_pricei2", "w.ln_sales")
