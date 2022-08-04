@@ -95,10 +95,15 @@ yearly_data[, ln_statutory_tax := ifelse(taxability == 1, ln_sales_tax, ln_statu
 
 yearly_data <- yearly_data[order(store_code_uc, product_module_code, year),] ##Sort on store by year-quarter (in ascending order)
 
-# new version
+# First Differences
 yearly_data[, D.ln_statutory_tax := ln_statutory_tax - shift(ln_statutory_tax, n=1, type="lag"),
             by = .(store_code_uc, product_module_code)]
-for (lag.val in 1:4) {
+yearly_data[, D.ln_cpricei2 := ln_cpricei2 - shift(ln_cpricei2, n=1, type="lag"),
+            by = .(store_code_uc, product_module_code)]
+yearly_data[, D.ln_quantity3 := ln_quantity3 - shift(ln_quantity3, n=1, type="lag"),
+            by = .(store_code_uc, product_module_code)]
+# Leads and lags of FD
+for (lag.val in 1:2) {
   lag.X <- paste0("L", lag.val, "D.ln_statutory_tax")
   yearly_data[, (lag.X) := shift(D.ln_statutory_tax, n=lag.val, type="lag"),
               by = .(store_code_uc, product_module_code)]
