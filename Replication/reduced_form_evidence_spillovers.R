@@ -69,6 +69,7 @@ for (s in samples) {
         res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
         res1.dt[, outcome := Y]
         res1.dt[, controls := FE]
+        res1.dt[, subsample := sam]
         res1.dt[, sample := s]
         res1.dt[, spec := "TWFE"]
         # Add summary values
