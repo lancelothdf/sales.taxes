@@ -28,21 +28,8 @@ results.file.spillovers <- "Data/Replication/LRdiff_semesterly_spillovers.csv"
 
 
 ### 3. Reduced Form Evidence spillovers -----------------
-formula_lags <- paste0("L", 1:4, "D.ln_statutory_tax", collapse = "+")
-formula_leads <- paste0("F", 1:4, "D.ln_statutory_tax", collapse = "+")
-formula_RHS <- paste0("D.ln_statutory_tax + ", formula_lags, "+", formula_leads)
 
-FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
-outcomes <- c("D.ln_cpricei2", "D.ln_quantity3")
-subsamples <- c("all_taxable", "all_taxexempt")
-samples <- c("all", "non_imp_tax")
-
-## for linear hypothesis tests
-lead.vars <- paste(paste0("F", 4:1, "D.ln_statutory_tax"), collapse = " + ")
-lag.vars <- paste(paste0("L", 4:1, "D.ln_statutory_tax"), collapse = " + ")
-lead.lp.restr <- paste(lead.vars, "= 0")
-lag.lp.restr <- paste(lag.vars, "+ D.ln_statutory_tax = 0")
-total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_statutory_tax = 0")
+LRdiff_res <- data.table(NULL)
 
 ####### TWFE specification ------
 
@@ -136,7 +123,21 @@ for (s in samples) {
 
 
 ### Distributed lag model - semester -----------------
-LRdiff_res <- data.table(NULL)
+formula_lags <- paste0("L", 1:4, "D.ln_statutory_tax", collapse = "+")
+formula_leads <- paste0("F", 1:4, "D.ln_statutory_tax", collapse = "+")
+formula_RHS <- paste0("D.ln_statutory_tax + ", formula_lags, "+", formula_leads)
+
+FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
+outcomes <- c("D.ln_cpricei2", "D.ln_quantity3")
+subsamples <- c("all_taxable", "all_taxexempt")
+samples <- c("all", "non_imp_tax")
+
+## for linear hypothesis tests
+lead.vars <- paste(paste0("F", 4:1, "D.ln_statutory_tax"), collapse = " + ")
+lag.vars <- paste(paste0("L", 4:1, "D.ln_statutory_tax"), collapse = " + ")
+lead.lp.restr <- paste(lead.vars, "= 0")
+lag.lp.restr <- paste(lag.vars, "+ D.ln_statutory_tax = 0")
+total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_statutory_tax = 0")
 ## FE vary across subsamples
 for (s in samples) {
   for (sam in subsamples) {
