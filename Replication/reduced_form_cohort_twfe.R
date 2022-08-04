@@ -134,7 +134,7 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 ####### Alternative: separate by-cohort county-level ------
 
-reg.output.co <- function(co, Y, X, data, FE) {
+reg.output.co <- function(co, Y, X, data, FE, w) {
   
   # Capture formula
   formula1 <- as.formula(
@@ -144,8 +144,9 @@ reg.output.co <- function(co, Y, X, data, FE) {
   co.data <- data[get(FE) == co,]
   
   # Run regression
-  res1 <- lm(formula = formula1, data = co.data,
-             weights = co.data$base.sales)
+  res1 <- lm(formula = formula1, 
+             data = co.data,
+             weights = co.data[[w]])
   
   ## Store results
   if(!is.na(coef(res1)[2])) {
@@ -170,8 +171,8 @@ reg.output.co <- function(co, Y, X, data, FE) {
     
   }
   
+  res1.dt[, paste0(w) := sum(data[get(FE) == co,][[w]])]
   if ("base.sales" %in% colnames(data) & "sales" %in% colnames(data)) {
-    res1.dt[, base.sales := sum(data[get(FE) == co,]$base.sales)]
     res1.dt[, sales := sum(data[get(FE) == co,]$sales)]
   }
   
@@ -182,11 +183,12 @@ LRdiff_res <- data.table(NULL)
 for (fe in FE_opts) {
 
   c_ids <- unique(sort(all_pi[[fe]])) ## Define cohorts based on YearXsemesterXmoduleXCensus Region/division
-  for (Y in c(outcomes)) {
-    flog.info("Iteration 0. Estimating on %s using %s as FE", Y, fe)
+  for (y in c(outcomes)) {
+    flog.info("Iteration 0. Estimating on %s using %s as FE", y, fe)
     res.l <- sapply(c_ids, FUN = reg.output.co, 
-                    Y = Y, X = "w.ln_sales_tax", 
-                    data = all_pi, FE = fe, simplify = F)
+                    Y = y, X = "w.ln_sales_tax", 
+                    data = all_pi, FE = fe, w = "base.sales",
+                    simplify = F)
     flog.info("Writing results...")
     res1.dt = as.data.table(data.table::rbindlist(res.l))
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
@@ -213,12 +215,13 @@ for (rep in 1:200) {
   for (fe in FE_opts) {
     ## Remake list of unique division/region by module by time
     c_ids <- unique(sort(sampled.data[[FE]])) ## Define cohorts based on YearXsemesterXmoduleXCensus division/Region
-    for (Y in c(outcomes)) {
+    for (y in c(outcomes)) {
   
-      flog.info("Estimating on %s using %s as FE", Y, fe)
+      flog.info("Estimating on %s using %s as FE", y, fe)
       res.l <- sapply(c_ids, FUN =  reg.output.co, 
-                      Y = Y, X = "w.ln_sales_tax", 
-                      data = sampled.data, FE = fe, simplify = F)
+                      Y = y, X = "w.ln_sales_tax", 
+                      data = sampled.data, FE = fe, w = "base.sales",
+                      simplify = F)
       flog.info("Writing results...")
       res1.dt = as.data.table(data.table::rbindlist(res.l))
       res1.dt[, iter := rep]
