@@ -84,38 +84,6 @@ for (s in samples) {
         LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
         fwrite(LRdiff_res, results.file.spillovers)
         
-        ## Run pre-trends
-        for (k in 2:4) {
-          
-          formula1 <- as.formula(paste0(
-            Y, "~ F", k,".w.ln_statutory_tax | ", FE, " | 0 | module_by_state"
-          ))
-          flog.info("Estimating pretrend %s with %s as outcome with %s FE in sample %s.", k, Y, FE, s)
-          res1 <- felm(formula = formula1, data = data.est,
-                       weights = data.est$base.sales)
-          flog.info("Finished estimating pretrend %s with %s as outcome with %s FE in sample %s.", k, Y, FE, s)
-          
-          
-          ## attach results
-          flog.info("Writing results...")
-          res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-          res1.dt[, outcome := Y]
-          res1.dt[, controls := FE]
-          res1.dt[, sample := s]
-          res1.dt[, spec := "TWFE"]
-          # Add summary values
-          res1.dt[, Rsq := summary(res1)$r.squared]
-          res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-          res1.dt[, N_obs := nrow(data.est)]
-          res1.dt[, N_modules := length(unique(data.est$product_module_code))]
-          res1.dt[, N_stores :=  length(unique(data.est$store_code_uc))]
-          res1.dt[, N_counties := uniqueN(data.est, by = c("fips_state", "fips_county"))]
-          res1.dt[, N_years := uniqueN(data.est, by = c("year"))]
-          res1.dt[, N_county_modules := uniqueN(data.est, by = c("fips_state", "fips_county",
-                                                                 "product_module_code"))]
-          LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-          fwrite(LRdiff_res, results.file.spillovers)
-        }
       }
     }
   }
