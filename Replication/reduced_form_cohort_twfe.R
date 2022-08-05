@@ -145,13 +145,12 @@ reg.output.co <- function(X, dep.var, indep.var, data, FE, w) {
   if (nrow(co.data[!is.na(get(dep.var)) & !is.na(get(w))]) < 3) {
     
     res1.dt <- data.table(
-      Estimate = coef(summary(res1))[ indep.var, "Estimate"],
-      `Std. Error` = coef(summary(res1))[ indep.var, "Std. Error"],
-      `Pr(>|t|)` = coef(summary(res1))[ indep.var, "Pr(>|t|)"],
+      Estimate = NA,
+      `Std. Error` = NA,
+      `Pr(>|t|)` = NA,
       outcome = dep.var,
-      cohort = indep.var,
+      cohort = X,
       `FE` = FE)
-    
     
   }
   else {
@@ -168,7 +167,7 @@ reg.output.co <- function(X, dep.var, indep.var, data, FE, w) {
         `Std. Error` = coef(summary(res1))[ indep.var, "Std. Error"],
         `Pr(>|t|)` = coef(summary(res1))[ indep.var, "Pr(>|t|)"],
         outcome = dep.var,
-        cohort = indep.var,
+        cohort = X,
         `FE` = FE)
       
     } else { # just in case...
@@ -178,14 +177,14 @@ reg.output.co <- function(X, dep.var, indep.var, data, FE, w) {
         `Std. Error` = NA,
         `Pr(>|t|)` = NA,
         outcome = dep.var,
-        cohort = indep.var,
+        cohort = X,
         `FE` = FE)
       
     }
     
-    res1.dt[, paste0(w) := sum(data[get(FE) == indep.var,][[w]])]
+    res1.dt[, paste0(w) := sum(data[get(FE) == X,][[w]])]
     if ("base.sales" %in% colnames(data) & "sales" %in% colnames(data)) {
-      res1.dt[, sales := sum(data[get(FE) == indep.var,]$sales)]
+      res1.dt[, sales := sum(data[get(FE) == X,]$sales)]
     }
     
   }
