@@ -102,22 +102,11 @@ yearly_data[, D.ln_cpricei2 := ln_cpricei2 - shift(ln_cpricei2, n=1, type="lag")
             by = .(store_code_uc, product_module_code)]
 yearly_data[, D.ln_quantity3 := ln_quantity3 - shift(ln_quantity3, n=1, type="lag"),
             by = .(store_code_uc, product_module_code)]
-# Leads and lags of FD
-for (lag.val in 1:2) {
-  lag.X <- paste0("L", lag.val, "D.ln_statutory_tax")
-  yearly_data[, (lag.X) := shift(D.ln_statutory_tax, n=lag.val, type="lag"),
-              by = .(store_code_uc, product_module_code)]
-  
-  
-  lead.X <- paste0("F", lag.val, "D.ln_statutory_tax")
-  yearly_data[, (lead.X) := shift(D.ln_statutory_tax, n=lag.val, type="lead"),
-              by = .(store_code_uc, product_module_code)]
-  
-}
+
 
 # Define samples
 yearly_data[, all := 1]
-yearly_data[(year > 2008 & year < 2015), non_imp_tax := 1]
+yearly_data[(year > 2007 & year < 2015), non_imp_tax := 1]
 
 
 ## Prepare regressions
@@ -147,6 +136,22 @@ for (s in samples) {
     print(nrow(sample))
     print(nrow(sample[!is.na(D.ln_statutory_tax) & is.finite(D.ln_statutory_tax) ]))
     print(mean(sample[is.finite(D.ln_statutory_tax)]$D.ln_statutory_tax, na.rm = T))
+    
+    
+    sample <- sample[order(store_code_uc, product_module_code, year),] ##Sort on store by year (in ascending order)
+    # Leads and lags of FD
+    for (lag.val in 1:2) {
+      lag.X <- paste0("L", lag.val, "D.ln_statutory_tax")
+      sample[, (lag.X) := shift(D.ln_statutory_tax, n=lag.val, type="lag"),
+                  by = .(store_code_uc, product_module_code)]
+      
+      
+      lead.X <- paste0("F", lag.val, "D.ln_statutory_tax")
+      sample[, (lead.X) := shift(D.ln_statutory_tax, n=lag.val, type="lead"),
+                  by = .(store_code_uc, product_module_code)]
+      
+    }
+    
     
     for (Y in c(outcomes)) {
       for (FE in FE_opts) {
