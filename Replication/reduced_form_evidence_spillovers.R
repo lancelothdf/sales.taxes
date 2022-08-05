@@ -160,7 +160,7 @@ for (s in samples) {
                      weights = sample$base.sales)
         flog.info("Finished estimating with %s as outcome with %s FE in samples %s and %s.", Y, FE, s, sam)
         
-        
+        print(summary(res1))
         
         ## attach results
         flog.info("Writing results...")
