@@ -147,7 +147,7 @@ for (rep in 1:200) {
   
   for (fe in FE_opts) {
     ## Remake list of unique division/region by module by time
-    c_ids <- unique(sort(sampled.data[[FE]])) ## Define cohorts based on YearXsemesterXmoduleXCensus division/Region
+    c_ids <- unique(sort(sampled.data[[fe]])) ## Define cohorts based on YearXsemesterXmoduleXCensus division/Region
     for (y in c(outcomes)) {
   
       flog.info("Estimating on %s using %s as FE", y, fe)
