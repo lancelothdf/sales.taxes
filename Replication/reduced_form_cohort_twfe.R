@@ -22,10 +22,6 @@ all_goods_pi_path <- "Data/Nielsen/price_quantity_indices_allitems_2006-2016_not
 old_pi_path <- "Data/Nielsen/Quarterly_old_pi.csv"
 #' This data is the same as all_goods_pi_path, except it has 2015-2016 data as well.
 
-######## !!!!!! ############
-data.full.path <- "Data/Nielsen/semester_nielsen_data.csv"
-#data.full.path <- "LRdiff_semesterly_COUNTY_random.csv"
-
 
 ## output filepaths ----------------------------------------------
 # output.results.file.fs <- "Data/Cohort_TWFE_fs.csv" ### Main results
@@ -59,6 +55,9 @@ all_pi <- all_pi[, list(w.ln_cpricei2 = weighted.mean(w.ln_cpricei2, w = base.sa
                  by = .(fips_state, fips_county, product_module_code, year, semester,
                         region_by_module_by_time, division_by_module_by_time, module_by_state,
                         cal_time)]
+
+# Save data: for paralleling
+fwrite(all_pi, "Data/Replication/all_pi_county.csv")
 
 ## By-cohort TWFE
 outcomes <- c("w.ln_cpricei2", "w.ln_quantity3", "w.ln_pricei2")
