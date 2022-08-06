@@ -156,7 +156,7 @@ for (rep in 1:200) {
                         data = sampled.data, FE = fe, w = "base.sales",
                         simplify = F, mc.cores = numCores)
       flog.info("Writing results...")
-      res1.dt = as.data.table(data.table::rbindlist(res.l))
+      res1.dt = as.data.table(data.table::rbindlist(res.l, fill = T))
       res1.dt[, iter := rep]
       LRdiff_boot <- rbind(LRdiff_boot, res1.dt, fill = T)
       fwrite(LRdiff_boot, boot.results.file)
