@@ -209,7 +209,7 @@ for (fe in FE_opts) {
                     data = all_pi, FE = fe, w = "base.sales",
                     simplify = F)
     flog.info("Writing results...")
-    res1.dt = as.data.table(data.table::rbindlist(res.l), fill = T)
+    res1.dt = as.data.table(data.table::rbindlist(res.l, fill = T))
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
     fwrite(LRdiff_res, output.results.file)
   }
