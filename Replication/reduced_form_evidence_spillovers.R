@@ -159,7 +159,18 @@ for (s in samples) {
                   by = .(store_code_uc, product_module_code)]
       
     }
-    
+    # Lags of FD of controls
+    for (lag.val in 1:2) {
+      
+      lag.X <- paste0("L", lag.val, ".D.ln_home_price")
+      sample[, (lag.X) := shift(D.ln_home_price, n=lag.val, type="lag"),
+             by = .(store_code_uc, product_module_code)]
+      
+      lag.X <- paste0("L", lag.val, ".D.ln_unemp")
+      sample[, (lag.X) := shift(D.ln_unemp, n=lag.val, type="lag"),
+             by = .(store_code_uc, product_module_code)]
+      
+    }    
     
     for (Y in c(outcomes)) {
       for (FE in FE_opts) {
@@ -169,18 +180,7 @@ for (s in samples) {
           
           if (i>0) {
             
-            # Lags of FD of controls
-            for (lag.val in 1:2) {
-              
-              lag.X <- paste0("L", lag.val, ".D.ln_home_price")
-              sample[, (lag.X) := shift(D.ln_home_price, n=lag.val, type="lag"),
-                     by = .(store_code_uc, product_module_code)]
-              
-              lag.X <- paste0("L", lag.val, ".D.ln_unemp")
-              sample[, (lag.X) := shift(D.ln_unemp, n=lag.val, type="lag"),
-                     by = .(store_code_uc, product_module_code)]
-              
-            }
+
             
             # Create list of economic controls  
             lag.home <- paste(paste0("L", i:1, ".D.ln_home_price"), collapse = " + ")

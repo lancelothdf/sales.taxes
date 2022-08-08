@@ -79,7 +79,7 @@ for (n.g in 1:3) {
       all_pi[, wVAR := weighted.mean((w.ln_sales_tax - 
                                            weighted.mean(w.ln_sales_tax, 
                                                          w = base.sales, na.rm = T))^2,
-                                        w = base.sales, na.rm = T), by = paste0(FE)]
+                                        w = base.sales, na.rm = T), by = FE]
       all_pi[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]
       # Weight normalized within quantile
       all_pi[, base.sales.q := (wVAR*base.sales)/sum(wVAR*base.sales), by = .(quantile)]
@@ -185,7 +185,7 @@ for (rep in 1:100) {
         sampled.data[, wVAR := weighted.mean((w.ln_sales_tax - 
                                                   weighted.mean(w.ln_sales_tax, 
                                                                 w = base.sales, na.rm = T))^2,
-                                               w = base.sales, na.rm = T), by = paste0(FE)]
+                                               w = base.sales, na.rm = T), by = FE]
         sampled.data[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]
         # Weight normalized within quantile
         sampled.data[, base.sales.q := (wVAR*base.sales)/sum(wVAR*base.sales), by = .(quantile)]
