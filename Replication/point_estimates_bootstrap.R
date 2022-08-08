@@ -17,6 +17,7 @@ rm(list = ls())
 ## input filepath ----------------------------------------------
 all_pi <- fread("Data/Replication/all_pi.csv")
 
+
 ## output filepath ----------------------------------------------
 theta.output.results.file <- "Data/Replication/Demand_theta_sat_initial_price_semester_boot_r.csv"
 theta.bernstein <- "Data/Replication/Demand_gamma_sat_initial_price_semester_boot_r_K"
@@ -26,6 +27,8 @@ iv.output.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester
 outcomes <- c("w.ln_cpricei2", "w.ln_quantity3")
 FE_opts <- c("group_region_by_module_by_time", "group_division_by_module_by_time")
 
+## We only want to use the "true" tax variation
+all_pi <- all_pi[non_imp_tax == 1]
 
 LRdiff_res <- data.table(NULL)
 target_res <- data.table(NULL)
