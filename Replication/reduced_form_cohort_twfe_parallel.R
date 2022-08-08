@@ -96,6 +96,7 @@ reg.output.co <- function(X, dep.var, indep.var, data, FE, w) {
   }
   
   
+  
   return(res1.dt)
 }
 
@@ -183,8 +184,8 @@ for (rep in 1:200) {
       ), 
       by = .(outcome, FE)]
       
-      data[, iter := rep]
-      LRdiff_boot <- rbind(LRdiff_boot, data, fill = T)
+      mean.est[, iter := rep]
+      LRdiff_boot <- rbind(LRdiff_boot, mean.est, fill = T)
       fwrite(LRdiff_boot, boot.results.file)
     }
   }
