@@ -1,6 +1,6 @@
 ##### Wesley Janson and Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 7/30/2022
+#' Replication File. Updated on 8/8/2022
 #' Step 3: Reduced Form Evidence with spillovers portion of replication
 
 library(data.table)

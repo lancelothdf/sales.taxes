@@ -1,20 +1,15 @@
-##### Wesley Janson
+##### Wesley Janson and Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 5/21/2022
+#' Replication File. Updated on 8/8/2022
 #' Step 6: Point identification/main estimates and bootstrap portion of replication
 
 library(data.table)
 library(futile.logger)
 library(lfe)
-library(multcomp)
 library(Matrix)
 library(zoo)
 library(tidyverse)
 library(stringr)
-library(nloptr)
-library(doParallel)
-library(MASS)
-library(pracma)
 
 setwd("/project2/igaarder")
 rm(list = ls())
@@ -36,7 +31,7 @@ LRdiff_res <- data.table(NULL)
 target_res <- data.table(NULL)
 ## Run within
 flog.info("Iteration 0")
-for (n.g in 1:5) {
+for (n.g in 1:3) {
   
   # Create groups of initial values of tax rate
   # We use the full weighted distribution
@@ -78,8 +73,17 @@ for (n.g in 1:5) {
     
     ## Estimate the matrix of the implied system of equations
     if (n.g > 1) {
-      # Get the empirical distribution of prices by quantile
-      all_pi[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
+      ## Get the empirical distribution of prices by quantile, weighted properly by base.sales \times 
+      # start by creating the weights and normalizing them 
+      # Part 1 of weight: (base.sales) weighted variance of de-meaned sales tax within cohort (FE)
+      all_pi[, wVAR := weighted.mean((w.ln_sales_tax - 
+                                           weighted.mean(w.ln_sales_tax, 
+                                                         w = base.sales, na.rm = T))^2,
+                                        w = base.sales, na.rm = T), by = paste0(FE)]
+      all_pi[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]
+      # Weight normalized within quantile
+      all_pi[, base.sales.q := (wVAR*base.sales)/sum(wVAR*base.sales), by = .(quantile)]
+      # To compute the empirical distribution of prices, we need to bin the support.
       all_pi[, p_group := floor((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500)), by = .(quantile)]
       all_pi[, p_ll := p_group*((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500), by = .(quantile)]
       all_pi[, p_ll := p_ll + min(dm.ln_cpricei2, na.rm = T), by = .(quantile)]
@@ -132,7 +136,7 @@ for (rep in 1:100) {
   # Merge data to actual data
   sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
   
-  for (n.g in 1:5) {
+  for (n.g in 1:3) {
     
     # Create groups of initial values of tax rate
     # We use the full weighted distribution
@@ -175,8 +179,17 @@ for (rep in 1:100) {
       ## Estimate the matrix of the implied system of equations
       if (n.g > 1) {
         
-        # Get the empirical distribution of prices by quantile
-        sampled.data[, base.sales.q := base.sales/sum(base.sales), by = .(quantile)]
+        ## Get the empirical distribution of prices by quantile, weighted properly by base.sales \times 
+        # start by creating the weights and normalizing them 
+        # Part 1 of weight: (base.sales) weighted variance of de-meaned sales tax within cohort (FE)
+        sampled.data[, wVAR := weighted.mean((w.ln_sales_tax - 
+                                                  weighted.mean(w.ln_sales_tax, 
+                                                                w = base.sales, na.rm = T))^2,
+                                               w = base.sales, na.rm = T), by = paste0(FE)]
+        sampled.data[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]
+        # Weight normalized within quantile
+        sampled.data[, base.sales.q := (wVAR*base.sales)/sum(wVAR*base.sales), by = .(quantile)]
+        # To compute the empirical distribution of prices, we need to bin the support.
         sampled.data[, p_group := floor((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500)), by = .(quantile)]
         sampled.data[, p_ll := p_group*((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500), by = .(quantile)]
         sampled.data[, p_ll := p_ll + min(dm.ln_cpricei2, na.rm = T), by = .(quantile)]
