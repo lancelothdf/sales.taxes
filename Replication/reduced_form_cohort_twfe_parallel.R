@@ -156,9 +156,35 @@ for (rep in 1:200) {
                         data = sampled.data, FE = fe, w = "base.sales",
                         simplify = F, mc.cores = numCores)
       flog.info("Writing results...")
-      res1.dt = as.data.table(data.table::rbindlist(res.l, fill = T))
-      res1.dt[, iter := rep]
-      LRdiff_boot <- rbind(LRdiff_boot, res1.dt, fill = T)
+      data = as.data.table(data.table::rbindlist(res.l, fill = T))
+      # LRdiff_boot <- rbind(LRdiff_boot, res1.dt, fill = T) # We used to save everything. This is a memory killer
+      ## Produce a table of mean estimates
+      setnames(data, old = c("Estimate", "Std. Error"), new = c("estimate", "se"))
+      data[, invse := 1/se]
+      data[is.na(invse) | is.infinite(invse), invse := 0]
+      data[, invse_bs := invse*base.sales]
+      data[, invvar := invse^2]
+      data[, invvar_bs := invvar*base.sales]
+      data[, varX := ifelse(wVAR == 0 | is.na(wVAR), 0, wVAR)]
+      data[, seX := varX^.5]
+      data[, varX_bs := varX*base.sales]
+      data[, seX_bs := seX*base.sales]
+      
+      mean.est <- data[, .(est = mean(estimate, na.rm = T),
+                           west.bs = weighted.mean(estimate, w = base.sales, na.rm = T),
+                           west.invvar = weighted.mean(estimate, w = invvar, na.rm = T),
+                           west.invse = weighted.mean(estimate, w = invse, na.rm = T),
+                           west.invvar_bs = weighted.mean(estimate, w = invvar_bs, na.rm = T),
+                           west.invse_bs = weighted.mean(estimate, w = invse_bs, na.rm = T),
+                           west.varX = weighted.mean(estimate, w = varX, na.rm = T),
+                           west.seX = weighted.mean(estimate, w = seX, na.rm = T),
+                           west.varX_bs = weighted.mean(estimate, w = varX_bs, na.rm = T),
+                           west.seX_bs = weighted.mean(estimate, w = seX_bs, na.rm = T)
+      ), 
+      by = .(outcome, FE)]
+      
+      data[, iter := rep]
+      LRdiff_boot <- rbind(LRdiff_boot, data, fill = T)
       fwrite(LRdiff_boot, boot.results.file)
     }
   }
