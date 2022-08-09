@@ -119,4 +119,58 @@ for (n.g in 1:5) {
 
 ### Bootstrap (only IV estimates) ----
 
+### Start manual bootstrap
+set.seed(2019)
+ids <- unique(all_pi$module_by_state)
+LRdiff_res <- data.table(NULL)
 
+for (rep in 1:100) {
+  
+  flog.info("Iteration %s", rep)
+  
+  # Sample by block
+  sampled.ids <- data.table(sample(ids, replace = T))
+  setnames(sampled.ids, old= "V1", new = "module_by_state")
+  
+  # Merge data to actual data
+  sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
+  
+  for (n.g in 1:5) {
+    # Create groups of initial values of tax rate
+    # We use the full weighted distribution
+    sampled.data <- sampled.data[, quantile := cut(dm.L.ln_cpricei2,
+                                       breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
+                                       labels = 1:n.g, right = FALSE)]
+    quantlab <- round(quantile(sampled.data$dm.L.ln_cpricei2, 
+                               probs = seq(0, 1, by = 1/n.g), na.rm = T, 
+                               weight = sampled.data$base.sales), digits = 4)
+    
+    ## Estimate RF and FS
+    for (FE in FE_opts) {
+      
+      ## Produce IVs
+      for (q in unique(sampled.data$quantile)) {
+        if (nrow(sampled.data[quantile == q]) > 0) {
+          formula1 <- as.formula(paste0("w.ln_quantity3 ~ 0 | ", 
+                                        FE, 
+                                        " | (w.ln_cpricei2 ~ w.ln_sales_tax) | module_by_state"))
+          res1 <- felm(formula = formula1, data = sampled.data[quantile == q],
+                       weights = sampled.data[quantile == q]$base.sales)
+          
+          ## attach results
+          res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+          res1.dt[, controls := FE]
+          res1.dt[, group := q]
+          res1.dt[, n.groups := n.g]
+          res1.dt[, iter := rep]
+          
+          LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+          fwrite(LRdiff_res, iv.output.results.file.boot)
+          
+        }
+        
+      }
+    }
+  }
+  
+}
