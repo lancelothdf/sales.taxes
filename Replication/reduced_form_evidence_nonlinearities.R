@@ -94,9 +94,9 @@ for (n.g in 1:5) {
     
     ## Produce IVs
     for (q in unique(all_pi$quantile)) {
-      formula1 <- as.formula(paste0("w.ln_quantity3 ~ w.ln_cpricei2 | ", 
+      formula1 <- as.formula(paste0("w.ln_quantity3 ~ 0 | ", 
                                     FE, 
-                                    " | w.ln_cpricei2 ~ w.ln_sales_tax | module_by_state"))
+                                    " | (w.ln_cpricei2 ~ w.ln_sales_tax) | module_by_state"))
       res1 <- felm(formula = formula1, data = all_pi[quantile == q],
                    weights = all_pi[quantile == q]$base.sales)
       
