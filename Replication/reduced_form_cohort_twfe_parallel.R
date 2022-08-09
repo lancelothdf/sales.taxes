@@ -102,8 +102,7 @@ reg.output.co <- function(X, dep.var, indep.var, data, FE, w) {
 # Use "try" to paralleling
 reg.output.co.par <- function(X, dep.var, indep.var, data, FE, w) {
   res <- try(reg.output.co.par(X, dep.var, indep.var, data, FE, w))
-  if (is.data.table(res)) return(res)
-  else {
+  if (class(res) == "try-error") { 
     res1.dt <- data.table(
       Estimate = NA,
       `Std. Error` = NA,
@@ -114,8 +113,8 @@ reg.output.co.par <- function(X, dep.var, indep.var, data, FE, w) {
       wVAR = 0
       )
     res1.dt[, paste0(w) := 0]
-    
   }
+  else return(res)
 }
 
 
