@@ -4,6 +4,7 @@
 #' This Code is the main driver file for replicating the
 #' full code. We call individual scripts to perform specific
 #' tasks here.
+#' Evidently, when running in the server, we will need to sbatch jobs
 
 
 
@@ -17,6 +18,7 @@ source("reduced_form_evidence_spillovers.R") #DONE
 source("cross_section_retailer.R") #DONE
 source("cross_section_consumer_panel.R") #DONE
 source("twfe_pre_trends.R") #DONE
+source("reduced_form_cohort_twfe_parallel.R") #DONE
 source("point_estimates_bootstrap.R")
 
 

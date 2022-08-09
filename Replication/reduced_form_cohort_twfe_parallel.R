@@ -84,14 +84,14 @@ reg.output.co <- function(X, dep.var, indep.var, data, FE, w) {
     }
     
     
-    res1.dt[, paste0(w) := sum(data[get(FE) == X,][[w]])]
-    if ("base.sales" %in% colnames(data) & "sales" %in% colnames(data)) {
-      res1.dt[, sales := sum(data[get(FE) == X,]$sales)]
+    res1.dt[, paste0(w) := sum(co.data[[w]])]
+    if ("base.sales" %in% colnames(co.data) & "sales" %in% colnames(co.data)) {
+      res1.dt[, sales := sum(co.data$sales)]
     }
-    res1.dt[, "wVAR" := weighted.mean((data[get(FE) == X,][[indep.var]] - 
-                                            weighted.mean(data[get(FE) == X,][[indep.var]], 
-                                                          w = data[get(FE) == X,][[w]], na.rm = T))^2,
-                                         w = data[get(FE) == X,][[w]], na.rm = T)]
+    res1.dt[, "wVAR" := weighted.mean((co.data[[indep.var]] - 
+                                            weighted.mean(co.data[[indep.var]], 
+                                                          w = co.data[[w]], na.rm = T))^2,
+                                         w = co.data[[w]], na.rm = T)]
     
   }
   

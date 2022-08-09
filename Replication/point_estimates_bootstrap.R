@@ -20,7 +20,6 @@ all_pi <- fread("Data/Replication/all_pi.csv")
 
 ## output filepath ----------------------------------------------
 theta.output.results.file <- "Data/Replication/Demand_theta_sat_initial_price_semester_boot_r.csv"
-theta.bernstein <- "Data/Replication/Demand_gamma_sat_initial_price_semester_boot_r_K"
 iv.output.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_boot_r.csv"
 
 ### 6. Point identification (K = L). L= 1, ..., 5 Main estimates and Bootstrap -----------
