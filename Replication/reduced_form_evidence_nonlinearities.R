@@ -94,20 +94,23 @@ for (n.g in 1:5) {
     
     ## Produce IVs
     for (q in unique(all_pi$quantile)) {
-      formula1 <- as.formula(paste0("w.ln_quantity3 ~ 0 | ", 
-                                    FE, 
-                                    " | (w.ln_cpricei2 ~ w.ln_sales_tax) | module_by_state"))
-      res1 <- felm(formula = formula1, data = all_pi[quantile == q],
-                   weights = all_pi[quantile == q]$base.sales)
-      
-      ## attach results
-      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-      res1.dt[, controls := FE]
-      res1.dt[, group := q]
-      res1.dt[, n.groups := n.g]
-      
-      LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-      fwrite(LRdiff_res, iv.output.results.file)
+      if (nrow(all_pi[quantile == q] > 0)) {
+        formula1 <- as.formula(paste0("w.ln_quantity3 ~ 0 | ", 
+                                      FE, 
+                                      " | (w.ln_cpricei2 ~ w.ln_sales_tax) | module_by_state"))
+        res1 <- felm(formula = formula1, data = all_pi[quantile == q],
+                     weights = all_pi[quantile == q]$base.sales)
+        
+        ## attach results
+        res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+        res1.dt[, controls := FE]
+        res1.dt[, group := q]
+        res1.dt[, n.groups := n.g]
+        
+        LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+        fwrite(LRdiff_res, iv.output.results.file)
+        
+      }
 
     }
   }
