@@ -116,6 +116,7 @@ reg.output.co.par <- function(X, dep.var, indep.var, data, FE, w) {
       wVAR = 0
       )
     res1.dt[, paste0(w) := 0]
+    return(res1.dt)
   }
   else return(res)
 }
