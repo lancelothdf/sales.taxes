@@ -95,10 +95,29 @@ reg.output.co <- function(X, dep.var, indep.var, data, FE, w) {
     
   }
   
-  
-  
   return(res1.dt)
 }
+
+
+# Use "try" to paralleling
+reg.output.co.par <- function(X, dep.var, indep.var, data, FE, w) {
+  res <- try(reg.output.co.par(X, dep.var, indep.var, data, FE, w))
+  if (is.data.table(res)) return(res)
+  else {
+    res1.dt <- data.table(
+      Estimate = NA,
+      `Std. Error` = NA,
+      `Pr(>|t|)` = NA,
+      outcome = dep.var,
+      cohort = X,
+      `FE` = FE,
+      wVAR = 0
+      )
+    res1.dt[, paste0(w) := 0]
+    
+  }
+}
+
 
 
 # An mc-version of the sapply function.
@@ -152,7 +171,7 @@ for (rep in 1:200) {
     for (y in c(outcomes)) {
   
       flog.info("Estimating on %s using %s as FE", y, fe)
-      res.l <- mcsapply(c_ids, FUN = reg.output.co, 
+      res.l <- mcsapply(c_ids, FUN = reg.output.co.par, 
                         dep.var = y, indep.var = "w.ln_sales_tax", 
                         data = sampled.data, FE = fe, w = "base.sales",
                         simplify = F, mc.cores = numCores)
