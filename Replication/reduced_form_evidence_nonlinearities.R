@@ -93,12 +93,12 @@ for (n.g in 1:5) {
     fwrite(empirical_price_dist, output.emp.price.dist)    
     
     ## Produce IVs
-    for (q in 1:n.g) {
+    for (q in unique(all_pi$quantile)) {
       formula1 <- as.formula(paste0("w.ln_quantity3 ~ w.ln_cpricei2 | ", 
                                     FE, 
                                     " | w.ln_sales_tax | module_by_state"))
       res1 <- felm(formula = formula1, data = all_pi[quantile == q],
-                   weights = all_pi$base.sales[quantile == q])
+                   weights = all_pi[quantile == q]$base.sales)
       
       ## attach results
       res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
