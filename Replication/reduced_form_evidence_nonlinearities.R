@@ -94,7 +94,7 @@ for (n.g in 1:5) {
     
     ## Produce IVs
     for (q in unique(all_pi$quantile)) {
-      if (nrow(all_pi[quantile == q] > 0)) {
+      if (nrow(all_pi[quantile == q]) > 0) {
         formula1 <- as.formula(paste0("w.ln_quantity3 ~ 0 | ", 
                                       FE, 
                                       " | (w.ln_cpricei2 ~ w.ln_sales_tax) | module_by_state"))
