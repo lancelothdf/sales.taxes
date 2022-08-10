@@ -178,6 +178,8 @@ for (rep in 1:200) {
                         dep.var = y, indep.var = "w.ln_sales_tax", 
                         data = sampled.data, FE = fe, w = "base.sales",
                         simplify = F, mc.cores = numCores)
+      print(class(res.l))
+      
       flog.info("Writing results...")
       data = data.table::rbindlist(res.l, fill = T)
       
@@ -196,6 +198,7 @@ for (rep in 1:200) {
       data[, varX_bs := varX*base.sales]
       data[, seX_bs := seX*base.sales]
       
+      head(data)
       mean.est <- data[, .(est = mean(estimate, na.rm = T),
                            west.bs = weighted.mean(estimate, w = base.sales, na.rm = T),
                            west.invvar = weighted.mean(estimate, w = invvar, na.rm = T),
@@ -209,6 +212,7 @@ for (rep in 1:200) {
       ), 
       by = .(outcome, FE)]
       
+      head(mean.est)
       mean.est[, iter := rep]
       LRdiff_boot <- rbind(LRdiff_boot, mean.est, fill = T)
       fwrite(LRdiff_boot, boot.results.file)
