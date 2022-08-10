@@ -104,7 +104,7 @@ reg.output.co.par <- function(X, dep.var, indep.var, data, FE, w) {
   res <- try(reg.output.co.par(X = X, dep.var = dep.var, 
                                indep.var = indep.var, 
                                data = data, FE = FE, w = w),
-             silent = T)
+             silent = F)
   if (class(res) == "try-error") { 
     res1.dt <- data.table(
       Estimate = NA,
@@ -141,7 +141,7 @@ for (fe in FE_opts) {
   c_ids <- unique(sort(all_pi[[fe]])) ## Define cohorts based on YearXsemesterXmoduleXCensus Region/division
   for (y in c(outcomes)) {
     flog.info("Iteration 0. Estimating on %s using %s as FE", y, fe)
-    res.l <- mcsapply(c_ids, FUN = reg.output.co, 
+    res.l <- mcsapply(c_ids, FUN = reg.output.co.par, 
                       dep.var = y, indep.var = "w.ln_sales_tax", 
                       data = all_pi, FE = fe, w = "base.sales",
                       simplify = F, mc.cores = numCores)
