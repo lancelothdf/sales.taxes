@@ -144,8 +144,8 @@ for (fe in FE_opts) {
   c_ids <- unique(sort(all_pi[[fe]])) ## Define cohorts based on YearXsemesterXmoduleXCensus Region/division
   
   # make data a list for each cohort (so only a subset of data is sent to each core)
-  data.list <- mcsapply(c_ids, FUN = rel.dat ,data = all_pi, 
-                        FE = fe, mc.cores = numCores, simplify = F)
+  data.list <- sapply(c_ids, FUN = rel.dat ,data = all_pi, 
+                        FE = fe, simplify = F)
   
   for (y in c(outcomes)) {
     flog.info("Iteration 0. Estimating on %s using %s as FE", y, fe)
@@ -181,8 +181,8 @@ for (rep in 1:200) {
     ## Remake list of unique division/region by module by time
     c_ids <- unique(sort(sampled.data[[fe]])) ## Define cohorts based on YearXsemesterXmoduleXCensus division/Region
     # make data a list for each cohort (so only a subset of data is sent to each core)
-    data.list <- mcsapply(c_ids, FUN = rel.dat ,data = sampled.data, 
-                          FE = fe, simplify = F, mc.cores = numCores)
+    data.list <- sapply(c_ids, FUN = rel.dat ,data = sampled.data, 
+                          FE = fe, simplify = F)
     
     for (y in c(outcomes)) {
   
