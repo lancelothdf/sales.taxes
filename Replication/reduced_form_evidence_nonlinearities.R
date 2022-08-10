@@ -88,6 +88,7 @@ for (n.g in 1:5) {
     
     prices_densities <- merge(d1, d2, by.x = c("d.lp", "quantile"), by.y = c("d.n.lp", "quantile"))
     prices_densities[, n.groups := n.g]
+    prices_densities[, controls := FE]
     
     empirical_price_dist<- rbind(empirical_price_dist, prices_densities)
     fwrite(empirical_price_dist, output.emp.price.dist)    

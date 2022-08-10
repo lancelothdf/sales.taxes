@@ -85,7 +85,7 @@ reg.output.co <- function(X, dep.var, indep.var, data, FE, w) {
     
     
     res1.dt[, paste0(w) := sum(co.data[[w]])]
-    if ("base.sales" %in% colnames(co.data) & "sales" %in% colnames(co.data)) {
+    if ("sales" %in% colnames(co.data)) {
       res1.dt[, sales := sum(co.data$sales)]
     }
     res1.dt[, "wVAR" := weighted.mean((co.data[[indep.var]] - 
@@ -179,7 +179,10 @@ for (rep in 1:200) {
                         data = sampled.data, FE = fe, w = "base.sales",
                         simplify = F, mc.cores = numCores)
       flog.info("Writing results...")
-      data = as.data.table(data.table::rbindlist(res.l, fill = T))
+      data = data.table::rbindlist(res.l, fill = T)
+      
+      head(data)
+      
       # LRdiff_boot <- rbind(LRdiff_boot, res1.dt, fill = T) # We used to save everything. This is a memory killer
       ## Produce a table of mean estimates
       setnames(data, old = c("Estimate", "Std. Error"), new = c("estimate", "se"))
