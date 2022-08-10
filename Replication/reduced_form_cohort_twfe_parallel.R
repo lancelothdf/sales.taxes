@@ -34,31 +34,34 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 ####### Alternative: separate by-cohort county-level ------
 
+# Function to capture relevant data
+rel.dat <- function(X, data, FE){
+  return(data[get(FE) == X])
+}
+
 # Function to capture estimates for given cohort, to use in apply environment
-reg.output.co <- function(X, dep.var, indep.var, data, FE, w) {
+reg.output.co <- function(data, dep.var, indep.var, FE, w) {
   
   # Capture formula
   formula1 <- as.formula(paste0(dep.var, " ~ ", indep.var))
-  # Capture subset of data relevant
-  co.data <- data[get(FE) == X,]
 
   # Check number of observations. Don't even estimate if N < 3
-  if (nrow(co.data[!is.na(get(dep.var)) & !is.na(get(w))]) < 3) {
+  if (nrow(data[!is.na(get(dep.var)) & !is.na(get(w))]) < 3) {
     
     res1.dt <- data.table(
       Estimate = NA,
       `Std. Error` = NA,
       `Pr(>|t|)` = NA,
       outcome = dep.var,
-      cohort = X,
+      cohort = unique(data[[FE]]),
       `FE` = FE)
     
   }
   else {
     # Run regression
     res1 <- lm(formula = formula1, 
-               data = co.data,
-               weights = co.data[[w]])
+               data = data,
+               weights = data[[w]])
     
     ## Store results
     if(!is.na(coef(res1)[2])) {
@@ -68,7 +71,7 @@ reg.output.co <- function(X, dep.var, indep.var, data, FE, w) {
         `Std. Error` = coef(summary(res1))[ indep.var, "Std. Error"],
         `Pr(>|t|)` = coef(summary(res1))[ indep.var, "Pr(>|t|)"],
         outcome = dep.var,
-        cohort = X,
+        cohort = unique(data[[FE]]),
         `FE` = FE)
       
     } else { # just in case...
@@ -78,48 +81,48 @@ reg.output.co <- function(X, dep.var, indep.var, data, FE, w) {
         `Std. Error` = NA,
         `Pr(>|t|)` = NA,
         outcome = dep.var,
-        cohort = X,
+        cohort = unique(data[[FE]]),
         `FE` = FE)
       
     }
     
     
-    res1.dt[, paste0(w) := sum(co.data[[w]])]
-    if ("sales" %in% colnames(co.data)) {
-      res1.dt[, sales := sum(co.data$sales)]
+    res1.dt[, paste0(w) := sum(data[[w]])]
+    if ("sales" %in% colnames(data)) {
+      res1.dt[, sales := sum(data$sales)]
     }
-    res1.dt[, "wVAR" := weighted.mean((co.data[[indep.var]] - 
-                                            weighted.mean(co.data[[indep.var]], 
-                                                          w = co.data[[w]], na.rm = T))^2,
-                                         w = co.data[[w]], na.rm = T)]
+    res1.dt[, "wVAR" := weighted.mean((data[[indep.var]] - 
+                                            weighted.mean(data[[indep.var]], 
+                                                          w = data[[w]], na.rm = T))^2,
+                                         w = data[[w]], na.rm = T)]
     
   }
   
   return(res1.dt)
 }
 
-
-# Use "try" to paralleling
-reg.output.co.par <- function(X, dep.var, indep.var, data, FE, w) {
-  res <- try(reg.output.co.par(X = X, dep.var = dep.var, 
-                               indep.var = indep.var, 
-                               data = data, FE = FE, w = w),
-             silent = F)
-  if (class(res) == "try-error") { 
-    res1.dt <- data.table(
-      Estimate = NA,
-      `Std. Error` = NA,
-      `Pr(>|t|)` = NA,
-      outcome = dep.var,
-      cohort = X,
-      `FE` = FE,
-      wVAR = 0
-      )
-    res1.dt[, paste0(w) := 0]
-    return(res1.dt)
-  }
-  else return(res)
-}
+# 
+# # Use "try" to paralleling
+# reg.output.co.par <- function(data, dep.var, indep.var, FE, w) {
+#   res <- try(reg.output.co.par(data = data, dep.var = dep.var, 
+#                                indep.var = indep.var, 
+#                                FE = FE, w = w),
+#              silent = T)
+#   if (class(res) == "try-error") { 
+#     res1.dt <- data.table(
+#       Estimate = NA,
+#       `Std. Error` = NA,
+#       `Pr(>|t|)` = NA,
+#       outcome = dep.var,
+#       cohort = X,
+#       `FE` = FE,
+#       wVAR = 0
+#       )
+#     res1.dt[, paste0(w) := 0]
+#     return(res1.dt)
+#   }
+#   else return(res)
+# }
 
 
 
@@ -139,11 +142,17 @@ LRdiff_res <- data.table(NULL)
 for (fe in FE_opts) {
 
   c_ids <- unique(sort(all_pi[[fe]])) ## Define cohorts based on YearXsemesterXmoduleXCensus Region/division
+  
+  # make data a list for each cohort (so only a subset of data is sent to each core)
+  data.list <- mcsapply(c_ids, FUN = rel.dat ,data = all_pi, 
+                        FE = fe, mc.cores = numCores, simplify = F)
+  
   for (y in c(outcomes)) {
     flog.info("Iteration 0. Estimating on %s using %s as FE", y, fe)
-    res.l <- mcsapply(c_ids, FUN = reg.output.co.par, 
+    # run for list of data sets
+    res.l <- mcsapply(data.list, FUN = reg.output.co, 
                       dep.var = y, indep.var = "w.ln_sales_tax", 
-                      data = all_pi, FE = fe, w = "base.sales",
+                      FE = fe, w = "base.sales",
                       simplify = F, mc.cores = numCores)
     flog.info("Writing results...")
     res1.dt = as.data.table(data.table::rbindlist(res.l, fill = T))
@@ -171,16 +180,22 @@ for (rep in 1:200) {
   for (fe in FE_opts) {
     ## Remake list of unique division/region by module by time
     c_ids <- unique(sort(sampled.data[[fe]])) ## Define cohorts based on YearXsemesterXmoduleXCensus division/Region
+    # make data a list for each cohort (so only a subset of data is sent to each core)
+    data.list <- mcsapply(c_ids, FUN = rel.dat ,data = sampled.data, 
+                          FE = fe, simplify = F, mc.cores = numCores)
+    
     for (y in c(outcomes)) {
   
       flog.info("Estimating on %s using %s as FE", y, fe)
-      res.l <- mcsapply(c_ids, FUN = reg.output.co.par, 
-                        dep.var = y, indep.var = "w.ln_sales_tax", 
-                        data = sampled.data, FE = fe, w = "base.sales",
-                        simplify = F, mc.cores = numCores)
-      print(class(res.l))
-      print(head(res.l[[10]]))
       
+      # run for list of data sets
+      res.l <- mcsapply(data.list, FUN = reg.output.co, 
+                        dep.var = y, indep.var = "w.ln_sales_tax", 
+                        FE = fe, w = "base.sales",
+                        simplify = F, mc.cores = numCores)
+
+      print(class(res.l))
+
       flog.info("Writing results...")
       data = data.table::rbindlist(res.l, fill = T)
       
@@ -199,7 +214,6 @@ for (rep in 1:200) {
       data[, varX_bs := varX*base.sales]
       data[, seX_bs := seX*base.sales]
       
-      print(head(data))
       mean.est <- data[, .(est = mean(estimate, na.rm = T),
                            west.bs = weighted.mean(estimate, w = base.sales, na.rm = T),
                            west.invvar = weighted.mean(estimate, w = invvar, na.rm = T),
