@@ -68,7 +68,7 @@ for (n.g in 1:3) {
                              weight = all_pi$base.sales), digits = 4)
   
   # Saturate with FE
-  sampled.data[, paste0(FE) := .GRP, by = .(division_by_module_by_time, quantile)]
+  all_pi[, paste0(FE) := .GRP, by = .(division_by_module_by_time, quantile)]
   
   ## Do partial identification
   ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
