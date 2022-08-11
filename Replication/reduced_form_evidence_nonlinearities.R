@@ -154,7 +154,7 @@ for (rep in 1:100) {
         if (nrow(sampled.data[quantile == q]) > 0) {
           formula1 <- as.formula(paste0("w.ln_quantity3 ~ 0 | ", 
                                         FE, 
-                                        " | (w.ln_cpricei2 ~ w.ln_sales_tax) | module_by_state"))
+                                        " | (w.ln_cpricei2 ~ w.ln_sales_tax) "))
           res1 <- felm(formula = formula1, data = sampled.data[quantile == q],
                        weights = sampled.data[quantile == q]$base.sales)
           

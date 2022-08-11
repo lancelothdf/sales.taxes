@@ -68,7 +68,7 @@ for (n.g in 1:3) {
                              weight = all_pi$base.sales), digits = 4)
   
   # Saturate with FE
-  all_pi[, paste0("group_", FE) := .GRP, by = c(FE, "quantile")]
+  sampled.data[, paste0(FE) := .GRP, by = .(division_by_module_by_time, quantile)]
   
   ## Do partial identification
   ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
@@ -78,7 +78,7 @@ for (n.g in 1:3) {
   all_pi[, wVAR := weighted.mean((w.ln_sales_tax - 
                                     weighted.mean(w.ln_sales_tax, 
                                                   w = base.sales, na.rm = T))^2,
-                                 w = base.sales, na.rm = T), by = c(paste0("group_", FE))]
+                                 w = base.sales, na.rm = T), by = FE]
   all_pi[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]
   # Weight normalized within quantile
   all_pi[, base.sales.q := (wVAR*base.sales)/sum(wVAR*base.sales), by = .(quantile)]
@@ -157,7 +157,7 @@ for (rep in 1:100) {
                                weight = sampled.data$base.sales), digits = 4)
     
     # Saturate with FE
-    sampled.data[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
+    sampled.data[, paste0(FE) := .GRP, by = .(division_by_module_by_time, quantile)]
     
     ## Do partial identification
     ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
