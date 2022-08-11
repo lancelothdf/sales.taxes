@@ -45,9 +45,9 @@ reg.output.co <- function(data, dep.var, indep.var, FE, w) {
   # Capture formula
   formula1 <- as.formula(paste0(dep.var, " ~ ", indep.var))
 
-  # Check number of observations. Don't even estimate if 
+  # Sanity checks. Don't even estimate if 
   # N < 3, var(X) = 0 or corr(Y,X) = 1
-  if ((nrow(data[!is.na(get(dep.var)) & !is.na(get(w))]) < 3) | (var(data[[indep.var]]) == 0) | (cor(data[[indep.var]], data[[dep.var]])) ) {
+  if ((nrow(data[!is.na(get(dep.var)) & !is.na(get(w))]) < 3) | (var(data[[indep.var]]) == 0) | (cor(data[[indep.var]], data[[dep.var]])) == 1) {
     
     res1.dt <- data.table(
       Estimate = NA,
