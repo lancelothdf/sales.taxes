@@ -45,8 +45,9 @@ reg.output.co <- function(data, dep.var, indep.var, FE, w) {
   # Capture formula
   formula1 <- as.formula(paste0(dep.var, " ~ ", indep.var))
 
-  # Check number of observations. Don't even estimate if N < 3
-  if (nrow(data[!is.na(get(dep.var)) & !is.na(get(w))]) < 3) {
+  # Check number of observations. Don't even estimate if 
+  # N < 3, var(X) = 0 or corr(Y,X) = 1
+  if ((nrow(data[!is.na(get(dep.var)) & !is.na(get(w))]) < 3) | (var(data[[indep.var]]) == 0) | (cor(data[[indep.var]], data[[dep.var]])) ) {
     
     res1.dt <- data.table(
       Estimate = NA,
@@ -194,12 +195,9 @@ for (rep in 1:200) {
                         FE = fe, w = "base.sales",
                         simplify = F, mc.cores = numCores)
 
-      print(class(res.l))
 
       flog.info("Writing results...")
       data = data.table::rbindlist(res.l, fill = T)
-      
-      print(head(data))
       
       # LRdiff_boot <- rbind(LRdiff_boot, res1.dt, fill = T) # We used to save everything. This is a memory killer
       ## Produce a table of mean estimates
@@ -227,7 +225,6 @@ for (rep in 1:200) {
       ), 
       by = .(outcome, FE)]
       
-      print(head(mean.est))
       mean.est[, iter := rep]
       LRdiff_boot <- rbind(LRdiff_boot, mean.est, fill = T)
       fwrite(LRdiff_boot, boot.results.file)
