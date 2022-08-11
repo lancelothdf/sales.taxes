@@ -51,7 +51,7 @@ mean.q <- all_pi[, mean(ln_quantity3, weights = base.sales, na.rm = T)]
 mean.p <- all_pi[, mean(r.dm.ln_cpricei2, weights = base.sales, na.rm = T)]
 
 estimated.pq <- data.table(mean.q, mean.p, min.p, max.p)
-estimated.pq[iter := 0]
+estimated.pq[,iter := 0]
 pq_res <- rbind(pq_res, estimated.pq)
 fwrite(pq_res, pq.output.results.file)
 # Run other
@@ -141,7 +141,7 @@ for (rep in 1:100) {
   mean.p <- sampled.data[, mean(r.dm.ln_cpricei2, weights = base.sales, na.rm = T)]
   
   estimated.pq <- data.table(mean.q, mean.p, min.p, max.p)
-  estimated.pq[iter := rep]
+  estimated.pq[, iter := rep]
   pq_res <- rbind(pq_res, estimated.pq)
   fwrite(pq_res, pq.output.results.file)  
   
