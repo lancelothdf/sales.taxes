@@ -19,7 +19,7 @@ rm(list = ls())
 ## input filepath ----------------------------------------------
 all_pi <- fread("Data/Replication/all_pi.csv")
 
-theta.berstein <- "Data/Replication/Demand_gamma_sat_initial_price_semester_boot_r_K"
+theta.bernstein <- "Data/Replication/Demand_gamma_sat_initial_price_semester_boot_r_K"
 pq.output.results.file <- "Data/Replication/Demand_pq_sat_initial_price_semester_boot_r_partial.csv"
 
 ## We only want to use the "true" tax variation
@@ -68,7 +68,7 @@ for (n.g in 1:3) {
                              weight = all_pi$base.sales), digits = 4)
   
   # Saturate with FE
-  all_pi[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
+  all_pi[, paste0("group_", FE) := .GRP, by = c(FE, "quantile")]
   
   ## Do partial identification
   ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
@@ -78,7 +78,7 @@ for (n.g in 1:3) {
   all_pi[, wVAR := weighted.mean((w.ln_sales_tax - 
                                     weighted.mean(w.ln_sales_tax, 
                                                   w = base.sales, na.rm = T))^2,
-                                 w = base.sales, na.rm = T), by = FE]
+                                 w = base.sales, na.rm = T), by = c(paste0("group_", FE))]
   all_pi[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]
   # Weight normalized within quantile
   all_pi[, base.sales.q := (wVAR*base.sales)/sum(wVAR*base.sales), by = .(quantile)]
@@ -106,7 +106,7 @@ for (n.g in 1:3) {
     gamma[, iter := 0]
     
     ## Read Previous and write
-    theta.output.results.file <- paste0(theta.bernestein, K,"_bern.csv")
+    theta.output.results.file <- paste0(theta.bernstein, K,"_bern.csv")
     
     if (n.g == 1) {
       fwrite(gamma, theta.output.results.file)
@@ -195,7 +195,7 @@ for (rep in 1:100) {
       gamma[, iter := rep]
       
       ## Read Previous and write
-      theta.output.results.file <- paste0(theta.bernestein, K,"_bern.csv")
+      theta.output.results.file <- paste0(theta.bernstein, K,"_bern.csv")
       
       if (n.g == 1) {
         fwrite(gamma, theta.output.results.file)
