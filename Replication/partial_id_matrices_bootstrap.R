@@ -196,14 +196,10 @@ for (rep in 1:100) {
       
       ## Read Previous and write
       theta.output.results.file <- paste0(theta.bernstein, K,"_bern.csv")
+      previous.data <- fread(theta.output.results.file)
+      previous.data <- rbind(previous.data, gamma)
+      fwrite(previous.data, theta.output.results.file)
       
-      if (n.g == 1) {
-        fwrite(gamma, theta.output.results.file)
-      } else {
-        previous.data <- fread(theta.output.results.file)
-        previous.data <- rbind(previous.data, gamma)
-        fwrite(previous.data, theta.output.results.file)
-      }
       
     }
   }
