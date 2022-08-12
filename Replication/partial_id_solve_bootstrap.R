@@ -366,10 +366,19 @@ res0 <- obtain.bounds(iter0, prices = prices, params = params, noise = T)
 head(res0)
 fwrite(res0, partial.results.file) # Save original results for now...
 
-# Run sapply multicore
-res.l <- mcsapply(all.iters, FUN = obtain.bounds, 
-                  prices = prices, params = params, 
-                  simplify = F, mc.cores = numCores, noise = T)
+if (numCores > 1) {
+  # Run sapply multicore
+  res.l <- mcsapply(all.iters, FUN = obtain.bounds, 
+                    prices = prices, params = params, 
+                    simplify = F, mc.cores = numCores, noise = T)
+  
+} else {
+  # Run sapply standard
+  res.l <- sapply(all.iters, FUN = obtain.bounds, 
+                    prices = prices, params = params, 
+                    simplify = F)
+  
+}
 
 # rbind results and save them
 results = data.table::rbindlist(res.l, fill = T)
