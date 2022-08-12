@@ -241,7 +241,7 @@ obtain.bounds <- function(ests, prices, params) {
 ## 1. Input and output files
 # inputs
 theta.bernestein <- "Data/Replication/Demand_gamma_sat_initial_price_semester_boot_r_K"
-ivs.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_boot_r.csv.csv"
+ivs.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_boot_r.csv"
 pq.output.results.file <- "Data/Replication/Demand_pq_sat_initial_price_semester_boot_r_partial.csv"
 # output
 partial.results.file <- "Data/Replication/partial_point_results_boot.csv"
