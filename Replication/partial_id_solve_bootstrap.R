@@ -87,8 +87,7 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
     K <- unique(dat.k$K)
 
     if (noise) print(paste0("Starting loop for K=",K))
-    if (noise) print(dat.k)
-    
+
     
 
     # Loop over L
@@ -105,8 +104,6 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
       constr.dd <- cbind(constr, 
                          matrix(0, nrow = nrow(constr), ncol = 1)
                          )                                  ## For demand
-      
-      if (noise) print(constr)
       
       ## A2. Build RHS
       RHS <- beta   
@@ -137,9 +134,7 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
       # Shape constraints still hold
       if (L > 1) {
         
-        if (noise) {
-          print(paste0("Solving min.criteria for K=", K, ", L=", L))
-        }
+        if (noise) print(paste0("Solving min.criteria for K=", K, ", L=", L))
         ## Define the problem
         min.crit <- list() 
         min.crit$A <- rbind(cbind(Diagonal(nrow(constr)), constr), 
@@ -161,8 +156,8 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
         min.criteria <- min.crit.sol$objval
         tuning <- min.criteria*(1 + tolerance)
         
-        
         if (noise) print(paste0("Min crit. succesful for K=",K, ", L =",L))
+        
       }
       else min.criteria <- 0
       
@@ -195,7 +190,6 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
           model$A <- rbind(constr, constr, constr.mono)                                  ## Constraints
           model$rhs <- c(c(RHS + tuning), c(RHS - tuning), RHS.mono)                     ## RHS
           model$sense <- c(rep('<=', length(RHS)), rep('>=', length(RHS)), rep('<=',K))  ## Equalities
-          print(model)
         }
         
         ## B3. Upper bound. Elasticity
