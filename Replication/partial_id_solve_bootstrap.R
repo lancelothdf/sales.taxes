@@ -113,13 +113,6 @@ obtain.bounds <- function(ests, prices, params) {
       constr.inter <- t(as.matrix(c(constr.inter,1))) ## Add the intercept and transform to matrix
       RHS.inter <- q.bar
       
-      print(K)
-      print(constr)
-      print(RHS)
-      print(constr.mono)
-      print(RHS.mono)
-      print(constr.inter)
-      print(RHS.inter)
       
       ## A4. If L > 1 we have to estimate the minimum criterion: min sum_s abs(gamma_s(theta) - beta_s)  
       # To do this I define a set of auxiliar variables a_s such that: 
@@ -148,7 +141,8 @@ obtain.bounds <- function(ests, prices, params) {
         min.criteria <- min.crit.sol$objval
         tuning <- min.criteria*(1 + tolerance)
         
-        print(tuning)
+        
+        print(paste0("Min crit. succesful for K=",K, ", L =",L))
       }
       
       ## A5. Start loop at a given price
@@ -197,6 +191,9 @@ obtain.bounds <- function(ests, prices, params) {
         theta.down <- result$x 
         if(is.null(elas.down) | is_empty(elas.down)) {elas.down <- NA}
         
+        print(paste0("Bound elas succesful for K=",K, ", L =",L, ", at p =",p))
+        
+        
         ## B5. Specify objective function. Demand at p
         objec <- rep(0, K)
         for (i in 0:(K-1)) {
@@ -224,7 +221,7 @@ obtain.bounds <- function(ests, prices, params) {
           
         }
         
-        ## B3. Upper bound. Elasticity
+        ## B3. Upper bound. Demand
         model$modelsense <- 'max'
         result <- gurobi(model, params)
         dd.up <- result$objval
@@ -232,13 +229,14 @@ obtain.bounds <- function(ests, prices, params) {
         if(is.null(dd.up) | is_empty(dd.up)) {dd.up <- NA}
         
         
-        ## B4. Lower bound. Elasticity
+        ## B4. Lower bound. Demand
         model$modelsense <- 'min'
         result <- gurobi(model, params)
         dd.down <- result$objval
         theta.down <- result$x 
         if(is.null(dd.down) | is_empty(dd.down)) {dd.down <- NA}
         
+        print(paste0("Bound demand succesful for K=",K, ", L =",L, ", at p =",p))
         
         ## B5. Save. Elasticity bounds
         elasticity.p <- data.table(elas.down, elas.up, dd.down, dd.up, p, L, K, min.criteria, iter)
@@ -346,7 +344,6 @@ for (rep in c(0:100)) {
     
 }
 
-print(all.iters[[1]])
 
 #### Part 3. Estimation   -------
 # Run sapply multicore
