@@ -374,7 +374,7 @@ fwrite(res0, partial.results.file) # Save original results for now...
 # Run sapply multicore
 res.l <- mcsapply(all.iters, FUN = obtain.bounds, 
                   prices = prices, params = params, 
-                  simplify = F, mc.cores = numCores)
+                  simplify = F, mc.cores = numCores, noise = T)
 
 # rbind results and save them
 results = data.table::rbindlist(res.l, fill = T)
