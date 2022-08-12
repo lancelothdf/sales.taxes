@@ -362,7 +362,7 @@ for (rep in c(0:100)) {
 
 ## Try iteration 0 to make sure things work well
 iter0 <- all.iters[[1]]
-res0 <- obtain.bounds(iter0, prices = prices, params = params)
+res0 <- obtain.bounds(iter0, prices = prices, params = params, noise = T)
 head(res0)
 
 # Run sapply multicore
