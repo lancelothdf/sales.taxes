@@ -46,8 +46,8 @@ reg.output.co <- function(data, dep.var, indep.var, FE, w) {
   formula1 <- as.formula(paste0(dep.var, " ~ ", indep.var))
 
   # Sanity checks. Don't even estimate if 
-  # N < 8, var(X) = 0 or corr(Y,X) = 1
-  if ((nrow(data[!is.na(get(dep.var)) & !is.na(get(w))]) < 8) | (var(data[[indep.var]]) < 0.0001) | (cor(data[[indep.var]], data[[dep.var]])) == 1) {
+  # N < 5, var(X) = 0 or corr(Y,X) = 1
+  if ((nrow(data[!is.na(get(dep.var)) & !is.na(get(w))]) < 5) | (var(data[[indep.var]]) < 0.000001) | (cor(data[[indep.var]], data[[dep.var]])) == 1) {
     
     res1.dt <- data.table(
       Estimate = NA,
