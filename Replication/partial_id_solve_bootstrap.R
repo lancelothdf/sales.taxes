@@ -113,6 +113,14 @@ obtain.bounds <- function(ests, prices, params) {
       constr.inter <- t(as.matrix(c(constr.inter,1))) ## Add the intercept and transform to matrix
       RHS.inter <- q.bar
       
+      print(K)
+      print(constr)
+      print(RHS)
+      print(constr.mono)
+      print(RHS.mono)
+      print(constr.inter)
+      print(RHS.inter)
+      
       ## A4. If L > 1 we have to estimate the minimum criterion: min sum_s abs(gamma_s(theta) - beta_s)  
       # To do this I define a set of auxiliar variables a_s such that: 
       # a_s + gamma_s >= beta_s and a_s - gamma_s(theta) >= - beta_s
@@ -140,6 +148,7 @@ obtain.bounds <- function(ests, prices, params) {
         min.criteria <- min.crit.sol$objval
         tuning <- min.criteria*(1 + tolerance)
         
+        print(tuning)
       }
       
       ## A5. Start loop at a given price
@@ -261,6 +270,7 @@ params$NumericFocus <- 3
 params$ScaleFlag <- 2
 params$Method <- 1
 params$Presolve <- 0
+params$OutputFlag <- 0
 
 ## 3. Set up Tolerance 
 tolerance <- 1e-6
@@ -336,11 +346,7 @@ for (rep in c(0:100)) {
     
 }
 
-print(all.iters)
 print(all.iters[[1]])
-print(all.iters[[1]]$beta)
-print(all.iters[[1]]$gamma)
-print(all.iters[[1]]$desclist)
 
 #### Part 3. Estimation   -------
 # Run sapply multicore
