@@ -75,7 +75,6 @@ obtain.bounds <- function(ests, prices, params) {
   p.max <- ests$desclist$p.max
   iter <- ests$desclist$iter
   
-  print(p.bar)
   
   # create results files
   elasticity <- data.table(NULL)
@@ -86,6 +85,8 @@ obtain.bounds <- function(ests, prices, params) {
     L <- unique(dat.l$L)
     # Capture beta 
     beta <- dat.l$beta
+    print(L)
+    print(beta)
     
     # Loop over K
     for (dat.k in ests$gamma) {
