@@ -8,6 +8,7 @@
 #' Use Paralell for efficiency across iterations
 
 
+install.packages("gurobi")
 library(data.table)
 library(futile.logger)
 library(Matrix)
