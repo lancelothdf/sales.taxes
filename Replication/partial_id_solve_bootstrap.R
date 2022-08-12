@@ -91,11 +91,8 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
     # Loop over K
     for (dat.k in ests$gamma) {
       
-      if (noise) {
-        print(dat.k)
-        print(K)
-      }
-      
+      if (noise) print(dat.k)
+
       # Capture value of K
       K <- unique(dat.k$K)
 
@@ -105,8 +102,12 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
                          matrix(0, nrow = nrow(constr), ncol = 1)
                          )                                  ## For demand
       
+      if (noise) print(constr)
+      
       ## A2. Build RHS
       RHS <- beta   
+      
+
 
       ## A3. Set monotonicity of bernstein polynomials. Elasticity < 0 
       constr.mono <- Diagonal(ncol(constr))              ## For elasticity
