@@ -305,9 +305,9 @@ for (rep in c(0:100)) {
   for (L in unique(res.ivs$n.groups)) {
     
     # Keep relevant data
-    data.L <- res.ivs[n.groups == L, c("Estimate", "n.groups")]
+    data.L <- res.ivs[n.groups == L, c("estimate", "n.groups")]
     # Format
-    setnames(data.L, c("Estimate", "L"))
+    setnames(data.L, c("estimate", "L"))
     # save in list
     beta[[L]] <- data.L
   }
