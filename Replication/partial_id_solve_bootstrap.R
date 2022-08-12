@@ -75,28 +75,31 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
   p.max <- ests$desclist$p.max
   iter <- ests$desclist$iter
   
+  # Capture list of betas
+  beta.list <- ests$beta
   
   # create results files
   elasticity <- data.table(NULL)
-  # Loop over L
-  for (dat.l in ests$beta) {
-    
-    # Capture value of L
-    L <- unique(dat.l$L)
-    # Capture beta 
-    beta <- dat.l$beta
-    
-    if (noise) print(paste0("Starting loop for L=", L))
-
-    # Loop over K
-    for (dat.k in ests$gamma) {
+  # Loop over K
+  for (dat.k in ests$gamma) {
       
+    # Capture value of K
+    K <- unique(dat.k$K)
 
-      # Capture value of K
-      K <- unique(dat.k$K)
+    if (noise) print(paste0("Starting loop for K=",K))
+    if (noise) print(dat.k)
+    
+    
 
-      if (noise) print(paste0("Starting loop for L=",L))
-      if (noise) print(dat.k)
+    # Loop over L
+    for (L in unique(dat.k$n.groups)) {
+
+      beta.data <- beta.list[[L]]
+      # Capture beta 
+      beta <- beta.data$beta
+      
+      if (noise) print(paste0("Starting loop for L=", L))
+      
       ## A1. Build the constraints matrix 
       constr <- as.matrix(dat.k[n.groups == L][, -c("n.groups", "K")])   ## For elasticity
       constr.dd <- cbind(constr, 
