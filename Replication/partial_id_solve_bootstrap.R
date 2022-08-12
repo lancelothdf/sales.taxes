@@ -133,6 +133,8 @@ obtain.bounds <- function(ests, prices, params) {
         min.crit$lb <- c(rep(0, nrow(constr)), rep(-Inf, ncol(constr)))  
         min.crit$modelsense <- 'min'
         
+        print(min.crit)
+        
         ## Solve for the minimum criteria
         min.crit.sol <- gurobi(min.crit)
         
