@@ -91,11 +91,12 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
     # Loop over K
     for (dat.k in ests$gamma) {
       
-      if (noise) print(dat.k)
 
       # Capture value of K
       K <- unique(dat.k$K)
 
+      if (noise) print(paste0("Starting loop for L=",L))
+      if (noise) print(dat.k)
       ## A1. Build the constraints matrix 
       constr <- as.matrix(dat.k[n.groups == L][, -c("n.groups", "K")])   ## For elasticity
       constr.dd <- cbind(constr, 
