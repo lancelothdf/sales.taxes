@@ -69,11 +69,11 @@ obtain.bounds <- function(ests, prices, params) {
   #' @param params is a list containing options to pass to gurobi
 
   # unpack list of descriptives
-  p.bar <- desclist$p.bar
-  q.bar <- desclist$q.bar
-  p.min <- desclist$p.min
-  p.max <- desclist$p.max
-  iter <- desclist$iter
+  p.bar <- ests$desclist$p.bar
+  q.bar <- ests$desclist$q.bar
+  p.min <- ests$desclist$p.min
+  p.max <- ests$desclist$p.max
+  iter <- ests$desclist$iter
   
   # create results files
   elasticity <- data.table(NULL)
