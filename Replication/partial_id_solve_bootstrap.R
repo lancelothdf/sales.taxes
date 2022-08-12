@@ -129,11 +129,14 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
         
         if (noise) print(paste0("Solving min.criteria for K=", K, ", L=", L))
         ## Define the problem
+        print(constr)
+        print(constr.mono)
         min.crit <- list() 
         min.crit$A <- rbind(cbind(Diagonal(nrow(constr)), constr), 
                             cbind(Diagonal(nrow(constr)), -constr),
-                            cbind(matrix(0, nrow(constr.mono), nrow(constr)), constr.mono)
-        )
+                            cbind(matrix(0, nrow = nrow(constr.mono), ncol = nrow(constr)), 
+                                  constr.mono)
+                            )
         min.crit$rhs <- c(RHS, -RHS, RHS.mono)
         min.crit$sense <- c( rep('>=', 2*length(RHS)), rep('<=',K))
         min.crit$obj <- c(rep(1, nrow(constr)), rep(0, ncol(constr)))
@@ -254,7 +257,7 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
       }
       
       if (noise) print(paste0("Bounds succesful for K=",K, ", L =",L, ", at all p"))
-      if (noise) print(head(elasticity[K == K & L == L]))
+      if (noise) print(head(elasticity.p))
       
     }
   }
