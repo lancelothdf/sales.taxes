@@ -91,6 +91,11 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
     # Loop over K
     for (dat.k in ests$gamma) {
       
+      if (noise) {
+        print(dat.k)
+        print(K)
+      }
+      
       # Capture value of K
       K <- unique(dat.k$K)
 
@@ -127,10 +132,14 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
       # Shape constraints still hold
       if (L > 1) {
         
-        if (noise) print(paste0("Solving min.criteria for K=", K, ", L=", L))
+        if (noise) {
+          print(paste0("Solving min.criteria for K=", K, ", L=", L))
+          print("constrint mat is")
+          print(constr)
+          print("constrint mono mat is")
+          print(constr.mono)      
+        }
         ## Define the problem
-        print(constr)
-        print(constr.mono)
         min.crit <- list() 
         min.crit$A <- rbind(cbind(Diagonal(nrow(constr)), constr), 
                             cbind(Diagonal(nrow(constr)), -constr),
@@ -257,7 +266,7 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
       }
       
       if (noise) print(paste0("Bounds succesful for K=",K, ", L =",L, ", at all p"))
-      if (noise) print(head(elasticity.p))
+      if (noise) print(head(elasticity[K == K & L == L]))
       
     }
   }
