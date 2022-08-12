@@ -191,8 +191,6 @@ obtain.bounds <- function(ests, prices, params) {
         theta.down <- result$x 
         if(is.null(elas.down) | is_empty(elas.down)) {elas.down <- NA}
         
-        print(paste0("Bound elas succesful for K=",K, ", L =",L, ", at p =",p))
-        
         
         ## B5. Specify objective function. Demand at p
         objec <- rep(0, K)
@@ -236,13 +234,12 @@ obtain.bounds <- function(ests, prices, params) {
         theta.down <- result$x 
         if(is.null(dd.down) | is_empty(dd.down)) {dd.down <- NA}
         
-        print(paste0("Bound demand succesful for K=",K, ", L =",L, ", at p =",p))
-        
         ## B5. Save. Elasticity bounds
         elasticity.p <- data.table(elas.down, elas.up, dd.down, dd.up, p, L, K, min.criteria, iter)
         elasticity <- rbind(elasticity, elasticity.p)
         
       }
+      
       print(paste0("Bound demand succesful for K=",K, ", L =",L, ", at all p"))
       
     }
