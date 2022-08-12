@@ -143,6 +143,7 @@ obtain.bounds <- function(ests, prices, params) {
         
         print(paste0("Min crit. succesful for K=",K, ", L =",L))
       }
+      else min.criteria <- 0
       
       ## A5. Start loop at a given price
       for (p in prices) {
