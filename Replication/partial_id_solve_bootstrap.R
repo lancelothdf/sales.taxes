@@ -94,14 +94,18 @@ obtain.bounds <- function(ests, prices, params) {
 
       ## A1. Build the constraints matrix 
       constr <- as.matrix(dat.k[n.groups == L][, -c("n.groups", "K")])   ## For elasticity
-      constr.dd <- cbind(constr,0)                                  ## For demand
+      constr.dd <- cbind(constr, 
+                         matrix(0, nrow = nrow(constr), ncol = 1)
+                         )                                  ## For demand
       
       ## A2. Build RHS
       RHS <- beta   
 
       ## A3. Set monotonicity of bernstein polynomials. Elasticity < 0 
       constr.mono <- Diagonal(ncol(constr))              ## For elasticity
-      constr.mono.dd <- cbind(constr.mono,0)             ## For demand
+      constr.mono.dd <- cbind(constr.mono,
+                              matrix(0, nrow = nrow(constr.mono), ncol = 1)
+                              )             ## For demand
       RHS.mono <- rep(0, K)
       
       ## A4. Get intercept constraint. Demand
@@ -175,7 +179,7 @@ obtain.bounds <- function(ests, prices, params) {
           model$A <- rbind(constr, constr, constr.mono)                                  ## Constraints
           model$rhs <- c(c(RHS + tuning), c(RHS - tuning), RHS.mono)                     ## RHS
           model$sense <- c(rep('<=', length(RHS)), rep('>=', length(RHS)), rep('<=',K))  ## Equalities
-          
+          print(model)
         }
         
         ## B3. Upper bound. Elasticity
@@ -237,12 +241,16 @@ obtain.bounds <- function(ests, prices, params) {
         if(is.null(dd.down) | is_empty(dd.down)) {dd.down <- NA}
         
         ## B5. Save. Elasticity bounds
-        elasticity.p <- data.table(elas.down, elas.up, dd.down, dd.up, p, L, K, min.criteria, iter)
+        elasticity.p <- data.table(elas.down, elas.up, 
+                                   dd.down, dd.up, 
+                                   p, L, K, 
+                                   min.criteria, iter)
         elasticity <- rbind(elasticity, elasticity.p)
         
       }
       
-      print(paste0("Bound demand succesful for K=",K, ", L =",L, ", at all p"))
+      print(paste0("Bounds succesful for K=",K, ", L =",L, ", at all p"))
+      print(head(elasticity[K == K & L == L]))
       
     }
   }
