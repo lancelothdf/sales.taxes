@@ -85,9 +85,6 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
       
     # Capture value of K
     K <- unique(dat.k$K)
-
-    if (noise) print(paste0("Starting loop for K=",K))
-
     
 
     # Loop over L
@@ -96,8 +93,6 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
       beta.data <- beta.list[[L]]
       # Capture beta 
       beta <- beta.data$beta
-      
-      if (noise) print(paste0("Starting loop for L=", L))
       
       ## A1. Build the constraints matrix 
       constr <- as.matrix(dat.k[n.groups == L][, -c("n.groups", "K")])   ## For elasticity
@@ -108,8 +103,6 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
       ## A2. Build RHS
       RHS <- beta   
       
-
-
       ## A3. Set monotonicity of bernstein polynomials. Elasticity < 0 
       constr.mono <- Diagonal(ncol(constr))              ## For elasticity
       constr.mono.dd <- cbind(constr.mono,
@@ -148,9 +141,11 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
         min.crit$lb <- c(rep(0, nrow(constr)), rep(-Inf, ncol(constr)))  
         min.crit$modelsense <- 'min'
         
-
+        paramsminc <- list()
+        if (!is.null(params$OutputFlag)) paramsminc$OutputFlag <- params$OutputFlag
+        
         ## Solve for the minimum criteria
-        min.crit.sol <- gurobi(min.crit)
+        min.crit.sol <- gurobi(min.crit, paramsminc)
         
         ## Get the minimum criterion estimated and modify the setting of the problem
         min.criteria <- min.crit.sol$objval
@@ -162,7 +157,7 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
       else min.criteria <- 0
       
       ## A5. Start loop at a given price
-      if (noise) print(paste0("Starting loop for K=", K, " L=", L))
+      if (noise) print(paste0("Starting loop over p for K=", K, " L=", L))
       for (p in prices) {
         
         ## B0. Normalize price
