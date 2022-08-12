@@ -17,10 +17,18 @@ library(tidyverse)
 library(stringr)
 library(parallel)
 
+
+### Set directy path and clean R
+setwd("/project2/igaarder")
+rm(list = ls())
+
+# Detect number of Cores to parallel
 numCores <- detectCores()
 
 
+##### Part 0. Functions used throughout -----
 
+# Functions for bernstein polynomial computation
 bernstein <- function(x, k, K){
   choose(K, k) * x^k * (1 - x)^(K - k)
 }
@@ -235,7 +243,7 @@ obtain.bounds <- function(ests, prices, params) {
 
   
 
-#### Part 1. General set-up
+#### Part 1. General set-up -------
 
 
 ## 1. Input and output files
@@ -268,7 +276,7 @@ res.ivs.all <- fread(ivs.results.file)
 res.pq.all <- fread(pq.output.results.file)
 
 
-#### Part 2. Capture elements across iterations and organize them
+#### Part 2. Capture elements across iterations and organize them -------
 all.iters <- list()
 for (rep in c(0:100)) {
   
@@ -329,7 +337,7 @@ for (rep in c(0:100)) {
 }
 
 
-#### Part 3. Results. 
+#### Part 3. Estimation   -------
 # Run sapply multicore
 res.l <- mcsapply(all.iters, FUN = obtain.bounds, 
                   prices = prices, params = params, 
