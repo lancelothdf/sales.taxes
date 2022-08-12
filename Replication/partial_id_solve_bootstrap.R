@@ -11,7 +11,7 @@
 library(data.table)
 library(futile.logger)
 library(Matrix)
-library(gurobi, lib.loc = '/home/slacouture/R/x86_64-pc-linux-gnu-library/3.6')
+library(gurobi)
 library(zoo)
 library(tidyverse)
 library(stringr)
