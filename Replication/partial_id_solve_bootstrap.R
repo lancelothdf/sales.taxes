@@ -345,6 +345,12 @@ for (rep in c(0:100)) {
 
 
 #### Part 3. Estimation   -------
+
+## Try iteration 0 to make sure things work well
+iter0 <- all.iters[[1]]
+res0 <- obtain.bounds(iter0, prices = prices, params = params)
+head(res0)
+
 # Run sapply multicore
 res.l <- mcsapply(all.iters, FUN = obtain.bounds, 
                   prices = prices, params = params, 
