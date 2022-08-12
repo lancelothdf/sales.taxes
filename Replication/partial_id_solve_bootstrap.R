@@ -139,10 +139,6 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
         
         if (noise) {
           print(paste0("Solving min.criteria for K=", K, ", L=", L))
-          print("constrint mat is")
-          print(constr)
-          print("constrint mono mat is")
-          print(constr.mono)      
         }
         ## Define the problem
         min.crit <- list() 
@@ -157,8 +153,7 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
         min.crit$lb <- c(rep(0, nrow(constr)), rep(-Inf, ncol(constr)))  
         min.crit$modelsense <- 'min'
         
-        print(min.crit)
-        
+
         ## Solve for the minimum criteria
         min.crit.sol <- gurobi(min.crit)
         
@@ -271,8 +266,7 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
       }
       
       if (noise) print(paste0("Bounds succesful for K=",K, ", L =",L, ", at all p"))
-      if (noise) print(head(elasticity[K == K & L == L]))
-      
+
     }
   }
   return(elasticity)
@@ -381,6 +375,7 @@ for (rep in c(0:100)) {
 iter0 <- all.iters[[1]]
 res0 <- obtain.bounds(iter0, prices = prices, params = params, noise = T)
 head(res0)
+fwrite(res0, partial.results.file) # Save original results for now...
 
 # Run sapply multicore
 res.l <- mcsapply(all.iters, FUN = obtain.bounds, 
