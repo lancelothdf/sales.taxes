@@ -1,6 +1,6 @@
 ##### Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 8/9/2022
+#' Replication File. Updated on 8/12/2022
 #' Step 8 and 9: Partial identification. 
 #' This code produces the partially identified estimates (step 8) and averages (step 9),
 #' taking as inputs the matrices for the Bernestein polynomials and the IVs.
@@ -48,7 +48,8 @@ mcsapply <- function (X, FUN, ..., simplify = TRUE, USE.NAMES = TRUE) {
 
 
 
-## Function to obtain partially identified estimates for a given iteration
+## Function to obtain partially identified estimates for a given iteration. 
+# The goal is to use this function in the multi core lapply 
 obtain.bounds <- function(ests, prices, params) {
   #' @param ests must be a list with $gamma, $beta, $desclist and  as components
   #' each $gamma and $beta are lists too: 
@@ -240,8 +241,9 @@ obtain.bounds <- function(ests, prices, params) {
 ## 1. Input and output files
 # inputs
 theta.bernestein <- "Data/Replication/Demand_gamma_sat_initial_price_semester_boot_r_K"
-theta.output.results.file <- "Data/Replication/Demand_theta_sat_initial_price_semester_boot_r.csv"
+ivs.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_boot_r.csv.csv"
 pq.output.results.file <- "Data/Replication/Demand_pq_sat_initial_price_semester_boot_r_partial.csv"
+# output
 partial.results.file <- "Data/Replication/partial_point_results_boot.csv"
 
 ## 2. Set up Optimization Parameters
@@ -261,12 +263,12 @@ prices <- seq(-.25, .25, 0.001)
 
 ## 5. Load inputs used across iterations
 # Load betas
-res.ivs.all <- fread(theta.output.results.file)
+res.ivs.all <- fread(ivs.results.file)
 # Load p and qs
 res.pq.all <- fread(pq.output.results.file)
 
 
-## 3. Prepare inputs
+#### Part 2. Capture elements across iterations and organize them
 all.iters <- list()
 for (rep in c(0:100)) {
   
@@ -282,7 +284,7 @@ for (rep in c(0:100)) {
   desclist$p.max <- res.pq[["max.p"]]
   desclist$iter <- rep
   
-  ## Part 2. Set up betas
+  ## 2. Set up betas
   # 2.1 Keep iterest results
   res.ivs <- res.ivs.all[iter == rep & controls == "group_division_by_module_by_time"]
   # 2.2  dcast outcomes
@@ -302,7 +304,7 @@ for (rep in c(0:100)) {
     beta[[L]] <- data.L
   }
   
-  ## Part 3. Set up gammas
+  ## 3. Set up gammas
   for (K in 2:10) {
     
     ## 3.1. Load Matrix of gamma (this extrictly depends on K since the basis change)
@@ -327,14 +329,13 @@ for (rep in c(0:100)) {
 }
 
 
- <- function(ests, prices, params)
-# 4. Results. Run sapply multicore
+#### Part 3. Results. 
+# Run sapply multicore
 res.l <- mcsapply(all.iters, FUN = obtain.bounds, 
                   prices = prices, params = params, 
                   simplify = F, mc.cores = numCores)
 
-
-flog.info("Writing results...")
+# rbind results and save them
 results = data.table::rbindlist(res.l, fill = T)
 fwrite(LRdiff_boot, partial.results.file)
 
