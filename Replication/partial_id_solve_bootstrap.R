@@ -58,7 +58,7 @@ mcsapply <- function (X, FUN, ..., simplify = TRUE, USE.NAMES = TRUE) {
 
 ## Function to obtain partially identified estimates for a given iteration. 
 # The goal is to use this function in the multi core lapply 
-obtain.bounds <- function(ests, prices, params) {
+obtain.bounds <- function(ests, prices, params, noise = F) {
   #' @param ests must be a list with $gamma, $beta, $desclist and  as components
   #' each $gamma and $beta are lists too: 
   #' Each list contains data.frames, for a given value of L (beta) or K (gamma)
@@ -85,6 +85,8 @@ obtain.bounds <- function(ests, prices, params) {
     L <- unique(dat.l$L)
     # Capture beta 
     beta <- dat.l$beta
+    
+    if (noise) print("Starting loop for L=", L)
 
     # Loop over K
     for (dat.k in ests$gamma) {
@@ -125,6 +127,7 @@ obtain.bounds <- function(ests, prices, params) {
       # Shape constraints still hold
       if (L > 1) {
         
+        if (noise) print("Solving min.criteria for K=", K, " L=", L)
         ## Define the problem
         min.crit <- list() 
         min.crit$A <- rbind(cbind(Diagonal(nrow(constr)), constr), 
@@ -152,6 +155,7 @@ obtain.bounds <- function(ests, prices, params) {
       else min.criteria <- 0
       
       ## A5. Start loop at a given price
+      if (noise) print("Starting loop for K=", K, " L=", L)
       for (p in prices) {
         
         ## B0. Normalize price
@@ -249,8 +253,8 @@ obtain.bounds <- function(ests, prices, params) {
         
       }
       
-      print(paste0("Bounds succesful for K=",K, ", L =",L, ", at all p"))
-      print(head(elasticity[K == K & L == L]))
+      if (noise) print(paste0("Bounds succesful for K=",K, ", L =",L, ", at all p"))
+      if (noise) print(head(elasticity[K == K & L == L]))
       
     }
   }
