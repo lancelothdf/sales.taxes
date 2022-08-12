@@ -86,7 +86,7 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
     # Capture beta 
     beta <- dat.l$beta
     
-    if (noise) print("Starting loop for L=", L)
+    if (noise) print(paste0("Starting loop for L=", L))
 
     # Loop over K
     for (dat.k in ests$gamma) {
@@ -127,7 +127,7 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
       # Shape constraints still hold
       if (L > 1) {
         
-        if (noise) print("Solving min.criteria for K=", K, " L=", L)
+        if (noise) print(paste0("Solving min.criteria for K=", K, ", L=", L))
         ## Define the problem
         min.crit <- list() 
         min.crit$A <- rbind(cbind(Diagonal(nrow(constr)), constr), 
@@ -150,12 +150,12 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
         tuning <- min.criteria*(1 + tolerance)
         
         
-        print(paste0("Min crit. succesful for K=",K, ", L =",L))
+        if (noise) print(paste0("Min crit. succesful for K=",K, ", L =",L))
       }
       else min.criteria <- 0
       
       ## A5. Start loop at a given price
-      if (noise) print("Starting loop for K=", K, " L=", L)
+      if (noise) print(paste0("Starting loop for K=", K, " L=", L))
       for (p in prices) {
         
         ## B0. Normalize price
