@@ -85,7 +85,6 @@ obtain.bounds <- function(ests, prices, params) {
     L <- unique(dat.l$L)
     # Capture beta 
     beta <- dat.l$beta
-    print(L)
     print(beta)
     
     # Loop over K
@@ -93,11 +92,9 @@ obtain.bounds <- function(ests, prices, params) {
       
       # Capture value of K
       K <- unique(dat.k$K)
-      # Capture beta 
-      gamma <- dat.l$beta
-      
+
       ## A1. Build the constraints matrix 
-      constr <- as.matrix(gamma[n.groups == L][, -c("n.groups", "K")])   ## For elasticity
+      constr <- as.matrix(dat.k[n.groups == L][, -c("n.groups", "K")])   ## For elasticity
       constr.dd <- cbind(constr,0)                                  ## For demand
       
       ## A2. Build RHS
@@ -310,7 +307,7 @@ for (rep in c(0:100)) {
     # Keep relevant data
     data.L <- res.ivs[n.groups == L, c("estimate", "n.groups")]
     # Format
-    setnames(data.L, c("estimate", "L"))
+    setnames(data.L, c("estimate", "n.groups"), c("beta", "L"))
     # save in list
     beta[[L]] <- data.L
   }
