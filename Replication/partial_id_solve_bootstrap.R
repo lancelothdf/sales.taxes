@@ -75,6 +75,8 @@ obtain.bounds <- function(ests, prices, params) {
   p.max <- ests$desclist$p.max
   iter <- ests$desclist$iter
   
+  print(p.bar)
+  
   # create results files
   elasticity <- data.table(NULL)
   # Loop over L
@@ -336,6 +338,11 @@ for (rep in c(0:100)) {
     
 }
 
+print(all.iters)
+print(all.iters[[1]])
+print(all.iters[[1]]$beta)
+print(all.iters[[1]]$gamma)
+print(all.iters[[1]]$desclist)
 
 #### Part 3. Estimation   -------
 # Run sapply multicore
