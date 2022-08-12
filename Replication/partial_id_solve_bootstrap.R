@@ -85,8 +85,7 @@ obtain.bounds <- function(ests, prices, params) {
     L <- unique(dat.l$L)
     # Capture beta 
     beta <- dat.l$beta
-    print(beta)
-    
+
     # Loop over K
     for (dat.k in ests$gamma) {
       
@@ -243,6 +242,8 @@ obtain.bounds <- function(ests, prices, params) {
         elasticity <- rbind(elasticity, elasticity.p)
         
       }
+      print(paste0("Bound demand succesful for K=",K, ", L =",L, ", at all p"))
+      
     }
   }
   return(elasticity)
