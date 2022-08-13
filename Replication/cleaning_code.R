@@ -193,6 +193,23 @@ all_pi[, dm.ln_pricei2 := ln_pricei2 - mean(ln_pricei2, na.rm = T), by = module_
 
 
 
+## Create transformed price under imperfect salience for estimations
+all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
+
+for (sig in c(0.25, 0.5, 0.75, 1)) {
+  # build p^sigma
+  all_pi[, paste0("ln_cpricei2_sig", sig) := ln_pricei2 +sig*ln_sales_tax]
+  # Create within
+  all_pi[, paste0("w.ln_cpricei2_sig", sig) := get(paste0("ln_cpricei2_sig", sig)) - mean(get(paste0("ln_cpricei2_sig", sig))), by = .(store_by_module)]
+  # Create de-meaned for cutting tails
+  all_pi[, paste0("dm.ln_cpricei2_sig", sig)  := get(paste0("ln_cpricei2_sig", sig)) - mean(get(paste0("ln_cpricei2_sig", sig)), na.rm = T), by = module_by_time]
+  # Created lagged and de-meaned lagegd for splitting sample
+  all_pi[, paste0("D.ln_cpricei2_sig", sig) := D.ln_pricei2 +sig*D.ln_sales_tax]
+  all_pi[, paste0("L.ln_cpricei2_sig", sig) := get(paste0("ln_cpricei2_sig", sig)) - get(paste0("D.ln_cpricei2_sig", sig))]
+  all_pi[, paste0("dm.L.ln_cpricei2_sig", sig) := get(paste0("L.ln_cpricei2_sig", sig)) - mean(get(paste0("L.ln_cpricei2_sig", sig)), na.rm = T), by = module_by_time]
+  
+}
+
 
 #### Define Common Support
 control <- all_pi[D.ln_sales_tax == 0,]
