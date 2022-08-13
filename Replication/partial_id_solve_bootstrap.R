@@ -151,7 +151,7 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
         min.criteria <- min.crit.sol$objval
         tuning <- min.criteria*(1 + tolerance)
         
-        if (noise) print(paste0("Min crit. succesful for K=",K, ", L =",L))
+        if (noise) print(paste0("Min crit. succesful for K=",K, ", L=",L))
         
       }
       else min.criteria <- 0
@@ -254,7 +254,7 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
         
       }
       
-      if (noise) print(paste0("Bounds succesful for K=",K, ", L =",L, ", at all p"))
+      if (noise) print(paste0("Bounds succesful for K=",K, ", L=",L, ", at all p"))
 
     }
   }
@@ -368,6 +368,7 @@ fwrite(res0, partial.results.file) # Save original results for now...
 
 if (numCores > 1) {
   # Run sapply multicore
+  print(paste0("Estimating in parallel in ", numCores," cores"))
   res.l <- mcsapply(all.iters, FUN = obtain.bounds, 
                     prices = prices, params = params, 
                     simplify = F, mc.cores = numCores, noise = T)
@@ -376,11 +377,11 @@ if (numCores > 1) {
   # Run sapply standard
   res.l <- sapply(all.iters, FUN = obtain.bounds, 
                     prices = prices, params = params, 
-                    simplify = F)
+                    simplify = F, noise = F)
   
 }
 
 # rbind results and save them
 results = data.table::rbindlist(res.l, fill = T)
-fwrite(LRdiff_boot, partial.results.file)
+fwrite(results, partial.results.file)
 
