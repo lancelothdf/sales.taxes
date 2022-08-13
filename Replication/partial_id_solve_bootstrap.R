@@ -78,6 +78,8 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
   # Capture list of betas
   beta.list <- ests$beta
   
+  futile.logger::flog.info("Solving for iteration %s...", iter)
+  
   # create results files
   elasticity <- data.table(NULL)
   # Loop over K
@@ -258,6 +260,8 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
 
     }
   }
+  futile.logger::flog.info("Iteration %s results sucessfull", iter)
+  
   return(elasticity)
 }
 
@@ -272,8 +276,8 @@ theta.bernestein <- "Data/Replication/Demand_gamma_sat_initial_price_semester_bo
 ivs.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_boot_r.csv"
 pq.output.results.file <- "Data/Replication/Demand_pq_sat_initial_price_semester_boot_r_partial.csv"
 # output
-partial.results.file <- "Data/Replication/partial_point_results_boot.csv"
-
+partial.results.file <- "Data/Replication/partial_point_results.csv"
+partial.results.file.boot <- "Data/Replication/partial_point_results_boot.csv"
 ## 2. Set up Optimization Parameters
 # These options will make Gurobi think more about numerical issues
 params <- list()
@@ -371,7 +375,7 @@ if (numCores > 1) {
   print(paste0("Estimating in parallel in ", numCores," cores"))
   res.l <- mcsapply(all.iters, FUN = obtain.bounds, 
                     prices = prices, params = params, 
-                    simplify = F, mc.cores = numCores, noise = T)
+                    simplify = F, mc.cores = numCores, noise = F)
   
 } else {
   # Run sapply standard
@@ -380,8 +384,8 @@ if (numCores > 1) {
                     simplify = F, noise = F)
   
 }
-
+print(res.l)
 # rbind results and save them
 results = data.table::rbindlist(res.l, fill = T)
-fwrite(results, partial.results.file)
+fwrite(results, partial.results.file.boot)
 
