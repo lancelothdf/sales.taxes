@@ -24,6 +24,7 @@ rm(list = ls())
 
 # Detect number of Cores to parallel
 numCores <- detectCores()
+numCores <- 1
 
 
 ##### Part 0. Functions used throughout -----
