@@ -60,7 +60,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     res1.dt[, sigma := sig]
     
     LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-    fwrite(LRdiff_res, iv.output.results.file)
+    fwrite(LRdiff_res, iv.output.salience.results.file)
     ## Full sample passthrough
     formula1 <- as.formula(paste0(
       "w.ln_cpricei2_sig", sig," ~ w.ln_sales_tax | ", FE, " | 0 | module_by_state"
