@@ -86,7 +86,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     # We use the full weighted distribution
     all_pi_est <- all_pi_est[, quantile := cut(get(paste0("dm.L.ln_cpricei2_sig", sig)),
                                                breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
-                                               labels = 1:2, right = FALSE)]
+                                               labels = 1:n.g, right = FALSE)]
     quantlab <- round(quantile(all_pi_est[[paste0("dm.L.ln_cpricei2_sig", sig)]], 
                                probs = seq(0, 1, by = 1/n.g), na.rm = T, 
                                weight = all_pi_est$base.sales), digits = 4)
