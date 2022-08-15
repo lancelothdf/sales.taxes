@@ -1,0 +1,125 @@
+##### Santiago Lacouture
+#' Sales Taxes
+#' Replication File. Updated on 8/15/2022
+#' Step 11: Estimate Average conduct parameter under imperfect salience
+
+library(data.table)
+library(futile.logger)
+library(lfe)
+library(Matrix)
+library(zoo)
+library(stringr)
+
+setwd("/project2/igaarder")
+rm(list = ls())
+
+## input filepath ----------------------------------------------
+all_pi <- fread("Data/Replication/all_pi.csv")
+
+# input
+iv.output.salience.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_salience.csv"
+theta.output.salience.results.file <- "Data/Replication/Demand_theta_sat_initial_price_semester_salience.csv"
+# output
+conduct.parameter.file <- "Data/salience_conduct_parameter_at_p.csv"
+
+
+## function to identify the asymptote
+asymptote.fun <- function(theta, q1, q2, es) {
+  if (is.infinite(es)) {
+    return(q1*(q1 + theta) - theta*q2)
+  } else { 
+    return((q1 + theta)*(es*q1 - 1) - theta*q2*es)
+  }
+}
+
+## function to solve for the root
+pass.through.eq <- function(theta, q1, q2, es, rho){
+  if (is.infinite(es)) {
+    return(rho - (q1*(q1 + theta))/(q1*(q1 + theta) - theta*q2))
+  } else {
+    return(rho - (es*q1*(q1 + theta))/((q1 + theta)*(es*q1 - 1) - theta*q2*es))
+  }
+}
+
+
+## Function that directly solves for theta
+theta.direct <- function(q1, q2, es, rho, sigma) {
+  ems.inv <- (q1-q2)/(q1^2)
+  
+  if (is.infinite(es)) {
+    return((1-rho)/(rho*(ems.inv)-sigma/q1-(1-sigma)*ems.inv))
+  } else {
+    return((1-(1-sigma)*q1/es-rho*(1-q1/es))/(rho*(ems.inv-1/es)-sigma/q1+(1-sigma)*(1/es-ems.inv)))
+  }
+}
+
+
+### Set-up previous estimates
+
+#### passthourghs
+rho.old <- fread(iv.output.salience.results.file)
+rho.old <- rho.old[ outcome == "rho" & controls == "division_by_module_by_time",]
+
+## Betas estimation
+betas.old <- fread(theta.output.salience.results.file)
+betas.old <- betas.old[controls == "division_by_module_by_time",]
+
+
+### Manually incorporate values needed
+epsilon <- 0.0000001
+ed <- 0.54811
+implied1 <- 1/(1+ed)
+sol <- c(0.02, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, implied1, 0.7, 0.8, 0.9, 1)
+val.es <- sol*ed / (1- sol)
+
+results <- data.table(NULL)
+###  Loop across values of sigma
+for (sig in c(0.25, 0.5, 0.75, 1)) {
+  
+  
+  ## cut the tails (keep between 1st and 99th percentile)
+  pct1 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.01, na.rm = T, weight=base.sales)
+  pct99 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.99, na.rm = T, weight=base.sales)
+  all_pi_est <- all_pi[(get(paste0("dm.ln_cpricei2_sig", sig)) > pct1 & get(paste0("dm.ln_cpricei2_sig", sig)) < pct99),]
+  
+  # Prices to evaluate the function
+  pctiles <- seq(0,1,0.01)
+  values <- round(quantile(all_pi_est[[paste0("dm.ln_cpricei2_sig", sig)]], 
+                           probs = pctiles, na.rm = T, 
+                           weight = all_pi_est$base.sales), digits = 6)
+  prices <- (values[-1] + values[-length(values)])/2 # find the mid point
+  
+  ## Capture passthorugh
+  # rho <- 1.0508 #estimated effect on producer price (full sammple perfect salience)
+  rho <- rho.old[sigma == 1][["Estimate"]] # We use the perfect salience because is equivalent to the others up to sigma scale
+  ## Capture estimated demand
+  demand <- betas.old[sigma == sig][["beta_hat"]]
+  
+  
+  for (es.val in val.es) {
+    for (p in prices) {
+      
+      ## 1. build estimated elasticity at p
+      q1 <- 0
+      for (k in 2:length(demand)) {
+        q1 <- q1 + (k-1)*demand[k]*(p)^(k-2)
+      }
+      
+      ## 2. build estimated second derivative at p
+      q2 <- 0
+      for (k in 3:length(demand)) {
+        q2 <- q2 + (k-1)*(k-2)*demand[k]*(p)^(k-3)
+      } 
+      
+      # 3. Find the value of theta solviving directly
+      theta <- theta.direct(q1 = q1, q2 = q2, es = es.val, rho = rho, sigma = sig)
+      
+      
+      ## 6. Export
+      results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, rho, theta))
+    }
+  }
+  fwrite(results, conduct.parameter.file)  
+}
+
+
