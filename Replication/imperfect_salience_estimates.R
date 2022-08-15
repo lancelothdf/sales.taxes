@@ -172,6 +172,22 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
 
 #### Part 2. IVs and partially identified cases: matrices ------
 
+
+
+# Functions for bernstein polynomial computation
+bernstein <- function(x, k, K){
+  choose(K, k) * x^k * (1 - x)^(K - k)
+}
+int.bernstein <- function(x,k,K) {
+  
+  result <- 0
+  for (j in (k+1):(K+1)) {
+    result <- result + bernstein(x,j,K+1)
+  }
+  return(result/(K+1))
+  
+}
+
 ### Matrices for different types of extrapolation supports
 # Only for interest FE
 FE <- "group_division_by_module_by_time"
@@ -444,20 +460,6 @@ quit(save="no")
 
 
 ## 0. Used functions 
-
-# Functions for bernstein polynomial computation
-bernstein <- function(x, k, K){
-  choose(K, k) * x^k * (1 - x)^(K - k)
-}
-int.bernstein <- function(x,k,K) {
-  
-  result <- 0
-  for (j in (k+1):(K+1)) {
-    result <- result + bernstein(x,j,K+1)
-  }
-  return(result/(K+1))
-  
-}
 
 ## Function to obtain partially identified estimates for a given iteration. 
 # The goal is to use this function in the multi core lapply 
