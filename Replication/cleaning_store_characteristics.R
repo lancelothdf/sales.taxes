@@ -290,14 +290,17 @@ stores.all <- merge(stores.all, stores_loc, by = "store_code_uc", all.x = T)
 # Remove elements nolonger used to save memory
 rm(stores_loc, store_costumer_ch)
 
-### 4. Identify Our stores -----------------
-data.semester <- "Data/Replication/all_pi.csv"
+## Save this File
+fwrite(stores.all, "Data/Replication/stores_all.csv")
 
-our.data <- fread(data.semester)
+### 4. Identify stores in retail data -----------------
+our.data <- fread("Data/Replication/all_pi.csv")
 
 ## Collapse to the store level
 our.data <- our.data[, .(N_semesters = .N), by = .(store_code_uc, product_module_code)] ## First across years
 our.data <- our.data[, .(N_modules = .N), by = .(store_code_uc)]
+
+## Seems to break here... but saved above
 
 ## Merge info to store data
 stores.all <- merge(stores.all, our.data, by = "store_code_uc", all.x = T)
