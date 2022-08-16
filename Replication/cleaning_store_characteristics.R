@@ -203,7 +203,6 @@ rm(full.purchases)
 #### Competition measures
 ## identify stores with location for efficiency. Need to merge with chains identified
 stores_loc <- store_costumer_ch[!is.nan(x_sales) & !is.na(x_sales)]
-rm(store_costumer_ch)
 
 chain.data <- stores.all[, .(chain = max(chain, na.rm = T)), by = c("store_code_uc")]
 chain.data[, chain := ifelse(is.infinite(chain), max(chain, na.rm = T) + .I, chain)] # Create fake chain number for unidentified stores
