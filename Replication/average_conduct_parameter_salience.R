@@ -20,7 +20,7 @@ all_pi <- fread("Data/Replication/all_pi.csv")
 iv.output.salience.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_salience.csv"
 theta.output.salience.results.file <- "Data/Replication/Demand_theta_sat_initial_price_semester_salience.csv"
 # output
-conduct.parameter.file <- "Data/salience_conduct_parameter_at_p.csv"
+conduct.parameter.file <- "Data/Replication/salience_conduct_parameter_at_p.csv"
 
 
 ## function to identify the asymptote
@@ -67,7 +67,7 @@ betas.old <- betas.old[controls == "division_by_module_by_time",]
 
 ### Manually incorporate values needed
 epsilon <- 0.0000001
-ed <- 0.54811
+ed <- 0.56704857131384 # Added manually from full sample estimates
 implied1 <- 1/(1+ed)
 sol <- c(0.02, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, implied1, 0.7, 0.8, 0.9, 1)
 val.es <- sol*ed / (1- sol)

@@ -25,7 +25,7 @@ source("partial_id_matrices_bootstrap.R") #DONE
 source("partial_id_solve_bootstrap.R") #DONE
 source("compute_average_elasticities.R") 
 source("imperfect_salience_estimates.R") #DONE
-source("average_conduct_parameter_salience.R")
+source("average_conduct_parameter_salience.R") #DONE
 
 
 
