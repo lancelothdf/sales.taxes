@@ -76,11 +76,12 @@ results <- data.table(NULL)
 ###  Loop across values of sigma
 for (sig in c(0.25, 0.5, 0.75, 1)) {
   
-  
   ## cut the tails (keep between 1st and 99th percentile)
-  pct1 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.01, na.rm = T, weight=base.sales)
-  pct99 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.99, na.rm = T, weight=base.sales)
-  all_pi_est <- all_pi[(get(paste0("dm.ln_cpricei2_sig", sig)) > pct1 & get(paste0("dm.ln_cpricei2_sig", sig)) < pct99),]
+  if (sigma!=1) {
+    pct1 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.01, na.rm = T, weight=base.sales)
+    pct99 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.99, na.rm = T, weight=base.sales)
+    all_pi_est <- all_pi[(get(paste0("dm.ln_cpricei2_sig", sig)) > pct1 & get(paste0("dm.ln_cpricei2_sig", sig)) < pct99),]
+  }
   
   # Prices to evaluate the function
   pctiles <- seq(0,1,0.01)
@@ -92,34 +93,38 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
   ## Capture passthorugh
   # rho <- 1.0508 #estimated effect on producer price (full sammple perfect salience)
   rho <- rho.old[sigma == 1][["Estimate"]] # We use the perfect salience because is equivalent to the others up to sigma scale
-  ## Capture estimated demand
-  demand <- betas.old[sigma == sig][["beta_hat"]]
   
-  
-  for (es.val in val.es) {
-    for (p in prices) {
-      
-      ## 1. build estimated elasticity at p
-      q1 <- 0
-      for (k in 2:length(demand)) {
-        q1 <- q1 + (k-1)*demand[k]*(p)^(k-2)
+  # Loop across K
+  for (K in 2:3) {
+    ## Capture estimated demand
+    demand <- betas.old[sigma == sig & n.groups == K][["beta_hat"]]
+    
+    for (es.val in val.es) {
+      for (p in prices) {
+        
+        ## 1. build estimated elasticity at p
+        q1 <- 0
+        for (k in 2:length(demand)) {
+          q1 <- q1 + (k-1)*demand[k]*(p)^(k-2)
+        }
+        
+        ## 2. build estimated second derivative at p
+        q2 <- 0
+        for (k in 3:length(demand)) {
+          q2 <- q2 + (k-1)*(k-2)*demand[k]*(p)^(k-3)
+        } 
+        
+        # 3. Find the value of theta solving directly
+        theta <- theta.direct(q1 = q1, q2 = q2, es = es.val, rho = rho, sigma = sig)
+        
+        
+        ## 6. Export
+        results <- rbind(results, data.table(sigma = sig, K, es.val, p, q1, q2, rho, theta))
       }
-      
-      ## 2. build estimated second derivative at p
-      q2 <- 0
-      for (k in 3:length(demand)) {
-        q2 <- q2 + (k-1)*(k-2)*demand[k]*(p)^(k-3)
-      } 
-      
-      # 3. Find the value of theta solviving directly
-      theta <- theta.direct(q1 = q1, q2 = q2, es = es.val, rho = rho, sigma = sig)
-      
-      
-      ## 6. Export
-      results <- rbind(results, data.table(sigma = sig, es.val, p, q1, q2, rho, theta))
     }
+    fwrite(results, conduct.parameter.file)  
+    
   }
-  fwrite(results, conduct.parameter.file)  
 }
 
 
