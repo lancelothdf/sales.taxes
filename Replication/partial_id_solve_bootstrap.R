@@ -377,16 +377,19 @@ if (numCores > 1) {
   res.l <- mcsapply(all.iters, FUN = obtain.bounds, 
                     prices = prices, params = params, 
                     simplify = F, mc.cores = numCores, noise = F)
-  
+  # rbind results and save them
+  results = data.table::rbindlist(res.l, fill = T)
+  fwrite(results, partial.results.file.boot)
 } else {
-  # Run sapply standard
-  res.l <- sapply(all.iters, FUN = obtain.bounds, 
-                    prices = prices, params = params, 
-                    simplify = F, noise = F)
-  
+  results <- data.table(NULL)
+  # Run bootstrap and save after each iteration
+  for (it in all.iters) {
+    res.it <- obtain.bounds(it, prices = prices, params = params, noise = F)
+    results <- rbind(results, res.it)
+    # save
+    fwrite(results, partial.results.file.boot)
+  }
 }
-print(res.l)
-# rbind results and save them
-results = data.table::rbindlist(res.l, fill = T)
-fwrite(results, partial.results.file.boot)
+
+
 
