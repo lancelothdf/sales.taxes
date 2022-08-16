@@ -162,8 +162,8 @@ for (yr in 2006:2016) {
 
 
 ## Finally, collapse across years sum, weigthing by projection factor
-full.purchases <- full.purchases[, .(total_expenditures = sum(total_expenditures*projection),
-                                     n_trips = sum(n_trips*projection),
+full.purchases <- full.purchases[, .(total_expenditures = sum(total_expenditures*projection)/sum(projection),
+                                     n_trips = sum(n_trips*projection)/sum(projection),
                                      r_n_trips= sum(n_trips)),
                                  by = .(household_code, store_code_uc, zip_code)]
 ## Make this compatible
@@ -198,15 +198,17 @@ store_costumer_ch <- full.purchases[, .(av_hh_income_sales = weighted.mean(av_hh
                                         n_households = .N,
                                         n_trips = sum(r_n_trips)
                                         ), by = c("store_code_uc")]
+rm(full.purchases)
 
 #### Competition measures
 ## identify stores with location for efficiency. Need to merge with chains identified
 stores_loc <- store_costumer_ch[!is.nan(x_sales) & !is.na(x_sales)]
+rm(store_costumer_ch)
 
 chain.data <- stores.all[, .(chain = max(chain, na.rm = T)), by = c("store_code_uc")]
 chain.data[, chain := ifelse(is.infinite(chain), max(chain, na.rm = T) + .I, chain)] # Create fake chain number for unidentified stores
 stores_loc <- merge(stores_loc, chain.data, by = c("store_code_uc"), all.x = T)
-  
+rm(chain.data)
   
 stores_loc_data_sales <- as.matrix(stores_loc[, c("x_sales", "y_sales")])
 stores_loc_data_trips <- as.matrix(stores_loc[, c("x_trips", "y_trips")])
@@ -237,7 +239,7 @@ for (i in 1:length(chains)) {
   }
 }
 # Remove elements nolonger used to save memory
-rm(chains, stores_loc_data_sales, stores_loc_data_trips)
+rm(chains, distances_trips, distances_sales, stores_loc_data_sales, stores_loc_data_trips)
 
 diff_chain <- 1 - same_chain
 # Create distances matrix for same and diff chain
@@ -269,11 +271,16 @@ distances_5_trips <- colSums(distances_5_trips) - 1
 distances_5_trip_same <- colSums(distances_5_trips_same) - 1
 distances_5_trips_diff <- colSums(distances_5_trips_diff)
 
-
+# Remove elements nolonger used to save memory
+rm(same_chain, diff_chain)
 # Put all data together, should have preserved order
 distances <- data.table(distances_10_sales, distances_5_sales, distances_10_trips, distances_5_trips,
                         distances_10_sales_same, distances_5_sales_same, distances_10_trips_same, distances_5_trips_same,
                         distances_10_sales_diff, distances_5_sales_diff, distances_10_trips_diff, distances_5_trips_diff)
+# Remove elements nolonger used to save memory
+rm(distances_10_sales, distances_5_sales, distances_10_trips, distances_5_trips,
+    distances_10_sales_same, distances_5_sales_same, distances_10_trips_same, distances_5_trips_same,
+    distances_10_sales_diff, distances_5_sales_diff, distances_10_trips_diff, distances_5_trips_diff)
 
 # Put data together
 stores_loc <- cbind(data.table(store_code_uc = stores_loc$store_code_uc), distances)
@@ -281,7 +288,8 @@ stores_loc <- cbind(data.table(store_code_uc = stores_loc$store_code_uc), distan
 ##### Merge all info to store data
 stores.all <- merge(stores.all, store_costumer_ch, by = "store_code_uc", all.x = T)
 stores.all <- merge(stores.all, stores_loc, by = "store_code_uc", all.x = T)
-
+# Remove elements nolonger used to save memory
+rm(stores_loc, store_costumer_ch)
 
 ### 4. Identify Our stores -----------------
 data.semester <- "Data/Replication/all_pi.csv"
