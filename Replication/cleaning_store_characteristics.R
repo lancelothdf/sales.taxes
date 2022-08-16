@@ -226,7 +226,7 @@ distances_5_trips <- distances_trips <= 5000
 
 # Chain matrix: 1 if same chain
 chains <- stores_loc[["chain"]]
-length(chains)
+print(length(chains))
 same_chain <- matrix(0, length(chains), length(chains))
 for (i in 1:length(chains)) {
   val.i <- chains[i]
@@ -236,34 +236,37 @@ for (i in 1:length(chains)) {
     }
   }
 }
+# Remove elements nolonger used to save memory
+rm(chains, stores_loc_data_sales, stores_loc_data_trips)
+
 diff_chain <- 1 - same_chain
-
 # Create distances matrix for same and diff chain
+# First calculate for whole matrix,
+# then sum across columns (substract 1 for diagonal when the same store is included)
+
+# 10 km - sales
 distances_10_sales_same <- distances_10_sales * same_chain
-distances_5_sales_same <- distances_5_sales * same_chain
-distances_10_trips_same <- distances_10_trips * same_chain
-distances_5_trips_same <- distances_5_trips * same_chain
-
 distances_10_sales_diff <- distances_10_sales * diff_chain
-distances_5_sales_diff <- distances_5_sales * diff_chain
-distances_10_trips_diff <- distances_10_trips * diff_chain
-distances_5_trips_diff <- distances_5_trips * diff_chain
-
-
-# sum across columns (substract 1 for diagonal when the same store is included)
 distances_10_sales <- colSums(distances_10_sales) - 1
-distances_5_sales <- colSums(distances_5_sales) - 1
-distances_10_trips <- colSums(distances_10_trips) - 1
-distances_5_trips <- colSums(distances_5_trips) - 1
-
 distances_10_sales_same <- colSums(distances_10_sales_same) - 1
-distances_5_sales_same <- colSums(distances_5_sales_same) - 1
-distances_10_trips_same <- colSums(distances_10_trips_same) - 1
-distances_5_trip_same <- colSums(distances_5_trips_same) - 1
-
 distances_10_sales_diff <- colSums(distances_10_sales_diff)
+# 5 km - sales
+distances_5_sales_same <- distances_5_sales * same_chain
+distances_5_sales_diff <- distances_5_sales * diff_chain
+distances_5_sales <- colSums(distances_5_sales) - 1
 distances_5_sales_diff <- colSums(distances_5_sales_diff)
+distances_5_sales_same <- colSums(distances_5_sales_same) - 1
+# 10 km - trips
+distances_10_trips_same <- distances_10_trips * same_chain
+distances_10_trips_diff <- distances_10_trips * diff_chain
+distances_10_trips <- colSums(distances_10_trips) - 1
+distances_10_trips_same <- colSums(distances_10_trips_same) - 1
 distances_10_trips_diff <- colSums(distances_10_trips_diff)
+# 5 km - trips
+distances_5_trips_same <- distances_5_trips * same_chain
+distances_5_trips_diff <- distances_5_trips * diff_chain
+distances_5_trips <- colSums(distances_5_trips) - 1
+distances_5_trip_same <- colSums(distances_5_trips_same) - 1
 distances_5_trips_diff <- colSums(distances_5_trips_diff)
 
 
@@ -273,8 +276,7 @@ distances <- data.table(distances_10_sales, distances_5_sales, distances_10_trip
                         distances_10_sales_diff, distances_5_sales_diff, distances_10_trips_diff, distances_5_trips_diff)
 
 # Put data together
-stores_loc <- cbind(data.table(stores_loc$store_code_uc), distances)
-setnames(stores_loc, "V1", "store_code_uc")
+stores_loc <- cbind(data.table(store_code_uc = stores_loc$store_code_uc), distances)
 
 ##### Merge all info to store data
 stores.all <- merge(stores.all, store_costumer_ch, by = "store_code_uc", all.x = T)
