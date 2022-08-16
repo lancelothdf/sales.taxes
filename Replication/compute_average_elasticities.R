@@ -17,14 +17,10 @@ rm(list = ls())
 ## input filepath ----------------------------------------------
 theta.output.results.file <- "Data/Replication/Demand_theta_sat_initial_price_semester_boot_r.csv"
 iv.output.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_boot_r.csv"
-out.file.elast <- "Data/Replication/partial_point_results_boot.csv"
-
+out.file.elast <- "Data/Replication/partial_point_results.csv"
+out.file.elast.boot <- "Data/Replication/partial_point_results_boot.csv"
 
 ## output filepath ----------------------------------------------
-binned.data.price <- "Data/extraction_state_binned_price.csv"
-binned.data.tax <- "Data/extraction_state_binned_tax.csv"
-out.file.average <- "Data/average_extrapolation_state_priority.csv"
-
 output.table.avelas <- "Data/Replication/summary_elasticity_states.csv"
 
 
@@ -36,6 +32,7 @@ all_pi <- fread("Data/Replication/all_pi.csv")
 res.all.full <- fread(theta.output.results.file)
 ivs.full <- fread(iv.output.results.file)
 bounds <- fread(out.file.elast)
+bounds.boot <- fread(out.file.elast.boot)
 
 set.seed(2019)
 ids <- unique(all_pi$module_by_state)
@@ -53,8 +50,8 @@ for (rep in 0:100) {
   cubic.elas <- res.all[n.groups ==3][["beta_hat"]][-1]*c(1,2,3)
   
   ### Part 2. Recover Partial identified case -------
-  
-  bounds.iter <- bounds[iter == rep]
+  if (rep == 0) bounds.iter <- bounds[iter == rep]
+  else bounds.iter <- bounds.boot[iter == rep]
   ## dcast data (long to wide)
   bounds.iter <- dcast(bounds.iter, "p + L ~ K", 
                        value.var = c("elas.down", "elas.up"), fun = sum)
@@ -75,6 +72,7 @@ for (rep in 0:100) {
   }
   ## Keep only taxable items as those are whose responses we care
   elasticities <- sampled.data[ln_sales_tax > 0]
+  rm(sampled.data)
   
   ## Need to round to the third decimal point to match the bounds we have estimated
   elasticities[, p := round(dm.ln_cpricei2, 3)]
