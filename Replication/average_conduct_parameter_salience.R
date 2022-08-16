@@ -15,7 +15,8 @@ rm(list = ls())
 
 ## input filepath ----------------------------------------------
 all_pi <- fread("Data/Replication/all_pi.csv")
-
+# restrict to relevant sample
+all_pi <- all_pi[non_imp_tax == 1,]
 # input
 iv.output.salience.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_salience.csv"
 theta.output.salience.results.file <- "Data/Replication/Demand_theta_sat_initial_price_semester_salience.csv"
