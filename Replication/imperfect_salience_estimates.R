@@ -39,9 +39,9 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
   ## cut the tails (keep between 1st and 99th percentile, not for sigma =1 since thatw as already done)
   if (sig != 1) {
     pct1 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.01, na.rm = T, weight=base.sales)
-`  pct99 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.99, na.rm = T, weight=base.sales)
-  all_pi_est <- all_pi[(get(paste0("dm.ln_cpricei2_sig", sig)) > pct1 & get(paste0("dm.ln_cpricei2_sig", sig)) < pct99),]
-`  }
+    pct99 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.99, na.rm = T, weight=base.sales)
+    all_pi_est <- all_pi[(get(paste0("dm.ln_cpricei2_sig", sig)) > pct1 & get(paste0("dm.ln_cpricei2_sig", sig)) < pct99),]
+  }
   ## Full sample estimates (L=1)
   for (FE in FE_opts) {
     ## Full sample IV
