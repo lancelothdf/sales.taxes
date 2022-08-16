@@ -15,7 +15,8 @@ rm(list = ls())
 
 ## input filepath ----------------------------------------------
 all_pi <- fread("Data/Replication/all_pi.csv")
-
+# restrict to relevant sample
+all_pi <- all_pi[non_imp_tax == 1,]
 
 ## output filepath ----------------------------------------------
 iv.output.salience.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_salience.csv"
@@ -64,7 +65,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     fwrite(LRdiff_res, iv.output.salience.results.file)
     ## Full sample passthrough
     formula1 <- as.formula(paste0(
-      "w.ln_cpricei2_sig", sig," ~ w.ln_sales_tax | ", FE, " | 0 | module_by_state"
+      "w.ln_cpricei2_sig", sig," ~ w.ln_sales_tax | ", FE, 
     ))
     res1 <- felm(formula = formula1, data = all_pi_est,
                  weights = all_pi_est$base.sales)

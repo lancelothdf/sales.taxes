@@ -26,7 +26,8 @@ output.table.avelas <- "Data/Replication/summary_elasticity_states.csv"
 
 ## Open data ----------------------------------------------
 all_pi <- fread("Data/Replication/all_pi.csv")
-
+# restrict to relevant sample
+all_pi <- all_pi[non_imp_tax == 1,]
 
 ## Prepare bootstrap
 res.all.full <- fread(theta.output.results.file)
