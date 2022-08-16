@@ -10,6 +10,8 @@ library(Matrix)
 library(zoo)
 library(tidyverse)
 library(stringr)
+library(readstata13)
+library(geodist)
 
 
 setwd("/project2/igaarder")
@@ -74,7 +76,6 @@ purchases.sample <- purchases.sample[!is.na(projection_factor)]
 purchases.sample[, income_by_group_by_time := .GRP, by = .(household_income, product_group_code, year)]
 purchases.sample[, group_by_time := .GRP, by = .(product_group_code, year)]
 purchases.sample[, household_by_time := .GRP, by = .(year, household_code)]
-
 
 #### Prepare the unemployment, house price data and quarterly wage data --------------------------
 ### Start with house prices
