@@ -43,6 +43,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     pct99 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.99, na.rm = T, weight=base.sales)
     all_pi_est <- all_pi[(get(paste0("dm.ln_cpricei2_sig", sig)) > pct1 & get(paste0("dm.ln_cpricei2_sig", sig)) < pct99),]
   }
+  else all_pi_est <- copy(all_pi)
   ## Full sample estimates (L=1)
   for (FE in FE_opts) {
     ## Full sample IV
@@ -205,6 +206,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     pct99 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.99, na.rm = T, weight=base.sales)
     all_pi_est <- all_pi[(get(paste0("dm.ln_cpricei2_sig", sig)) > pct1 & get(paste0("dm.ln_cpricei2_sig", sig)) < pct99),]
   }
+  else all_pi_est <- copy(all_pi)
   
   ###### Original Range
   extrap <- "Original"
