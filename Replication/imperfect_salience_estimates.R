@@ -47,7 +47,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
   for (FE in FE_opts) {
     ## Full sample IV
     formula1 <- as.formula(paste0(
-      "w.ln_quantity3 ~ 0 | ", FE, " | (w.ln_cpricei2_sig", sig," ~ w.ln_sales_tax) | module_by_state"
+      "w.ln_quantity3 ~ 0 | ", FE, " | (w.ln_cpricei2_sig", sig," ~ w.ln_sales_tax) "
     ))
     res1 <- felm(formula = formula1, data = all_pi_est,
                  weights = all_pi_est$base.sales)
@@ -65,7 +65,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
     fwrite(LRdiff_res, iv.output.salience.results.file)
     ## Full sample passthrough
     formula1 <- as.formula(paste0(
-      "w.ln_cpricei2_sig", sig," ~ w.ln_sales_tax | ", FE, 
+      "w.ln_cpricei2_sig", sig," ~ w.ln_sales_tax | ", FE
     ))
     res1 <- felm(formula = formula1, data = all_pi_est,
                  weights = all_pi_est$base.sales)
