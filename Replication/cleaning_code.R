@@ -340,7 +340,7 @@ all_pi_econ <- merge(all_pi_econ, all_pi_cs, by = c("year", "semester", "fips_st
 all_pi <- merge(all_pi, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"))
 
 
-## Collapse to binned price
+## Collapse to binned price for Welfare extrapolation (needed to make it computationally feasible)
 # Generate rounded price
 all_pi_p <- copy(all_pi)
 all_pi_p <- all_pi_p[, p_m := round(dm.ln_cpricei2, 3)]
@@ -350,17 +350,14 @@ all_pi_p<- all_pi_p[ln_sales_tax > 0, .(tau = weighted.mean(ln_sales_tax, w = ba
                                       eta_m = sum(base.sales)), by = .(fips_state, p_m)]
 
 
-## Collapse to binned tax for Welfare extrapolation (needed to make it computationally feasible)
+## Collapse to binned tax 
 # Generate rounded tax
-all_pi[, tau := round(ln_sales_tax, 3)]
+all_pi_t <- copy(all_pi)
+all_pi_t[, tau := round(ln_sales_tax, 3)]
 
 # collapse for every price x state on taxable goods 
-all_pi_t<- all_pi[ln_sales_tax > 0, .(p_m = weighted.mean(dm.ln_cpricei2, w = base.sales),
+all_pi_t<- all_pi_t[ln_sales_tax > 0, .(p_m = weighted.mean(dm.ln_cpricei2, w = base.sales),
                                       eta_m = sum(base.sales)), by = .(fips_state, tau)]
-
-# Export
-fwrite(all_pi_t, binned.data.tax)
-
 
 
 # Save Datasets
@@ -370,4 +367,5 @@ fwrite(all_pi_spill_econ, "Data/Replication/all_pi_spill_econ.csv", showProgress
 fwrite(all_pi_econ, "Data/Replication/all_pi_econ.csv", showProgress = T)
 fwrite(purchases.sample, "Data/Replication/purchases.sample.csv", showProgress = T)
 fwrite(all_pi_p, "Data/Replication/extraction_state_binned_price.csv", showProgress = T)
+fwrite(all_pi_t, "Data/Replication/extraction_state_binned_tax.csv", showProgress = T)
 
