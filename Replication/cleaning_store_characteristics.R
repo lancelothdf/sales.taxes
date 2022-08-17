@@ -96,6 +96,7 @@ rm(stores.dg)
 ## Simplify the file to avoid loading by amount of data
 stores.all <- stores.all[, c("year", "store_code_uc", "channel_code", "DGsample", "retailer_code", "parent_code", "chain", "fips_state_code", "fips_county_code")]
 nrow(stores.all)
+ncol(stores.all)
 
 
 #### 3. Follow DellaVigna and Gentzkow store characteristics identification ----
@@ -203,6 +204,7 @@ store_costumer_ch <- full.purchases[, .(av_hh_income_sales = weighted.mean(av_hh
 rm(full.purchases)
 length(unique(store_costumer_ch$store_code_uc))
 nrow(store_costumer_ch)
+ncol(store_costumer_ch)
 #### Competition measures
 ## identify stores with location for efficiency. Need to merge with chains identified
 stores_loc <- store_costumer_ch[!is.nan(x_sales) & !is.na(x_sales)]
@@ -212,7 +214,10 @@ chain.data[, chain := ifelse(is.infinite(chain), max(chain, na.rm = T) + .I, cha
 stores_loc <- merge(stores_loc, chain.data, by = c("store_code_uc"), all.x = T)
 length(unique(stores_loc$store_code_uc))
 rm(chain.data)
-  
+nrow(stores_loc)
+ncol(stores_loc)
+
+
 stores_loc_data_sales <- as.matrix(stores_loc[, c("x_sales", "y_sales")])
 stores_loc_data_trips <- as.matrix(stores_loc[, c("x_trips", "y_trips")])
 
@@ -288,6 +293,7 @@ rm(distances_10_sales, distances_5_sales, distances_10_trips, distances_5_trips,
 # Put data together
 stores_loc <- cbind(data.table(store_code_uc = stores_loc$store_code_uc), distances)
 nrow(stores_loc)
+ncol(stores_loc)
 
 ##### Merge all info to store data
 stores.all <- merge(stores.all, store_costumer_ch, by = "store_code_uc", all.x = T)
@@ -295,6 +301,7 @@ stores.all <- merge(stores.all, stores_loc, by = "store_code_uc", all.x = T)
 # Remove elements nolonger used to save memory
 rm(stores_loc, store_costumer_ch)
 nrow(stores.all)
+ncol(stores.all)
 
 ## Save this File
 fwrite(stores.all, "Data/Replication/stores_all.csv")
