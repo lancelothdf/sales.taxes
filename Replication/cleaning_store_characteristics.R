@@ -314,6 +314,7 @@ rm(stores_loc, store_costumer_ch)
 nrow(stores.all)
 ncol(stores.all)
 
+q("no")
 ## Save this File
 fwrite(stores.all, "Data/Replication/stores_all.csv")
 
