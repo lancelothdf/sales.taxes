@@ -37,6 +37,7 @@ for (yr in 2006:2016) {
 stores.all <- stores.all[channel_code %in% c("F", "M", "D")]
 
 length(unique(stores.all$store_code_uc))
+nrow(stores.all)
 
 #### 2. Follow DellaVigna and Gentzkow identification of Chains -------
 # Main difference:they focus in 2006 to 2014 period not 2006-2016
@@ -94,7 +95,7 @@ rm(stores.dg)
 
 ## Simplify the file to avoid loading by amount of data
 stores.all <- stores.all[, c("year", "store_code_uc", "channel_code", "DGsample", "retailer_code", "parent_code", "chain", "fips_state_code", "fips_county_code")]
-
+nrow(stores.all)
 
 
 #### 3. Follow DellaVigna and Gentzkow store characteristics identification ----
@@ -166,6 +167,7 @@ full.purchases <- full.purchases[, .(total_expenditures = sum(total_expenditures
                                      n_trips = sum(n_trips*projection)/sum(projection),
                                      r_n_trips= sum(n_trips)),
                                  by = .(household_code, store_code_uc, zip_code)]
+nrow(full.purchases)
 ## Make this compatible
 full.purchases[, zip_code := as.integer(zip_code)]
 
@@ -199,7 +201,8 @@ store_costumer_ch <- full.purchases[, .(av_hh_income_sales = weighted.mean(av_hh
                                         n_trips = sum(r_n_trips)
                                         ), by = c("store_code_uc")]
 rm(full.purchases)
-
+length(unique(store_costumer_ch$store_code_uc))
+nrow(store_costumer_ch)
 #### Competition measures
 ## identify stores with location for efficiency. Need to merge with chains identified
 stores_loc <- store_costumer_ch[!is.nan(x_sales) & !is.na(x_sales)]
@@ -207,6 +210,7 @@ stores_loc <- store_costumer_ch[!is.nan(x_sales) & !is.na(x_sales)]
 chain.data <- stores.all[, .(chain = max(chain, na.rm = T)), by = c("store_code_uc")]
 chain.data[, chain := ifelse(is.infinite(chain), max(chain, na.rm = T) + .I, chain)] # Create fake chain number for unidentified stores
 stores_loc <- merge(stores_loc, chain.data, by = c("store_code_uc"), all.x = T)
+length(unique(stores_loc$store_code_uc))
 rm(chain.data)
   
 stores_loc_data_sales <- as.matrix(stores_loc[, c("x_sales", "y_sales")])
@@ -283,23 +287,26 @@ rm(distances_10_sales, distances_5_sales, distances_10_trips, distances_5_trips,
 
 # Put data together
 stores_loc <- cbind(data.table(store_code_uc = stores_loc$store_code_uc), distances)
+nrow(stores_loc)
 
 ##### Merge all info to store data
 stores.all <- merge(stores.all, store_costumer_ch, by = "store_code_uc", all.x = T)
 stores.all <- merge(stores.all, stores_loc, by = "store_code_uc", all.x = T)
 # Remove elements nolonger used to save memory
 rm(stores_loc, store_costumer_ch)
+nrow(stores.all)
 
 ## Save this File
 fwrite(stores.all, "Data/Replication/stores_all.csv")
 
 ### 4. Identify stores in retail data -----------------
 our.data <- fread("Data/Replication/all_pi.csv")
+nrow(our.data)
 
 ## Collapse to the store level
 our.data <- our.data[, .(N_semesters = .N), by = .(store_code_uc, product_module_code)] ## First across years
 our.data <- our.data[, .(N_modules = .N), by = .(store_code_uc)]
-
+nrow(our.data)
 ## Seems to break here... but saved above
 
 ## Merge info to store data
