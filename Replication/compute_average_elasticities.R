@@ -87,10 +87,9 @@ for (rep in 0:100) {
   elasticities[, p := round(dm.ln_cpricei2, 3)]
   
   ## Merge estimated bounds
-  elasticities <- merge(elasticities, bounds, by = "p", allow.cartesian=T)
+  elasticities <- merge(elasticities, bounds.iter, by = "p", allow.cartesian=T)
   
-  print(head(elasticities))
-  
+
   ## Calculate all elasticities
   elasticities <- elasticities[, .( av.elas_1 = linear.elas,
                                     av.elas_2 = weighted.mean(quad.elas[1] + 
