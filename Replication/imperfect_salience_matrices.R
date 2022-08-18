@@ -148,7 +148,7 @@ for (rep in 0:100) {
           ## Read Previous and write
           theta.output.results.file <- paste0(theta.berstein.sal, K,"_bern.csv")
           
-          if (n.g == 1 & sig == 0.25 & iter == 0) {
+          if (n.g == 1 & sig == 0.25 & rep == 0) {
             fwrite(gamma, theta.output.results.file)
           } else {
             previous.data <- fread(theta.output.results.file)
@@ -323,7 +323,7 @@ for (rep in 0:100) {
           previous.data <- fread(theta.output.results.file)
           previous.data <- rbind(previous.data, gamma)
           fwrite(previous.data, theta.output.results.file)
-          
+
         }
       }
     }
