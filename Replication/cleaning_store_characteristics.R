@@ -283,7 +283,7 @@ distances_5_trips_same <- distances_5_trips * same_chain
 distances_5_trips_diff <- distances_5_trips * diff_chain
 dim(distances_5_trips_same)
 distances_5_trips <- colSums(distances_5_trips) - 1
-distances_5_trip_same <- colSums(distances_5_trips_same) - 1
+distances_5_trips_same <- colSums(distances_5_trips_same) - 1
 distances_5_trips_diff <- colSums(distances_5_trips_diff)
 length(distances_5_trips_same)
 
@@ -314,7 +314,6 @@ rm(stores_loc, store_costumer_ch)
 nrow(stores.all)
 ncol(stores.all)
 
-q("no")
 ## Save this File
 fwrite(stores.all, "Data/Replication/stores_all.csv")
 
@@ -330,6 +329,8 @@ nrow(our.data)
 
 ## Merge info to store data
 stores.all <- merge(stores.all, our.data, by = "store_code_uc", all.x = T)
+nrow(stores.all)
+ncol(stores.all)
 
 ## Save this File
 fwrite(stores.all, "Data/Replication/stores_all.csv")
