@@ -43,7 +43,7 @@ for (rep in 0:100) {
   
   flog.info("Iteration %s", rep)
   ### Part 1. Recover Point identified case  ------------
-  flog.info("Recovering estimates for %rep...", rep)
+  flog.info("Recovering estimates for %s...", rep)
   res.all <- res.all.full[iter == rep & controls == "group_division_by_module_by_time"]
   iv1 <- ivs.full[iter == rep & controls == "group_division_by_module_by_time"]
   
@@ -52,7 +52,7 @@ for (rep in 0:100) {
   cubic.elas <- res.all[n.groups ==3][["beta_hat"]][-1]*c(1,2,3)
   
   ### Part 2. Recover Partial identified case -------
-  flog.info("Recovering matrices for %rep...", rep)
+  flog.info("Recovering matrices for %s...", rep)
   if (rep == 0) bounds.iter <- bounds[iter == rep]
   else bounds.iter <- bounds.boot[iter == rep]
   ## dcast data (long to wide)
@@ -61,7 +61,7 @@ for (rep in 0:100) {
   
   
   ### Part 3. Open data (relevant subsample) -------
-  flog.info("Recovering data for %rep...", rep)
+  flog.info("Recovering data for %s...", rep)
   if (rep > 0) {
     # Sample by block
     sampled.ids <- data.table(sample(ids, replace = T))
@@ -74,7 +74,7 @@ for (rep in 0:100) {
   else {
     sampled.data <- copy(all_pi)
   }
-  flog.info("Computing average for %rep...", rep)
+  flog.info("Computing average for %s...", rep)
   ## Keep only taxable items as those are whose responses we care
   elasticities <- sampled.data[ln_sales_tax > 0]
   rm(sampled.data)
@@ -112,7 +112,7 @@ for (rep in 0:100) {
   ) , by = .(fips_state, L)]
   elasticities[, iter := rep]
   
-  flog.info("Writing results of %rep...", rep)
+  flog.info("Writing results of %s...", rep)
   elasticities.all <- rbind(elasticities.all, elasticities)
   ## Export results
   fwrite(elasticities.all, output.table.avelas)
