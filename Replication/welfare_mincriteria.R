@@ -11,6 +11,9 @@ library(futile.logger)
 library(Matrix)
 library(gurobi)
 
+setwd("/project2/igaarder")
+rm(list = ls())
+
 ## Inputs
 iv.output.salience.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_salience.csv"
 theta.berstein.sal <- "Data/Replication/Demand_gamma_sat_initial_price_semester_salience_K"
