@@ -31,12 +31,14 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 set.seed(2019)
 ids <- unique(all_pi$module_by_state)
+n.groups.max <- 3
 
 LRdiff_res <- data.table(NULL)
 target_res <- data.table(NULL)
 ## Loop across sigma 
 for (rep in  0:100) {
   
+  flog.info("Iteration %s", rep)
   if (rep > 0) {
     # Sample by block
     sampled.ids <- data.table(sample(ids, replace = T))
@@ -44,6 +46,7 @@ for (rep in  0:100) {
     
     # Merge data to actual data
     sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
+    n.groups.max <- 3
     
   }
   else sampled.data <- copy(all_pi)
@@ -100,7 +103,7 @@ for (rep in  0:100) {
       fwrite(LRdiff_res, iv.output.salience.results.file)      
     }
     ## Demand for K=L
-    for (n.g in 2:3) {
+    for (n.g in 2:n.groups.max) {
       # Create groups of initial values of tax rate
       # We use the full weighted distribution
       all_pi_est <- all_pi_est[, quantile := cut(get(paste0("dm.L.ln_cpricei2_sig", sig)),

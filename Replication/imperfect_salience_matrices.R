@@ -43,7 +43,7 @@ int.bernstein <- function(x,k,K) {
 ### Matrices for different types of extrapolation supports
 # Only for interest FE
 FE <- "group_division_by_module_by_time"
-
+n.groups.max <- 3
 
 set.seed(2019)
 ids <- unique(all_pi$module_by_state)
@@ -61,7 +61,7 @@ for (rep in 0:100) {
     
     # Merge data to actual data
     sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
-    
+    n.groups.max <-2
   }
   else sampled.data<- copy(all_pi)
   for (sig in c(0.25, 0.5, 0.75, 1)) {
@@ -90,7 +90,7 @@ for (rep in 0:100) {
     pq_res <- rbind(pq_res, estimated.pq)
     fwrite(pq_res, pq.output.salience.results.file)
     
-    for (n.g in 1:3) {
+    for (n.g in 1:n.groups.max) {
       
       
       # Create groups of initial values of tax rate
@@ -179,7 +179,7 @@ for (rep in 0:100) {
     pq_res <- rbind(pq_res, estimated.pq)
     fwrite(pq_res, pq.output.salience.results.file)
     
-    for (n.g in 1:3) {
+    for (n.g in 1:n.groups.max) {
       
       # Create groups of initial values of tax rate
       # We use the full weighted distribution
@@ -262,7 +262,7 @@ for (rep in 0:100) {
     pq_res <- rbind(pq_res, estimated.pq)
     fwrite(pq_res, pq.output.salience.results.file)
     
-    for (n.g in 1:3) {
+    for (n.g in 1:n.groups.max) {
       
       
       # Create groups of initial values of tax rate

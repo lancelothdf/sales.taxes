@@ -1,4 +1,4 @@
-##### Wesley Janson and Santiago Lacouture
+##### Santiago Lacouture
 #' Sales Taxes
 #' Replication File. Updated on 8/8/2022
 #' Step 6(a): Point identification/main estimates -- robustness to control for households' characteristics

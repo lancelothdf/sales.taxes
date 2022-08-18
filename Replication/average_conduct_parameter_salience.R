@@ -59,11 +59,11 @@ theta.direct <- function(q1, q2, es, rho, sigma) {
 
 #### passthourghs
 rho.old <- fread(iv.output.salience.results.file)
-rho.old <- rho.old[ outcome == "rho" & controls == "division_by_module_by_time",]
+rho.old <- rho.old[ outcome == "rho" & controls == "division_by_module_by_time" & iter == 0,]
 
 ## Betas estimation
 betas.old <- fread(theta.output.salience.results.file)
-betas.old <- betas.old[controls == "division_by_module_by_time",]
+betas.old <- betas.old[controls == "division_by_module_by_time" & iter == 0,]
 
 
 ### Manually incorporate values needed
