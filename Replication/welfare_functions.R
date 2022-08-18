@@ -1,7 +1,7 @@
 ##### Santiago Lacouture
 #' Sales Taxes
 #' Replication File. Updated on 8/18/2022
-#' Step 12-14: Welfare extrapolation
+#' Step 12-14: Welfare extrapolation. Functions
 #' This code contains the base functions used to perform 
 #' welfare extrapolation. It is to be called by any script
 #' running this type of exercises
