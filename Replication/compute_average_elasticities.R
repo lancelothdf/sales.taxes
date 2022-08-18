@@ -62,7 +62,7 @@ for (rep in 0:100) {
   bounds.iter <- dcast(bounds.iter, "p + L ~ K", 
                        value.var = c("elas.down", "elas.up"), fun = sum)
   
-  print(head(bounds.iter))
+  if (rep == 0) print(head(bounds.iter))
   
   ### Part 3. Open data (relevant subsample) -------
   flog.info("Recovering data for %s...", rep)
@@ -116,6 +116,7 @@ for (rep in 0:100) {
                                     N = .N
   ) , by = .(fips_state, L)]
   elasticities[, iter := rep]
+  if (rep == 0) print(head(elasticities))
   
   flog.info("Writing results of %s...", rep)
   elasticities.all <- rbind(elasticities.all, elasticities)
