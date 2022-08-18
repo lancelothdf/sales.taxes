@@ -261,7 +261,7 @@ dim(distances_10_sales_same)
 distances_10_sales <- colSums(distances_10_sales) - 1
 distances_10_sales_same <- colSums(distances_10_sales_same) - 1
 distances_10_sales_diff <- colSums(distances_10_sales_diff)
-dim(distances_10_sales_same)
+length(distances_10_sales_same)
 # 5 km - sales
 distances_5_sales_same <- distances_5_sales * same_chain
 distances_5_sales_diff <- distances_5_sales * diff_chain
@@ -269,7 +269,7 @@ dim(distances_5_sales_same)
 distances_5_sales <- colSums(distances_5_sales) - 1
 distances_5_sales_diff <- colSums(distances_5_sales_diff)
 distances_5_sales_same <- colSums(distances_5_sales_same) - 1
-dim(distances_5_sales_same)
+length(distances_5_sales_same)
 # 10 km - trips
 distances_10_trips_same <- distances_10_trips * same_chain
 distances_10_trips_diff <- distances_10_trips * diff_chain
@@ -277,15 +277,15 @@ dim(distances_10_trips_same)
 distances_10_trips <- colSums(distances_10_trips) - 1
 distances_10_trips_same <- colSums(distances_10_trips_same) - 1
 distances_10_trips_diff <- colSums(distances_10_trips_diff)
-dim(distances_10_trips_same)
+length(distances_10_trips_same)
 # 5 km - trips
-dim(distances_5_trips_same)
 distances_5_trips_same <- distances_5_trips * same_chain
 distances_5_trips_diff <- distances_5_trips * diff_chain
-dim(distances_5_trips)
+dim(distances_5_trips_same)
 distances_5_trips <- colSums(distances_5_trips) - 1
 distances_5_trip_same <- colSums(distances_5_trips_same) - 1
 distances_5_trips_diff <- colSums(distances_5_trips_diff)
+length(distances_5_trips_same)
 
 # Remove elements nolonger used to save memory
 rm(same_chain, diff_chain)
