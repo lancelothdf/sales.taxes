@@ -1,10 +1,11 @@
 ##### Wesley Janson and Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 7/30/2022
+#' Replication File. Updated on 8/18/2022
 #' This Code is the main driver file for replicating the
 #' full code. We call individual scripts to perform specific
 #' tasks here.
-#' Evidently, when running in the server, we need to sbatch jobs separately for each code
+#' Evidently, when running in the server, we need to sbatch 
+#' jobs separately for each code
 
 
 
@@ -22,12 +23,13 @@ source("twfe_pre_trends.R") #DONE
 source("reduced_form_cohort_twfe_parallel.R") #DONE
 source("reduced_form_evidence_nonlinearities.R") #DONE
 source("point_estimates_bootstrap.R") #DONE
-source("point_estimates_robust_storecharact")
+source("point_estimates_robust_storecharact.R")
 source("partial_id_matrices_bootstrap.R") #DONE
 source("partial_id_solve_bootstrap.R") #DONE
 source("compute_average_elasticities.R") 
 source("imperfect_salience_estimates.R") #DONE
 source("average_conduct_parameter_salience.R") #DONE
+source("welfare_mincriteria.R") 
 
 
 
