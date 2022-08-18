@@ -53,12 +53,16 @@ for (rep in 0:100) {
   
   ### Part 2. Recover Partial identified case -------
   flog.info("Recovering matrices for %s...", rep)
-  if (rep == 0) bounds.iter <- bounds[iter == rep]
+  if (rep == 0) bounds.iter <- bounds
   else bounds.iter <- bounds.boot[iter == rep]
+  
+  bounds.iter <- bounds.iter[, -c("iter", "min.criterion")]
+  
   ## dcast data (long to wide)
   bounds.iter <- dcast(bounds.iter, "p + L ~ K", 
                        value.var = c("elas.down", "elas.up"), fun = sum)
   
+  print(head(bounds.iter))
   
   ### Part 3. Open data (relevant subsample) -------
   flog.info("Recovering data for %s...", rep)
@@ -84,6 +88,8 @@ for (rep in 0:100) {
   
   ## Merge estimated bounds
   elasticities <- merge(elasticities, bounds, by = "p", allow.cartesian=T)
+  
+  print(head(elasticities))
   
   ## Calculate all elasticities
   elasticities <- elasticities[, .( av.elas_1 = linear.elas,
