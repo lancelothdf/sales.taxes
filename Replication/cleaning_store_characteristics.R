@@ -1,6 +1,7 @@
 ##### Santiago Lacouture
 #' Sales Taxes
 #' Replication File. Updated on 8/16/2022
+#' Step 0: Cleaning stores data by consumers
 
 #' This code retrieves variables to refine the sample of estimation as a robustness exploration.
 #' First we retrieve the channel type of the store to restrict only to groceries
