@@ -38,8 +38,6 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
 
 #### Part 1. IVs and point identified cases ------
 
-## Options
-FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 set.seed(2019)
 ids <- unique(all_pi$module_by_state)
@@ -58,18 +56,23 @@ for (rep in  0:100) {
     
     # Merge data to actual data
     sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
+    ## FE Options (fewer for boot)
+    FE_opts <- c("division_by_module_by_time")
+    n.groups.max <- 2
+  }
+  else {
+    sampled.data <- copy(all_pi)
+    ## FE Options
+    FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
     n.groups.max <- 3
     
   }
-  else sampled.data <- copy(all_pi)
-  
   for (sig in c(0.25, 0.5, 0.75, 1)) {
     
     outcomes <- c(paste0("w.ln_cpricei2_sig",sig), "w.ln_quantity3")
     ## cut the tails (keep between 1st and 99th percentile, not for sigma =1 since thatw as already done)
     all_pi_est <- sampled.data[ get(paste0("sample_", sig*100)), ]
-    
-    
+
     ## Full sample estimates (L=1)
     for (FE in FE_opts) {
       ## Full sample IV
@@ -158,7 +161,7 @@ for (rep in  0:100) {
         all_pi_est[, wVAR := weighted.mean((w.ln_sales_tax - 
                                               weighted.mean(w.ln_sales_tax, 
                                                             w = base.sales, na.rm = T))^2,
-                                           w = base.sales, na.rm = T), by = FE]
+                                           w = base.sales, na.rm = T), by = c(paste("group_", FE))]
         all_pi_est[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]
         # Weight normalized within quantile
         all_pi_est[, base.sales.q := (wVAR*base.sales)/sum(wVAR*base.sales), by = .(quantile)]
