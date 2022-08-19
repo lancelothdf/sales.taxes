@@ -44,8 +44,6 @@ target_res <- data.table(NULL)
 
 ## Run estimations in the whole sample where characteristics are observed -----------------
 
-LRdiff_res <- data.table(NULL)
-target_res <- data.table(NULL)
 ## Loop over number of quantiles
 for (n.g in 1:3) {
   
@@ -55,9 +53,9 @@ for (n.g in 1:3) {
   all_pi <- all_pi[, quantile := cut(dm.L.ln_cpricei2,
                                              breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
                                              labels = 1:n.g, right = FALSE)]
-  quantlab <- round(quantile(het.sample$dm.L.ln_cpricei2, 
+  quantlab <- round(quantile(all_pi$dm.L.ln_cpricei2, 
                              probs = seq(0, 1, by = 1/n.g), na.rm = T, 
-                             weight = het.sample$base.sales), digits = 4)
+                             weight = all_pi$base.sales), digits = 4)
   # Saturate fixed effects
   all_pi[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
   all_pi[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
@@ -97,8 +95,8 @@ for (n.g in 1:3) {
     
     ## Estimate IVs and retrieve in vector
     IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
-                       sample == "Het.Sample",][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" &
-                                                                           n.groups == n.g & controls == FE & sample == "Het.Sample",][["Estimate"]]
+                       het == "Het.Sample",][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" &
+                                                                           n.groups == n.g & controls == FE & het == "Het.Sample",][["Estimate"]]
     
     ## Estimate the matrix of the implied system of equations
     if (n.g > 1) {
