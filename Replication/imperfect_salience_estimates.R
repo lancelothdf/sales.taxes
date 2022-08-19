@@ -69,57 +69,45 @@ for (rep in  0:100) {
   }
   for (sig in c(0.25, 0.5, 0.75, 1)) {
     
+    flog.info("Estimating for Sigma = %s", sig)
     outcomes <- c(paste0("w.ln_cpricei2_sig",sig), "w.ln_quantity3")
     ## cut the tails (keep between 1st and 99th percentile, not for sigma =1 since thatw as already done)
-    all_pi_est <- sampled.data[ get(paste0("sample_", sig*100)), ]
+    all_pi_est <- sampled.data[ get(paste0("sample_", sig*100)) == 1, ]
+    print(paste0("Number of obs in sample is", nrow(all_pi_est)))
 
     ## Full sample estimates (L=1)
     for (FE in FE_opts) {
-      ## Full sample IV
-      formula1 <- as.formula(paste0(
-        "w.ln_quantity3 ~ 0 | ", FE, " | (w.ln_cpricei2_sig", sig," ~ w.ln_sales_tax) "
-      ))
-      res1 <- felm(formula = formula1, data = all_pi_est,
-                   weights = all_pi_est$base.sales)
-      
-      
-      ## attach results
-      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-      res1.dt[, outcome := "IV"]
-      res1.dt[, controls := FE]
-      res1.dt[, lev := 1]
-      res1.dt[, n.groups := 1]
-      res1.dt[, sigma := sig]
-      res1.dt[, iter := rep]
-      
-      LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-      fwrite(LRdiff_res, iv.output.salience.results.file)
-      ## Full sample passthrough
-      formula1 <- as.formula(paste0(
-        "w.ln_cpricei2_sig", sig," ~ w.ln_sales_tax | ", FE
-      ))
-      res1 <- felm(formula = formula1, data = all_pi_est,
-                   weights = all_pi_est$base.sales)
-      
-      
-      ## attach results
-      res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
-      res1.dt[, outcome := "rho"]
-      res1.dt[, controls := FE]
-      res1.dt[, lev := 100]
-      res1.dt[, n.groups := 1]
-      res1.dt[, sigma := sig]
-      res1.dt[, iter := rep]
-      
-      LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-      fwrite(LRdiff_res, iv.output.salience.results.file)      
+      for (Y in outcomes) {
+        ## Full sample passthrough
+        formula1 <- as.formula(paste0(
+          Y," ~ w.ln_sales_tax | ", FE
+        ))
+        res1 <- felm(formula = formula1, data = all_pi_est,
+                     weights = all_pi_est$base.sales)
+        
+        
+        ## attach results
+        res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+        res1.dt[, outcome := Y]
+        res1.dt[, controls := FE]
+        res1.dt[, lev := 100]
+        res1.dt[, n.groups := 1]
+        res1.dt[, sigma := sig]
+        res1.dt[, iter := rep]
+        
+        LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+        fwrite(LRdiff_res, iv.output.salience.results.file)      
+        
+      }
     }
-    ## Demand for K=L
+    ## Demand for K=L>1
     for (n.g in 2:n.groups.max) {
+      flog.info("...Estimating K=L=%s cases", n.g)
       # Create groups of initial values of tax rate
       # We use the full weighted distribution
       all_pi_est <- all_pi_est[, quantile := cut(get(paste0("dm.L.ln_cpricei2_sig", sig)),
-                                                 breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
+                                                 breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), 
+                                                                   probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
                                                  labels = 1:n.g, right = FALSE)]
       quantlab <- round(quantile(all_pi_est[[paste0("dm.L.ln_cpricei2_sig", sig)]], 
                                  probs = seq(0, 1, by = 1/n.g), na.rm = T, 
