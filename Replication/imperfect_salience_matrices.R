@@ -40,6 +40,20 @@ int.bernstein <- function(x,k,K) {
   
 }
 
+
+### cut tails
+for (sig in c(0.25, 0.5, 0.75, 1)) {
+  
+  ## cut the tails (keep between 1st and 99th percentile, not for sigma =1 since thatw as already done)
+  if (sig != 1) {
+    pct1 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.01, na.rm = T, weight=base.sales)
+    pct99 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.99, na.rm = T, weight=base.sales)
+    all_pi[, paste0("sample_", sig*100) := (get(paste0("dm.ln_cpricei2_sig", sig)) > pct1 & get(paste0("dm.ln_cpricei2_sig", sig)) < pct99)]
+  }
+  else all_pi[, sample_100 := 1]
+}
+
+
 ### Matrices for different types of extrapolation supports
 # Only for interest FE
 FE <- "group_division_by_module_by_time"
@@ -67,12 +81,7 @@ for (rep in 0:100) {
   for (sig in c(0.25, 0.5, 0.75, 1)) {
     
     ## cut the tails (keep between 1st and 99th percentile)
-    if (sig != 1) {
-      pct1 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.01, na.rm = T, weight=base.sales)
-      pct99 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.99, na.rm = T, weight=base.sales)
-      all_pi_est <- all_pi[(get(paste0("dm.ln_cpricei2_sig", sig)) > pct1 & get(paste0("dm.ln_cpricei2_sig", sig)) < pct99),]
-    }
-    else all_pi_est <- copy(all_pi)
+    all_pi_est <- sampled.data[ get(paste0("sample_", sig*100)), ]
     
     ###### Original Range
     extrap <- "Original"
