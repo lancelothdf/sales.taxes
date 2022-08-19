@@ -129,6 +129,7 @@ for (rep in  0:100) {
       all_pi_est[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
       ## Estimate RF and FS
       for (FE in FE_opts) {
+        FEg <- paste0("group_", FE)
         for (Y in outcomes) {
           formula1 <- as.formula(paste0(
             Y, " ~ w.ln_sales_tax:quantile | group_", FE, "+ quantile"
@@ -161,7 +162,7 @@ for (rep in  0:100) {
         all_pi_est[, wVAR := weighted.mean((w.ln_sales_tax - 
                                               weighted.mean(w.ln_sales_tax, 
                                                             w = base.sales, na.rm = T))^2,
-                                           w = base.sales, na.rm = T), by = c(paste("group_", FE))]
+                                           w = base.sales, na.rm = T), by = FEg]
         all_pi_est[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]
         # Weight normalized within quantile
         all_pi_est[, base.sales.q := (wVAR*base.sales)/sum(wVAR*base.sales), by = .(quantile)]
