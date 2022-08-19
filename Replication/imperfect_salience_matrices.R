@@ -60,7 +60,6 @@ FE <- "group_division_by_module_by_time"
 n.groups.max <- 3
 
 set.seed(2019)
-ids <- unique(all_pi$module_by_state)
 
 ## Loop across sigmas
 LRdiff_res <- data.table(NULL)
@@ -68,21 +67,22 @@ pq_res <- data.table(NULL)
 for (rep in 0:100) {
   
   flog.info("Iteration %s", rep)
-  if (rep > 0) {
-    # Sample by block
-    sampled.ids <- data.table(sample(ids, replace = T))
-    setnames(sampled.ids, old= "V1", new = "module_by_state")
-    
-    # Merge data to actual data
-    sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
-    n.groups.max <-2
-  }
-  else sampled.data<- copy(all_pi)
   for (sig in c(0.25, 0.5, 0.75, 1)) {
     
     ## cut the tails (keep between 1st and 99th percentile)
-    all_pi_est <- sampled.data[ get(paste0("sample_", sig*100)), ]
-    
+    all_pi_est <- all_pi[ get(paste0("sample_", sig*100)), ]
+    if (rep > 0) {
+      ids <- unique(all_pi_est$module_by_state)
+      
+      # Sample by block
+      sampled.ids <- data.table(sample(ids, replace = T))
+      setnames(sampled.ids, old= "V1", new = "module_by_state")
+      
+      # Merge data to actual data
+      all_pi_est <- merge(sampled.ids, all_pi_est, by = c("module_by_state") , allow.cartesian = T, all.x = T)
+      n.groups.max <-2
+    }
+
     ###### Original Range
     extrap <- "Original"
     ## Normalize
