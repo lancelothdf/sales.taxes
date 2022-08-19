@@ -44,7 +44,7 @@ for (rep in 0:100) {
   flog.info("Iteration %s", rep)
   ### Part 1. Recover Point identified case  ------------
   flog.info("Recovering estimates for %s...", rep)
-  res.all <- res.all.full[iter == rep & controls == "group_division_by_module_by_time" & n.groups == 1]
+  res.all <- res.all.full[iter == rep & controls == "group_division_by_module_by_time"]
   iv1 <- ivs.full[iter == rep & controls == "group_division_by_module_by_time" & n.groups == 1]
   
   linear.elas <- (iv1[outcome == "w.ln_quantity3"][["Estimate"]])/iv1[outcome == "w.ln_cprice2"][["Estimate"]]
