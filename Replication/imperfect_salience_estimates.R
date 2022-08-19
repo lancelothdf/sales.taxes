@@ -24,6 +24,18 @@ iv.output.salience.results.file <- "Data/Replication/Demand_iv_sat_initial_price
 theta.output.salience.results.file <- "Data/Replication/Demand_theta_sat_initial_price_semester_salience.csv"
 
 
+### cut tails
+for (sig in c(0.25, 0.5, 0.75, 1)) {
+  
+  ## cut the tails (keep between 1st and 99th percentile, not for sigma =1 since thatw as already done)
+  if (sig != 1) {
+    pct1 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.01, na.rm = T, weight=base.sales)
+    pct99 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.99, na.rm = T, weight=base.sales)
+    all_pi[, paste0("sample_", sig*100) := (get(paste0("dm.ln_cpricei2_sig", sig)) > pct1 & get(paste0("dm.ln_cpricei2_sig", sig)) < pct99)]
+  }
+  else all_pi[, sample_100 := 1]
+}
+
 #### Part 1. IVs and point identified cases ------
 
 ## Options
@@ -55,12 +67,9 @@ for (rep in  0:100) {
     
     outcomes <- c(paste0("w.ln_cpricei2_sig",sig), "w.ln_quantity3")
     ## cut the tails (keep between 1st and 99th percentile, not for sigma =1 since thatw as already done)
-    if (sig != 1) {
-      pct1 <- quantile(sampled.data[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.01, na.rm = T, weight=base.sales)
-      pct99 <- quantile(sampled.data[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.99, na.rm = T, weight=base.sales)
-      all_pi_est <- sampled.data[(get(paste0("dm.ln_cpricei2_sig", sig)) > pct1 & get(paste0("dm.ln_cpricei2_sig", sig)) < pct99),]
-    }
-    else all_pi_est <- copy(sampled.data)
+    all_pi_est <- sampled.data[ get(paste0("sample_", sig*100)), ]
+    
+    
     ## Full sample estimates (L=1)
     for (FE in FE_opts) {
       ## Full sample IV
@@ -140,7 +149,7 @@ for (rep in  0:100) {
         
         ## Estimate IVs and retrieve in vector
         
-        IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE & sigma == sig,][["Estimate"]]/LRdiff_res[outcome == paste0("w.ln_cpricei2_sig",sig) & n.groups == n.g & controls == FE & sigma == sig,][["Estimate"]]
+        IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE & sigma == sig & iter == rep,][["Estimate"]]/LRdiff_res[outcome == paste0("w.ln_cpricei2_sig",sig) & n.groups == n.g & controls == FE & sigma == sig & iter == rep,][["Estimate"]]
         
         ### Estimate the matrix of the implied system of equations
         ## Get the empirical distribution of prices by quantile, weighted properly by base.sales \times 
