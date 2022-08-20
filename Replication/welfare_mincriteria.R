@@ -35,10 +35,7 @@ IVs1 <- IVs[outcome == "IV", -c("Std. Error", "controls", "rn", "Cluster s.e.", 
 IVs2 <- dcast(IVs[n.groups > 1], n.groups + lev + sigma + iter ~ outcome,  fun=sum, value.var = c("Estimate"))
 IVs2[, w.ln_cpricei2 := w.ln_cpricei2_sig0.25 + w.ln_cpricei2_sig0.5 + w.ln_cpricei2_sig0.75 + w.ln_cpricei2_sig1]
 IVs2[, Estimate := w.ln_quantity3/w.ln_cpricei2]
-colsout <- c(paste0("w.ln_cpricei2_sig", sigmas.test), "w.ln_quantity3", "w.ln_cpricei2")
-print(colsout)
-print(colnames(IVs2))
-IVs2 <- IVs2[, -colsout]
+IVs2 <- IVs2[, c("n.groups", "lev", "sigma", "iter", "Estimate")]
 # Merge and Order appropiately
 res.ivs <- rbind(IVs1, IVs2)
 res.ivs <- res.ivs[order(iter, sigma, n.groups, lev)]
