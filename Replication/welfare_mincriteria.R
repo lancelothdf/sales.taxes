@@ -37,7 +37,7 @@ IVs2[, w.ln_cpricei2 := w.ln_cpricei2_sig0.25 + w.ln_cpricei2_sig0.5 + w.ln_cpri
 IVs2[, Estimate := w.ln_quantity3/w.ln_cpricei2]
 colsout <- c(paste0("w.ln_cpricei2_sig", sigmas.test), "w.ln_quantity3", "w.ln_cpricei2")
 print(colsout)
-pront(colnames(IVs2))
+print(colnames(IVs2))
 IVs2 <- IVs2[, -colsout]
 # Merge and Order appropiately
 res.ivs <- rbind(IVs1, IVs2)
