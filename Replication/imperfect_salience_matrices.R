@@ -103,13 +103,21 @@ for (rep in 0:100) {
       
       
       # Create groups of initial values of tax rate
-      # We use the full weighted distribution
-      all_pi_est <- all_pi_est[, quantile := cut(get(paste0("dm.L.ln_cpricei2_sig", sig)),
-                                                 breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
-                                                 labels = 1:n.g, right = FALSE)]
-      quantlab <- round(quantile(all_pi_est[[paste0("dm.L.ln_cpricei2_sig", sig)]], 
-                                 probs = seq(0, 1, by = 1/n.g), na.rm = T, 
-                                 weight = all_pi_est$base.sales), digits = 4)
+      if (n.g == 1) {
+        all_pi_est[, quantile := 1]
+        quantlab <- 1
+      }
+      else {
+        # We use the full weighted distribution
+        all_pi_est <- all_pi_est[, quantile := cut(get(paste0("dm.L.ln_cpricei2_sig", sig)),
+                                                   breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), 
+                                                                     probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
+                                                   labels = 1:n.g, right = FALSE)]
+        quantlab <- round(quantile(all_pi_est[[paste0("dm.L.ln_cpricei2_sig", sig)]], 
+                                   probs = seq(0, 1, by = 1/n.g), na.rm = T, 
+                                   weight = all_pi_est$base.sales), digits = 4)
+        
+      }
       
       # Saturate fixed effects
       all_pi_est[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
@@ -191,14 +199,20 @@ for (rep in 0:100) {
     for (n.g in 1:n.groups.max) {
       
       # Create groups of initial values of tax rate
-      # We use the full weighted distribution
-      all_pi_est <- all_pi_est[, quantile := cut(get(paste0("dm.L.ln_cpricei2_sig", sig)),
-                                                 breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
-                                                 labels = 1:n.g, right = FALSE)]
-      quantlab <- round(quantile(all_pi_est[[paste0("dm.L.ln_cpricei2_sig", sig)]], 
-                                 probs = seq(0, 1, by = 1/n.g), na.rm = T, 
-                                 weight = all_pi_est$base.sales), digits = 4)
-      
+      if (n.g == 1) {
+        all_pi_est[, quantile := 1]
+        quantlab <- 1
+      }
+      else {
+        # We use the full weighted distribution
+        all_pi_est <- all_pi_est[, quantile := cut(get(paste0("dm.L.ln_cpricei2_sig", sig)),
+                                                   breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
+                                                   labels = 1:n.g, right = FALSE)]
+        quantlab <- round(quantile(all_pi_est[[paste0("dm.L.ln_cpricei2_sig", sig)]], 
+                                   probs = seq(0, 1, by = 1/n.g), na.rm = T, 
+                                   weight = all_pi_est$base.sales), digits = 4)
+      }
+
       # Saturate fixed effects
       all_pi_est[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
       all_pi_est[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
@@ -275,13 +289,19 @@ for (rep in 0:100) {
       
       
       # Create groups of initial values of tax rate
-      # We use the full weighted distribution
-      all_pi_est <- all_pi_est[, quantile := cut(get(paste0("dm.L.ln_cpricei2_sig", sig)),
-                                                 breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
-                                                 labels = 1:n.g, right = FALSE)]
-      quantlab <- round(quantile(all_pi_est[[paste0("dm.L.ln_cpricei2_sig", sig)]], 
-                                 probs = seq(0, 1, by = 1/n.g), na.rm = T, 
-                                 weight = all_pi_est$base.sales), digits = 4)
+      if (n.g == 1) {
+        all_pi_est[, quantile := 1]
+        quantlab <- 1
+      }
+      else {
+        # We use the full weighted distribution
+        all_pi_est <- all_pi_est[, quantile := cut(get(paste0("dm.L.ln_cpricei2_sig", sig)),
+                                                   breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
+                                                   labels = 1:n.g, right = FALSE)]
+        quantlab <- round(quantile(all_pi_est[[paste0("dm.L.ln_cpricei2_sig", sig)]], 
+                                   probs = seq(0, 1, by = 1/n.g), na.rm = T, 
+                                   weight = all_pi_est$base.sales), digits = 4)
+      }
       
       # Saturate fixed effects
       all_pi_est[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
