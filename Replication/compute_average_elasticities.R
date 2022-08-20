@@ -1,6 +1,6 @@
 ##### Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 8/13/2022
+#' Replication File. Updated on 8/19/2022
 #' Step 9: Extract average elasticities previously estimated. Bootstrapped version
 
 library(data.table)

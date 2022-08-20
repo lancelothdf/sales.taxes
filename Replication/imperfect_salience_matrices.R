@@ -1,6 +1,6 @@
 ##### Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 8/18/2022
+#' Replication File. Updated on 8/20/2022
 #' Step 10b: Repeat estimation for partial identification but with demand under imperfect salience
 #' This version includes bootstrapping
 
@@ -69,6 +69,7 @@ for (rep in 0:100) {
   flog.info("Iteration %s", rep)
   for (sig in c(0.25, 0.5, 0.75, 1)) {
     
+    flog.info("Iteration %s, sigma %s", rep, sig)
     ## cut the tails (keep between 1st and 99th percentile)
     all_pi_est <- all_pi[ get(paste0("sample_", sig*100))==1, ]
     if (rep > 0) {
@@ -81,7 +82,7 @@ for (rep in 0:100) {
       # Merge data to actual data
       all_pi_est <- merge(sampled.ids, all_pi_est, by = c("module_by_state") , allow.cartesian = T, all.x = T)
     }
-    flog.info("Iteration %s, Original", rep)
+    flog.info("Iteration %s, sigma %s, Original", rep, sig)
     
     ###### Original Range
     extrap <- "Original"
@@ -149,7 +150,7 @@ for (rep in 0:100) {
       for (K in (n.g):8) {
         
         if (K>1){
-          flog.info("... L=%s cases: K=%s", n.g, K)
+          if (rep == 0) flog.info("... L=%s cases: K=%s", n.g, K)
           # Create the derivative of the polynomial of prices and multiplicate by weights
           for (n in 0:(K-1)){
             ed.price.quantile[, paste0("b",n) := w1*(bernstein(p_m,n,K-1))]
@@ -179,7 +180,7 @@ for (rep in 0:100) {
       }
     }
     
-    flog.info("Iteration %s, No Tax", rep)
+    flog.info("Iteration %s, sigma %s, No Tax", rep, sig)
     
     ##### No tax Case
     extrap <- "No Tax"
@@ -248,7 +249,7 @@ for (rep in 0:100) {
       for (K in (n.g):8) {
         
         if (K>1){
-          flog.info("... L=%s cases: K=%s", n.g, K)
+          if (rep == 0) flog.info("... L=%s cases: K=%s", n.g, K)
           # Create the derivative of the polynomial of prices and multiplicate by weights
           for (n in 0:(K-1)){
             ed.price.quantile[, paste0("b",n) := w1*(bernstein(p_m,n,K-1))]
@@ -273,7 +274,7 @@ for (rep in 0:100) {
       }
     }
     
-    flog.info("Iteration %s, Plus 5 tax", rep)
+    flog.info("Iteration %s, sigma %s, Plus 5 tax", rep, sig)
     
     ##### Plus 5 range case
     extrap <- "plus 5 Tax"
@@ -344,7 +345,7 @@ for (rep in 0:100) {
       for (K in (n.g):8) {
         
         if (K>1){
-          flog.info("... L=%s cases: K=%s", n.g, K)
+          if (rep == 0) flog.info("... L=%s cases: K=%s", n.g, K)
           # Create the derivative of the polynomial of prices and multiplicate by weights
           for (n in 0:(K-1)){
             ed.price.quantile[, paste0("b",n) := w1*(bernstein(p_m,n,K-1))]

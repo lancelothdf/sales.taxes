@@ -1,6 +1,6 @@
 ##### Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 8/18/2022
+#' Replication File. Updated on 8/20/2022
 #' Step 10a: Repeat estimation for point identification but with demand under imperfect salience
 #' This version includes bootstrappin
 

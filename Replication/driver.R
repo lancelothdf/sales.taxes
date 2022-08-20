@@ -23,11 +23,12 @@ source("twfe_pre_trends.R") #DONE
 source("reduced_form_cohort_twfe_parallel.R") #DONE
 source("reduced_form_evidence_nonlinearities.R") #DONE
 source("point_estimates_bootstrap.R") #DONE
-source("point_estimates_robust_storecharact.R")
+source("point_estimates_robust_storecharact.R") #DONE
 source("partial_id_matrices_bootstrap.R") #DONE
 source("partial_id_solve_bootstrap.R") #DONE
-source("compute_average_elasticities.R") 
-source("imperfect_salience_estimates.R") #DONE
+source("compute_average_elasticities.R") #RUNNING
+source("imperfect_salience_estimates.R") #RUNNING
+source("imperfect_salience_matrices.R") #RUNNING
 source("average_conduct_parameter_salience.R") #DONE
 source("welfare_mincriteria.R") 
 
