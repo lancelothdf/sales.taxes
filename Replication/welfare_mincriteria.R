@@ -86,7 +86,7 @@ for (rep in 0:100) {
           print(constr)
           ## D2. Retrieve IVs
           IVs <- res.ivs[iter == rep & n.groups == D & sigma == sig][["Estimate"]] 
-          print(constr)
+          print(IVs)
           
           ## D3. Estimate min.criterion for case (note that if there is no value it is 0)
           constr.mono <- Diagonal(ncol(constr))
