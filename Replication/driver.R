@@ -26,7 +26,7 @@ source("point_estimates_bootstrap.R") #DONE
 source("point_estimates_robust_storecharact.R") #DONE
 source("partial_id_matrices_bootstrap.R") #DONE
 source("partial_id_solve_bootstrap.R") #DONE
-source("compute_average_elasticities.R") #RUNNING
+source("compute_average_elasticities.R") #DONE but revisiting
 source("imperfect_salience_estimates.R") #RUNNING
 source("imperfect_salience_matrices.R") #RUNNING
 source("average_conduct_parameter_salience.R") #DONE
