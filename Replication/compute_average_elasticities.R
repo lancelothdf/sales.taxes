@@ -47,7 +47,7 @@ for (rep in 0:100) {
   res.all <- res.all.full[iter == rep & controls == "group_division_by_module_by_time"]
   iv1 <- ivs.full[iter == rep & controls == "group_division_by_module_by_time" & n.groups == 1]
   
-  linear.elas <- (iv1[outcome == "w.ln_quantity3"][["Estimate"]])/iv1[outcome == "w.ln_cprice2"][["Estimate"]]
+  linear.elas <- (iv1[outcome == "w.ln_quantity3"][["Estimate"]])/iv1[outcome == "w.ln_cpricei2"][["Estimate"]]
   quad.elas <- res.all[n.groups ==2][["beta_hat"]][-1]*c(1,2)
   cubic.elas <- res.all[n.groups ==3][["beta_hat"]][-1]*c(1,2,3)
   
