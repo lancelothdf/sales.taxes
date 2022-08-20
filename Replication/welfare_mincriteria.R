@@ -29,18 +29,14 @@ sigmas.test <- c(0.25, 0.5, 0.75, 1)
 IVs <- fread(iv.output.salience.results.file)
 IVs <- IVs[controls == "division_by_module_by_time"]
 
-# For L = 1
-IVs1 <- IVs[outcome == "IV", -c("Std. Error", "controls", "rn", "Cluster s.e.", "t value", "Pr(>|t|)", "outcome")]
-head(IVs1)
 # For L > 1
-IVs2 <- dcast(IVs[n.groups > 1], n.groups + lev + sigma + iter ~ outcome,  fun=sum, value.var = c("Estimate"))
+IVs2 <- dcast(IVs, n.groups + lev + sigma + iter ~ outcome,  fun=sum, value.var = c("Estimate"))
 IVs2[, w.ln_cpricei2 := w.ln_cpricei2_sig0.25 + w.ln_cpricei2_sig0.5 + w.ln_cpricei2_sig0.75 + w.ln_cpricei2_sig1]
 IVs2[, Estimate := w.ln_quantity3/w.ln_cpricei2]
 IVs2 <- IVs2[, c("n.groups", "lev", "sigma", "iter", "Estimate")]
 # Merge and Order appropiately
-res.ivs <- rbind(IVs1, IVs2)
-res.ivs <- res.ivs[order(iter, sigma, n.groups, lev)]
-rm(IVs, IVs1, IVs2)
+res.ivs <- IVs2[order(iter, sigma, n.groups, lev)]
+rm(IVs, IVs2)
 head(res.ivs)
 
 ## 2. Set up Ks and scenarios (non-marginal) to test
