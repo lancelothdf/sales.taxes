@@ -81,11 +81,9 @@ for (rep in 0:100) {
           flog.info("...... K = %s, sigma = %s, L = %s", K, sig, D)
           ## D1. Build the constraints matrix 
           constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")])   ## For elasticity
-          print(constr)
           ## D2. Retrieve IVs
           IVs <- res.ivs[iter == rep & n.groups == D & sigma == sig][["Estimate"]] 
-          print(IVs)
-          
+
           ## D3. Estimate min.criterion for case (note that if there is no value it is 0)
           constr.mono <- Diagonal(ncol(constr))
           RHS.mono <- rep(0, K)
