@@ -80,7 +80,7 @@ for (rep in 0:100) {
         ## D Start Loop at number of groups
         for (D in unique(gamma$n.groups)) {
           
-          flog.info("...... K = %s, \sigma = %s, L = %s", K, sig, D)
+          flog.info("...... K = %s, sigma = %s, L = %s", K, sig, D)
           ## D1. Build the constraints matrix 
           constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")])   ## For elasticity
           
