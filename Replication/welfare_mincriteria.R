@@ -39,7 +39,7 @@ IVs2 <- IVs2[, c("n.groups", "lev", "sigma", "iter", "Estimate")]
 # Merge and Order appropiately
 res.ivs <- rbind(IVs1, IVs2)
 res.ivs <- res.ivs[order(iter, sigma, n.groups, lev)]
-rm(IVs, IVs1, IVs2)
+rm(IVs1, IVs2)
 
 ## 2. Set up Ks and scenarios (non-marginal) to test
 K.test <- c(2:8)
@@ -85,7 +85,7 @@ for (rep in 0:100) {
           constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")])   ## For elasticity
           
           ## D2. Retrieve IVs
-          IVs <- res.ivs[iter == rep & n.groups == D  & sigma == sig][["Estimate"]] 
+          IVs <- res.ivs[iter == rep & n.groups == D & sigma == sig][["Estimate"]] 
           
           ## D3. Estimate min.criterion for case (note that if there is no value it is 0)
           constr.mono <- Diagonal(ncol(constr))
