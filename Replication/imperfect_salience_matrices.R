@@ -57,7 +57,7 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
 ### Matrices for different types of extrapolation supports
 # Only for interest FE
 FE <- "group_division_by_module_by_time"
-n.groups.max <- 3
+n.groups.max <- 2
 
 set.seed(2019)
 
@@ -70,7 +70,7 @@ for (rep in 0:100) {
   for (sig in c(0.25, 0.5, 0.75, 1)) {
     
     ## cut the tails (keep between 1st and 99th percentile)
-    all_pi_est <- all_pi[ get(paste0("sample_", sig*100)), ]
+    all_pi_est <- all_pi[ get(paste0("sample_", sig*100))==1, ]
     if (rep > 0) {
       ids <- unique(all_pi_est$module_by_state)
       
@@ -80,14 +80,15 @@ for (rep in 0:100) {
       
       # Merge data to actual data
       all_pi_est <- merge(sampled.ids, all_pi_est, by = c("module_by_state") , allow.cartesian = T, all.x = T)
-      n.groups.max <-2
     }
-
+    flog.info("Iteration %s, Original", rep)
+    
     ###### Original Range
     extrap <- "Original"
     ## Normalize
     min.p.or <- min.p <- all_pi_est[, min(get(paste0("dm.ln_cpricei2_sig", sig)))]
     max.p.or <- max.p <- all_pi_est[, max(get(paste0("dm.ln_cpricei2_sig", sig)))]
+    if (rep == 0) print(paste0(" Original range is ",min.p ," to ", max.p))
     all_pi_est[, r.dm.ln_cpricei2 := (get(paste0("dm.ln_cpricei2_sig", sig)) - min.p)/(max.p - min.p)]
     
     ## Export values to re-estimate the intercept
@@ -101,6 +102,7 @@ for (rep in 0:100) {
     
     for (n.g in 1:n.groups.max) {
       
+      flog.info("... L=%s cases", n.g)
       
       # Create groups of initial values of tax rate
       if (n.g == 1) {
@@ -147,6 +149,7 @@ for (rep in 0:100) {
       for (K in (n.g):8) {
         
         if (K>1){
+          flog.info("... L=%s cases: K=%s", n.g, K)
           # Create the derivative of the polynomial of prices and multiplicate by weights
           for (n in 0:(K-1)){
             ed.price.quantile[, paste0("b",n) := w1*(bernstein(p_m,n,K-1))]
@@ -176,15 +179,17 @@ for (rep in 0:100) {
       }
     }
     
+    flog.info("Iteration %s, No Tax", rep)
     
     ##### No tax Case
     extrap <- "No Tax"
-    all_pi_est[, ex_p := get(paste0("dm.ln_cpricei2_sig", sig)) - ln_sales_tax]
+    all_pi_est[, ex_p := get(paste0("dm.ln_cpricei2_sig", sig)) - sig*ln_sales_tax]
     
     ## Define re-scaled prices to use Bernstein polynomials in that range
     min.p <- min(all_pi_est[, min(ex_p)], min.p.or)
     max.p <- max(all_pi_est[, max(ex_p)], max.p.or)
     ## Normalize
+    if (rep == 0) print(paste0("No tax range is ", min.p ," to ", max.p))
     all_pi_est[, r.dm.ln_cpricei2 := (get(paste0("dm.ln_cpricei2_sig", sig)) - min.p)/(max.p - min.p)]
     
     ## Export values to re-estimate the intercept
@@ -198,6 +203,7 @@ for (rep in 0:100) {
     
     for (n.g in 1:n.groups.max) {
       
+      flog.info("... L=%s cases", n.g)
       # Create groups of initial values of tax rate
       if (n.g == 1) {
         all_pi_est[, quantile := 1]
@@ -206,7 +212,8 @@ for (rep in 0:100) {
       else {
         # We use the full weighted distribution
         all_pi_est <- all_pi_est[, quantile := cut(get(paste0("dm.L.ln_cpricei2_sig", sig)),
-                                                   breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
+                                                   breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), 
+                                                                     probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
                                                    labels = 1:n.g, right = FALSE)]
         quantlab <- round(quantile(all_pi_est[[paste0("dm.L.ln_cpricei2_sig", sig)]], 
                                    probs = seq(0, 1, by = 1/n.g), na.rm = T, 
@@ -241,6 +248,7 @@ for (rep in 0:100) {
       for (K in (n.g):8) {
         
         if (K>1){
+          flog.info("... L=%s cases: K=%s", n.g, K)
           # Create the derivative of the polynomial of prices and multiplicate by weights
           for (n in 0:(K-1)){
             ed.price.quantile[, paste0("b",n) := w1*(bernstein(p_m,n,K-1))]
@@ -265,15 +273,17 @@ for (rep in 0:100) {
       }
     }
     
+    flog.info("Iteration %s, Plus 5 tax", rep)
     
     ##### Plus 5 range case
     extrap <- "plus 5 Tax"
-    all_pi_est[, ex_p := get(paste0("dm.ln_cpricei2_sig", sig)) + log(1+0.05)]
+    all_pi_est[, ex_p := get(paste0("dm.ln_cpricei2_sig", sig)) + sig*log(1+0.05)]
     
     ## Define re-scaled prices to use Bernstein polynomials in that range
     min.p <- min(all_pi_est[, min(ex_p)], min.p.or)
     max.p <- max(all_pi_est[, max(ex_p)], max.p.or)
     ## Normalize
+    if (rep == 0) print(paste0("Plus 5 tax range is ",min.p ," to ", max.p))
     all_pi_est[, r.dm.ln_cpricei2 := (get(paste0("dm.ln_cpricei2_sig", sig)) - min.p)/(max.p - min.p)]
     
     ## Export values to re-estimate the intercept
@@ -287,6 +297,7 @@ for (rep in 0:100) {
     
     for (n.g in 1:n.groups.max) {
       
+      flog.info("... L=%s cases", n.g)
       
       # Create groups of initial values of tax rate
       if (n.g == 1) {
@@ -296,7 +307,8 @@ for (rep in 0:100) {
       else {
         # We use the full weighted distribution
         all_pi_est <- all_pi_est[, quantile := cut(get(paste0("dm.L.ln_cpricei2_sig", sig)),
-                                                   breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
+                                                   breaks = quantile(get(paste0("dm.L.ln_cpricei2_sig", sig)), 
+                                                                     probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
                                                    labels = 1:n.g, right = FALSE)]
         quantlab <- round(quantile(all_pi_est[[paste0("dm.L.ln_cpricei2_sig", sig)]], 
                                    probs = seq(0, 1, by = 1/n.g), na.rm = T, 
@@ -332,6 +344,7 @@ for (rep in 0:100) {
       for (K in (n.g):8) {
         
         if (K>1){
+          flog.info("... L=%s cases: K=%s", n.g, K)
           # Create the derivative of the polynomial of prices and multiplicate by weights
           for (n in 0:(K-1)){
             ed.price.quantile[, paste0("b",n) := w1*(bernstein(p_m,n,K-1))]
