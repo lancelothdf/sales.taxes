@@ -68,7 +68,6 @@ for (sig in sigmas.test) {
     sigma = sig, theta = thetas[sigma==sig & es.val == 1, mean(theta)])
   
 }
-print(thetas.list)
 
 ## 4. Set up IV estimates for each sigma
 IVs <- fread(iv.output.salience.results.file)
@@ -141,7 +140,7 @@ for (sc in scenarios) {
       
       ## D Start Loop at number of groups
       for (D in L.test) { #unique(gamma$n.groups)
-        flog.info("....  Focus now: L = %, sigma = %s and theta = %s", L, sig, theta)
+        flog.info("....  Focus now: L = %, sigma = %s and theta = %s", D, sig, theta)
         
         ## D1. Build the constraints matrix 
         constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")]) 
