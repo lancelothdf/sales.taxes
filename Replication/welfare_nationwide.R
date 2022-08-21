@@ -140,7 +140,7 @@ for (sc in scenarios) {
       
       ## D Start Loop at number of groups
       for (D in L.test) { #unique(gamma$n.groups)
-        flog.info("....  Focus now: L = %, sigma = %s and theta = %s", D, sig, theta)
+        flog.info("....  Focus now: L = %s, sigma = %s and theta = %s", D, sig, theta)
         
         ## D1. Build the constraints matrix 
         constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")]) 
