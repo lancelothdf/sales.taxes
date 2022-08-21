@@ -130,12 +130,15 @@ for (sc in scenarios) {
       # Capture value of sigma and thetas to test
       sig = comb$sigma
       theta <- comb$theta
+      print(sig)
+      print(theta)
+      
       ## C.1 Extract support to use
       p.min <- res.pq[extrap == sc & sigma == sig & iter == rep][["min.p"]]
       p.max <- res.pq[extrap == sc & sigma == sig & iter == rep][["max.p"]]
       
       ## C.2 Restrict gamma file
-      gamma <- gamma.full.data[extrap == sc & n.groups < max(L.test) & sigma == sig & iter == rep][, c(paste0("b", 0:(K-1)), "n.groups"), with = F]           
+      gamma <- gamma.full.data[extrap == sc & n.groups <= max(L.test) & sigma == sig & iter == rep][, c(paste0("b", 0:(K-1)), "n.groups"), with = F]           
       
       ## D Start Loop at number of groups
       for (D in L.test) { #unique(gamma$n.groups)
@@ -143,9 +146,11 @@ for (sc in scenarios) {
         
         ## D1. Build the constraints matrix 
         constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")]) 
+        print(constr)
         
         ## D2. Retrieve IVs
         IVs <- res.ivs[n.groups == D  & sigma == sig & iter == rep][["Estimate"]] 
+        print(IVs)
         
         ## D3. Load min.criterion for case
         mc <- min.criteria[K == K & L == D & sigma == sig & extrap == sc & iter == rep,][["min.criteria"]]
