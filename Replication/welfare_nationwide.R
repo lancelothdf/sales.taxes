@@ -85,7 +85,6 @@ rm(IVs, IVs2)
 ## 5. Open Min - Max files and min criteria
 res.pq <- fread(pq.output.salience.results.file)
 min.criteria <- fread(out.file.mc.welf)
-head(min.criteria)
 
 ## 6. Set up Ks, Ls, and scenarios (manually)
 K.test <- c(2, 8)
@@ -150,8 +149,8 @@ for (sc in scenarios) {
         
         ## D3. Load min.criterion for case
         mc <- min.criteria[K == K & L == D & sigma == sig & extrap == sc & iter == rep,][["min.criteria"]]
-        flog.info(".... Recovered min criteria is %s", mc)
-        
+        print(paste0("mc = ", mc))
+
         ## D4. Generate an initial value somewhere in the middle to test algorithms
         init.val0max <- init.val0min <- get.init.val(constr, IVs, mc)
         
