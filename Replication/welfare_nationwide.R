@@ -1,13 +1,12 @@
 ##### Santiago Lacouture
 #' Sales Taxes
 #' Replication File. Updated on 8/18/2022
-#' Step 13: Welfare extrapolation. Nationwide average
+#' Step 13: Welfare extrapolation. Nationwide average.
+#' We estimate in loops: the function itself computes the average in parallel
 
 
 library(data.table)
 library(futile.logger)
-library(lfe)
-library(multcomp)
 library(Matrix)
 library(zoo)
 library(tidyverse)
@@ -63,13 +62,13 @@ for (sig in sigmas.test) {
     sigma = sig, theta = 0)
   # theta estimated when e_s = Inf
   thetas.list[[paste0("s",sig*100,"-Inf")]] <- list(
-    sigma = sig, theta = av.theta[sigma==sig & is.infinite(es.val), mean(theta)])
+    sigma = sig, theta = thetas[sigma==sig & is.infinite(es.val), mean(theta)])
   # theta estimated when e_s = 1
   thetas.list[[paste0("s",sig*100,"-1")]] <- list(
-    sigma = sig, theta = av.theta[sigma==sig & es.val == 1, mean(theta)])
+    sigma = sig, theta = thetas[sigma==sig & es.val == 1, mean(theta)])
   
 }
-
+print(thetas.list)
 
 ## 4. Set up IV estimates for each sigma
 IVs <- fread(iv.output.salience.results.file)
