@@ -28,6 +28,8 @@ theta.berstein.sal <- "Data/Replication/Demand_gamma_sat_initial_price_semester_
 pq.output.salience.results.file <- "Data/Replication/Demand_pq_sat_initial_price_semester_salience.csv"
 out.file.mc.welf <- "Data/Replication/mincriteria_welfare_boot.csv"
 conduct.parameter.at.p <- "Data/Replication/salience_conduct_parameter_at_p.csv"
+# Output
+out.welfare.nationwide.av <- "Data/Replication/average_nationwide_extrapolation.csv"
 
 
 ### General setup ----
@@ -358,6 +360,7 @@ for (sc in scenarios) {
                                     sigma = sig, theta, s1, s2, 
                                     it1, it2, sol1, sol2)
         results <- rbind(results, welfare.theta)
+        fwrite(results, out.welfare.nationwide.av)
       }
     }
   }
