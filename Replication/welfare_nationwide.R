@@ -218,8 +218,6 @@ while (!done) {
     else {
       ## Retrieve previous results
       case <- data.table(sc, L = D , K, sigma = sig, theta)
-      print(case)
-      print(head(remaining.up))
       target <- merge(remaining.up, case, by = c("sc", "sigma", "theta", "K", "L"))
       
       # Capture previous solution if existent
@@ -237,9 +235,7 @@ while (!done) {
     }
     else {
       ## Retrieve previous results
-      case <- data.table(sc, D , K, sigma = sig, theta)
-      print(case)
-      print(head(remaining.down))
+      case <- data.table(sc, L= D , K, sigma = sig, theta)
       target <- merge(remaining.down, case, by = c("sc", "sigma", "theta", "K", "D"))
       
       # Capture previous solution if existent
