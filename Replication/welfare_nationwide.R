@@ -106,6 +106,25 @@ nlo.opts.local.df <- list(
 source("Code/sales.taxes/Replication/welfare_functions.R")
 
 
+## 8. Capture all possible combinations
+combinations.all <- data.table(NULL)
+for (sc in scenarios) {
+  for (K in K.test) {
+    for (comb in thetas.list) {
+      for (D in L.test) {
+        combinations <- rbind(combinations,
+                              data.table(K = K, L = L,
+                                         sc = sc, 
+                                         sigma = comb$sigma,
+                                         theta = comb$theta)
+        )
+      }
+    }
+  }
+}
+
+
+
 ### Estimation ----
 
 
@@ -123,22 +142,7 @@ while (!done) {
   
   # First time? Capture all combinations
   if (is.na(prev.res)) {
-    combinations <- data.table(NULL)
-    for (sc in scenarios) {
-      for (K in K.test) {
-        for (comb in thetas.list) {
-          for (D in L.test) {
-            combinations <- rbind(combinations,
-                                  data.table(K = K, L = L,
-                                             sc = sc, 
-                                             sigma = comb$sigma,
-                                             theta = comb$theta)
-            )
-          }
-        }
-      }
-    }
-    remaining.up <- remaining.down <- combinations
+    remaining.up <- remaining.down <- combinations <- combinations.all
   }
   else {
     
@@ -150,10 +154,12 @@ while (!done) {
                           remaining.down[mean(sol1), by = .(sc, L, K, sigma, theta)])
     combinations <- combinations[, -c("sol1")]
     
-    # Save correct results
+    # Save correct prebious results
     results <- prev.res[(s1 == 4 & it1 < maxit) |(s2 == 4 & it2 < maxit)]
     
   }
+  flog.info("Remaining combinations: %s", nrow(combinations))
+  
   ### Run estimation for combinations: each row
   for (nr in 1:nrow(combinations)) {
     
@@ -211,8 +217,11 @@ while (!done) {
       ## Retrieve previous results
       case <- data.table(sc, D , K, sigma = sig, theta)
       target <- merge(remaining.up, case, by = c("sc", "sigma", "theta", "K", "D"))
-
+      
+      # Capture previous solution if existent
       init.val0max <- target[["sol2"]]
+      if (is.na(init.val0max)) init.val0max <- get.init.val(constr, IVs, mc)
+      
       prevmin <- target[, .(it1 = mean(it1), down = mean(down), s1 = mean(s1)),
                         by = .(sc,sigma,theta,K,D)]
       prevmin.sol <- target[["sol1"]]
@@ -227,13 +236,22 @@ while (!done) {
       case <- data.table(sc, D , K, sigma = sig, theta)
       target <- merge(remaining.down, case, by = c("sc", "sigma", "theta", "K", "D"))
       
+      # Capture previous solution if existent
       init.val0min <- target[["sol1"]]
-
+      if (is.na(init.val0max)) init.val0min <- get.init.val(constr, IVs, mc)
+      
       prevmax <- target[, .(it2 = mean(it2), up = mean(up), s2 = mean(s2)),
                         by = .(sc,sigma,theta,K,D)]
       prevmax.sol <- target[["sol2"]]
     }    
-    
+    if (!is.null(init.val0min)) {
+      print("Initial value Min is")
+      print("init.val0min")
+    }
+    if (!is.null(init.val0max)) {
+      print("Initial value Max is")
+      print("init.val0max")
+    }
     
     ## E. Estimate for each case
     if (sc == "Original") {
