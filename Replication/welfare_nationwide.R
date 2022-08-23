@@ -236,7 +236,7 @@ while (!done) {
     else {
       ## Retrieve previous results
       case <- data.table(sc, L= D , K, sigma = sig, theta)
-      target <- merge(remaining.down, case, by = c("sc", "sigma", "theta", "K", "D"))
+      target <- merge(remaining.down, case, by = c("sc", "sigma", "theta", "K", "L"))
       
       # Capture previous solution if existent
       init.val0min <- target[["sol1"]]
