@@ -142,7 +142,9 @@ while (!done) {
 
   # First time? Capture all combinations
   if (new) {
-    combinations <- combinations.all
+    print("No previous results found. Starting from 0")
+    combinations <- copy(combinations.all)
+    prev.res <- NULL
   }
   else {
     
@@ -215,7 +217,7 @@ while (!done) {
     # max
     if (is.null(remaining.up)) {
       init.val0max <- NULL
-      if (is.null(results)) init.val0max <- get.init.val(constr, IVs, mc)
+      if (is.null(prev.res)) init.val0max <- get.init.val(constr, IVs, mc)
     }
     else {
       ## Retrieve previous results
@@ -233,7 +235,7 @@ while (!done) {
     # min
     if (is.null(remaining.down)) {
       init.val0min <- NULL
-      if (is.null(results)) init.val0min <- get.init.val(constr, IVs, mc)
+      if (is.null(prev.res)) init.val0min <- get.init.val(constr, IVs, mc)
     }
     else {
       ## Retrieve previous results
