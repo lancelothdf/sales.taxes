@@ -138,11 +138,10 @@ while (!done) {
   flog.info("Starting attempt %s", attempt)
   # Capture existing results
   prev.res <- try(fread(out.welfare.nationwide.av))
-  print(prev.res)
-  
+
   # First time? Capture all combinations
   if (is.na(prev.res)) {
-    remaining.up <- remaining.down <- combinations <- combinations.all
+    combinations <- combinations.all
   }
   else {
     
@@ -154,8 +153,9 @@ while (!done) {
     remaining.down <- prev.res[s1 != 4 | it1 == maxit]
     remaining.up <- prev.res[s2 != 4 | it2 == maxit]
     # Combinations
-    combinations <- rbind(remaining.up[mean(sol1), by = .(sc, L, K, sigma, theta)], 
-                          remaining.down[mean(sol1), by = .(sc, L, K, sigma, theta)])
+    combinations <- merge(remaining.up[mean(sol1), by = .(sc, L, K, sigma, theta)], 
+                          remaining.down[mean(sol1), by = .(sc, L, K, sigma, theta)],
+                          by = c("sc", "L", "K", "sigma", "theta"))
     combinations <- combinations[, -c("sol1")]
     
     # Save correct prebious results
@@ -218,6 +218,8 @@ while (!done) {
     else {
       ## Retrieve previous results
       case <- data.table(sc, L = D , K, sigma = sig, theta)
+      print(case)
+      print(head(remaining.up))
       target <- merge(remaining.up, case, by = c("sc", "sigma", "theta", "K", "L"))
       
       # Capture previous solution if existent
@@ -236,6 +238,8 @@ while (!done) {
     else {
       ## Retrieve previous results
       case <- data.table(sc, D , K, sigma = sig, theta)
+      print(case)
+      print(head(remaining.down))
       target <- merge(remaining.down, case, by = c("sc", "sigma", "theta", "K", "D"))
       
       # Capture previous solution if existent
