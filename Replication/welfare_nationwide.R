@@ -148,7 +148,7 @@ while (!done) {
     
     # Make sure prev results contain all desired combinations
     prev.res <- merge(prev.res, combinations.all, 
-                      by = c("sc", "L", "K", "sigma", "theta"), allow.ca)
+                      by = c("sc", "L", "K", "sigma", "theta"))
     
     # Capture remaining combinations
     remaining.down <- prev.res[s1 != 4 | it1 == maxit]
