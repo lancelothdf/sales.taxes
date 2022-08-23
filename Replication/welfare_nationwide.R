@@ -112,7 +112,7 @@ for (sc in scenarios) {
   for (K in K.test) {
     for (comb in thetas.list) {
       for (D in L.test) {
-        combinations <- rbind(combinations,
+        combinations.all <- rbind(combinations.all,
                               data.table(K = K, L = L,
                                          sc = sc, 
                                          sigma = comb$sigma,
