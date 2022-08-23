@@ -32,7 +32,8 @@ iv.output.results.file.boot <- "Data/Replication/IV_subsamples_initprice_boot.cs
 all_pi <- all_pi[non_imp_tax == 1]
 # Create demeaned current prices
 all_pi[, n.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(module_by_time)]
-
+# Create treatment groups
+all_pi[, treated := ln_sales_tax > 0]
 
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
@@ -71,7 +72,7 @@ for (n.g in 1:5) {
     # Weight normalized within quantile
     all_pi[, base.sales.q := (wVAR*base.sales)/sum(wVAR*base.sales), by = .(quantile)]
     
-    # Produce empirical weighted distribution of (de-meaned) current prices
+    # capture prices by bins
     step.log.p <- (max(all_pi$ln_cpricei2, na.rm = T) - min(all_pi$ln_cpricei2, na.rm = T) )/1500
     step.n.log.p <- (max(all_pi$n.ln_cpricei2, na.rm = T) - min(all_pi$n.ln_cpricei2, na.rm = T)) /1500
     min.log.p <- min(all_pi$ln_cpricei2, na.rm = T)
@@ -79,9 +80,11 @@ for (n.g in 1:5) {
     all_pi[, d.lp := floor((ln_cpricei2 - min.log.p)/step.log.p)]
     all_pi[, d.n.lp := floor((n.ln_cpricei2 - min.n.log.p)/step.n.log.p)]
     
+    # Produce empirical weighted distribution of (de-meaned) current prices
     d1 <- all_pi[, .(dens.log.p = sum(base.sales.q)), by = .(quantile, d.lp)]
     d1[, dens.log.p := dens.log.p/sum(dens.log.p), by =.(quantile)]
     d1[, log.p := d.lp*step.log.p + min.log.p + step.log.p/2]
+    # Produce empirical weighted distribution of log (de-meaned) current prices
     d2 <- all_pi[, .(dens.n.log.p = sum(base.sales.q)), by = .(quantile, d.n.lp)]
     d2[, dens.n.log.p := dens.n.log.p/sum(dens.n.log.p), by =.(quantile)]
     d2[, log.n.p := d.n.lp*step.n.log.p + min.n.log.p + step.n.log.p/2]
@@ -89,9 +92,25 @@ for (n.g in 1:5) {
     prices_densities <- merge(d1, d2, by.x = c("d.lp", "quantile"), by.y = c("d.n.lp", "quantile"))
     prices_densities[, n.groups := n.g]
     prices_densities[, controls := FE]
-    
+    prices_densities[, treated := NA]
     empirical_price_dist<- rbind(empirical_price_dist, prices_densities)
-    fwrite(empirical_price_dist, output.emp.price.dist)    
+    fwrite(empirical_price_dist, output.emp.price.dist)   
+    
+    ## Repeat by treatment group
+    
+    # Produce empirical weighted distribution of log (de-meaned) current prices
+    d1 <- all_pi[, .(dens.log.p = sum(base.sales.q)), by = .(quantile, d.lp, treated)]
+    d1[, dens.log.p := dens.log.p/sum(dens.log.p), by =.(quantile, treated)]
+    d1[, log.p := d.lp*step.log.p + min.log.p + step.log.p/2]
+    d2 <- all_pi[, .(dens.n.log.p = sum(base.sales.q)), by = .(quantile, d.n.lp, treated)]
+    d2[, dens.n.log.p := dens.n.log.p/sum(dens.n.log.p), by =.(quantile, treated)]
+    d2[, log.n.p := d.n.lp*step.n.log.p + min.n.log.p + step.n.log.p/2]    
+    prices_densities <- merge(d1, d2, by.x = c("d.lp", "quantile", "treated"), by.y = c("d.n.lp", "quantile", "treated"))
+    prices_densities[, n.groups := n.g]
+    prices_densities[, controls := FE]
+    empirical_price_dist<- rbind(empirical_price_dist, prices_densities)
+    fwrite(empirical_price_dist, output.emp.price.dist)     
+    
     
     ## Produce IVs
     for (q in unique(all_pi$quantile)) {
@@ -130,9 +149,8 @@ for (rep in 1:100) {
   flog.info("Iteration %s", rep)
   
   # Sample by block
-  sampled.ids <- data.table(sample(ids, replace = T))
-  setnames(sampled.ids, old= "V1", new = "module_by_state")
-  
+  sampled.ids <- data.table(module_by_state = sample(ids, replace = T))
+
   # Merge data to actual data
   sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
   
