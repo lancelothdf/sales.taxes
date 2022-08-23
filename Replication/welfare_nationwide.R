@@ -146,6 +146,10 @@ while (!done) {
   }
   else {
     
+    # Make sure prev results contain all desired combinations
+    prev.res <- merge(prev.res, combinations.all, 
+                      by = c("sc", "L", "K", "sigma", "theta"), allow.ca)
+    
     # Capture remaining combinations
     remaining.down <- prev.res[s1 != 4 | it1 == maxit]
     remaining.up <- prev.res[s2 != 4 | it2 == maxit]
@@ -215,8 +219,8 @@ while (!done) {
     }
     else {
       ## Retrieve previous results
-      case <- data.table(sc, D , K, sigma = sig, theta)
-      target <- merge(remaining.up, case, by = c("sc", "sigma", "theta", "K", "D"))
+      case <- data.table(sc, L = D , K, sigma = sig, theta)
+      target <- merge(remaining.up, case, by = c("sc", "sigma", "theta", "K", "L"))
       
       # Capture previous solution if existent
       init.val0max <- target[["sol2"]]
