@@ -197,9 +197,7 @@ while (!done) {
     ## C.2 Restrict gamma file
     gamma <- gamma.full.data[extrap == sc & n.groups <= max(L.test) & sigma == sig & iter == rep][, c(paste0("b", 0:(K-1)), "n.groups"), with = F]           
     
-    
-    flog.info("....  Focus now: L = %s, sigma = %s and theta = %s", D, sig, theta)
-    
+  
     ## D1. Build the constraints matrix 
     constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")]) 
     
