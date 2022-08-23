@@ -137,15 +137,17 @@ remaining.up <- remaining.down <- NULL
 while (!done) {
   flog.info("Starting attempt %s", attempt)
   # Capture existing results
-  prev.res <- try(fread(out.welfare.nationwide.av))
+  new <- !file.exists(out.welfare.nationwide.av)
+  
 
   # First time? Capture all combinations
-  if (is.na(prev.res)) {
+  if (new) {
     combinations <- combinations.all
   }
   else {
     
     # Make sure prev results contain all desired combinations
+    prev.res <- fread(out.welfare.nationwide.av)
     prev.res <- merge(prev.res, combinations.all, 
                       by = c("sc", "L", "K", "sigma", "theta"), all = T)
     
