@@ -148,7 +148,7 @@ while (!done) {
     
     # Make sure prev results contain all desired combinations
     prev.res <- merge(prev.res, combinations.all, 
-                      by = c("sc", "L", "K", "sigma", "theta"))
+                      by = c("sc", "L", "K", "sigma", "theta"), all = T)
     
     # Capture remaining combinations
     remaining.down <- prev.res[s1 != 4 | it1 == maxit]
@@ -225,7 +225,7 @@ while (!done) {
       if (is.na(init.val0max)) init.val0max <- get.init.val(constr, IVs, mc)
       
       prevmin <- target[, .(it1 = mean(it1), down = mean(down), s1 = mean(s1)),
-                        by = .(sc,sigma,theta,K,D)]
+                        by = .(sc,sigma,theta,K,L)]
       prevmin.sol <- target[["sol1"]]
     }
     # min
@@ -243,7 +243,7 @@ while (!done) {
       if (is.na(init.val0max)) init.val0min <- get.init.val(constr, IVs, mc)
       
       prevmax <- target[, .(it2 = mean(it2), up = mean(up), s2 = mean(s2)),
-                        by = .(sc,sigma,theta,K,D)]
+                        by = .(sc,sigma,theta,K,L)]
       prevmax.sol <- target[["sol2"]]
     }    
     if (!is.null(init.val0min)) {

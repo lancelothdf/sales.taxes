@@ -21,16 +21,18 @@ source("cross_section_retailer.R") #DONE
 source("cross_section_consumer_panel.R") #DONE
 source("twfe_pre_trends.R") #DONE
 source("reduced_form_cohort_twfe_parallel.R") #DONE
-source("reduced_form_evidence_nonlinearities.R") #DONE
+source("reduced_form_evidence_nonlinearities.R") #DONE but revisiting
 source("point_estimates_bootstrap.R") #DONE
 source("point_estimates_robust_storecharact.R") #DONE
 source("partial_id_matrices_bootstrap.R") #DONE
 source("partial_id_solve_bootstrap.R") #DONE
 source("compute_average_elasticities.R") #DONE but revisiting
-source("imperfect_salience_estimates.R") #RUNNING
-source("imperfect_salience_matrices.R") #RUNNING
+source("imperfect_salience_estimates.R") #DONE
+source("imperfect_salience_matrices.R") #DONE
 source("average_conduct_parameter_salience.R") #DONE
-source("welfare_mincriteria.R") 
+source("welfare_mincriteria.R") #DONE
+source("welfare_nationwide.R") 
+source("welfare_state_marginal.R") 
 
 
 
