@@ -33,7 +33,7 @@ all_pi <- all_pi[non_imp_tax == 1]
 # Create demeaned current prices
 all_pi[, n.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(module_by_time)]
 # Create treatment groups
-all_pi[, treated := ln_sales_tax > 0]
+all_pi[, treated := D.ln_sales_tax != 0]
 
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
