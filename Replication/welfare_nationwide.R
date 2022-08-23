@@ -152,14 +152,14 @@ while (!done) {
     # Capture remaining combinations
     remaining.down <- prev.res[s1 != 4 | it1 == maxit]
     remaining.up <- prev.res[s2 != 4 | it2 == maxit]
-    # Combinations
+    # Combinations to run
     combinations <- merge(remaining.up[mean(sol1), by = .(sc, L, K, sigma, theta)], 
                           remaining.down[mean(sol1), by = .(sc, L, K, sigma, theta)],
                           by = c("sc", "L", "K", "sigma", "theta"))
     combinations <- combinations[, -c("sol1.x","sol1.y")]
     
-    # Save correct prebious results
-    results <- prev.res[(s1 == 4 & it1 < maxit) |(s2 == 4 & it2 < maxit)]
+    # Save correct previous results
+    results <- prev.res[(s1 == 4 & it1 < maxit) & (s2 == 4 & it2 < maxit)]
     
   }
   flog.info("Remaining combinations: %s", nrow(combinations))
@@ -248,11 +248,11 @@ while (!done) {
     }    
     if (!is.null(init.val0min)) {
       print("Initial value Min is")
-      print("init.val0min")
+      print(init.val0min)
     }
     if (!is.null(init.val0max)) {
       print("Initial value Max is")
-      print("init.val0max")
+      print(init.val0max)
     }
     
     ## E. Estimate for each case
@@ -405,11 +405,12 @@ while (!done) {
     ## F2c Export
     welfare.theta <- data.table(down, up, sc, L=D , K, 
                                 sigma = sig, theta, s1, s2, 
-                                it1, it2, sol1, sol2)
+                                it1, it2, sol1, sol2, attempt)
     results <- rbind(results, welfare.theta)
     fwrite(results, out.welfare.nationwide.av)
   }
   # Check results
+
   if (nrow(results[s1 != 4 | it1 == maxit]) + nrow(results[s2 != 4 | it2 == maxit]) == 0) done <- T
   else attempt <- attempt + 1
 }
