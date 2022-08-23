@@ -156,7 +156,7 @@ while (!done) {
     combinations <- merge(remaining.up[mean(sol1), by = .(sc, L, K, sigma, theta)], 
                           remaining.down[mean(sol1), by = .(sc, L, K, sigma, theta)],
                           by = c("sc", "L", "K", "sigma", "theta"))
-    combinations <- combinations[, -c("sol1")]
+    combinations <- combinations[, -c("sol1.x","sol1.y")]
     
     # Save correct prebious results
     results <- prev.res[(s1 == 4 & it1 < maxit) |(s2 == 4 & it2 < maxit)]
