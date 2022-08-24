@@ -135,7 +135,6 @@ done <- F
 attempt <- 1
 remaining.up <- remaining.down <- NULL
 while (!done) {
-  flog.info("Starting attempt %s", attempt)
   # Capture existing results
   new <- !file.exists(out.welfare.nationwide.av)
   
@@ -145,15 +144,18 @@ while (!done) {
     print("No previous results found. Starting from 0")
     combinations <- copy(combinations.all)
     prev.res <- NULL
+
   }
   else {
     
     # Make sure prev results contain all desired combinations
     prev.res <- fread(out.welfare.nationwide.av)
     prev.res <- merge(prev.res, combinations.all, 
-                      by = c("sc", "L", "K", "sigma", "theta"), all = T)
+                      by = c("sc", "L", "K", "sigma", "theta"), all.y = T)
     
+    # Are there missings? Will call it attempt max
     attempt <- max(prev.res$attempt) + 1
+    if (is.na(attempt)) attempt <- max(prev.res[!is.na(attempt)]$attempt)
     
     # Capture remaining combinations
     remaining.down <- prev.res[s1 != 4 | it1 == maxit | (is.na(s1) & is.na(it1))]
@@ -166,14 +168,18 @@ while (!done) {
     
     # Save correct previous results
     results <- prev.res[(s1 == 4 & it1 < maxit) & (s2 == 4 & it2 < maxit)]
-    
+
+  
   }
+  
+  flog.info("Starting attempt %s", attempt)
   flog.info("Remaining combinations: %s", nrow(combinations))
   print(head(combinations))
   
   ### Run estimation for combinations: each row
   for (nr in 1:nrow(combinations)) {
     
+
     # Capture values
     sc <- combinations[nr,][["sc"]]
     K <- combinations[nr,][["K"]]
@@ -217,37 +223,40 @@ while (!done) {
     
     
     ## D4. Generate an initial value somewhere in the middle to test algorithms
+    # Reinitialize initial values
+    init.val0min <- init.val0min <- NULL
+    
     # max
     if (is.null(remaining.up)) { # No existing remaining up
-      init.val0max <- NULL # No need to run it
       if (is.null(prev.res)) init.val0max <- get.init.val(constr, IVs, mc) ## First attempt
     }
     else {
       ## Retrieve previous results
+      flog.info("Retreiving previous results for maximization")
       case <- data.table(sc, L = D , K, sigma = sig, theta)
       target <- merge(remaining.up, case, by = c("sc", "sigma", "theta", "K", "L"))
       
       # Capture previous solution if existent
       init.val0max <- target[["sol2"]]
-      if (is.na(init.val0max)) init.val0max <- get.init.val(constr, IVs, mc) ## Missing from previous attempt
+      if (is.na(init.val0max[1])) init.val0max <- get.init.val(constr, IVs, mc) ## Missing from previous attempt
       
       prevmin <- target[, .(it1 = mean(it1), down = mean(down), s1 = mean(s1)),
                         by = .(sc,sigma,theta,K,L)]
       prevmin.sol <- target[["sol1"]]
     }
     # min (similar to above)
-    if (is.null(remaining.down)) {
-      init.val0min <- NULL
+    if (is.null(remaining.down)) { # No existing remaining down
       if (is.null(prev.res)) init.val0min <- get.init.val(constr, IVs, mc)
     }
     else {
+      flog.info("Retreiving previous results for minimization")
       ## Retrieve previous results
       case <- data.table(sc, L= D , K, sigma = sig, theta)
       target <- merge(remaining.down, case, by = c("sc", "sigma", "theta", "K", "L"))
       
       # Capture previous solution if existent
       init.val0min <- target[["sol1"]]
-      if (is.na(init.val0max)) init.val0min <- get.init.val(constr, IVs, mc)
+      if (is.na(init.val0min[1])) init.val0min <- get.init.val(constr, IVs, mc) ## Missing from previous attempt
       
       prevmax <- target[, .(it2 = mean(it2), up = mean(up), s2 = mean(s2)),
                         by = .(sc,sigma,theta,K,L)]
