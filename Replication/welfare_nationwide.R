@@ -156,12 +156,12 @@ while (!done) {
     attempt <- max(prev.res$attempt) + 1
     
     # Capture remaining combinations
-    remaining.down <- prev.res[s1 != 4 | it1 == maxit]
-    remaining.up <- prev.res[s2 != 4 | it2 == maxit]
+    remaining.down <- prev.res[s1 != 4 | it1 == maxit | (is.na(s1) & is.na(it1))]
+    remaining.up <- prev.res[s2 != 4 | it2 == maxit | (is.na(s2) & is.na(it2))]
     # Combinations to run
     combinations <- merge(remaining.up[, .(sol1 = mean(sol1)), by = .(sc, L, K, sigma, theta)], 
                           remaining.down[, .(sol1 = mean(sol1)), by = .(sc, L, K, sigma, theta)],
-                          by = c("sc", "L", "K", "sigma", "theta"))
+                          by = c("sc", "L", "K", "sigma", "theta"), all = T)
     combinations <- combinations[, -c("sol1.x","sol1.y")]
     
     # Save correct previous results
@@ -169,6 +169,7 @@ while (!done) {
     
   }
   flog.info("Remaining combinations: %s", nrow(combinations))
+  print(head(combinations))
   
   ### Run estimation for combinations: each row
   for (nr in 1:nrow(combinations)) {
