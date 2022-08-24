@@ -1,6 +1,6 @@
 ##### Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 8/12/2022
+#' Replication File. Updated on 8/24/2022
 #' Step 8 and 9: Partial identification. 
 #' This code produces the partially identified estimates (step 8) and averages (step 9),
 #' taking as inputs the matrices for the Bernestein polynomials and the IVs.

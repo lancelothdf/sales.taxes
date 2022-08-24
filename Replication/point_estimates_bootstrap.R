@@ -1,6 +1,6 @@
 ##### Wesley Janson and Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 8/8/2022
+#' Replication File. Updated on 8/24/2022
 #' Step 6: Point identification/main estimates and bootstrap portion of replication
 
 library(data.table)
@@ -46,7 +46,14 @@ for (n.g in 1:3) {
   # Saturate fixed effects
   all_pi[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
   all_pi[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
-  
+
+  # Demean properly by quantile
+  if (n.g > 1) {
+    all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = .(store_by_module, quantile)]
+    all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(store_by_module, quantile)]
+    all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = .(store_by_module, quantile)]
+  }  
+    
   ## Estimate RF and FS
   for (FE in FE_opts) {
     for (Y in outcomes) {
@@ -152,6 +159,12 @@ for (rep in 1:100) {
     sampled.data[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
     sampled.data[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
     
+    # Demean properly by quantile
+    if (n.g > 1) {
+      sampled.data[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = .(store_by_module, quantile)]
+      sampled.data[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(store_by_module, quantile)]
+      sampled.data[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = .(store_by_module, quantile)]
+    }
     ## Estimate RF and FS
     for (FE in FE_opts) {
       for (Y in outcomes) {

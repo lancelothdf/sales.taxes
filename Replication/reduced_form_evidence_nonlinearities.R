@@ -1,6 +1,6 @@
 ##### Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 8/9/2022
+#' Replication File. Updated on 8/24/2022
 #' Step 5b: Reduced form evidence of non-linearities.
 #' Export IV estimates by quantiles of lagged price distribution,
 #' and distribution of current prices, using relevant estimation weights.
