@@ -28,6 +28,10 @@ FE_opts <- c("group_region_by_module_by_time", "group_division_by_module_by_time
 
 ## We only want to use the "true" tax variation
 all_pi <- all_pi[non_imp_tax == 1]
+# Drop observations with missings so that bootstrap should work
+print(nrow(all_pi))
+all_pi <- all_pi[!is.na(ln_sales_tax) & !is.na(ln_quantity3) & !is.na(ln_cpricei2)]
+print(nrow(all_pi))
 
 LRdiff_res <- data.table(NULL)
 target_res <- data.table(NULL)

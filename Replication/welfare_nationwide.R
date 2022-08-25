@@ -150,36 +150,33 @@ while (!done) {
     
     # Make sure prev results contain all desired combinations
     prev.res <- fread(out.welfare.nationwide.av)
-    prev.res <- merge(prev.res, combinations.all, 
+    prev.res.all <- merge(prev.res, combinations.all, 
                       by = c("sc", "L", "K", "sigma", "theta"), all.y = T)
     
     # Are there missings? Will call it attempt max
-    attempt <- max(prev.res$attempt) + 1
-    if (is.na(attempt)) attempt <- max(prev.res[!is.na(attempt)]$attempt)
+    attempt <- max(prev.res.all$attempt) + 1
+    if (is.na(attempt)) attempt <- max(prev.res.all[!is.na(attempt)]$attempt)
     
     # Capture remaining combinations
-    remaining.down <- prev.res[s1 != 4 | it1 == maxit | (is.na(s1) & is.na(it1))]
-    remaining.up <- prev.res[s2 != 4 | it2 == maxit | (is.na(s2) & is.na(it2))]
+    remaining.down <- prev.res.all[s1 != 4 | it1 == maxit | (is.na(s1) & is.na(it1))]
+    remaining.up <- prev.res.all[s2 != 4 | it2 == maxit | (is.na(s2) & is.na(it2))]
     # Combinations to run
     combinations <- merge(remaining.up[, .(sol1 = mean(sol1)), by = .(sc, L, K, sigma, theta)], 
                           remaining.down[, .(sol1 = mean(sol1)), by = .(sc, L, K, sigma, theta)],
                           by = c("sc", "L", "K", "sigma", "theta"), all = T)
     combinations <- combinations[, -c("sol1.x","sol1.y")]
-    
-    # Save correct previous results
-    results <- prev.res[(s1 == 4 & it1 < maxit) & (s2 == 4 & it2 < maxit)]
-
   
+    results <- copy(prev.res)
   }
   
   flog.info("Starting attempt %s", attempt)
   flog.info("Remaining combinations: %s", nrow(combinations))
-  print(head(combinations))
-  
+
   ### Run estimation for combinations: each row
   for (nr in 1:nrow(combinations)) {
     
 
+    
     # Capture values
     sc <- combinations[nr,][["sc"]]
     K <- combinations[nr,][["K"]]
@@ -187,7 +184,9 @@ while (!done) {
     sig <- combinations[nr,][["sigma"]]
     theta <- combinations[nr,][["theta"]]
     
-    flog.info("Estimating case: K = %s, L = %s, sigma = %s, theta = %s for %s case", K, D, sig, theta, sc)
+
+    flog.info("Estimating case %s out of %s: K = %s, L = %s, sigma = %s, theta = %s for %s", 
+              nr, nrow(combinations),  K, D, sig, theta, sc)
     
     # Capture Scenario variables
     if (sc == "No Tax") {
@@ -238,8 +237,10 @@ while (!done) {
       
       # Capture previous solution if existent
       init.val0max <- target[["sol2"]]
-      if (is.na(init.val0max[1])) init.val0max <- get.init.val(constr, IVs, mc) ## Missing from previous attempt
-      
+      if (is.na(init.val0max[1])) {
+        flog.info("No previous result found, using random initial value")
+        init.val0max <- get.init.val(constr, IVs, mc) ## Missing from previous attempt
+      }
       prevmin <- target[, .(it1 = mean(it1), down = mean(down), s1 = mean(s1)),
                         by = .(sc,sigma,theta,K,L)]
       prevmin.sol <- target[["sol1"]]
@@ -256,26 +257,22 @@ while (!done) {
       
       # Capture previous solution if existent
       init.val0min <- target[["sol1"]]
-      if (is.na(init.val0min[1])) init.val0min <- get.init.val(constr, IVs, mc) ## Missing from previous attempt
-      
+      if (is.na(init.val0min[1])) {
+        flog.info("No previous result found, using random initial value")
+        init.val0min <- get.init.val(constr, IVs, mc) ## Missing from previous attempt
+      }
       prevmax <- target[, .(it2 = mean(it2), up = mean(up), s2 = mean(s2)),
                         by = .(sc,sigma,theta,K,L)]
       prevmax.sol <- target[["sol2"]]
     }    
-    if (!is.null(init.val0min)) {
-      print("Initial value Min is")
-      print(init.val0min)
-    }
-    if (!is.null(init.val0max)) {
-      print("Initial value Max is")
-      print(init.val0max)
-    }
-    
+
+
     ## E. Estimate for each case
     if (sc == "Original") {
       # F2. Marginal change
       # F2a1. Min calculation
       if (!is.null(init.val0min)) {
+        flog.info("Running minimization")
         res0 <- nloptr( x0=init.val0min,
                         eval_f= av.marginal.change,
                         eval_g_ineq = eval_restrictions_marg_av,
@@ -311,6 +308,7 @@ while (!done) {
 
       if (!is.null(init.val0max)) {
         # F2b1. Max calculation
+        flog.info("Running maximization")
         res0 <- nloptr( x0=init.val0max,
                         eval_f= max.av.marginal.change,
                         eval_g_ineq = eval_restrictions_marg_av,
@@ -348,6 +346,7 @@ while (!done) {
       # F2. Non Marginal change
       # B3 Run minimization: derivative free 
       if (!is.null(init.val0min)) {
+        flog.info("Running minimization")
         res0 <- nloptr( x0=init.val0min,
                         eval_f= av.non.marginal.change.parallel,
                         eval_g_ineq = eval_restrictions_nmarg_av,
@@ -383,6 +382,7 @@ while (!done) {
       }
       # B3 Run maximization: derivative free 
       if (!is.null(init.val0max)) {
+        flog.info("Running maximization")
         res0 <- nloptr( x0=init.val0max,
                       eval_f= max.av.non.marginal.change.parallel,
                       eval_g_ineq = eval_restrictions_nmarg_av,
@@ -417,6 +417,12 @@ while (!done) {
         sol2 <- prevmax.sol       
       }   
  
+    }
+    # Capture results w/o this case so that we don't lose info
+    if (!new) {
+      setnames(results, c("sc", "K", "theta"), c("sctemp", "Ktemp", "thetatemp"))
+      results <- results[!(Ktemp == K & sctemp == sc & thetatemp == theta & L == D & sigma == sig),]
+      setnames(results, c("sctemp", "Ktemp", "thetatemp"), c("sc", "K", "theta"))
     }
     ## F2c Export
     welfare.theta <- data.table(down, up, sc, L=D , K, 
