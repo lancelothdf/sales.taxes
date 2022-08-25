@@ -136,14 +136,17 @@ for (n.g in 1:3) {
 
 ### Start manual bootstrap
 set.seed(2019)
-ids <- unique(all_pi$module_by_state)
+
+
 
 for (rep in 1:100) {
   
   flog.info("Iteration %s", rep)
-  # Sample by block
-  sampled.ids <- data.table(sample(ids, replace = T))
-  setnames(sampled.ids, old= "V1", new = "module_by_state")
+  
+  # # Sample by block
+  # sampled.ids <- data.table(module_by_state = sample(ids, replace = T))
+  # # Merge data to actual data
+  # sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
   
   # First split by quantile
   for (n.g in 1:3) {
@@ -160,12 +163,20 @@ for (rep in 1:100) {
     all_pi[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
     all_pi[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
     
-    
-    
-    # Merge data to actual data
-    sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
-    
-    
+    # Sample within quantile
+    sampled.data <- data.table(NULL)
+    for (g in 1:n.g) {
+      # identify relevant ids from quantile data and make sure we always have them in same order
+      ids <- unique(all_pi[quantile == g]$module_by_state)
+      ids <- ids[order(ids)]
+      # Sample by block within quantile
+      sampled.ids.q <- data.table(module_by_state = sample(ids, replace = T))
+
+      # Merge data to actual data
+      sampled.data.q <- merge(sampled.ids.q, all_pi[quantile == g], by = c("module_by_state") , allow.cartesian = T, all.x = T)
+      sampled.data <- rbind(sampled.data, sampled.data.q)
+      
+    }
     
     # # Demean properly by quantile
     # if (n.g > 1) {

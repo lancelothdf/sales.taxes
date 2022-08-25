@@ -157,9 +157,10 @@ for (rep in 1:100) {
   
   flog.info("Iteration %s", rep)
   
-  # Sample by block
-  sampled.ids <- data.table(module_by_state = sample(ids, replace = T))
-
+  # # Sample by block
+  # sampled.ids <- data.table(module_by_state = sample(ids, replace = T))
+  # # Merge data to actual data
+  # sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
   
   # First split, then merge
   for (n.g in 1:5) {
@@ -179,8 +180,20 @@ for (rep in 1:100) {
     #   sampled.data[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = .(store_by_module, quantile)]
     # }
     
-    # Merge data to actual data
-    sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
+    # Sample within quantile
+    sampled.data <- data.table(NULL)
+    for (g in 1:n.g) {
+      # identify relevant ids from quantile data and make sure we always have them in same order
+      ids <- unique(all_pi[quantile == g]$module_by_state)
+      ids <- ids[order(ids)]
+      # Sample by block within quantile
+      sampled.ids.q <- data.table(module_by_state = sample(ids, replace = T))
+      
+      # Merge data to actual data
+      sampled.data.q <- merge(sampled.ids.q, all_pi[quantile == g], by = c("module_by_state") , allow.cartesian = T, all.x = T)
+      sampled.data <- rbind(sampled.data, sampled.data.q)
+      
+    }
     
     
     ## Estimate RF and FS
