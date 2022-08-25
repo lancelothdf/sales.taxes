@@ -160,19 +160,17 @@ for (rep in 1:100) {
   # Sample by block
   sampled.ids <- data.table(module_by_state = sample(ids, replace = T))
 
-  # Merge data to actual data
-  sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
   
-  
+  # First split, then merge
   for (n.g in 1:5) {
     # Create groups of initial values of tax rate
     # We use the full weighted distribution
-    sampled.data <- sampled.data[, quantile := cut(dm.L.ln_cpricei2,
+    all_pi <- all_pi[, quantile := cut(dm.L.ln_cpricei2,
                                        breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
                                        labels = 1:n.g, right = FALSE)]
-    quantlab <- round(quantile(sampled.data$dm.L.ln_cpricei2, 
+    quantlab <- round(quantile(all_pi$dm.L.ln_cpricei2, 
                                probs = seq(0, 1, by = 1/n.g), na.rm = T, 
-                               weight = sampled.data$base.sales), digits = 4)
+                               weight = all_pi$base.sales), digits = 4)
     
     # # Demean properly by quantile
     # if (n.g > 1) {
@@ -180,6 +178,10 @@ for (rep in 1:100) {
     #   sampled.data[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(store_by_module, quantile)]
     #   sampled.data[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = .(store_by_module, quantile)]
     # }
+    
+    # Merge data to actual data
+    sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
+    
     
     ## Estimate RF and FS
     for (FE in FE_opts) {

@@ -141,27 +141,31 @@ ids <- unique(all_pi$module_by_state)
 for (rep in 1:100) {
   
   flog.info("Iteration %s", rep)
-  
   # Sample by block
   sampled.ids <- data.table(sample(ids, replace = T))
   setnames(sampled.ids, old= "V1", new = "module_by_state")
   
-  # Merge data to actual data
-  sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
-  
+  # First split by quantile
   for (n.g in 1:3) {
     
     # Create groups of initial values of tax rate
     # We use the full weighted distribution
-    sampled.data <- sampled.data[, quantile := cut(dm.L.ln_cpricei2,
+    all_pi <- all_pi[, quantile := cut(dm.L.ln_cpricei2,
                                                    breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
                                                    labels = 1:n.g, right = FALSE)]
-    quantlab <- round(quantile(sampled.data$dm.L.ln_cpricei2, 
+    quantlab <- round(quantile(all_pi$dm.L.ln_cpricei2, 
                                probs = seq(0, 1, by = 1/n.g), na.rm = T, 
-                               weight = sampled.data$base.sales), digits = 4)
+                               weight = all_pi$base.sales), digits = 4)
     # Saturate fixed effects
-    sampled.data[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
-    sampled.data[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
+    all_pi[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
+    all_pi[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
+    
+    
+    
+    # Merge data to actual data
+    sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
+    
+    
     
     # # Demean properly by quantile
     # if (n.g > 1) {
