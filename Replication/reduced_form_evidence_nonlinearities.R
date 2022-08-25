@@ -57,12 +57,12 @@ for (n.g in 1:5) {
   all_pi[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
   all_pi[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
   
-  # Demean properly by quantile
-  if (n.g > 1) {
-    all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = .(store_by_module, quantile)]
-    all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(store_by_module, quantile)]
-    all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = .(store_by_module, quantile)]
-  }
+  # # Demean properly by quantile
+  # if (n.g > 1) {
+  #   all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = .(store_by_module, quantile)]
+  #   all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(store_by_module, quantile)]
+  #   all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = .(store_by_module, quantile)]
+  # }
   
   
   ## Estimate RF and FS
@@ -174,12 +174,12 @@ for (rep in 1:100) {
                                probs = seq(0, 1, by = 1/n.g), na.rm = T, 
                                weight = sampled.data$base.sales), digits = 4)
     
-    # Demean properly by quantile
-    if (n.g > 1) {
-      sampled.data[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = .(store_by_module, quantile)]
-      sampled.data[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(store_by_module, quantile)]
-      sampled.data[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = .(store_by_module, quantile)]
-    }
+    # # Demean properly by quantile
+    # if (n.g > 1) {
+    #   sampled.data[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = .(store_by_module, quantile)]
+    #   sampled.data[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(store_by_module, quantile)]
+    #   sampled.data[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = .(store_by_module, quantile)]
+    # }
     
     ## Estimate RF and FS
     for (FE in FE_opts) {

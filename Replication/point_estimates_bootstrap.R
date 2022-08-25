@@ -28,10 +28,10 @@ FE_opts <- c("group_region_by_module_by_time", "group_division_by_module_by_time
 
 ## We only want to use the "true" tax variation
 all_pi <- all_pi[non_imp_tax == 1]
-# Drop observations with missings so that bootstrap should work
-print(nrow(all_pi))
-all_pi <- all_pi[!is.na(ln_sales_tax) & !is.na(ln_quantity3) & !is.na(ln_cpricei2) & is.finite(ln_cpricei2) & is.finite(ln_quantity3)]
-print(nrow(all_pi))
+# Check: Drop observations with missings so that bootstrap should work
+# print(nrow(all_pi))
+# all_pi <- all_pi[!is.na(ln_sales_tax) & !is.na(ln_quantity3) & !is.na(ln_cpricei2) & is.finite(ln_cpricei2) & is.finite(ln_quantity3)]
+# print(nrow(all_pi))
 
 LRdiff_res <- data.table(NULL)
 target_res <- data.table(NULL)
@@ -51,12 +51,12 @@ for (n.g in 1:3) {
   all_pi[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
   all_pi[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
 
-  # Demean properly by quantile
-  if (n.g > 1) {
-    all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = .(store_by_module, quantile)]
-    all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(store_by_module, quantile)]
-    all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = .(store_by_module, quantile)]
-  }  
+  # # Demean properly by quantile
+  # if (n.g > 1) {
+  #   all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = .(store_by_module, quantile)]
+  #   all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(store_by_module, quantile)]
+  #   all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = .(store_by_module, quantile)]
+  # }  
     
   ## Estimate RF and FS
   for (FE in FE_opts) {
@@ -163,12 +163,12 @@ for (rep in 1:100) {
     sampled.data[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
     sampled.data[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
     
-    # Demean properly by quantile
-    if (n.g > 1) {
-      sampled.data[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = .(store_by_module, quantile)]
-      sampled.data[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(store_by_module, quantile)]
-      sampled.data[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = .(store_by_module, quantile)]
-    }
+    # # Demean properly by quantile
+    # if (n.g > 1) {
+    #   sampled.data[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = .(store_by_module, quantile)]
+    #   sampled.data[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(store_by_module, quantile)]
+    #   sampled.data[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = .(store_by_module, quantile)]
+    # }
     ## Estimate RF and FS
     for (FE in FE_opts) {
       for (Y in outcomes) {
