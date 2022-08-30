@@ -137,46 +137,35 @@ for (n.g in 1:3) {
 ### Start manual bootstrap
 set.seed(2019)
 
-
+# Sample within quantile
+ids <- unique(all_pi$module_by_state)
+ids <- ids[order(ids)]
 
 for (rep in 1:100) {
   
   flog.info("Iteration %s", rep)
   
-  # # Sample by block
-  # sampled.ids <- data.table(module_by_state = sample(ids, replace = T))
-  # # Merge data to actual data
-  # sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
+  # Sample by block
+  sampled.ids <- data.table(module_by_state = sample(ids, replace = T))
+  # Merge data to actual data
+  sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
   
   # First split by quantile
   for (n.g in 1:3) {
     
     # Create groups of initial values of tax rate
     # We use the full weighted distribution
-    all_pi <- all_pi[, quantile := cut(dm.L.ln_cpricei2,
+    sampled.data <- sampled.data[, quantile := cut(dm.L.ln_cpricei2,
                                                    breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
                                                    labels = 1:n.g, right = FALSE)]
-    quantlab <- round(quantile(all_pi$dm.L.ln_cpricei2, 
+    quantlab <- round(quantile(sampled.data$dm.L.ln_cpricei2, 
                                probs = seq(0, 1, by = 1/n.g), na.rm = T, 
-                               weight = all_pi$base.sales), digits = 4)
+                               weight = sampled.data$base.sales), digits = 4)
     # Saturate fixed effects
-    all_pi[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
-    all_pi[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
+    sampled.data[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
+    sampled.data[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
     
-    # Sample within quantile
-    sampled.data <- data.table(NULL)
-    for (g in 1:n.g) {
-      # identify relevant ids from quantile data and make sure we always have them in same order
-      ids <- unique(all_pi[quantile == g]$module_by_state)
-      ids <- ids[order(ids)]
-      # Sample by block within quantile
-      sampled.ids.q <- data.table(module_by_state = sample(ids, replace = T))
 
-      # Merge data to actual data
-      sampled.data.q <- merge(sampled.ids.q, all_pi[quantile == g], by = c("module_by_state") , allow.cartesian = T, all.x = T)
-      sampled.data <- rbind(sampled.data, sampled.data.q)
-      
-    }
     
     # # Demean properly by quantile
     # if (n.g > 1) {
