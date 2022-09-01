@@ -67,18 +67,18 @@ for (rep in 0:100) {
   
   ### Part 3. Open data (relevant subsample) -------
   flog.info("Recovering data for %s...", rep)
-  # if (rep > 0) {
-  #   # Sample by block
-  #   sampled.ids <- data.table(sample(ids, replace = T))
-  #   setnames(sampled.ids, old= "V1", new = "module_by_state")
-  #   
-  #   # Merge data to actual data
-  #   sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
-  #   
-  # }
-  # else {
+  if (rep > 0) {
+    # Sample by block
+    sampled.ids <- data.table(sample(ids, replace = T))
+    setnames(sampled.ids, old= "V1", new = "module_by_state")
+
+    # Merge data to actual data
+    sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
+
+  }
+  else {
     sampled.data <- copy(all_pi)
-  #}
+  }
   flog.info("Computing average for %s...", rep)
   ## Keep only taxable items as those are whose responses we care
   elasticities <- sampled.data[ln_sales_tax > 0]
