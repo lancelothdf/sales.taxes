@@ -3,6 +3,7 @@
 #' Replication File. Updated on 8/18/2022
 #' Step 13: Welfare extrapolation. Nationwide average.
 #' We estimate in loops: the function itself computes the average in parallel
+#' This version: produces 2 files, one with final results and another with results in progress
 
 
 library(data.table)
@@ -30,6 +31,7 @@ out.file.mc.welf <- "Data/Replication/mincriteria_welfare_boot.csv"
 conduct.parameter.at.p <- "Data/Replication/salience_conduct_parameter_at_p.csv"
 # Output
 out.welfare.nationwide.av <- "Data/Replication/average_nationwide_extrapolation.csv"
+sol.welfare.nationwide.av <- "Data/Replication/average_nationwide_temp_progress.csv"
 
 
 ### General setup ----
@@ -133,49 +135,45 @@ rep <- 0 # try first on baseline
 # We do it by batches of "maxeval" number of iterations.
 done <- F
 attempt <- 1
-remaining.up <- remaining.down <- NULL
 while (!done) {
   # Capture existing results
-  new <- !file.exists(out.welfare.nationwide.av)
+  new <- !file.exists(out.welfare.nationwide.av) & !file.exists(sol.welfare.nationwide.av)
   
 
   # First time? Capture all combinations
   if (new) {
     print("No previous results found. Starting from 0")
     combinations <- copy(combinations.all)
-    prev.res <- NULL
+    results <- data.table(NULL)
 
   }
   else {
     
-    # Make sure prev results contain all desired combinations
+    ## Identify cases to be solved
     prev.res <- fread(out.welfare.nationwide.av)
-    prev.res.all <- merge(prev.res, combinations.all, 
-                      by = c("sc", "L", "K", "sigma", "theta"), all.y = T)
+    comb.prev.res <- dcast(prev.res, 
+                           as.formula("sc + L + K + sigma + theta ~ est"), 
+                           fun.aggregate = mean,
+                           value.var = "value")
+    comb.prev.res[, solved := 1]
+    combinations.all <- merge(combinations.all, comb.prev.res, 
+                              by = c("sc", "L", "K", "sigma", "theta"),
+                              all.x = T)
     
-    # Are there missings? Will call it attempt max
-    attempt <- max(prev.res.all$attempt) + 1
-    if (is.na(attempt)) attempt <- max(prev.res.all[!is.na(attempt)]$attempt)
-    
-    # Capture remaining combinations
-    remaining.down <- prev.res.all[s1 != 4 | it1 == maxit | (is.na(s1) & is.na(it1))]
-    remaining.up <- prev.res.all[s2 != 4 | it2 == maxit | (is.na(s2) & is.na(it2))]
-    # Combinations to run
-    combinations <- merge(remaining.up[, .(sol1 = mean(sol1)), by = .(sc, L, K, sigma, theta)], 
-                          remaining.down[, .(sol1 = mean(sol1)), by = .(sc, L, K, sigma, theta)],
-                          by = c("sc", "L", "K", "sigma", "theta"), all = T)
-    combinations <- combinations[, -c("sol1.x","sol1.y")]
-  
+    combinations <- combinations.all[is.na(solved)]
     results <- copy(prev.res)
+    
+    ## Open previous attempt progress
+    prev.sol <- fread(sol.welfare.nationwide.av)
+    
   }
   
   flog.info("Starting attempt %s", attempt)
   flog.info("Remaining combinations: %s", nrow(combinations))
-
+  prog.results <- data.table(NULL)
+  
   ### Run estimation for combinations: each row
   for (nr in 1:nrow(combinations)) {
-    
-
     
     # Capture values
     sc <- combinations[nr,][["sc"]]
@@ -221,56 +219,64 @@ while (!done) {
     mc <- mc[["min.criteria"]]
     
     
-    ## D4. Generate an initial value somewhere in the middle to test algorithms
+    ## D4. Initial values: either capture previous attempt or generate an 
+    # initial value somewhere in the middle to test algorithms
     # Reinitialize initial values
     init.val0min <- init.val0min <- NULL
+    prev.min <- prev.max <- NULL
     
-    # max
-    if (is.null(remaining.up)) { # No existing remaining up
-      if (is.null(prev.res)) init.val0max <- get.init.val(constr, IVs, mc) ## First attempt
+    # First attempt ever?
+    if (new) {
+      init.val0max <- init.val0min <- get.init.val(constr, IVs, mc)
+      flog.info("Capturing starting values: using random initial value since new attempt")
     }
+    # Recover previous solutions if not
     else {
-      ## Retrieve previous results
-      flog.info("Retreiving previous results for maximization")
+      
       case <- data.table(sc, L = D , K, sigma = sig, theta)
-      target <- merge(remaining.up, case, by = c("sc", "sigma", "theta", "K", "L"))
-      
-      # Capture previous solution if existent
-      init.val0max <- target[["sol2"]]
-      if (is.na(init.val0max[1])) {
-        flog.info("No previous result found, using random initial value")
-        init.val0max <- get.init.val(constr, IVs, mc) ## Missing from previous attempt
+      prev.attempt.case <- merge(case, prev.sol, 
+                                 by =  c("sc", "sigma", "theta", "K", "L"),
+                                 all.x = T)
+      # minimization
+      prev.min <- prev.attempt.case[est == "LB"]
+      # Check we have the solution if previous attempt not found
+      if (nrow(prev.min) == 0) {
+        prev.res.case <- merge(case, prev.res,
+                               by =  c("sc", "sigma", "theta", "K", "L"),
+                               all.x = T)
+        if (nrow(prev.res.case[est == "LB"]) == 0) {
+          init.val0min <- get.init.val(constr, IVs, mc)
+          flog.info("Capturing starting values: min missing from previous attempt")
+        }
       }
-      prevmin <- target[, .(it1 = mean(it1), down = mean(down), s1 = mean(s1)),
-                        by = .(sc,sigma,theta,K,L)]
-      prevmin.sol <- target[["sol1"]]
-    }
-    # min (similar to above)
-    if (is.null(remaining.down)) { # No existing remaining down
-      if (is.null(prev.res)) init.val0min <- get.init.val(constr, IVs, mc)
-    }
-    else {
-      flog.info("Retreiving previous results for minimization")
-      ## Retrieve previous results
-      case <- data.table(sc, L= D , K, sigma = sig, theta)
-      target <- merge(remaining.down, case, by = c("sc", "sigma", "theta", "K", "L"))
-      
-      # Capture previous solution if existent
-      init.val0min <- target[["sol1"]]
-      if (is.na(init.val0min[1])) {
-        flog.info("No previous result found, using random initial value")
-        init.val0min <- get.init.val(constr, IVs, mc) ## Missing from previous attempt
+      else {
+        init.val0min <- prev.min[["sol"]]
+        flog.info("Capturing starting values: recovered previous attempt for min")
       }
-      prevmax <- target[, .(it2 = mean(it2), up = mean(up), s2 = mean(s2)),
-                        by = .(sc,sigma,theta,K,L)]
-      prevmax.sol <- target[["sol2"]]
-    }    
-
+      
+      # maximization
+      prev.max <- prev.attempt.case[est == "UB"]
+      # Check we have the solution if previous attempt not found
+      if (nrow(prev.max) == 0) {
+        prev.res.case <- merge(case, prev.res,
+                               by =  c("sc", "sigma", "theta", "K", "L"),
+                               all.x = T)
+        if (nrow(prev.res.case[est == "UB"]) == 0) {
+          init.val0max <- get.init.val(constr, IVs, mc)
+          flog.info("Capturing starting values: max missing from previous attempt")
+        }
+      }
+      else {
+        init.val0max <- prev.max[["sol"]]      
+        flog.info("Capturing starting values: recovered previous attempt for max")
+      }
+    }
+    
 
     ## E. Estimate for each case
     if (sc == "Original") {
-      # F2. Marginal change
-      # F2a1. Min calculation
+      # E1. Marginal change
+      # E1a1. Min calculation
       if (!is.null(init.val0min)) {
         flog.info("Running minimization")
         res0 <- nloptr( x0=init.val0min,
@@ -293,21 +299,27 @@ while (!done) {
                         ub = rep(0, K),
                         lb = rep(min(IVs)/min(constr), K)
         )
-        # F2a2 Results extraction
-        down <- res0$objective
-        s1 <- res0$status
-        it1 <- res0$iterations
-        sol1 <- res0$solution
+        # E1a2. Extract and export minimization results
+        if (res0$iterations == maxit) {
+          progress.sol <- data.table(est = "LB", sc, L=D , K, 
+                                     sigma = sig, theta, status = res0$status, 
+                                     it.n = res0$iterations, 
+                                     sol = res0$solution, attempt)
+          prog.results <- rbind(prog.results, progress.sol)
+          fwrite(prog.results, sol.welfare.nationwide.av)
+        }
+        else{
+          welfare.theta <- data.table(est = "LB", value = res0$objective, 
+                                      sc, L=D , K, 
+                                      sigma = sig, theta, 
+                                      it.n = res0$iterations + (attempt - 1)*600)
+          results <- rbind(results, welfare.theta)
+          fwrite(results, out.welfare.nationwide.av) 
+        }
+        
       }
-      else {
-        down <- prevmin$down
-        s1 <- prevmin$s1
-        it1 <- prevmin$it1
-        sol1 <- prevmin.sol       
-      }
-
       if (!is.null(init.val0max)) {
-        # F2b1. Max calculation
+        # E1b1. Max calculation
         flog.info("Running maximization")
         res0 <- nloptr( x0=init.val0max,
                         eval_f= max.av.marginal.change,
@@ -329,22 +341,29 @@ while (!done) {
                         ub = rep(0, K),
                         lb = rep(min(IVs)/min(constr), K)
         )
-        # F2b2 Results extraction
-        up <- -res0$objective
-        s2 <- res0$status
-        it2 <- res0$iterations
-        sol2 <- res0$solution
+        # E1b2 Results extraction
+        if (res0$iterations == maxit) {
+          progress.sol <- data.table(est = "UB", sc, L=D , K, 
+                                     sigma = sig, theta, status = res0$status, 
+                                     it.n = res0$iterations, 
+                                     sol = res0$solution, attempt)
+          prog.results <- rbind(prog.results, progress.sol)
+          fwrite(prog.results, sol.welfare.nationwide.av)
+        }
+        else{
+          welfare.theta <- data.table(est = "UB", value = -res0$objective, 
+                                      sc, L=D , K, 
+                                      sigma = sig, theta, 
+                                      it.n = res0$iterations + (attempt - 1)*600)
+          results <- rbind(results, welfare.theta)
+          fwrite(results, out.welfare.nationwide.av)
+          
+        }   
       }
-      else {
-        up <- prevmax$up
-        s2 <- prevmax$s2
-        it2 <- prevmax$it2
-        sol2 <- prevmax.sol       
-      }      
     }
     else {
-      # F2. Non Marginal change
-      # B3 Run minimization: derivative free 
+      # E2. Non Marginal change
+      # E2a1 Run minimization: derivative free 
       if (!is.null(init.val0min)) {
         flog.info("Running minimization")
         res0 <- nloptr( x0=init.val0min,
@@ -367,73 +386,73 @@ while (!done) {
                         elas = T,
                         ub = rep(0, K),
                         lb = rep(min(IVs)/min(constr), K)
-        )       
-        # B4. Extract minimization results
-        down <- res0$objective
-        s1 <- res0$status
-        it1 <- res0$iterations
-        sol1 <- res0$solution
+          )       
+          # E2a2 Extract and export minimization results
+          if (res0$iterations == maxit) {
+            progress.sol <- data.table(est = "LB", sc, L=D , K, 
+                                       sigma = sig, theta, status = res0$status, 
+                                       it.n = res0$iterations, 
+                                       sol = res0$solution, attempt)
+            prog.results <- rbind(prog.results, progress.sol)
+            fwrite(prog.results, sol.welfare.nationwide.av)
+          }
+          else{
+            welfare.theta <- data.table(est = "LB", value = res0$objective, 
+                                        sc, L=D , K, 
+                                        sigma = sig, theta, 
+                                        it.n = res0$iterations + (attempt - 1)*600)
+            results <- rbind(results, welfare.theta)
+            fwrite(results, out.welfare.nationwide.av) 
+          }
       }
-      else {
-        down <- prevmin$down
-        s1 <- prevmin$s1
-        it1 <- prevmin$it1
-        sol1 <- prevmin.sol       
-      }
-      # B3 Run maximization: derivative free 
+      
       if (!is.null(init.val0max)) {
-        flog.info("Running maximization")
-        res0 <- nloptr( x0=init.val0max,
-                      eval_f= max.av.non.marginal.change.parallel,
-                      eval_g_ineq = eval_restrictions_nmarg_av,
-                      opts = nlo.opts.local.df,
-                      data = data,
-                      pp = "p_cml", 
-                      t0 = t0, 
-                      t1 = t1,
-                      theta = theta,
-                      sigma = sig,
-                      w = "eta_m", 
-                      st.code = "fips_state", 
-                      min = p.min, 
-                      max = p.max,
-                      constr_mat = constr, 
-                      IV_mat = IVs, 
-                      min.crit = mc,
-                      elas = T,
-                      ub = rep(0, K),
-                      lb = rep(min(IVs)/min(constr), K)
-      )       
-      # B6. Extract minimization results
-      up <- sol <- -res0$objective
-      s2 <- res0$status
-      it2 <- res0$iterations
-      sol2 <- res0$solution
-      }
-      else {
-        up <- prevmax$up
-        s2 <- prevmax$s2
-        it2 <- prevmax$it2
-        sol2 <- prevmax.sol       
-      }   
- 
+          # E2b1 Run maximization: derivative free 
+          flog.info("Running maximization")
+          res0 <- nloptr( x0=init.val0max,
+                        eval_f= max.av.non.marginal.change.parallel,
+                        eval_g_ineq = eval_restrictions_nmarg_av,
+                        opts = nlo.opts.local.df,
+                        data = data,
+                        pp = "p_cml", 
+                        t0 = t0, 
+                        t1 = t1,
+                        theta = theta,
+                        sigma = sig,
+                        w = "eta_m", 
+                        st.code = "fips_state", 
+                        min = p.min, 
+                        max = p.max,
+                        constr_mat = constr, 
+                        IV_mat = IVs, 
+                        min.crit = mc,
+                        elas = T,
+                        ub = rep(0, K),
+                        lb = rep(min(IVs)/min(constr), K)
+          )       
+          # E2b2 Extract and export maximization results
+          if (res0$iterations == maxit) {
+            progress.sol <- data.table(est = "UB", sc, L=D , K, 
+                                       sigma = sig, theta, status = res0$status, 
+                                       it.n = res0$iterations, 
+                                       sol = res0$solution, attempt)
+            prog.results <- rbind(prog.results, progress.sol)
+            fwrite(prog.results, sol.welfare.nationwide.av)
+          }
+          else{
+            welfare.theta <- data.table(est = "UB", value = -res0$objective, 
+                                        sc, L=D , K, 
+                                        sigma = sig, theta, 
+                                        it.n = res0$iterations + (attempt - 1)*600)
+            results <- rbind(results, welfare.theta)
+            fwrite(results, out.welfare.nationwide.av)
+            
+          }
+        }
     }
-    # Capture results w/o this case so that we don't lose info
-    if (!new) {
-      setnames(results, c("sc", "K", "theta"), c("sctemp", "Ktemp", "thetatemp"))
-      results <- results[!(Ktemp == K & sctemp == sc & thetatemp == theta & L == D & sigma == sig),]
-      setnames(results, c("sctemp", "Ktemp", "thetatemp"), c("sc", "K", "theta"))
-    }
-    ## F2c Export
-    welfare.theta <- data.table(down, up, sc, L=D , K, 
-                                sigma = sig, theta, s1, s2, 
-                                it1, it2, sol1, sol2, attempt)
-    results <- rbind(results, welfare.theta)
-    fwrite(results, out.welfare.nationwide.av)
-  }
-  # Check results
 
-  if (nrow(results[s1 != 4 | it1 == maxit]) + nrow(results[s2 != 4 | it2 == maxit]) == 0) done <- T
+  # Check results
+  if (nrow(prog.results) == 0) done <- T
   else attempt <- attempt + 1
 }
 
