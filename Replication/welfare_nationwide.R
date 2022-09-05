@@ -137,7 +137,7 @@ done <- F
 attempt <- 1
 while (!done) {
   # Capture existing results
-  new <- !file.exists(out.welfare.nationwide.av) & !file.exists(sol.welfare.nationwide.av)
+  new <- !file.exists(out.welfare.nationwide.av) | !file.exists(sol.welfare.nationwide.av)
   
 
   # First time? Capture all combinations
