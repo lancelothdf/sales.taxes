@@ -228,7 +228,7 @@ for (rep in 0:max(res.ivs$iter)){
                                   sigma = sig, theta, 
                                   it.n = res0$iterations, iter = rep)
       results <- rbind(results, welfare.theta)
-      fwrite(results, out.welfare.nationwide.av)
+      fwrite(results, out.welfare.nationwide.av.boot)
 
       
     }
@@ -265,7 +265,7 @@ for (rep in 0:max(res.ivs$iter)){
                                   sigma = sig, theta, 
                                   it.n = res0$iterations, iter = rep)
       results <- rbind(results, welfare.theta)
-      fwrite(results, out.welfare.nationwide.av) 
+      fwrite(results, out.welfare.nationwide.av.boot) 
         
       
     
@@ -298,7 +298,7 @@ for (rep in 0:max(res.ivs$iter)){
                                   sigma = sig, theta, 
                                   it.n = res0$iterations, iter = rep)
       results <- rbind(results, welfare.theta)
-      fwrite(results, out.welfare.nationwide.av)
+      fwrite(results, out.welfare.nationwide.av.boot)
           
       
     }
