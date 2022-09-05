@@ -112,23 +112,23 @@ results <- data.table(NULL)
 for (rep in 0:max(res.ivs$iter)){
   
   flog.info("Starting iteration %s", rep)
-  flog.info("Remaining combinations: %s", nrow(combinations))
+  flog.info("Remaining combinations: %s", nrow(combinations.all))
   prog.results <- data.table(NULL)
   
   ### Run estimation for combinations: each row
-  for (nr in 1:nrow(combinations)) {
+  for (nr in 1:nrow(combinations.all)) {
     
     # Capture values
-    sc <- combinations[nr,][["sc"]]
-    K <- combinations[nr,][["K"]]
-    D <- combinations[nr,][["L"]]
-    sig <- combinations[nr,][["sigma"]]
-    theta <- combinations[nr,][["theta"]]
+    sc <- combinations.all[nr,][["sc"]]
+    K <- combinations.all[nr,][["K"]]
+    D <- combinations.all[nr,][["L"]]
+    sig <- combinations.all[nr,][["sigma"]]
+    theta <- combinations.all[nr,][["theta"]]
     
   
     
     flog.info("Estimating case %s out of %s: K = %s, L = %s, sigma = %s, theta = %s for %s", 
-              nr, nrow(combinations),  K, D, sig, theta, sc)
+              nr, nrow(combinations.all),  K, D, sig, theta, sc)
     
     # Capture Scenario variables
     if (sc == "No Tax") {
