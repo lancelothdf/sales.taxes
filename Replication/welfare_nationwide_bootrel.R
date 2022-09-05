@@ -48,7 +48,7 @@ data[, tau5 := tau + log(1+0.05)]
 
 
 ## 2. Values of sigma to Tests and conduct parameters 
-thetas.list <- list(sigma = 1, theta = 0) # This is the relevant case we will bootstrapp
+thetas.list <- list(l1 = list(sigma = 1, theta = 0)) # This is the relevant case we will bootstrapp
 
 
 ## 3. Set up IV estimates for each sigma
