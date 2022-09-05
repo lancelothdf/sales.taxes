@@ -1,7 +1,7 @@
 ##### Santiago Lacouture
 #' Sales Taxes
 #' Replication File. Updated on 8/18/2022
-#' Step 13: Welfare extrapolation. Nationwide average.
+#' Step 13a: Welfare extrapolation. Nationwide average.
 #' We estimate in loops: the function itself computes the average in parallel
 #' This version: produces 2 files, one with final results and another with results in progress
 
@@ -450,8 +450,9 @@ while (!done) {
           }
         }
     }
-
-  # Check results
+  }
+  
+  # Check results, are we done?
   if (nrow(prog.results) == 0) done <- T
   else attempt <- attempt + 1
 }
