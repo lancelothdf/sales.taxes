@@ -151,14 +151,14 @@ while (!done) {
     ## Identify cases to be solved
     prev.res <- fread(out.welfare.nationwide.av)
     # make sure they are unique to avoid keeping extra
-    prev.res <- prev.res[!duplicated(prev.res[,c('est', 'value', 'sc', 'L', 'K', 'sigma', 'theta')]),]
+    prev.res <- prev.res[!duplicated(prev.res[, c('est', 'value', 'sc', 'L', 'K', 'sigma', 'theta')]),]
     
     # which have both solutions?
     done.prev.res <- copy(prev.res)
-    done.prev.res <- done.prev.res[, nest := .N, by = .c('sc', 'L', 'K', 'sigma', 'theta')]
+    done.prev.res <- done.prev.res[, nest := .N, by = c('sc', 'L', 'K', 'sigma', 'theta')]
     done.prev.res <- done.prev.res[nest == 2]
     # Collapse to merge with all and identify remaining cases
-    done.prev.res <- done.prev.res[, .(complete = mean(nest)-1), by = .c('sc', 'L', 'K', 'sigma', 'theta')]
+    done.prev.res <- done.prev.res[, .(complete = mean(nest)-1), by = c('sc', 'L', 'K', 'sigma', 'theta')]
     combinations.all <- merge(combinations.all, done.prev.res, 
                               by = c("sc", "L", "K", "sigma", "theta"),
                               all.x = T)
@@ -462,7 +462,7 @@ while (!done) {
   }
   
   # Check results, are we done?
-  print(head(prev.res.case[, .N , c("est", "sc", "sigma", "theta", "K", "L")]))
+  print(head(prev.res.case[, .N , by = c("est", "sc", "sigma", "theta", "K", "L")]))
   if (nrow(prog.results) == 0) done <- T
 }
 
