@@ -156,14 +156,17 @@ while (!done) {
     # which have both solutions?
     done.prev.res <- copy(prev.res)
     done.prev.res <- done.prev.res[, nest := .N, by = c('sc', 'L', 'K', 'sigma', 'theta')]
+    print(nrow(done.prev.res))
     done.prev.res <- done.prev.res[nest == 2]
+    print(nrow(done.prev.res))
     # Collapse to merge with all and identify remaining cases
     done.prev.res <- done.prev.res[, .(complete = mean(nest)-1), by = c('sc', 'L', 'K', 'sigma', 'theta')]
+    print(nrow(done.prev.res))
     combinations.all <- merge(combinations.all, done.prev.res, 
                               by = c("sc", "L", "K", "sigma", "theta"),
                               all.x = T)
     
-    combinations <- combinations.all[complete != 1]
+    combinations <- combinations.all[is.na(complete)]
     results <- copy(prev.res)
     
     ## Open previous attempt progress
