@@ -130,11 +130,9 @@ for (sc in scenarios) {
 ### Estimation ----
 
 
-results <- data.table(NULL)
-rep <- 0 # try first on baseline
+rep <- 0 # try only on baseline
 # We do it by batches of "maxeval" number of iterations.
 done <- F
-attempt <- 1
 while (!done) {
   # Capture existing results
   new <- !file.exists(out.welfare.nationwide.av) | !file.exists(sol.welfare.nationwide.av)
@@ -145,27 +143,34 @@ while (!done) {
     print("No previous results found. Starting from 0")
     combinations <- copy(combinations.all)
     results <- data.table(NULL)
-
+    attempt <- 1
+    
   }
   else {
     
     ## Identify cases to be solved
     prev.res <- fread(out.welfare.nationwide.av)
-    comb.prev.res <- dcast(prev.res, 
-                           as.formula("sc + L + K + sigma + theta ~ est"), 
-                           fun.aggregate = mean,
-                           value.var = "value")
-    comb.prev.res[, solved := 1]
-    combinations.all <- merge(combinations.all, comb.prev.res, 
+    # make sure they are unique to avoid keeping extra
+    prev.res <- prev.res[!duplicated(prev.res[,c('est', 'value', 'sc', 'L', 'K', 'sigma', 'theta')]),]
+    
+    # which have both solutions?
+    done.prev.res <- copy(prev.res)
+    done.prev.res <- done.prev.res[, nest := .N, by = .c('sc', 'L', 'K', 'sigma', 'theta')]
+    done.prev.res <- done.prev.res[nest == 2]
+    # Collapse to merge with all and identify remaining cases
+    done.prev.res <- done.prev.res[, .(complete = mean(nest)-1), by = .c('sc', 'L', 'K', 'sigma', 'theta')]
+    combinations.all <- merge(combinations.all, done.prev.res, 
                               by = c("sc", "L", "K", "sigma", "theta"),
                               all.x = T)
     
-    combinations <- combinations.all[is.na(solved)]
+    combinations <- combinations.all[complete != 1]
     results <- copy(prev.res)
     
     ## Open previous attempt progress
     prev.sol <- fread(sol.welfare.nationwide.av)
     
+    # Capture prev. attempt number and add one
+    attempt <- max(prev.sol$attempt) + 1
   }
   
   flog.info("Starting attempt %s", attempt)
@@ -237,19 +242,20 @@ while (!done) {
       prev.attempt.case <- merge(case, prev.sol, 
                                  by =  c("sc", "sigma", "theta", "K", "L"),
                                  all.x = T)
+      print(head(prev.attempt.case))
       # minimization
-      print(prev.attempt.case)
       prev.min <- prev.attempt.case[est == "LB"]
       # Check we have the solution if previous attempt not found
       if (nrow(prev.min) == 0) {
         prev.res.case <- merge(case, prev.res,
                                by =  c("sc", "sigma", "theta", "K", "L"),
                                all.x = T)
-        print(prev.res.case)
+        print(head(prev.res.case))
         if (nrow(prev.res.case[est == "LB"]) == 0) {
           init.val0min <- get.init.val(constr, IVs, mc)
           flog.info("Capturing starting values: min missing from previous attempt")
         }
+        else flog.info("Minimization already solved for this case")
       }
       else {
         init.val0min <- prev.min[["sol"]]
@@ -263,10 +269,12 @@ while (!done) {
         prev.res.case <- merge(case, prev.res,
                                by =  c("sc", "sigma", "theta", "K", "L"),
                                all.x = T)
+        print(head(prev.res.case))
         if (nrow(prev.res.case[est == "UB"]) == 0) {
           init.val0max <- get.init.val(constr, IVs, mc)
           flog.info("Capturing starting values: max missing from previous attempt")
         }
+        else flog.info("Maximization already solved for this case")
       }
       else {
         init.val0max <- prev.max[["sol"]]      
@@ -407,7 +415,6 @@ while (!done) {
             fwrite(results, out.welfare.nationwide.av) 
           }
       }
-      
       if (!is.null(init.val0max)) {
           # E2b1 Run maximization: derivative free 
           flog.info("Running maximization")
@@ -455,8 +462,8 @@ while (!done) {
   }
   
   # Check results, are we done?
+  print(head(prev.res.case[, .N , c("est", "sc", "sigma", "theta", "K", "L")]))
   if (nrow(prog.results) == 0) done <- T
-  else attempt <- attempt + 1
 }
 
 
