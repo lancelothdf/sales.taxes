@@ -1,7 +1,8 @@
 #' Sales Taxes
 #' Replication File. Updated on 8/18/2022
 #' Step 13b: Welfare extrapolation. Nationwide average. Bootstrap relevant case
-#' We focus on a particular subset of cases and bootstrap: perfect competition and perfect salience
+#' We focus on a particular subset of cases and bootstrap: perfect competition and perfect salience - marginal changes
+
 
 
 library(data.table)
@@ -72,36 +73,34 @@ setnames(min.criteria, "K", "Deg") # for some reason K is confused
 ## 5. Set up Ks, Ls, and scenarios (manually)
 K.test <- c(2, 8)
 L.test <- c(1, 2)
-scenarios <- c("Original", "No Tax", "plus 5 Tax")
 
 ## 6. Set up Optimization Parameters (algorithm for now)
-maxit <- 2000
+maxit <- 1500
 nlo.opts.local.df <- list(
   "algorithm"="NLOPT_LN_COBYLA",
   "maxeval" = maxit,
   "xtol_rel"=1.0e-8
 )
 
-## 7. Source extrapolation functions
+## 7. Define extrapolation functions
 source("Code/sales.taxes/Replication/welfare_functions.R")
 
 
 ## 8. Capture all possible combinations
 combinations.all <- data.table(NULL)
-for (sc in scenarios) {
-  for (K in K.test) {
-    for (comb in thetas.list) {
-      for (L in L.test) {
-        combinations.all <- rbind(combinations.all,
-                                  data.table(K = K, L = L,
-                                             sc = sc, 
-                                             sigma = comb$sigma,
-                                             theta = comb$theta)
-        )
-      }
+for (K in K.test) {
+  for (comb in thetas.list) {
+    for (L in L.test) {
+      combinations.all <- rbind(combinations.all,
+                                data.table(K = K, L = L,
+                                           sc = "Original", 
+                                           sigma = comb$sigma,
+                                           theta = comb$theta)
+      )
     }
   }
 }
+
 
 
 
@@ -125,20 +124,9 @@ for (rep in 0:max(res.ivs$iter)){
     sig <- combinations.all[nr,][["sigma"]]
     theta <- combinations.all[nr,][["theta"]]
     
-  
-    
     flog.info("Estimating case %s out of %s: K = %s, L = %s, sigma = %s, theta = %s for %s", 
               nr, nrow(combinations.all),  K, D, sig, theta, sc)
     
-    # Capture Scenario variables
-    if (sc == "No Tax") {
-      t0 <- "tauno"
-      t1 <- "tau"
-    } 
-    if (sc == "plus 5 Tax")  {
-      t0 <- "tau"
-      t1 <- "tau5"
-    }  
     
     ## B.1. Load Matrix of gamma (this extrictly depends on K since the basis change)
     in.file <- paste0(theta.berstein.sal, K,"_bern.csv")

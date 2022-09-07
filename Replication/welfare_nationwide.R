@@ -238,12 +238,14 @@ while (!done) {
                                  by =  c("sc", "sigma", "theta", "K", "L"),
                                  all.x = T)
       # minimization
+      print(prev.attempt.case)
       prev.min <- prev.attempt.case[est == "LB"]
       # Check we have the solution if previous attempt not found
       if (nrow(prev.min) == 0) {
         prev.res.case <- merge(case, prev.res,
                                by =  c("sc", "sigma", "theta", "K", "L"),
                                all.x = T)
+        print(prev.res.case)
         if (nrow(prev.res.case[est == "LB"]) == 0) {
           init.val0min <- get.init.val(constr, IVs, mc)
           flog.info("Capturing starting values: min missing from previous attempt")
