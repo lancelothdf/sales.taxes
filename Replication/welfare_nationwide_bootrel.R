@@ -115,8 +115,8 @@ for (rep in 0:max(res.ivs$iter)){
   flog.info("Starting iteration %s", rep)
   flog.info("Remaining combinations: %s", nrow(combinations.all))
   
-  sols <- data.table(NULL) # Restart saving solution
   if (rep > 0 ) prev.sol <- copy(sols)
+  sols <- data.table(NULL) # Restart saving solution
   ### Run estimation for combinations: each row
   for (nr in 1:nrow(combinations.all)) {
     
