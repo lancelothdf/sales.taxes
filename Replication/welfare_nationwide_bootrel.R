@@ -113,7 +113,6 @@ for (rep in 0:max(res.ivs$iter)){
   
   flog.info("Starting iteration %s", rep)
   flog.info("Remaining combinations: %s", nrow(combinations.all))
-  prevsol <- data.table(NULL)
   
   ### Run estimation for combinations: each row
   for (nr in 1:nrow(combinations.all)) {
@@ -156,9 +155,14 @@ for (rep in 0:max(res.ivs$iter)){
     # Retrieve previous solution for speeding up the bootstrap 
     if (rep == 0) init.val0max <- init.val0min <- get.init.val(constr, IVs, mc)
     else {
-      
+      prev.attempt.case <- merge(data.table(sc, L = D , K, sigma = sig, theta), 
+                                 prev.sol, 
+                                 by =  c("sc", "sigma", "theta", "K", "L"))
+      init.val0min <-prev.attempt.case[est == "LB"][["sol"]]
+      init.val0max <-prev.attempt.case[est == "UB"][["sol"]]
     }
     
+    prev.sol <- data.table(NULL) # Restart saving solution
     ## E. Estimate for each case
     if (sc == "Original") {
       # E1. Marginal change
@@ -191,7 +195,10 @@ for (rep in 0:max(res.ivs$iter)){
                                     it.n = res0$iterations, iter = rep)
       results <- rbind(results, welfare.theta)
       fwrite(results, out.welfare.nationwide.av.boot) 
-  
+      prev.sol <- rbind(prev.sol, data.table(est = "LB", sol = res0$solution, 
+                                             sc, L=D , K, 
+                                             sigma = sig, theta))
+      
         
       # E1b1. Max calculation
       flog.info("Running maximization")
@@ -222,7 +229,10 @@ for (rep in 0:max(res.ivs$iter)){
                                   it.n = res0$iterations, iter = rep)
       results <- rbind(results, welfare.theta)
       fwrite(results, out.welfare.nationwide.av.boot)
-
+      prev.sol <- rbind(prev.sol, data.table(est = "UB", sol = res0$solution, 
+                                             sc, L=D , K, 
+                                             sigma = sig, theta))
+      
       
     }
     else {
@@ -259,7 +269,10 @@ for (rep in 0:max(res.ivs$iter)){
                                   it.n = res0$iterations, iter = rep)
       results <- rbind(results, welfare.theta)
       fwrite(results, out.welfare.nationwide.av.boot) 
-        
+      prev.sol <- rbind(prev.sol, data.table(est = "LB", sol = res0$solution, 
+                                             sc, L=D , K, 
+                                             sigma = sig, theta))
+      
       
     
       # E2b1 Run maximization: derivative free 
@@ -292,7 +305,10 @@ for (rep in 0:max(res.ivs$iter)){
                                   it.n = res0$iterations, iter = rep)
       results <- rbind(results, welfare.theta)
       fwrite(results, out.welfare.nationwide.av.boot)
-          
+      prev.sol <- rbind(prev.sol, data.table(est = "UB", sol = res0$solution, 
+                                             sc, L=D , K, 
+                                             sigma = sig, theta))
+      
       
     }
       
