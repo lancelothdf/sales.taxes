@@ -66,10 +66,10 @@ for (sig in sigmas.test) {
     sigma = sig, theta = 0)
   # theta estimated when e_s = Inf
   thetas.list[[paste0("s",sig*100,"-Inf")]] <- list(
-    sigma = sig, theta = thetas[sigma==sig & is.infinite(es.val), mean(theta)])
+    sigma = sig, theta = round(thetas[sigma==sig & is.infinite(es.val), mean(theta)],0.00001))
   # theta estimated when e_s = 1
   thetas.list[[paste0("s",sig*100,"-1")]] <- list(
-    sigma = sig, theta = thetas[sigma==sig & es.val == 1, mean(theta)])
+    sigma = sig, theta = round(thetas[sigma==sig & es.val == 1, mean(theta)],0.00001))
   
 }
 
@@ -124,7 +124,6 @@ for (sc in scenarios) {
     }
   }
 }
-print(combinations.all)
 
 
 ### Estimation ----
@@ -150,20 +149,19 @@ while (!done) {
     
     ## Identify cases to be solved
     prev.res <- fread(out.welfare.nationwide.av)
-    print(nrow(prev.res))
+    flog.info("Number of estimates in previous results is %s", nrow(prev.res))
     # make sure they are unique to avoid keeping extra
     prev.res <- prev.res[!duplicated(prev.res[, c('est', 'sc', 'L', 'K', 'sigma', 'theta')]),]
-    print(nrow(prev.res))
-    
+    flog.info("Number of non-duplicated estimates in previous results is %s", nrow(prev.res))
+
     # which have both solutions?
     done.prev.res <- copy(prev.res)
     done.prev.res <- done.prev.res[, nest := .N, by = c('sc', 'L', 'K', 'sigma', 'theta')]
-    print(nrow(done.prev.res))
     done.prev.res <- done.prev.res[nest == 2]
-    print(nrow(done.prev.res))
+    flog.info("Number of complete cases estimates in previous results is %s", nrow(done.prev.res))
     # Collapse to merge with all and identify remaining cases
     done.prev.res <- done.prev.res[, .(complete = mean(nest)-1), by = c('sc', 'L', 'K', 'sigma', 'theta')]
-    print(nrow(done.prev.res))
+    flog.info("Number of complete cases in previous results is %s", nrow(done.prev.res))
     combinations.all <- merge(combinations.all, done.prev.res, 
                               by = c("sc", "L", "K", "sigma", "theta"),
                               all.x = T)
