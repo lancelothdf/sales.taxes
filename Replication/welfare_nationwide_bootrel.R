@@ -155,8 +155,9 @@ for (rep in 0:max(res.ivs$iter)){
     # Retrieve previous solution for speeding up the bootstrap 
     if (rep == 0) init.val0max <- init.val0min <- get.init.val(constr, IVs, mc)
     else {
-      prev.attempt.case <- merge(data.table(sc, L = D , K, sigma = sig, theta), 
-                                 prev.sol, 
+      print(prev.sol)
+      prev.attempt.case <- merge(prev.sol, 
+                                 data.table(sc, L = D , K, sigma = sig, theta),
                                  by =  c("sc", "sigma", "theta", "K", "L"))
       print(prev.attempt.case)
       init.val0min <-prev.attempt.case[est == "LB"][["sol"]]
