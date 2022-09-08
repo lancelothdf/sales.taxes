@@ -1,7 +1,8 @@
 #' Sales Taxes
-#' Replication File. Updated on 8/18/2022
+#' Replication File. Updated on 9/8/2022
 #' Step 13b: Welfare extrapolation. Nationwide average. Bootstrap relevant case
 #' We focus on a particular subset of cases and bootstrap: perfect competition and perfect salience - marginal changes
+#' Use previous soolution as initial value for next iteration!
 
 
 
@@ -112,7 +113,7 @@ for (rep in 0:max(res.ivs$iter)){
   
   flog.info("Starting iteration %s", rep)
   flog.info("Remaining combinations: %s", nrow(combinations.all))
-  prog.results <- data.table(NULL)
+  prevsol <- data.table(NULL)
   
   ### Run estimation for combinations: each row
   for (nr in 1:nrow(combinations.all)) {
@@ -152,7 +153,11 @@ for (rep in 0:max(res.ivs$iter)){
     
     
     ## D4. Initial values: generate an initial value somewhere in the middle to test algorithms
-    init.val0max <- init.val0min <- get.init.val(constr, IVs, mc)
+    # Retrieve previous solution for speeding up the bootstrap 
+    if (rep == 0) init.val0max <- init.val0min <- get.init.val(constr, IVs, mc)
+    else {
+      
+    }
     
     ## E. Estimate for each case
     if (sc == "Original") {
