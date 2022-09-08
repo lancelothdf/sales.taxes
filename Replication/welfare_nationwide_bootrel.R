@@ -163,6 +163,13 @@ for (rep in 0:max(res.ivs$iter)){
                                  by =  c("sc", "sigma", "theta", "K", "L"))
       init.val0min <-prev.attempt.case[est == "LB"][["sol"]]
       init.val0max <-prev.attempt.case[est == "UB"][["sol"]]
+      # Make sure solution still works
+      while (sum(rep(min(IVs)/min(constr), K) > init.val0min) > 0) {
+        init.val0min <- (init.val0min + get.init.val(constr, IVs, mc))/2
+      }
+      while (sum(rep(min(IVs)/min(constr), K) > init.val0max) > 0) {
+        init.val0max <- (init.val0max + get.init.val(constr, IVs, mc))/2
+      }        
     }
     
     ## E. Estimate for each case
@@ -188,7 +195,7 @@ for (rep in 0:max(res.ivs$iter)){
                         min.crit = mc,
                         elas = T,
                         ub = rep(0, K),
-                        lb = rep(1.2*min(IVs)/min(constr), K)
+                        lb = rep(min(IVs)/min(constr), K)
       )
       # E1a2. Extract and export minimization results
       welfare.theta <- data.table(est = "LB", value = res0$objective, 
@@ -222,7 +229,7 @@ for (rep in 0:max(res.ivs$iter)){
                       min.crit = mc,
                       elas = T,
                       ub = rep(0, K),
-                      lb = rep(1.2*min(IVs)/min(constr), K)
+                      lb = rep(min(IVs)/min(constr), K)
       )
 
       welfare.theta <- data.table(est = "UB", value = -res0$objective, 
@@ -261,7 +268,7 @@ for (rep in 0:max(res.ivs$iter)){
                       min.crit = mc,
                       elas = T,
                       ub = rep(0, K),
-                      lb = rep(1.2*min(IVs)/min(constr), K)
+                      lb = rep(min(IVs)/min(constr), K)
       )       
       # E2a2 Extract and export minimization results
 
@@ -298,7 +305,7 @@ for (rep in 0:max(res.ivs$iter)){
                       min.crit = mc,
                       elas = T,
                       ub = rep(0, K),
-                      lb = rep(1.2*min(IVs)/min(constr), K)
+                      lb = rep(min(IVs)/min(constr), K)
       )       
       # E2b2 Extract and export maximization results
       welfare.theta <- data.table(est = "UB", value = -res0$objective, 
