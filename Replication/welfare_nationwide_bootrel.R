@@ -158,6 +158,7 @@ for (rep in 0:max(res.ivs$iter)){
       prev.attempt.case <- merge(data.table(sc, L = D , K, sigma = sig, theta), 
                                  prev.sol, 
                                  by =  c("sc", "sigma", "theta", "K", "L"))
+      print(prev.attempt.case)
       init.val0min <-prev.attempt.case[est == "LB"][["sol"]]
       init.val0max <-prev.attempt.case[est == "UB"][["sol"]]
     }

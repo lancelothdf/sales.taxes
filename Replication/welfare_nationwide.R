@@ -150,8 +150,10 @@ while (!done) {
     
     ## Identify cases to be solved
     prev.res <- fread(out.welfare.nationwide.av)
+    print(nrow(done.prev.res))
     # make sure they are unique to avoid keeping extra
-    prev.res <- prev.res[!duplicated(prev.res[, c('est', 'value', 'sc', 'L', 'K', 'sigma', 'theta')]),]
+    prev.res <- prev.res[!duplicated(prev.res[, c('est', 'sc', 'L', 'K', 'sigma', 'theta')]),]
+    print(nrow(done.prev.res))
     
     # which have both solutions?
     done.prev.res <- copy(prev.res)
