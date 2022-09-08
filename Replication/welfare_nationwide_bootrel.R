@@ -188,7 +188,7 @@ for (rep in 0:max(res.ivs$iter)){
                         min.crit = mc,
                         elas = T,
                         ub = rep(0, K),
-                        lb = rep(min(IVs)/min(constr), K)
+                        lb = rep(1.2*min(IVs)/min(constr), K)
       )
       # E1a2. Extract and export minimization results
       welfare.theta <- data.table(est = "LB", value = res0$objective, 
@@ -222,7 +222,7 @@ for (rep in 0:max(res.ivs$iter)){
                       min.crit = mc,
                       elas = T,
                       ub = rep(0, K),
-                      lb = rep(min(IVs)/min(constr), K)
+                      lb = rep(1.2*min(IVs)/min(constr), K)
       )
 
       welfare.theta <- data.table(est = "UB", value = -res0$objective, 
@@ -261,7 +261,7 @@ for (rep in 0:max(res.ivs$iter)){
                       min.crit = mc,
                       elas = T,
                       ub = rep(0, K),
-                      lb = rep(min(IVs)/min(constr), K)
+                      lb = rep(1.2*min(IVs)/min(constr), K)
       )       
       # E2a2 Extract and export minimization results
 
@@ -298,7 +298,7 @@ for (rep in 0:max(res.ivs$iter)){
                       min.crit = mc,
                       elas = T,
                       ub = rep(0, K),
-                      lb = rep(min(IVs)/min(constr), K)
+                      lb = rep(1.2*min(IVs)/min(constr), K)
       )       
       # E2b2 Extract and export maximization results
       welfare.theta <- data.table(est = "UB", value = -res0$objective, 
