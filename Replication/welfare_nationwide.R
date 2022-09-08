@@ -124,7 +124,7 @@ for (sc in scenarios) {
     }
   }
 }
-
+print(combinations.all)
 
 
 ### Estimation ----
@@ -181,6 +181,7 @@ while (!done) {
   flog.info("Starting attempt %s", attempt)
   flog.info("Remaining combinations: %s", nrow(combinations))
   prog.results <- data.table(NULL)
+  print(combinations)
   
   ### Run estimation for combinations: each row
   for (nr in 1:nrow(combinations)) {
