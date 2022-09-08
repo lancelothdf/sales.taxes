@@ -583,7 +583,6 @@ get.init.val <- function(A, b, min.c, max = 1000) {
       }
     }
     else {
-      print(init)
       return(init)
     }
   }
