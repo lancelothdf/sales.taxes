@@ -466,7 +466,7 @@ while (!done) {
   }
   
   # Check results, are we done?
-  print(head(prev.res.case[, .N , by = c("est", "sc", "sigma", "theta", "K", "L")]))
+  print(head(prog.results[, .N , by = c("est", "sc", "sigma", "theta", "K", "L")]))
   if (nrow(prog.results) == 0) done <- T
 }
 
