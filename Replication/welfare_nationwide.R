@@ -231,7 +231,7 @@ while (!done) {
     ## D4. Initial values: either capture previous attempt or generate an 
     # initial value somewhere in the middle to test algorithms
     # Reinitialize initial values
-    init.val0min <- init.val0min <- NULL
+    init.val0min <- init.val0max <- NULL
     prev.min <- prev.max <- NULL
     
     # First attempt ever?
@@ -260,6 +260,7 @@ while (!done) {
           flog.info("Capturing starting values: min missing from previous attempt")
         }
         else flog.info("Minimization already solved for this case")
+        
       }
       else {
         init.val0min <- prev.min[["sol"]]
