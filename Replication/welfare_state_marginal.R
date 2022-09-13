@@ -1,6 +1,6 @@
 ##### Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 8/18/2022
+#' Replication File. Updated on 9/13/2022
 #' Step 14(a): Welfare extrapolation. By state. Marginal changes
 #' We estimate state-level welfare extrapolation these in different codes
 #' This one focuses on marginal changes: it uses the original distribution only
@@ -84,7 +84,6 @@ res.ivs <- IVs2[order(iter, sigma, n.groups, lev)]
 rm(IVs, IVs2)
 
 
-## 4. Capture states
 
 ## 4. Open Min - Max files and min criteria
 res.pq <- fread(pq.output.salience.results.file)
@@ -161,7 +160,7 @@ while (!done) {
         
         ## Marginal Change
         value <- marginal.change(lin, data.st, "p_cml", "tau", theta, sig, "eta_m", min, max, 0, 0)
-        results<- rbind(results, data.table(state, value, est = "", theta, sigma = sig, K = 1, L = 1, it.n=1, s=4))
+        results<- rbind(results, data.table(state, value, est = "", theta, sigma = sig, K = 1, L = 1, it.n=1, s=4, attempt = 1))
         
         
       }
@@ -199,7 +198,7 @@ while (!done) {
     results <- results[s!=5]
     
     # Capture prev. attempt number and add one
-    attempt <- max(prev.sol$attempt) + 1
+    attempt <- max(results$attempt) + 1
   }
   
   flog.info("Starting attempt %s", attempt)
@@ -314,7 +313,7 @@ while (!done) {
             data.table(est = "UB", value = up,   state, L=D , K, sigma = sig, theta, s = s2, it = it2 + maxit*(attempt-1))
             )
     }
-    results <- rbind(results, welfare.st)
+    results <- rbind(results, welfare.st[, attempt := attempt])
     fwrite(results, out.welfare.state.marg)
   }
   # Check results, are we done?

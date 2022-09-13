@@ -1,6 +1,6 @@
 ##### Wesley Janson and Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 8/18/2022
+#' Replication File. Updated on 9/13/2022
 #' This Code is the main driver file for replicating the
 #' full code. We call individual scripts to perform specific
 #' tasks here.
@@ -31,9 +31,10 @@ source("imperfect_salience_estimates.R") #DONE
 source("imperfect_salience_matrices.R") #DONE
 source("average_conduct_parameter_salience.R") #DONE
 source("welfare_mincriteria.R") #DONE
-source("welfare_nationwide.R") 
-source("welfare_nationwide_bootrel.R") 
+source("welfare_nationwide.R")  #DONE
+source("welfare_nationwide_bootrel.R")  #DONE
 source("welfare_state_marginal.R") 
+source("welfare_state_nonmarginal.R") 
 
 
 
