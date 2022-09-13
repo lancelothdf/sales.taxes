@@ -113,7 +113,7 @@ combinations.all.states <- data.table(NULL)
 for (K in K.test) {
   for (comb in thetas.list) {
     for (L in L.test) {
-      for (st in states.test) {
+      for (state in states.test) {
         combinations.all.states <- rbind(combinations.all.states,
                                   data.table(K = K, L = L,
                                              sigma = comb$sigma,
