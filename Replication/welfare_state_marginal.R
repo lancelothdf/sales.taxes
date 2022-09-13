@@ -140,6 +140,7 @@ while (!done) {
   # First time? Capture all combinations
   if (new) {
     print("No previous results found. Starting from 0")
+    combinations.states <- copy(combinations.all.states)
     combinations <- combinations.all.states[, .(N=.N), by = c("L", "K", "sigma", "theta")]
     combinations <- combinations[N>0]
     results <- data.table(NULL)
@@ -215,8 +216,8 @@ while (!done) {
     sig <- combinations[nr,][["sigma"]]
     theta <- combinations[nr,][["theta"]]
     
-    # A.1 Identify missing states
-    case <- merge(combinations[nr,], combinations.state, by = c("L", "K", "sigma", "theta"))
+    # A.1 Identify missing states for combination
+    case <- merge(combinations[nr,], combinations.states, by = c("L", "K", "sigma", "theta"))
     states.case <- case[["state"]]
 
     # A.2 Modify maximum iterations: add maxit
