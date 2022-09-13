@@ -248,7 +248,7 @@ while (!done) {
     mc <- min.criteria[Deg == K & L == D & sigma == sig & extrap == "Original" & iter == rep,][["min.criteria"]]
       
     ## D3. Load min.criterion for case
-    mc <- min.criteria[Deg == K & L == D & sigma == sig & extrap == sc & iter == rep,]
+    mc <- min.criteria[Deg == K & L == D & sigma == sig & extrap == "Original" & iter == rep,]
     mc <- mc[["min.criteria"]]
     
     ## D4. Reinitialize initial values
