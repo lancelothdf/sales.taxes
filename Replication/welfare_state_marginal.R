@@ -140,7 +140,7 @@ while (!done) {
   # First time? Capture all combinations
   if (new) {
     print("No previous results found. Starting from 0")
-    combinations <- combinations.all.state[, .(N=.N), by = c("L", "K", "sigma", "theta")]
+    combinations <- combinations.all.states[, .(N=.N), by = c("L", "K", "sigma", "theta")]
     combinations <- combinations[N>0]
     results <- data.table(NULL)
     attempt <- 1
@@ -186,11 +186,11 @@ while (!done) {
     # Collapse to merge with all and identify remaining cases
     done.prev.res <- done.prev.res[, .(complete = mean(nest)-1), by = c('L', 'K', 'sigma', 'theta', 'state')]
     flog.info("Number of complete cases in previous results is %s", nrow(done.prev.res))
-    combinations.state <- merge(combinations.all.state, done.prev.res, 
+    combinations.states <- merge(combinations.all.states, done.prev.res, 
                               by = c("L", "K", "sigma", "theta", 'state'),
                               all.x = T)
     
-    combinations <- combinations.state[is.na(complete), .(N=.N), by = c("L", "K", "sigma", "theta")]
+    combinations <- combinations.states[is.na(complete), .(N=.N), by = c("L", "K", "sigma", "theta")]
     combinations <- combinations[N>0]
     
     ## Keep previous progress
