@@ -251,8 +251,8 @@ while (!done) {
     mc <- min.criteria[Deg == K & L == D & sigma == sig & extrap == "Original" & iter == rep,]
     mc <- mc[["min.criteria"]]
     
-    ## D4. Reinitialize initial values
-    init.val0max <- init.val0min <- get.init.val(constr, IVs, mc) 
+    ## D4. Reinitialize initial values (same for max and min)
+    init.val0 <- get.init.val(constr, IVs, mc) 
     
     ## F Loop across states
     welfare.st <- foreach (state= states.case, .combine=rbind) %dopar% {
