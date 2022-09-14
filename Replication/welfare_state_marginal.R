@@ -161,7 +161,7 @@ while (!done) {
         
         ## Marginal Change
         value <- marginal.change(lin, data.st, "p_cml", "tau", theta, sig, "eta_m", min, max, 0, 0)
-        results<- rbind(results, data.table(state, value, est = "", theta, sigma = sig, K = 1, L = 1, it.n=1, s=4, attempt = 1))
+        results<- rbind(results, data.table(state, value, est = "", theta, sigma = sig, K = 1, L = 1, it=1, s=4, attempt = 1))
         
         
       }
