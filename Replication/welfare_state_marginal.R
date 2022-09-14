@@ -191,7 +191,8 @@ while (!done) {
                               by = c("L", "K", "sigma", "theta", 'state'),
                               all.x = T)
     
-    combinations <- combinations.states[is.na(complete), .(N=.N), by = c("L", "K", "sigma", "theta")]
+    combinations.states <- combinations.states[is.na(complete)]
+    combinations <- combinations.states[, .(N=.N), by = c("L", "K", "sigma", "theta")]
     combinations <- combinations[N>0]
     
     ## Keep previous progress
