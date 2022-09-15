@@ -197,7 +197,7 @@ all_pi[, dm.ln_pricei2 := ln_pricei2 - mean(ln_pricei2, na.rm = T), by = module_
 ## Create transformed price under imperfect salience for estimations
 all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
 
-for (sig in c(0.25, 0.5, 0.75, 1)) {
+for (sig in seq(0.25, 1, 0.05)) {
   # build p^sigma
   all_pi[, paste0("ln_cpricei2_sig", sig) := ln_pricei2 +sig*ln_sales_tax]
   # Create within
@@ -208,7 +208,8 @@ for (sig in c(0.25, 0.5, 0.75, 1)) {
   all_pi[, paste0("D.ln_cpricei2_sig", sig) := D.ln_pricei2 +sig*D.ln_sales_tax]
   all_pi[, paste0("L.ln_cpricei2_sig", sig) := get(paste0("ln_cpricei2_sig", sig)) - get(paste0("D.ln_cpricei2_sig", sig))]
   all_pi[, paste0("dm.L.ln_cpricei2_sig", sig) := get(paste0("L.ln_cpricei2_sig", sig)) - mean(get(paste0("L.ln_cpricei2_sig", sig)), na.rm = T), by = module_by_time]
-  
+  # Remove unused variables to save disk space
+  all_pi <- all_pi[, -paste0(c("D.ln_cpricei2_sig", "L.ln_cpricei2_sig", "ln_cpricei2_sig"), sig)]
 }
 
 
@@ -224,6 +225,7 @@ pct99treated <- quantile(treated$dm.L.ln_cpricei2, probs = 0.99, na.rm = T, weig
 
 all_pi[, cs_price := ifelse(dm.L.ln_cpricei2 > max(pct1.treated, pct1.control) & 
                               dm.L.ln_cpricei2 < min(pct99treated, pct99.control), 1, 0)]
+rm(control, treated)
 # Make sure missings are 0s
 all_pi[, cs_price := ifelse(is.na(dm.L.ln_cpricei2), 0, cs_price)]
 
@@ -340,6 +342,7 @@ all_pi_econ <- merge(all_pi_econ, all_pi_cs, by = c("year", "semester", "fips_st
 all_pi <- merge(all_pi, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"))
 
 
+### Final binned data sets for welfare extrapolations
 ## Collapse to binned price for Welfare extrapolation (needed to make it computationally feasible)
 # Generate rounded price
 all_pi_p <- copy(all_pi)
@@ -348,8 +351,6 @@ all_pi_p <- all_pi_p[, p_m := round(dm.ln_cpricei2, 3)]
 # collapse for every price x state on taxable goods 
 all_pi_p<- all_pi_p[ln_sales_tax > 0, .(tau = weighted.mean(ln_sales_tax, w = base.sales),
                                       eta_m = sum(base.sales)), by = .(fips_state, p_m)]
-
-
 ## Collapse to binned tax 
 # Generate rounded tax
 all_pi_t <- copy(all_pi)
