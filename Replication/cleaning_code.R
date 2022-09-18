@@ -233,8 +233,8 @@ all_pi[, cs_price := ifelse(is.na(dm.L.ln_cpricei2), 0, cs_price)]
 all_pi_cs <- all_pi[cs_price == 1,]
 
 ## cut the tails (keep between 1st and 99th percentile)
-pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=base.sales)
-pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=base.sales)
+pct1 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.01, na.rm = T, weight=all_pi$base.sales)
+pct99 <- quantile(all_pi$dm.ln_cpricei2, probs = 0.99, na.rm = T, weight=all_pi$base.sales)
 all_pi_cs <- all_pi_cs[(dm.ln_cpricei2 > pct1 & dm.ln_cpricei2 < pct99),]
 all_pi_cs <- all_pi_cs[, c("year", "semester", "fips_state", "fips_county", "product_module_code", "store_code_uc")]
 
@@ -251,6 +251,7 @@ all_pi_cs[(year > 2007 & year < 2015)
 
 # Merge to create data set for spillovers
 all_pi_spill <- merge(all_pi, taxability, by = c("year", "semester", "fips_state", "product_module_code"), all.x = T)
+rm(taxability)
 
 # Identify always taxable and always tax-exempt
 all_pi_spill[, tax_exempt := taxability == 0]
@@ -327,7 +328,7 @@ all_pi_econ <- merge(all_pi, zillow_dt, by = c("fips_state", "fips_county", "yea
 # Merge econ data to price and quantity data and spillovers data
 all_pi_spill_econ <- merge(all_pi_spill, zillow_dt, by = c("year", "semester", "fips_state", "fips_county"))
 
-
+rm(zillow_dt)
 
 
 ##### Additional set up and CS restrictions
