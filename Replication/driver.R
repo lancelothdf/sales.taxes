@@ -12,7 +12,7 @@
 setwd("/project2/igaarder")
 
 ###Run Code
-source("cleaning_code.R") #DONE
+source("cleaning_code.R") #DONE - Revisiting to add more \sigma values
 source("cleaning_store_characteristics.R") #DONE
 source("reduced_form_evidence.R") #DONE
 source("reduced_form_evidence_controls.R") #DONE
@@ -27,14 +27,15 @@ source("point_estimates_robust_storecharact.R") #DONE
 source("partial_id_matrices_bootstrap.R") #DONE
 source("partial_id_solve_bootstrap.R") #DONE
 source("compute_average_elasticities.R") #DONE 
-source("imperfect_salience_estimates.R") #DONE
-source("imperfect_salience_matrices.R") #DONE
-source("average_conduct_parameter_salience.R") #DONE
-source("welfare_mincriteria.R") #DONE
-source("welfare_nationwide.R")  #DONE
+source("imperfect_salience_estimates.R") #DONE - Revisiting to add more \sigma values
+source("imperfect_salience_matrices.R") #DONE - Revisiting to add more \sigma values
+source("average_conduct_parameter_salience.R") #DONE - Revisiting to add more \sigma values
+source("welfare_mincriteria.R") #DONE - Revisiting to add more \sigma values
+source("welfare_nationwide.R")  #DONE - Revisiting to add more \sigma values
 source("welfare_nationwide_bootrel.R")  #DONE
 source("welfare_state_marginal.R") 
 source("welfare_state_nonmarginal.R") 
+source("Figures.R") 
 
 
 
