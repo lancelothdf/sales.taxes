@@ -78,6 +78,7 @@ for (n.g in 1:5) {
     all_pi[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]
     # Weight normalized within quantile
     all_pi[, base.sales.q := (wVAR*base.sales)/sum(wVAR*base.sales), by = .(quantile)]
+    all_pi[, base.sales.qor := base.sales/sum(base.sales), by = .(quantile)]
     
     if (pricedist) {
       
@@ -92,11 +93,11 @@ for (n.g in 1:5) {
       ### Version 1: using bases.sales
       
       # Produce empirical weighted distribution of (de-meaned) current prices
-      d1 <- all_pi[, .(dens.log.p = sum(base.sales)), by = .(quantile, d.lp)]
+      d1 <- all_pi[, .(dens.log.p = sum(base.sales.qor)), by = .(quantile, d.lp)]
       d1[, dens.log.p := dens.log.p/sum(dens.log.p), by =.(quantile)]
       d1[, log.p := d.lp*step.log.p + min.log.p + step.log.p/2]
       # Produce empirical weighted distribution of log (de-meaned) current prices
-      d2 <- all_pi[, .(dens.n.log.p = sum(base.sales)), by = .(quantile, d.n.lp)]
+      d2 <- all_pi[, .(dens.n.log.p = sum(base.sales.qor)), by = .(quantile, d.n.lp)]
       d2[, dens.n.log.p := dens.n.log.p/sum(dens.n.log.p), by =.(quantile)]
       d2[, log.n.p := d.n.lp*step.n.log.p + min.n.log.p + step.n.log.p/2]
       
@@ -111,10 +112,10 @@ for (n.g in 1:5) {
       ## Repeat by treatment group
       
       # Produce empirical weighted distribution of log (de-meaned) current prices
-      d1 <- all_pi[, .(dens.log.p = sum(base.sales)), by = .(quantile, d.lp, treated)]
+      d1 <- all_pi[, .(dens.log.p = sum(base.sales.qor)), by = .(quantile, d.lp, treated)]
       d1[, dens.log.p := dens.log.p/sum(dens.log.p), by =.(quantile, treated)]
       d1[, log.p := d.lp*step.log.p + min.log.p + step.log.p/2]
-      d2 <- all_pi[, .(dens.n.log.p = sum(base.sales)), by = .(quantile, d.n.lp, treated)]
+      d2 <- all_pi[, .(dens.n.log.p = sum(base.sales.qor)), by = .(quantile, d.n.lp, treated)]
       d2[, dens.n.log.p := dens.n.log.p/sum(dens.n.log.p), by =.(quantile, treated)]
       d2[, log.n.p := d.n.lp*step.n.log.p + min.n.log.p + step.n.log.p/2]    
       prices_densities <- merge(d1, d2, by.x = c("d.lp", "quantile", "treated"), by.y = c("d.n.lp", "quantile", "treated"))
