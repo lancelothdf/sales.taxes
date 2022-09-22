@@ -67,7 +67,9 @@ pq_res <- data.table(NULL)
 for (rep in 0:100) {
   
   flog.info("Iteration %s", rep)
-  for (sig in c(0.25, 0.5, 0.75, 1)) {
+  if (rep == 0) sigmas.test <- seq(0.25,1,0.05)
+  else sigmas.test <- c(0.25, 0.5, 0.75, 1)
+  for (sig in sigmas.test) {
     
     flog.info("Iteration %s, sigma %s", rep, sig)
     ## cut the tails (keep between 1st and 99th percentile)
