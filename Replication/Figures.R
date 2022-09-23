@@ -289,7 +289,7 @@ rm(data, gg, step)
 data <- fread("Demand_iv_sat_initial_price_semester_boot_r.csv")
 
 # Keep 5 quintiles case, div x module x time FE and 50 iters
-data <- data[n.groups == 5 & controls == "group_division_by_module_by_time"]
+data <- data[n.groups == 5 & controls == "division_by_module_by_time"]
 print(nrow(data))
 # Change names to produce plot
 setnames(data, old = c("Estimate", "Std. Error"), new = c("estimate", "se"))

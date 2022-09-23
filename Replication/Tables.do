@@ -7,8 +7,11 @@
 global mainfolder "/project2/igaarder/Data"
 global inputs "$mainfolder/Replication"
 global outputfolder "$inputs/figsandtabs"
-cap ssc install frmttable
 
+cap {
+	net from http://www.stata-journal.com/software/sj12-4
+	net install sg97_5
+}
 ** Table 1: Descriptive statistics on sales tax changes in the US (2008-2014) **
 
 ** Open Data of tax lavels
