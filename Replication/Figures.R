@@ -364,8 +364,7 @@ data.covs <- data.boot[, .(mean0 = mean(beta_0), mean1 = mean(beta_1), mean2 = m
                            mean3 = mean(beta_3), var0 = (sd(beta_0))^2, var1 = (sd(beta_1))^2, 
                            var2 = (sd(beta_2))^2,
                            cov01 = cov(beta_0, beta_1), cov02 = cov(beta_0, beta_2),
-                           cov12 = cov(beta_2, beta_1)), 
-                       by = .(n.groups, controls)]
+                           cov12 = cov(beta_2, beta_1))]
 rm(data.boot)
 
 
