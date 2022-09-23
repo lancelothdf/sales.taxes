@@ -35,8 +35,9 @@ source("welfare_nationwide.R")  #DONE - Revisiting to add more \sigma values
 source("welfare_nationwide_bootrel.R")  #DONE
 source("welfare_state_marginal.R") 
 source("welfare_state_nonmarginal.R") 
+source("simulation_point.R")
 source("Figures.R") 
-
+# Tables are produced in Stata with /Tables.do
 
 
 

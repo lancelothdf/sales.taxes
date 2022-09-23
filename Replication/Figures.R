@@ -18,7 +18,7 @@ library(latex2exp)
 setwd("/project2/igaarder/Data/Replication")
 
 # Font: Need to install TTFs of latin modern roman
-loadfonts(device = "win")
+loadfonts()
 fontsize <- 16
 
 ##### Figure #: Passthrough and Quantity response to sales taxes - dynamic response. ------
