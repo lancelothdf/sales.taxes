@@ -1,9 +1,7 @@
-#' Sales Taxes Project
-#' In this code I make the first attempts of simulations.Following Lance's instructions:
-#' We are going to first assume that supply is perfectly elastic.  
-#' 1) This implies a passthrough of 1 - which is close to what we find in the data anyway and 
-#' 2) under perfectly elastic supply, the price is directly pinned down by supply. 
-#' 
+##### Santiago Lacouture
+#' Sales Taxes
+#' Replication File. Updated on 9/21/2022
+#' This Code Produces the simulation for partial identified cases. Relies on true data moments
 
 
 
@@ -14,6 +12,7 @@ library(multcomp)
 library(ggplot2)
 library(boot)
 library(dplyr)
+library(gurobi)
 
 
 setwd("/project2/igaarder")
@@ -22,15 +21,22 @@ setwd("/project2/igaarder")
 
 ## input and output filepaths -----------------------------------------------
 data.semester <- "Data/Nielsen/semester_nielsen_data.csv"
-output.results.file <- "Data/SimulationIV_100_partial.csv"
-partial.output.results.file <- "Data/SimulationMatrix_100_K"
-distribution.file <- "Data/SimulationDist_100.csv"
+out.file.elast <- "Data/Replication/Simulation_bounds_table.csv"
 
 
 ## Bernstein basis Function -------------------------------------------
 
 bernstein <- function(x, k, K){
   choose(K, k) * x^k * (1 - x)^(K - k)
+}
+int.bernstein <- function(x,k,K) {
+  
+  result <- 0
+  for (j in (k+1):(K+1)) {
+    result <- result + bernstein(x,j,K+1)
+  }
+  return(result/(K+1))
+  
 }
 
 
@@ -52,6 +58,7 @@ beta <- c(2, -1.5, 0.8, -0.3)
 # Finally we set the number of quantiles to implement the method. 
 # This will indicate the number of target parameters to retrieve 
 n.quantiles <- 3
+Ks <- c(1:10) 
   
 #### Open Real data -----------------
 all_pi <- fread(data.semester)
@@ -64,6 +71,10 @@ ids <- unique(all_pi$store_by_module)
 LRdiff_res <- data.table(NULL)
 target_res <- data.table(NULL)
 dist_res <- data.table(NULL)
+matKs <- list()
+for (k in Ks) {
+  matKs[[k]] <- data.table(NULL)
+}
 
 ## Iteration
 for (rep in 1:100) {
@@ -200,7 +211,6 @@ for (rep in 1:100) {
         res1.dt[, iter := rep]
         
         LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-        fwrite(LRdiff_res, output.results.file)
       }
       
     } else {
@@ -228,7 +238,6 @@ for (rep in 1:100) {
         res1.dt[, iter := rep]
         
         LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-        fwrite(LRdiff_res, output.results.file)
       }
     }
     
@@ -244,7 +253,7 @@ for (rep in 1:100) {
     ed.price.quantile <- sampled.data_csprice[, .(w1 = (sum(base.sales.q))), by = .(p_ul, p_ll, quantile)]
     ed.price.quantile[, p_m := (p_ul+p_ll)/2]
     
-    for (K in L:10) {
+    for (K in L:max(Ks)) {
       
       # Create the derivative of the polynomial of prices and multiplicate by weights
       for (n in 0:(K-1)){
@@ -259,19 +268,250 @@ for (rep in 1:100) {
       gamma[, n.groups := L]
       gamma[, iter := rep]
       
-      ## Read Previous and write
-      theta.output.results.file.pi <- paste0(partial.output.results.file, K,"_bern.csv")
-      
-      if (rep == 1 & L == 1) {
-        fwrite(gamma, theta.output.results.file.pi)
-      } else {
-        previous.data <- fread(theta.output.results.file.pi)
-        previous.data <- rbind(previous.data, gamma)
-        fwrite(previous.data, theta.output.results.file.pi)
-      }
+      ## Read and save Previous and write
+      prev <- matKs[[K]]
+      prev <- rbind(prev, gamma)
+      matKs[[K]] <- prev
       
     }
     
   }
   
 }
+
+
+
+## Load Data and Set-Up --------------------
+
+## 1. Output files
+out.file.elast <- "Bounds/elasticity_bounds_table_berns_monot_mincreterion_d.csv"
+out.file.mc <-  "Bounds/table_berns_monot_mincreteria_d.csv"
+
+## 2. Load IVs and clean estimates
+res.ivs <- fread("SimulationIV_100_partial.csv")
+## Modify case D = 1 (delete intercept)
+res.ivs <- res.ivs[rn != "(Intercept)"]
+# dcast outcomes
+res.ivs <- dcast(res.ivs, n.groups + lev + iter ~ outcome,  fun=sum, value.var = c("Estimate"))
+# Calculate IV
+res.ivs[, estimate := D.q/D.p_t]
+
+
+## 3. range of p to bound elasticity
+prices <- seq(-0.1, .15, 0.002)
+
+## 4. Oberved distributions of prices
+dist <- fread("SimulationDist_100.csv")
+setnames(dist, "rep", "iter") # Modify for loop to run
+
+## 5. Set up Optimization Parameters
+# This options will make Gurobi think more about numerical issues
+params <- list()
+params$NumericFocus <- 3
+params$ScaleFlag <- 2
+params$Method <- 1
+params$Presolve <- 0
+
+## 5. Set up Tolerance
+tolerance <- 1e-6
+params$FeasibilityTol <- tolerance
+
+## 6. Loop Across iterations -------------------------
+bounds.file <- data.table(NULL)
+min.criteria.file <- data.table(NULL)
+
+for (rep in 1:100) {
+  
+  flog.info("Iteration %s", rep)
+  ## A. Load IVs
+  # Keep iter and Order appropiately
+  res.iter <- res.ivs[iter == rep]
+  res.iter <- res.iter[order(n.groups, lev)]
+  
+  ## B. Load support and means
+  max.p <- dist[iter == rep][["max.p"]]
+  min.p <- dist[iter == rep][["min.p"]]
+  q.bar <- dist[iter == rep][["mean.q"]]
+  p.bar <- dist[iter == rep][["mean.p"]]
+  p.bar <- (p.bar - min.p)/(max.p - min.p) # normalize p.bar to make constraint sense
+  
+  ## C. Start Loop for K
+  elasticity <- data.table(NULL)
+  mincriteria <- data.table(NULL)
+  for (K in 2:10) {
+    
+    ## 6.1. Load Matrix of gamma (this extrictly depends on K since the basis change)
+    in.file <- paste0("SimulationMatrix_100_K", K,"_bern.csv")
+    gamma.full.data <- fread(in.file)
+    
+    ## 6.2 Restrict gamma file. Constant across p
+    gamma <- gamma.full.data[ iter == rep][, c(paste0("b", 0:(K-1)), "n.groups"), with = F]             ## For elasticity
+    
+    ## 6.3 Start Loop at number of groups
+    for (D in unique(gamma$n.groups)) {
+      
+      ## A1. Build the constraints matrix 
+      constr <- as.matrix(gamma[n.groups == D][, -c("n.groups")])   ## For elasticity
+      constr.dd <- cbind(constr,0)                                  ## For demand
+      
+      ## A2. Build RHS
+      RHS <- res.iter[n.groups == D][["estimate"]]    
+      
+      ## A3. Set monotonicity of bernstein polynomials. Elasticity < 0 
+      constr.mono <- Diagonal(ncol(constr))              ## For elasticity
+      constr.mono.dd <- cbind(constr.mono,0)             ## For demand
+      RHS.mono <- rep(0, K)
+      
+      ## A4. Get intercept constraint. Demand
+      constr.inter <- rep(0, K)
+      for (i in 0:(K-1)) {
+        constr.inter[i+1] <- int.bernstein(p.bar,i,K-1)
+      }
+      constr.inter <- t(as.matrix(c(constr.inter,1))) ## Add the intercept and transform to matrix
+      RHS.inter <- q.bar
+      
+      
+      ## A5. If D > 1 we have to estimate the minimum criterion: min sum_s abs(gamma_s(theta) - beta_s)  
+      # To do this I have to define a set of auxiliar variables a_s such that: 
+      # a_s + gamma_s >= beta_s and a_s - gamma_s(theta) >= - beta_s
+      # And I minimize over them - thetas are now 0s in the objective function:
+      # obj is sum_s (1*a_s) + 0 *theta
+      # Shape constraints still hold
+      if (D > 1) {
+        
+        ## Define the problem
+        min.crit <- list() 
+        min.crit$A <- rbind(cbind(Diagonal(nrow(constr)), constr), 
+                            cbind(Diagonal(nrow(constr)), -constr),
+                            cbind(matrix(0, nrow(constr.mono), nrow(constr)), constr.mono)
+        )
+        min.crit$rhs <- c(RHS, -RHS, RHS.mono)
+        min.crit$sense <- c( rep('>=', 2*length(RHS)), rep('<=',K))
+        min.crit$obj <- c(rep(1, nrow(constr)), rep(0, ncol(constr)))
+        min.crit$lb <- c(rep(0, nrow(constr)), rep(-Inf, ncol(constr)))  
+        min.crit$modelsense <- 'min'
+        
+        ## Solve for the minimum criteria
+        min.crit.sol <- gurobi(min.crit)
+        
+        ## Get the minimum criterion estimated and modify the setting of the problem
+        min.criteria <- min.crit.sol$objval
+        tuning <- min.criteria*(1 + tolerance)
+        
+        ## Export the min creterion for each case to check
+        mincriteria <- rbind(mincriteria, data.table(min.criteria, D, K))
+      }
+      
+      ## A6. Start loop at a given price
+      for (p in prices) {
+        
+        ## B0. Normalize price
+        n.p <- (p - min.p)/(max.p - min.p)
+        
+        
+        ## B1. Specify objective function. Elasticity at p
+        objec <- rep(0, K)
+        for (i in 0:(K-1)) {
+          objec[i+1] <- bernstein(n.p,i,K-1)
+          if (is.nan(objec[i+1])) {objec[i+1] <- 0}
+        }
+        
+        ## B2. Set-Up LP with all the inputs created. Elasticity
+        model <- list()                                        ## Create
+        model$A <- rbind(constr, constr.mono)                  ## Constraints
+        model$rhs <- c(RHS, RHS.mono)                          ## RHS
+        model$sense <- c(rep('=', length(RHS)), rep('<=',K))   ## Equalities
+        model$obj <- objec                                     ## Objective function
+        model$lb <- rep(-Inf, length(objec))                   ## Let theta be negative
+        
+        
+        ## B2.A. If D > 1 we have to modify the problem to allow for the inequalities up to the estimated tuning parameter
+        if (D > 1) {
+          
+          model$A <- rbind(constr, constr, constr.mono)                                  ## Constraints
+          model$rhs <- c(c(RHS + tuning), c(RHS - tuning), RHS.mono)                     ## RHS
+          model$sense <- c(rep('<=', length(RHS)), rep('>=', length(RHS)), rep('<=',K))  ## Equalities
+          
+        }
+        
+        ## B3. Upper bound. Elasticity
+        model$modelsense <- 'max'
+        result <- gurobi(model, params)
+        elas.up <- result$objval
+        theta.up <- result$x
+        if(is.null(elas.up) | is_empty(elas.up)) {elas.up <- NA}
+        
+        
+        ## B4. Lower bound. Elasticity
+        model$modelsense <- 'min'
+        result <- gurobi(model, params)
+        elas.down <- result$objval
+        theta.down <- result$x 
+        if(is.null(elas.down) | is_empty(elas.down)) {elas.down <- NA}
+        
+        
+        ## B5. Specify objective function. Demand at p
+        objec <- rep(0, K)
+        for (i in 0:(K-1)) {
+          objec[i+1] <- int.bernstein(n.p,i,K-1)
+          if (is.nan(objec[i+1])) {objec[i+1] <- 0}
+        }
+        objec <- c(objec, 1) ## Add the intercept
+        
+        
+        ## B6. Set-Up LP with all the inputs created. Demand
+        model <- list()                                            ## Create
+        model$A <- rbind(constr.dd, constr.mono.dd, constr.inter)  ## Constraints
+        model$rhs <- c(RHS, RHS.mono, RHS.inter)                   ## RHS
+        model$sense <- c(rep('=', length(RHS)), rep('<=',K), '=')  ## Equalities
+        model$obj <- objec                                         ## Objective function
+        model$lb <- rep(-Inf, length(objec))                       ## Let theta be negative
+        
+        
+        ## B6.A. If D > 1 we have to modify the problem to allow for the inequalities up to the estimated tuning parameter
+        if (D > 1) {
+          
+          model$A <- rbind(constr.dd, constr.dd, constr.mono.dd, constr.inter)                   ## Constraints
+          model$rhs <- c(c(RHS + tuning), c(RHS - tuning), RHS.mono, RHS.inter)               ## RHS
+          model$sense <- c(rep('<=', length(RHS)), rep('>=', length(RHS)), rep('<=',K), '=')  ## Equalities
+          
+        }
+        
+        ## B7. Upper bound. Demand
+        model$modelsense <- 'max'
+        result <- gurobi(model, params)
+        dd.up <- result$objval
+        theta.up <- result$x
+        if(is.null(dd.up) | is_empty(dd.up)) {dd.up <- NA}
+        
+        
+        ## B7. Lower bound. Demand
+        model$modelsense <- 'min'
+        result <- gurobi(model, params)
+        dd.down <- result$objval
+        theta.down <- result$x 
+        if(is.null(dd.down) | is_empty(dd.down)) {dd.down <- NA}
+        
+        ## B8. Save. Elasticity bounds
+        elasticity.p <- data.table(elas.down, elas.up, dd.down, dd.up, p, D, K)
+        elasticity <- rbind(elasticity, elasticity.p)
+        
+      }
+    }
+  }
+  
+  # Save
+  elasticity[, iter := rep]
+  mincriteria[, iter := rep]
+  
+  bounds.file <- rbind(bounds.file, elasticity)
+  min.criteria.file <- rbind(min.criteria.file, mincriteria)
+  
+  ## 7. Export Results
+  fwrite(bounds.file, out.file.elast)
+  fwrite(min.criteria.file, out.file.mc)
+  
+}
+
+
+
