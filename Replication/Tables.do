@@ -7,7 +7,7 @@
 global mainfolder "/project2/igaarder/Data"
 global inputs "$mainfolder/Replication"
 global outputfolder "$inputs/figsandtabs"
-
+cap ssc install frmttable
 
 ** Table 1: Descriptive statistics on sales tax changes in the US (2008-2014) **
 

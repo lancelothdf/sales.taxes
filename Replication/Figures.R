@@ -290,13 +290,15 @@ data <- fread("Demand_iv_sat_initial_price_semester_boot_r.csv")
 
 # Keep 5 quintiles case, div x module x time FE and 50 iters
 data <- data[n.groups == 5 & controls == "group_division_by_module_by_time"]
-
+print(nrow(data))
 # Change names to produce plot
 setnames(data, old = c("Estimate", "Std. Error"), new = c("estimate", "se"))
-data[order(iter, outcome, controls,n.groups, lev)]
-data[, group := seq_len(.N), by =.(iter, outcome, controls,n.groups)]
+data <- data[order(iter, lev)]
+print(nrow(data))
+data[, group := seq_len(.N), by =.(iter)]
 
 labels <- paste0("Q", unique(data[iter==0]$group))
+print(labels)
 
 # Capture bootstrapped s.e.s
 data.0 <- data[outcome == "w.ln_cpricei2" & iter == 0]
