@@ -210,7 +210,7 @@ for (sig in seq(0.25, 1, 0.05)) {
   all_pi[, paste0("dm.L.ln_cpricei2_sig", sig) := get(paste0("L.ln_cpricei2_sig", sig)) - mean(get(paste0("L.ln_cpricei2_sig", sig)), na.rm = T), by = module_by_time]
   # Remove unused variables to save disk space
   names.rem <- paste0(c("D.ln_cpricei2_sig", "L.ln_cpricei2_sig", "ln_cpricei2_sig"), sig)
-  all_pi <- all_pi[, -c(names.rem)]
+  all_pi <- all_pi[, (names.rem):= NULL]
 }
 
 
