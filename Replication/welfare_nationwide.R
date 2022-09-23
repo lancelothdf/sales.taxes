@@ -153,7 +153,7 @@ while (!done) {
       theta <- comb$theta
       sig <- comb$sigma
       
-      ## Capture min/max and coef in lin case
+      ## Capture coef in lin case
       lin <- res.ivs[n.groups == 1 & sigma == sig & iter == rep][["Estimate"]] 
       
       # Marginal Change

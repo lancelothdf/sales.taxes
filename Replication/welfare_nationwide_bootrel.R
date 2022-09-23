@@ -117,6 +117,44 @@ for (rep in 0:max(res.ivs$iter)){
   
   if (rep > 0 ) prev.sol <- copy(sols)
   sols <- data.table(NULL) # Restart saving solution
+  
+  
+  #### Estimates for Linear Case
+  # FOR LINEAR Estimates we don't need to normalize!!! The coefficient is directly interpretable (contrary to non-linear, where matrices are normalized)
+  min <- 0
+  max <- 1
+  for (comb in thetas.list) {
+    theta <- comb$theta
+    sig <- comb$sigma
+    
+    ## Capture coef in lin case
+    lin <- res.ivs[n.groups == 1 & sigma == sig & iter == rep][["Estimate"]] 
+    
+    # Marginal Change
+    value <-av.marginal.change(mu = lin, data = data, "p_cml", "tau", theta, sig, "eta_m",
+                               "fips_state", min, max, 0, 0)
+    results <- rbind(results, data.table(est = "", sc = "Original", value, theta, sigma = sig, K = 1, L = 1, it.n=1, iter = rep))
+    
+    # Non Marginal Change: No tax
+    t0 <- "tauno"
+    t1 <- "tau"
+    sc <- "No Tax"
+    value <- av.non.marginal.change.parallel(lin, data, "p_cml", t0, t1, theta, sig, "eta_m", 
+                                             "fips_state", min, max, 0, 0)
+    results <- rbind(results, data.table(est = "", sc, value, theta, sigma = sig, K = 1, L = 1, it.n=1, iter = rep))
+    
+    # Non Marginal Change: Plus 5 tax
+    t0 <- "tau"
+    t1 <- "tau5"
+    sc <- "plus 5 Tax"
+    value <- av.non.marginal.change.parallel(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m",  
+                                             "fips_state", min, max, 0, 0)
+    results <- rbind(results, data.table(est = "", sc, value, theta, sigma = sig, K = 1, L = 1, it.n=1, iter = rep))
+    
+  }
+  
+  
+  
   ### Run estimation for combinations: each row
   for (nr in 1:nrow(combinations.all)) {
     
