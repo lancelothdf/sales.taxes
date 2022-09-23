@@ -483,7 +483,7 @@ for (dem in demographics) {
   
   # Capture data that we will use
   case.data <- rbind(estimates[n.groups == "2" & controls == "group_division_by_module_by_time" & het == dem],
-                     full.estimates[n.groups == "2" & controls == "group_division_by_module_by_time"]) 
+                     full.estimates[n.groups == "2" & controls == "group_division_by_module_by_time"], fill = T) 
   
   # Loop across number of groups of heterogeneity. Estimate elasticities
   data.plot <- data.table(NULL)
