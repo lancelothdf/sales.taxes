@@ -732,7 +732,7 @@ ggplot(data = NULL, aes(x = labeler, y = value)) +
   theme_bw(base_size = fontsize) +
   labs(x =NULL,    y = "Av. MVPF", color = NULL) +
   theme(legend.position = "bottom",
-        text = element_text(family = "Garamond"),
+        # text = element_text(family = "Garamond"), # have to comment out for it produces a weird error
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
