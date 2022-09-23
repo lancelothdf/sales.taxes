@@ -129,12 +129,12 @@ gg <- ggplot(data = data[outcome == "D.ln_cpricei2"],
   geom_line(aes(y = estimate + 1.96 * se), alpha = 0.5, size = 0.8, linetype = "55") +
   geom_line(aes(y = estimate - 1.96 * se), alpha = 0.5, size = 0.8, linetype = "55") +
   theme_bw(base_size = fontsize) +
-  scale_y_continuous(limits = c(-0.5, 1.75), breaks = seq(-0.5, 1.75, 0.25)) +
+  scale_y_continuous(limits = c(-0.75, 1.75), breaks = seq(-0.75, 1.75, 0.25)) +
   scale_x_continuous(breaks = seq(-2, 2, 1)) +
   labs(x = "Year Relative to Event", y = "Estimate") +
   geom_hline(yintercept = 0, color = "red", linetype = "55") +
   geom_vline(xintercept =  -0.5, color = "black", alpha = .8) +
-  theme(legend.position = "none",
+  theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -147,7 +147,7 @@ ggsave("figsandtabs/SF1_prices.png",
 
 ### (b) Dynamic response of quantity to sales taxes
 
-gg <- ggplot(data = data[outcome == "D.ln_quantity"], 
+gg <- ggplot(data = data[outcome == "D.ln_quantity3"], 
              mapping = aes(x = tt_event, color = factor(group))) +
   geom_line(aes(y = estimate), size = 0.8, alpha = 0.5) +
   geom_line(aes(y = estimate + 1.96 * se), alpha = 0.5, size = 0.8, linetype = "55") +
@@ -158,7 +158,7 @@ gg <- ggplot(data = data[outcome == "D.ln_quantity"],
   labs(x = "Year Relative to Event", y = "Estimate") +
   geom_hline(yintercept = 0, color = "red", linetype = "55") +
   geom_vline(xintercept =  -0.5, color = "black", alpha = .8) +
-  theme(legend.position = "none",
+  theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -193,13 +193,11 @@ estimates.boot <- estimates.boot[, .(mean = mean(estimate),
 
 data <- merge(data[, -c("se")], estimates.boot, by = c("group"))
 
-data <- data[, c("group", "estimate", "mean", "se", "ll90", "ul90", "lev")]
+data <- data[, c("group", "estimate", "mean", "se", "ll90", "ul90")]
 data[, ll90.norm := estimate - 1.645*se]
 data[, ul90.norm := estimate + 1.645*se]
 
-data[, group:= 2*seq_len(.N)]
-min.price <- -0.225
-labels <- round(c(min.price, unique(data$lev)), 3)
+labels <- paste0("Q", unique(data$group))
 
 
 # Produce plot
@@ -208,10 +206,10 @@ gg <- ggplot(data = data,
   geom_point(size = 2.2, alpha = .8) +
   geom_errorbar(mapping = aes(ymax = ul90.norm,
                               ymin = ll90.norm),
-                width = .5) +
-  theme_bw(base_size = 16) +
+                width = .3) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(limits = c(-2, 1), breaks = seq(-2, 1, 0.5)) +
-  scale_x_continuous(limits = c(0.5, 11.5), breaks = seq(1, 11, 2), labels = labels) +
+  scale_x_continuous(limits = c(0.5, 5.5), breaks = seq(1, 5, 1), labels = labels) +
   labs(x = "Initial Price Level Quantile", y = "IV Estimate") +
   geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
   theme(legend.position = "none",
@@ -295,8 +293,8 @@ data <- data[n.groups == 5 & controls == "group_division_by_module_by_time"]
 
 # Change names to produce plot
 setnames(data, old = c("Estimate", "Std. Error"), new = c("estimate", "se"))
-min.price <- -0.225
-labels <- round(c(min.price, unique(data[iter==0]$lev)), 3)
+
+labels <- paste0("Q", unique(data[iter==0]$group))
 
 # Capture bootstrapped s.e.s
 data.0 <- data[outcome == "w.ln_cpricei2" & iter == 0]
@@ -307,10 +305,9 @@ data.boot <- data.boot[, .(mean = mean(estimate),
                                ul90 = quantile(estimate, probs = 0.9)), by = .(group)]
 data <- merge(data.0[, -c("se")], estimates.boot, by = c("group"))
 
-data <- data[, c("group", "estimate", "mean", "se", "ll90", "ul90", "lev")]
+data <- data[, c("group", "estimate", "mean", "se", "ll90", "ul90")]
 data[, ll90.norm := estimate - 1.645*se]
 data[, ul90.norm := estimate + 1.645*se]
-data[, group:= 2*seq_len(.N)]
 
 
 # Produce passthrough estimates plot
@@ -318,10 +315,10 @@ ggplot(data = data, mapping = aes(x = group, y = estimate)) +
   geom_point(size = 2.2, alpha = .8) +
   geom_errorbar(aes(ymax = estimate + 1.645 * se,
                     ymin = estimate - 1.645 * se),
-                width = .6) +
+                width = .3) +
   theme_bw(base_size = fontsize) +
   scale_y_continuous(limits = c(0.75, 1.25), breaks = seq(0.75, 1.25, 0.1)) +
-  scale_x_continuous(limits = c(0.5, 11.5), breaks = seq(1, 11, 2), labels = labels) +
+  scale_x_continuous(limits = c(0.5, 5.5), breaks = seq(1, 5, 1), labels = labels) +
   labs(x = "Initial Price Level", y = "Estimate") +
   geom_hline(yintercept = 1, color = "red", linetype = "55", alpha = .8) +
   theme(legend.position = "none",
