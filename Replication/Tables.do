@@ -34,7 +34,7 @@ foreach x of var city_tax county_tax state_tax sales_tax {
 
 }
 ** Open Tax base
-import delimited "$inputs/sales_taxability_state_panel.csv", clear
+import delimited "$mainfolder/sales_taxability_state_panel.csv", clear
 * Sum across time 
 collapse (sum) sales, by(fips_state taxability)
 bys fips_state: egen tot_sales = sum(sales)
@@ -59,7 +59,7 @@ fragment
 {
 ** Open Data
 mat drop _all
-use "$inputs/tax_reforms_by_level.dta", clear
+use "$mainfolder/tax_reforms_by_level.dta", clear
 
 *Create Matrix to export
 matrix table = J(4, 8, .)

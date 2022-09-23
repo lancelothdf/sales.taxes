@@ -131,7 +131,7 @@ gg <- ggplot(data = data[outcome == "D.ln_cpricei2"],
   theme_bw(base_size = fontsize) +
   scale_y_continuous(limits = c(-0.75, 1.75), breaks = seq(-0.75, 1.75, 0.25)) +
   scale_x_continuous(breaks = seq(-2, 2, 1)) +
-  labs(x = "Year Relative to Event", y = "Estimate") +
+  labs(x = "Year Relative to Event", y = "Estimate", color = NULL) +
   geom_hline(yintercept = 0, color = "red", linetype = "55") +
   geom_vline(xintercept =  -0.5, color = "black", alpha = .8) +
   theme(legend.position = "bottom",
@@ -155,7 +155,7 @@ gg <- ggplot(data = data[outcome == "D.ln_quantity3"],
   theme_bw(base_size = fontsize) +
   scale_y_continuous(limits = c(-1.75, 1.5), breaks = seq(-1.75, 1.5, 0.25)) +
   scale_x_continuous(breaks = seq(-2, 2, 1)) +
-  labs(x = "Year Relative to Event", y = "Estimate") +
+  labs(x = "Year Relative to Event", y = "Estimate", color = NULL) +
   geom_hline(yintercept = 0, color = "red", linetype = "55") +
   geom_vline(xintercept =  -0.5, color = "black", alpha = .8) +
   theme(legend.position = "bottom",
@@ -305,7 +305,7 @@ data.boot <- data.boot[, .(mean = mean(estimate),
                           se = sd(estimate), 
                                ll90 = quantile(estimate, probs = 0.1),
                                ul90 = quantile(estimate, probs = 0.9)), by = .(group)]
-data <- merge(data.0[, -c("se")], estimates.boot, by = c("group"))
+data <- merge(data.0[, -c("se")], data.boot, by = c("group"))
 
 data <- data[, c("group", "estimate", "mean", "se", "ll90", "ul90")]
 data[, ll90.norm := estimate - 1.645*se]
@@ -332,7 +332,7 @@ ggplot(data = data, mapping = aes(x = group, y = estimate)) +
 ggsave("figsandtabs/F2_NonLinearpassthrough_main.png",
        height = 120, width = 200, units = "mm")
 
-rm(data, data.0, data.boot, min.price, labels)
+rm(data, data.0, data.boot, labels)
 
 
 ##### Figure #: Estimated demand function  and elasticity under K^d = L^d = 2. -------
