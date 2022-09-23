@@ -13,7 +13,7 @@ cap {
 	net install sg97_5
 }
 ** Table 1: Descriptive statistics on sales tax changes in the US (2008-2014) **
-
+{
 ** Open Data of tax lavels
 mat drop _all
 use "$mainfolder/county_monthly_tax_rates_w_pop.dta", clear
@@ -55,7 +55,7 @@ matrix table[7, 7] = r(max) * 100
 frmttable using "$outputfolder/Tax_levels", replace tex statmat(table) sdec(3) coljust(lcccccccc) hlines(110000101)  ///
 ctitle("", "Mean", "SD", "Min", "p25", "Median", "p75", "Max") rtitle("\textit{Tax Rates}"  \ "City"\ "County"\ "State"\ "Total" \ "\textit{Tax Base}" \ "Taxable Sales") ///
 fragment
-
+}
 
 
 ** Table 2: Descriptive statistics on sales taxes in the US (pp.; average between 2008-2014).  **

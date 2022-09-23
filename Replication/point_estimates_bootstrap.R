@@ -37,7 +37,7 @@ LRdiff_res <- data.table(NULL)
 target_res <- data.table(NULL)
 ## Run within
 flog.info("Iteration 0")
-for (n.g in 1:3) {
+for (n.g in c(1:3,5)) {
   
   # Create groups of initial values of tax rate
   # We use the full weighted distribution
@@ -151,7 +151,7 @@ for (rep in 1:100) {
   sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
   
   # First split by quantile
-  for (n.g in 1:3) {
+  for (n.g in c(1:3,5)) {
     
     # Create groups of initial values of tax rate
     # We use the full weighted distribution
@@ -200,7 +200,7 @@ for (rep in 1:100) {
       IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE & iter == rep,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE & iter == rep,][["Estimate"]]
       
       ## Estimate the matrix of the implied system of equations
-      if (n.g > 1) {
+      if (n.g > 1 & n.g <5) { # do not build matrices for L = 5
         
         ## Get the empirical distribution of prices by quantile, weighted properly by base.sales \times 
         # start by creating the weights and normalizing them 

@@ -20,7 +20,7 @@ setwd("/project2/igaarder/Data/Replication")
 # Font: Need to install TTFs of latin modern roman
 loadfonts()
 fontsize <- 16
-
+exclude <- T
 ##### Figure #: Passthrough and Quantity response to sales taxes - dynamic response. ------
 
 # Open data
@@ -284,12 +284,13 @@ ggsave("figsandtabs/F2_Prices_CDF_Subsamples_corrw.png",
 rm(data, gg, step)
 
 ##### Figure #: Passthrough estimates in each of 5 quintiles of the distribution of lagged prices. ----
-
+if (!exclude) {
+  
 # Open data
 data <- fread("Demand_iv_sat_initial_price_semester_boot_r.csv")
 
 # Keep 5 quintiles case, div x module x time FE and 50 iters
-data <- data[n.groups == 5 & controls == "division_by_module_by_time"]
+data <- data[n.groups == 5 & controls == "group_division_by_module_by_time"]
 print(nrow(data))
 # Change names to produce plot
 setnames(data, old = c("Estimate", "Std. Error"), new = c("estimate", "se"))
@@ -336,7 +337,7 @@ ggsave("figsandtabs/F2_NonLinearpassthrough_main.png",
 
 rm(data, data.0, data.boot, labels)
 
-
+}
 ##### Figure #: Estimated demand function  and elasticity under K^d = L^d = 2. -------
 
 ## Add options to plots
