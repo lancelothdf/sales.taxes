@@ -361,7 +361,7 @@ setnames(data.boot, old = c("0", "1", "2"), new = paste0("beta_",0:2))
 
 ## calculate variances and covariances
 data.covs <- data.boot[, .(mean0 = mean(beta_0), mean1 = mean(beta_1), mean2 = mean(beta_2),
-                           mean3 = mean(beta_3), var0 = (sd(beta_0))^2, var1 = (sd(beta_1))^2, 
+                           var0 = (sd(beta_0))^2, var1 = (sd(beta_1))^2, 
                            var2 = (sd(beta_2))^2,
                            cov01 = cov(beta_0, beta_1), cov02 = cov(beta_0, beta_2),
                            cov12 = cov(beta_2, beta_1))]
