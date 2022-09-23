@@ -421,7 +421,7 @@ gg <- ggplot(data = data, aes(x = p, y = demand)) +
         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 
 ggsave("figsandtabs/F3_Point_Demand_2.png",
-       height = 120, width = 200, units = "mm", device=cairo_ps)
+       height = 120, width = 200, units = "mm")
 
 
 # Plot Estimation: Elasticity
@@ -571,8 +571,8 @@ ggsave("figsandtabs/F4_bounds_elas_L2.png",
 
 ### (c) Bounds on demand when using 1 linear IV (Ld = 1).
 gg <- ggplot(data[L==1 & K %in% c(2,3,5,8)], aes(x = p, color = factor(K))) +
-  geom_line(aes(y = elas.up)) +
-  geom_line(aes(y = elas.down)) +
+  geom_line(aes(y = dd.up)) +
+  geom_line(aes(y = dd.down)) +
   theme_bw(base_size = fontsize) +
   scale_x_continuous(limits = c(-0.15, 0.15), breaks = seq(-0.15, 0.15, 0.05), 
                      labels = scales::number_format(accuracy = 0.01)) +
@@ -584,7 +584,7 @@ gg <- ggplot(data[L==1 & K %in% c(2,3,5,8)], aes(x = p, color = factor(K))) +
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
-ggsave("figsandtabs/F4_bounds_elas_L1.png",
+ggsave("figsandtabs/F4_bounds_dd_L1.png",
        height = 140, width = 200, units = "mm")
 
 
@@ -603,7 +603,7 @@ gg <- ggplot(data[L==2 & K %in% c(3,4,5,8)], aes(x = p, color = factor(K))) +
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
-ggsave("figsandtabs/F4_bounds_elas_L2.png",
+ggsave("figsandtabs/F4_bounds_dd_L2.png",
        height = 140, width = 200, units = "mm")
 
 
@@ -638,10 +638,10 @@ theta.at.inf <- ((1 + avg.tax + theta.at.inf)/(1+avg.tax))/(1+(avg.tax/(1+avg.ta
 theta.at.1 <- av.theta[sigma==1 & es.val == 1 & K==2, mean(theta)] ## Extracted operatively
 theta.at.1 <- ((1 + avg.tax + theta.at.1)/(1+avg.tax))/(1+(avg.tax/(1+avg.tax))*elas)
 
-ggplot(av.theta[sigma==1 & K==2], mapping = aes(x = x, y = theta)) +
+gg <- ggplot(av.theta[sigma==1 & K==2], mapping = aes(x = x, y = theta)) +
   geom_line() +
   geom_point() +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = fontsize) +
   geom_rect(aes(xmin=0, xmax=1/(1+ed), ymin=0.0666, ymax=Inf), fill = "red", alpha = 0.05) +
   geom_rect(aes(xmin=1/(1+ed), xmax = 1, ymin = 0, ymax = 0.0666), fill = "green", alpha = 0.05) +
   geom_vline(xintercept = 1/(1+ed), linetype = "dashed") + 
@@ -655,12 +655,12 @@ ggplot(av.theta[sigma==1 & K==2], mapping = aes(x = x, y = theta)) +
                                                     round(theta.at.1, digits = 3))
                      )) +
   theme(legend.position = "bottom",
-        text = element_text(family = "Garamond"),
+        # text = element_text(family = "Garamond"), # have to comment out for it produces a weird error
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
-ggsave("figsandtabs/F5_average_conduct_parameter_sigma1_K2.png",
+ggsave("figsandtabs/F5_average_theta_sigma1_K2.png",
        height = 120, width = 200, units = "mm")  
 
 
@@ -670,7 +670,7 @@ ggsave("figsandtabs/F5_average_conduct_parameter_sigma1_K2.png",
 ## To be modified
 
 # Plot
-ggplot(av.theta[K==2], mapping = aes(x = x, y = theta, color = factor(sigma))) +
+gg <- ggplot(av.theta[K==2], mapping = aes(x = x, y = theta, color = factor(sigma))) +
   geom_line() +
   geom_point() +
   theme_bw(base_size = fontsize) +
@@ -686,15 +686,15 @@ ggplot(av.theta[K==2], mapping = aes(x = x, y = theta, color = factor(sigma))) +
   geom_vline(xintercept = 1/(1+ed), linetype = "dashed") + 
   theme(legend.position = "bottom",
         legend.margin = unit(0, "mm"),
-        text = element_text(family = "Garamond"),
+        # text = element_text(family = "Garamond"), # have to comment out for it produces a weird error
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
-ggsave("figsandtabs/SF5_average_conduct_parameter_sigmaall_K2.png",
+ggsave("figsandtabs/SF5_average_theta_sigmaall_K2.png",
        height = 120, width = 200, units = "mm")
 
-
+rm(gg, av.theta)
 
 
 ##### Figure #: Extrapolation. Nationwide Average. Perfect competition and salience -------
