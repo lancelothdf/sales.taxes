@@ -351,12 +351,14 @@ data <- data[n.groups == 2 & controls == "group_division_by_module_by_time"]
 
 # Keep interest variables to dcast data
 data <- data[, c("beta_n", "beta_hat", "iter")]
+print(nrow(data))
 
 # Extract boot data
 data.0 <- data[iter == 0]
 data.boot <- data[iter != 0]
 ## dcast betas
 data.boot <- dcast(data.boot, iter ~ beta_n,  fun=sum, value.var = c("beta_hat"))
+print(colnames(data.boot))
 setnames(data.boot, old = c("0", "1", "2", "3"), new = paste0("beta_",0:3))
 
 ## calculate variances and covariances
