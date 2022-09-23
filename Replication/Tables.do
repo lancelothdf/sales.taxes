@@ -10,7 +10,6 @@ global outputfolder "$inputs/figsandtabs"
 
 
 ** Table 1: Descriptive statistics on sales tax changes in the US (2008-2014) **
-{
 
 ** Open Data of tax lavels
 mat drop _all
@@ -54,7 +53,6 @@ frmttable using "$outputfolder/Tax_levels", replace tex statmat(table) sdec(3) c
 ctitle("", "Mean", "SD", "Min", "p25", "Median", "p75", "Max") rtitle("\textit{Tax Rates}"  \ "City"\ "County"\ "State"\ "Total" \ "\textit{Tax Base}" \ "Taxable Sales") ///
 fragment
 
-}
 
 
 ** Table 2: Descriptive statistics on sales taxes in the US (pp.; average between 2008-2014).  **

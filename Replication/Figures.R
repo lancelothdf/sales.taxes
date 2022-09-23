@@ -293,6 +293,8 @@ data <- data[n.groups == 5 & controls == "group_division_by_module_by_time"]
 
 # Change names to produce plot
 setnames(data, old = c("Estimate", "Std. Error"), new = c("estimate", "se"))
+data[order(iter, outcome, controls,n.groups, lev)]
+data[, group := seq_len(.N), by =.(iter, outcome, controls,n.groups)]
 
 labels <- paste0("Q", unique(data[iter==0]$group))
 
