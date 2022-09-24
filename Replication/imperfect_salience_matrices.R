@@ -42,7 +42,7 @@ int.bernstein <- function(x,k,K) {
 
 
 ### cut tails
-for (sig in c(0.25, 0.5, 0.75, 1)) {
+for (sig in seq(0.25, 1, 0.05)) {
   
   ## cut the tails (keep between 1st and 99th percentile, not for sigma =1 since thatw as already done)
   if (sig != 1) {
