@@ -24,24 +24,6 @@ theta.output.salience.results.file <- "Data/Replication/Demand_theta_sat_initial
 conduct.parameter.file <- "Data/Replication/salience_conduct_parameter_at_p.csv"
 
 
-## function to identify the asymptote
-asymptote.fun <- function(theta, q1, q2, es) {
-  if (is.infinite(es)) {
-    return(q1*(q1 + theta) - theta*q2)
-  } else { 
-    return((q1 + theta)*(es*q1 - 1) - theta*q2*es)
-  }
-}
-
-## function to solve for the root
-pass.through.eq <- function(theta, q1, q2, es, rho){
-  if (is.infinite(es)) {
-    return(rho - (q1*(q1 + theta))/(q1*(q1 + theta) - theta*q2))
-  } else {
-    return(rho - (es*q1*(q1 + theta))/((q1 + theta)*(es*q1 - 1) - theta*q2*es))
-  }
-}
-
 
 ## Function that directly solves for theta
 theta.direct <- function(q1, q2, es, rho, sigma) {
@@ -59,7 +41,7 @@ theta.direct <- function(q1, q2, es, rho, sigma) {
 
 #### passthourghs
 rho.old <- fread(iv.output.salience.results.file)
-rho.old <- rho.old[ outcome == "rho" & controls == "division_by_module_by_time" & iter == 0,]
+rho.old <- rho.old[ outcome != "w.ln_quantity3" & controls == "division_by_module_by_time" & iter == 0,]
 
 ## Betas estimation
 betas.old <- fread(theta.output.salience.results.file)
