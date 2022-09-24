@@ -121,7 +121,14 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
       constr.inter <- t(as.matrix(c(constr.inter,1))) ## Add the intercept and transform to matrix
       RHS.inter <- q.bar
       
+      if (noise) {
+        print(constr.inter)
+        print(RHS.inter)
+        print(constr.mono)
+        print(RHS.mono)
+      }
       
+        
       ## A4. If L > 1 we have to estimate the minimum criterion: min sum_s abs(gamma_s(theta) - beta_s)  
       # To do this I define a set of auxiliar variables a_s such that: 
       # a_s + gamma_s >= beta_s and a_s - gamma_s(theta) >= - beta_s
