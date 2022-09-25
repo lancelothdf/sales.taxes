@@ -100,18 +100,14 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
       
       ## A1. Build the constraints matrix 
       constr <- as.matrix(dat.k[n.groups == L][, -c("n.groups", "K")])   ## For elasticity
-      constr.dd <- cbind(constr, 
-                         matrix(0, nrow = nrow(constr), ncol = 1)
-                         )                                  ## For demand
+      constr.dd <- cbind(constr, 0)                                  ## For demand
       
       ## A2. Build RHS
       RHS <- beta   
       
       ## A3. Set monotonicity of bernstein polynomials. Elasticity < 0 
       constr.mono <- Diagonal(ncol(constr))              ## For elasticity
-      constr.mono.dd <- cbind(constr.mono,
-                              matrix(0, nrow = nrow(constr.mono), ncol = 1)
-                              )             ## For demand
+      constr.mono.dd <- cbind(constr.mono,0)             ## For demand
       RHS.mono <- rep(0, K)
       
       ## A4. Get intercept constraint. Demand
