@@ -162,11 +162,11 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
         min.criteria <- min.crit.sol$objval
         tuning <- min.criteria*(1 + tolerance)
         
-        if (noise) print(paste0("Min crit. succesful for K=",K, ", L=",L))
+        if (noise) print(paste0("Min crit. succesful for K=",K, ", L=",L,". Estimated at ", min.criteria))
         
       }
       else min.criteria <- 0
-      
+
       ## A5. Start loop at a given price
       if (noise) print(paste0("Starting loop over p for K=", K, " L=", L))
       for (p in prices) {
