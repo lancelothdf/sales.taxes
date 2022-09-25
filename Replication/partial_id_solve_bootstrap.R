@@ -233,7 +233,7 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
         
         
         ## B6.A. If L > 1 we have to modify the problem to allow for the inequalities up to the estimated tuning parameter
-        if (L > 1) {
+        if (L > 1 & min.criteria > 0) {
           
           model$A <- rbind(constr.dd, constr.dd, constr.mono.dd, constr.inter)                   ## Constraints
           model$rhs <- c(c(RHS + tuning), c(RHS - tuning), RHS.mono, RHS.inter)               ## RHS

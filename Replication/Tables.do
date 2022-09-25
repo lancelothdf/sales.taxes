@@ -324,7 +324,7 @@ foreach x in ln_cpricei2_N ln_sales_N ln_expenditures_N ln_expenditures_Y {
 ** Export table. 
 frmttable using  "$outputfolder/CrossSection", replace tex statmat(table) sub(1) sdec(3) ann(stars) asymbol(*, **, ***) ///
 ctitle("", "Price", "Sales", "Expenditures", "") rtitle(""\ "") multicol(1,4,2) coljust(lccccc) hlines(1101{0}1) fragment ///
-addrows("Module FE", "X", "X", "X", "" \ "" \"Module $ \times$ income FE", "", "", "", "X"\ "" \"Data", "\multicolumn{2}{c}{Retailer}", "\multicolumn{2}{c}{Household}")
+addrows("Module FE", "X", "X", "X", "" \ "" \"Module $ \times$ income FE", "", "", "", "X"\ "" \"Data", "\multicolumn{2}{c}{Retailer}", "", "\multicolumn{2}{c}{Household}", "")
 
 
 }
@@ -380,6 +380,14 @@ foreach var in w.ln_cpricei2 w.ln_quantity3 w.ln_pricei2 w.ln_sales {
 frmttable using  "$outputfolder/TWFE_LR_full", replace tex statmat(table) sub(1) sdec(3) ann(stars) asymbol(*, **, ***) multicol(1,2,2;1,4,2;1,6,2;1,8,2) fragment ///
 ctitle("", "Price", "", "Quantity", "", "Prod. Price", "", "Sales", "" \ "", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)", "(7)", "(8)") coljust(lcccccccc) hlines(101000001{0}1)  ///
 rtitle("$ \tau_t$" \ "" \ "$ \tau_{t+2}$" \ "" \ "$ \tau_{t+3}$") ///
+addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "X", "", "X", "", "X", "" \ "" \"Div $\times$ Mod $\times$ Time" , "", "X", "", "X", "", "X", "", "X" )
+
+mat table = table[1,1..8]
+
+* Export LaTex table
+frmttable using  "$outputfolder/TWFE_LR_short", replace tex statmat(table) sub(1) sdec(3) ann(stars) asymbol(*, **, ***) multicol(1,2,2;1,4,2) fragment ///
+ctitle("", "Price", "", "Quantity" \ "", "(1)", "(2)", "(3)", "(4)") coljust(lcccc) hlines(101000001{0}1)  ///
+rtitle("$ \tau_t$" \ "" ) ///
 addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "X", "", "X", "", "X", "" \ "" \"Div $\times$ Mod $\times$ Time" , "", "X", "", "X", "", "X", "", "X" )
 
 
