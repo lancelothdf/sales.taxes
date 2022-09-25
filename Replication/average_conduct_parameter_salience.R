@@ -75,7 +75,7 @@ for (sig in seq(0.25, 1, 0.05)) {
   
   ## Capture passthorugh
   # rho <- 1.0508 #estimated effect on producer price (full sammple perfect salience)
-  rho <- rho.old[sigma == 1][["Estimate"]] # We use the perfect salience because is equivalent to the others up to sigma scale
+  rho <- rho.old[sigma == 1 & n.groups == 1][["Estimate"]] # We use the perfect salience because is equivalent to the others up to sigma scale
   
   # Loop across K
   for (K in 2:3) {
