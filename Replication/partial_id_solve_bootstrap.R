@@ -369,10 +369,10 @@ for (rep in c(0:100)) {
 
 #### Part 3. Estimation   -------
 
-print(iter0)
 
 ## Try iteration 0 to make sure things work well
 iter0 <- all.iters[[1]]
+print(iter0)
 res0 <- obtain.bounds(iter0, prices = prices, params = params, noise = T)
 head(res0)
 fwrite(res0, partial.results.file) # Save original results for now...
