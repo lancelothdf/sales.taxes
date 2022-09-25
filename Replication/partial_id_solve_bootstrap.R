@@ -80,7 +80,7 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
   beta.list <- ests$beta
   
   futile.logger::flog.info("Solving for iteration %s...", iter)
-  if (noise) params$OutputFlag <- 1
+  #if (noise) params$OutputFlag <- 1
   
   # create results files
   elasticity <- data.table(NULL)
@@ -368,6 +368,8 @@ for (rep in c(0:100)) {
 
 
 #### Part 3. Estimation   -------
+
+print(iter0)
 
 ## Try iteration 0 to make sure things work well
 iter0 <- all.iters[[1]]
