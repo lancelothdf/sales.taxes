@@ -90,6 +90,7 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
     # Capture value of K
     K <- unique(dat.k$K)
     
+    if (noise) print(dat.k)
 
     # Loop over L
     for (L in unique(dat.k$n.groups)) {
@@ -119,6 +120,8 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
       RHS.inter <- q.bar
       
       if (noise) {
+        print(constr.dd)
+        print(RHS)
         print(constr.inter)
         print(RHS.inter)
         print(constr.mono)
