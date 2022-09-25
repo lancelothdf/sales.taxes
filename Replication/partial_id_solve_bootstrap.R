@@ -114,7 +114,7 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
       ## A4. Get intercept constraint. Demand
       constr.inter <- rep(0, K)
       for (i in 0:(K-1)) {
-        constr.inter[i+1] <- -int.bernstein(p.bar,i,K-1)
+        constr.inter[i+1] <- int.bernstein(p.bar,i,K-1)
       }
       constr.inter <- t(as.matrix(c(constr.inter,1))) ## Add the intercept and transform to matrix
       RHS.inter <- q.bar
