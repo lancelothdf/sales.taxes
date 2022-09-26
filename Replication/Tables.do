@@ -52,7 +52,7 @@ matrix table[7, 6] = r(p75) * 100
 matrix table[7, 7] = r(max) * 100
 
 
-frmttable using "$outputfolder/Tax_levels", replace tex statmat(table) sdec(3) coljust(lcccccccc) hlines(110000101)  ///
+frmttable using "$outputfolder/Tax_levels", replace tex statmat(table) sdec(2) coljust(lcccccccc) hlines(110000101)  ///
 ctitle("", "Mean", "SD", "Min", "p25", "Median", "p75", "Max") rtitle("\textit{Tax Rates}"  \ "City"\ "County"\ "State"\ "Total" \ "\textit{Tax Base}" \ "Taxable Sales") ///
 fragment
 }
@@ -116,7 +116,7 @@ matrix table[`r', 8] = (r(p75) - r(p25))* 100
 mat rownames table = `rows'
 
 ** Export table
-frmttable using "$outputfolder/Tax_changes", replace tex statmat(table) sdec(0,2,3,3,3,3,3,3) coljust(lcccccccc) hlines(1010011)  ///
+frmttable using "$outputfolder/Tax_changes", replace tex statmat(table) sdec(0,1,2,2,2,2,2,2) coljust(lcccccccc) hlines(1010011)  ///
 ctitle("", "", "", "Increases", "", "", "Decreases", "", "" \ "Level", "N", "\% increases", "Mean", "Max", "IQR", "Mean", "Max", "IQR") multicol(1,4,3;1,7,3) ///
 varlabels fragment
 
@@ -323,8 +323,9 @@ foreach x in ln_cpricei2_N ln_sales_N ln_expenditures_N ln_expenditures_Y {
 
 ** Export table. 
 frmttable using  "$outputfolder/CrossSection", replace tex statmat(table) sub(1) sdec(3) ann(stars) asymbol(*, **, ***) ///
-ctitle("", "Price", "Sales", "Expenditures", "") rtitle(""\ "") multicol(1,4,2) coljust(lccccc) hlines(1101{0}1) fragment ///
-addrows("Module FE", "X", "X", "X", "" \ "" \"Module $ \times$ income FE", "", "", "", "X"\ "" \"Data", "\multicolumn{2}{c}{Retailer}", "", "\multicolumn{2}{c}{Household}", "")
+ctitle("", "Price", "Sales", "Expenditures", "") rtitle(""\ "") multicol(1,4,2;8,2,2;8,4,2) coljust(lccccc) hlines(1101{0}1) fragment ///
+*addrows("Module FE", "X", "X", "X", "" \ "" \"Module $ \times$ income FE", "", "", "", "X"\ "" \"Data", "\multicolumn{2}{c}{Retailer}", "\multicolumn{2}{c}{Household}")
+addrows("Module FE", "X", "X", "X", "" \ "" \"Module $ \times$ income FE", "", "", "", "X"\ "" \"Data", "Retailer", "", "Household", "")
 
 
 }

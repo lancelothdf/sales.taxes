@@ -116,24 +116,47 @@ setnames(data, old = c("Estimate", "Cluster s.e."), new = c("estimate", "se"))
 data[, se:= ifelse(is.na(se),0,se) ]
 
 # Define groups and restrict to them manually
-data[controls == "division_by_module_by_time" & econ == 0, group := "Division FE - no econ controls"]
-data[controls == "division_by_module_by_time" & econ == 2, group := "Division FE - econ controls"]
-data[controls == "region_by_module_by_time" & econ == 0, group := "Region FE - no econ controls"]
+data[controls == "division_by_module_by_time" & econ == 0, group := "Div. FE - no econ contr."]
+data[controls == "division_by_module_by_time" & econ == 2, group := "Div. FE - econ contr."]
+data[controls == "region_by_module_by_time" & econ == 0, group := "Reg. FE - no econ contr."]
 data <- data[!is.na(group) & subsample == "all_taxexempt"]
 
 ### (a) Cross-markets effects of sales taxes on prices
+# 
+# gg <- ggplot(data = data[outcome == "D.ln_cpricei2"], 
+#              mapping = aes(x = tt_event, color = factor(group))) +
+#   geom_line(aes(y = estimate), size = 0.8, alpha = 0.5) +
+#   geom_line(aes(y = estimate + 1.96 * se), alpha = 0.5, size = 0.8, linetype = "55") +
+#   geom_line(aes(y = estimate - 1.96 * se), alpha = 0.5, size = 0.8, linetype = "55") +
+#   theme_bw(base_size = fontsize) +
+#   scale_y_continuous(limits = c(-0.75, 1.75), breaks = seq(-0.75, 1.75, 0.25)) +
+#   scale_x_continuous(breaks = seq(-2, 2, 1)) +
+#   labs(x = "Year Relative to Event", y = "Estimate", color = NULL) +
+#   geom_hline(yintercept = 0, color = "red", linetype = "55") +
+#   geom_vline(xintercept =  -0.5, color = "black", alpha = .8) +
+#   theme(legend.position = "bottom",
+#         text = element_text(family = "Garamond"),
+#         panel.grid.major.x = element_blank(),
+#         panel.grid.minor.x = element_blank(),
+#         panel.grid.minor.y = element_blank(),
+#         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+# ggsave("figsandtabs/SF1_prices.png",
+#        height = 120, width = 200, units = "mm")
 
-gg <- ggplot(data = data[outcome == "D.ln_cpricei2"], 
-             mapping = aes(x = tt_event, color = factor(group))) +
-  geom_line(aes(y = estimate), size = 0.8, alpha = 0.5) +
-  geom_line(aes(y = estimate + 1.96 * se), alpha = 0.5, size = 0.8, linetype = "55") +
-  geom_line(aes(y = estimate - 1.96 * se), alpha = 0.5, size = 0.8, linetype = "55") +
-  theme_bw(base_size = fontsize) +
-  scale_y_continuous(limits = c(-0.75, 1.75), breaks = seq(-0.75, 1.75, 0.25)) +
-  scale_x_continuous(breaks = seq(-2, 2, 1)) +
-  labs(x = "Year Relative to Event", y = "Estimate", color = NULL) +
+
+
+gg <- ggplot(data = data[outcome == "D.ln_cpricei2" & tt_event >= 0], 
+             mapping = aes(x = factor(tt_event, levels = c(0,1,2),
+                                      labels = c("On-impact", "1 year", "2 years")), 
+                           color = factor(group)
+             )) +
+  geom_point(aes(y = estimate), position = position_dodge(width=0.4), size = 2) +
+  geom_errorbar(aes(ymax = estimate + 1.96 * se, ymin = estimate - 1.96 * se), 
+                size = 0.8, position = position_dodge(width=0.4), width = 0.2) +
+  theme_bw(base_size = 16) +
+  scale_y_continuous(limits = c(-2, 2.25), breaks = c(-2, 2.25, 0.5)) +
+  labs(x = NULL, y = "Estimate", color = NULL) +
   geom_hline(yintercept = 0, color = "red", linetype = "55") +
-  geom_vline(xintercept =  -0.5, color = "black", alpha = .8) +
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
@@ -143,21 +166,41 @@ gg <- ggplot(data = data[outcome == "D.ln_cpricei2"],
 ggsave("figsandtabs/SF1_prices.png",
        height = 120, width = 200, units = "mm")
 
-
-
 ### (b) Dynamic response of quantity to sales taxes
 
-gg <- ggplot(data = data[outcome == "D.ln_quantity3"], 
-             mapping = aes(x = tt_event, color = factor(group))) +
-  geom_line(aes(y = estimate), size = 0.8, alpha = 0.5) +
-  geom_line(aes(y = estimate + 1.96 * se), alpha = 0.5, size = 0.8, linetype = "55") +
-  geom_line(aes(y = estimate - 1.96 * se), alpha = 0.5, size = 0.8, linetype = "55") +
-  theme_bw(base_size = fontsize) +
-  scale_y_continuous(limits = c(-1.75, 1.5), breaks = seq(-1.75, 1.5, 0.25)) +
-  scale_x_continuous(breaks = seq(-2, 2, 1)) +
-  labs(x = "Year Relative to Event", y = "Estimate", color = NULL) +
+# gg <- ggplot(data = data[outcome == "D.ln_quantity3"], 
+#              mapping = aes(x = tt_event, color = factor(group))) +
+#   geom_line(aes(y = estimate), size = 0.8, alpha = 0.5) +
+#   geom_line(aes(y = estimate + 1.96 * se), alpha = 0.5, size = 0.8, linetype = "55") +
+#   geom_line(aes(y = estimate - 1.96 * se), alpha = 0.5, size = 0.8, linetype = "55") +
+#   theme_bw(base_size = fontsize) +
+#   scale_y_continuous(limits = c(-1.75, 1.5), breaks = seq(-1.75, 1.5, 0.25)) +
+#   scale_x_continuous(breaks = seq(-2, 2, 1)) +
+#   labs(x = "Year Relative to Event", y = "Estimate", color = NULL) +
+#   geom_hline(yintercept = 0, color = "red", linetype = "55") +
+#   geom_vline(xintercept =  -0.5, color = "black", alpha = .8) +
+#   theme(legend.position = "bottom",
+#         text = element_text(family = "Garamond"),
+#         panel.grid.major.x = element_blank(),
+#         panel.grid.minor.x = element_blank(),
+#         panel.grid.minor.y = element_blank(),
+#         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+# ggsave("figsandtabs/SF1_quantities.png",
+#        height = 120, width = 200, units = "mm")
+# rm(data, gg)
+
+gg <- ggplot(data = data[outcome == "D.ln_quantity3" & tt_event >= 0], 
+             mapping = aes(x = factor(tt_event, levels = c(0,1,2),
+                                      labels = c("On-impact", "1 year", "2 years")), 
+                           color = factor(group)
+             )) +
+  geom_point(aes(y = estimate), position = position_dodge(width=0.4), size = 2) +
+  geom_errorbar(aes(ymax = estimate + 1.96 * se, ymin = estimate - 1.96 * se), 
+                size = 0.8, position = position_dodge(width=0.4), width = 0.2) +
+  theme_bw(base_size = 16) +
+  scale_y_continuous(limits = c(-1.5, 1.5), breaks = c(-1.5, 1.5, 0.25)) +
+  labs(x = NULL, y = "Estimate", color = NULL) +
   geom_hline(yintercept = 0, color = "red", linetype = "55") +
-  geom_vline(xintercept =  -0.5, color = "black", alpha = .8) +
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
@@ -166,7 +209,7 @@ gg <- ggplot(data = data[outcome == "D.ln_quantity3"],
         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("figsandtabs/SF1_quantities.png",
        height = 120, width = 200, units = "mm")
-rm(data, gg)
+  
 
 
 
@@ -670,27 +713,28 @@ ggsave("figsandtabs/F5_average_theta_sigma1_K2.png",
 ## To be modified
 
 # Plot
-gg <- ggplot(av.theta[K==2], mapping = aes(x = x, y = theta, color = factor(sigma))) +
-  geom_line() +
-  geom_point() +
-  theme_bw(base_size = fontsize) +
-  labs(x = TeX('$\\frac{\\epsilon_S}{\\epsilon_S + \\epsilon_D}$'), 
-       y = TeX("Av. $\\theta$"), 
-       color = TeX("$\\sigma$  ")) +
-  scale_color_brewer(palette="RdYlBu", direction = -1) +
-  geom_rect(aes(xmin=0, xmax=1, ymin=1, ymax=Inf), color = "brown3", fill = "brown3", alpha = 0.02) +
-  geom_rect(aes(xmin=0, xmax=1/(1+ed), ymin=0.564, ymax=1), color = "brown3", fill = "brown3", alpha = 0.02) +
-  geom_rect(aes(xmin=1/(1+ed), xmax = 1, ymin = 0, ymax = 0.564), color = "green", fill = "green", alpha = 0.02) +
-  coord_cartesian(xlim = c(0, 1), ylim = c(0, 2)) +
-  scale_y_continuous(breaks = seq(0, 2, 0.2)) +
-  geom_vline(xintercept = 1/(1+ed), linetype = "dashed") + 
-  theme(legend.position = "bottom",
-        legend.margin = unit(0, "mm"),
-        # text = element_text(family = "Garamond"), # have to comment out for it produces a weird error
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+gg <- ggplot(av.theta[K==2 & sigma %in% c(0.25, 0.3, 0.5, 0.75, 1)], 
+             mapping = aes(x = x, y = theta, color = factor(sigma))) +
+      geom_line() +
+      geom_point() +
+      theme_bw(base_size = fontsize) +
+      labs(x = TeX('$\\frac{\\epsilon_S}{\\epsilon_S + \\epsilon_D}$'), 
+           y = TeX("Av. $\\theta$"), 
+           color = TeX("$\\sigma$  ")) +
+      scale_color_brewer(palette="RdYlBu", direction = -1) +
+      # geom_rect(aes(xmin=0, xmax=1, ymin=1, ymax=Inf), color = "gray", fill = "gray3", alpha = 0.02) +
+      # geom_rect(aes(xmin=0, xmax=1/(1+ed), ymin=0.0666, ymax=1), color = "brown3", fill = "brown3", alpha = 0.015) +
+      # geom_rect(aes(xmin=1/(1+ed), xmax = 1, ymin = 0, ymax = 0.0666), color = "green", fill = "green", alpha = 0.015) +
+      coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
+      scale_y_continuous(breaks = seq(0, 1, 0.1)) +
+      geom_vline(xintercept = 1/(1+ed), linetype = "dashed") + 
+      theme(legend.position = "bottom",
+            legend.margin = unit(0, "mm"),
+            # text = element_text(family = "Garamond"), # have to comment out for it produces a weird error
+            panel.grid.major.x = element_blank(),
+            panel.grid.minor.x = element_blank(),
+            panel.grid.minor.y = element_blank(),
+            panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("figsandtabs/SF5_average_theta_sigmaall_K2.png",
        height = 120, width = 200, units = "mm")
 
