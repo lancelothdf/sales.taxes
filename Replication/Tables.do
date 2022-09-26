@@ -388,8 +388,7 @@ mat table = table[1,1..8]
 * Export LaTex table
 frmttable using  "$outputfolder/TWFE_LR_short", replace tex statmat(table) sub(1) sdec(3) ann(stars) asymbol(*, **, ***) multicol(1,2,2;1,4,2) fragment ///
 ctitle("", "Price", "", "Quantity" \ "", "(1)", "(2)", "(3)", "(4)") coljust(lcccc) hlines(101000001{0}1)  ///
-rtitle("$ \tau_t$" \ "" ) ///
-addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "X", "", "X", "", "X", "" \ "" \"Div $\times$ Mod $\times$ Time" , "", "X", "", "X", "", "X", "", "X" )
+rtitle("$ \tau$" \ "" ) addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "X", "" \ "" \"Div $\times$ Mod $\times$ Time" , "", "X", "", "X")
 
 
 }
