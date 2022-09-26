@@ -324,9 +324,9 @@ foreach x in ln_cpricei2_N ln_sales_N ln_expenditures_N ln_expenditures_Y {
 ** Export table. 
 frmttable using  "$outputfolder/CrossSection", replace tex statmat(table) sub(1) sdec(3) ann(stars) asymbol(*, **, ***) ///
 ctitle("", "Price", "Sales", "Expenditures", "") rtitle(""\ "") multicol(1,4,2;8,2,2;8,4,2) coljust(lccccc) hlines(1101{0}1) fragment ///
-*addrows("Module FE", "X", "X", "X", "" \ "" \"Module $ \times$ income FE", "", "", "", "X"\ "" \"Data", "\multicolumn{2}{c}{Retailer}", "\multicolumn{2}{c}{Household}")
 addrows("Module FE", "X", "X", "X", "" \ "" \"Module $ \times$ income FE", "", "", "", "X"\ "" \"Data", "Retailer", "", "Household", "")
 
+*addrows("Module FE", "X", "X", "X", "" \ "" \"Module $ \times$ income FE", "", "", "", "X"\ "" \"Data", "\multicolumn{2}{c}{Retailer}", "\multicolumn{2}{c}{Household}")
 
 }
 

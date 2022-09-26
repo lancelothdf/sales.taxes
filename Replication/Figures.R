@@ -154,7 +154,7 @@ gg <- ggplot(data = data[outcome == "D.ln_cpricei2" & tt_event >= 0],
   geom_errorbar(aes(ymax = estimate + 1.96 * se, ymin = estimate - 1.96 * se), 
                 size = 0.8, position = position_dodge(width=0.4), width = 0.2) +
   theme_bw(base_size = 16) +
-  scale_y_continuous(limits = c(-2, 2.25), breaks = c(-2, 2.25, 0.5)) +
+  scale_y_continuous(limits = c(-0.75, 1.75), breaks = seq(-0.75, 1.75, 0.25)) +
   labs(x = NULL, y = "Estimate", color = NULL) +
   geom_hline(yintercept = 0, color = "red", linetype = "55") +
   theme(legend.position = "bottom",
@@ -198,7 +198,7 @@ gg <- ggplot(data = data[outcome == "D.ln_quantity3" & tt_event >= 0],
   geom_errorbar(aes(ymax = estimate + 1.96 * se, ymin = estimate - 1.96 * se), 
                 size = 0.8, position = position_dodge(width=0.4), width = 0.2) +
   theme_bw(base_size = 16) +
-  scale_y_continuous(limits = c(-1.5, 1.5), breaks = c(-1.5, 1.5, 0.25)) +
+  scale_y_continuous(limits = c(-1.5, 1.5), breaks = seq(-1.5, 1.5, 0.25)) +
   labs(x = NULL, y = "Estimate", color = NULL) +
   geom_hline(yintercept = 0, color = "red", linetype = "55") +
   theme(legend.position = "bottom",
