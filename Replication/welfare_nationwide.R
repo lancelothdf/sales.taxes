@@ -173,7 +173,7 @@ while (!done) {
       t0 <- "tau"
       t1 <- "tau5"
       sc <- "plus 5 Tax"
-      value <- av.non.marginal.change.parallel(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m",  
+      value <- av.non.marginal.change.parallel(lin, data, "p_cml", t0, t1, theta, sig, "eta_m",  
                                                "fips_state", min, max, 0, 0)
       results <- rbind(results, data.table(est = "", sc, value, theta, sigma = sig, K = 1, L = 1, it.n=1))
       
