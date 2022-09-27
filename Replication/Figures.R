@@ -336,7 +336,7 @@ print(nrow(data))
 setnames(data, old = c("Estimate", "Std. Error"), new = c("estimate", "se"))
 data <- data[order(iter, lev)]
 print(nrow(data))
-data[, group := seq_len(.N), by =.(iter)]
+data[, group := seq_len(.N), by =.(iter, outcome)]
 
 labels <- paste0("Q", unique(data[iter==0]$group))
 print(labels)
