@@ -197,11 +197,11 @@ while (!done) {
     # Collapse to merge with all and identify remaining cases
     done.prev.res <- done.prev.res[, .(complete = mean(nest)-1), by = c('sc', 'L', 'K', 'sigma', 'theta')]
     flog.info("Number of complete cases in previous results is %s", nrow(done.prev.res))
-    combinations.all <- merge(combinations.all, done.prev.res, 
+    combinations.all.it <- merge(combinations.all, done.prev.res, 
                               by = c("sc", "L", "K", "sigma", "theta"),
                               all.x = T)
     
-    combinations <- combinations.all[is.na(complete)]
+    combinations <- combinations.all.it[is.na(complete)]
     results <- copy(prev.res)
     
     ## Open previous attempt progress
