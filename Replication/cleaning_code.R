@@ -214,6 +214,7 @@ for (sig in seq(0.25, 1, 0.05)) {
 }
 
 
+
 #### Define Common Support
 control <- all_pi[D.ln_sales_tax == 0,]
 treated <- all_pi[D.ln_sales_tax != 0,]
@@ -253,6 +254,10 @@ all_pi_cs[(year > 2007 & year < 2015)
 # Merge to create data set for spillovers
 all_pi_spill <- merge(all_pi, taxability, by = c("year", "semester", "fips_state", "product_module_code"), all.x = T)
 rm(taxability)
+# Remove \sigma columns from this file
+names.rem <- c(paste0("w.ln_cpricei2_sig", seq(0.25, 1, 0.05)),
+               paste0("dm.L.ln_cpricei2_sig", seq(0.25, 1, 0.05)))
+all_pi_spill <- all_pi_spill[, (names.rem):= NULL]
 
 # Identify always taxable and always tax-exempt
 all_pi_spill[, tax_exempt := taxability == 0]
@@ -342,6 +347,11 @@ all_pi_spill_econ <- merge(all_pi_spill_econ, all_pi_cs, by = c("year", "semeste
 all_pi_econ <- merge(all_pi_econ, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"))
 # Main data set
 all_pi <- merge(all_pi, all_pi_cs, by = c("year", "semester", "fips_state", "fips_county" , "product_module_code","store_code_uc"))
+
+# Remove excesive data to save disk space
+names.rem <- c(paste0("w.ln_cpricei2_sig", seq(0.25, 1, 0.05)),
+               paste0("dm.L.ln_cpricei2_sig", seq(0.25, 1, 0.05)))
+all_pi_econ <- all_pi_econ[, (names.rem):= NULL]
 
 
 ### Final binned data sets for welfare extrapolations
