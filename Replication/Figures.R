@@ -20,7 +20,6 @@ setwd("/project2/igaarder/Data/Replication")
 # Font: Need to install TTFs of latin modern roman
 loadfonts()
 fontsize <- 16
-exclude <- T
 ##### Figure #: Passthrough and Quantity response to sales taxes - dynamic response. ------
 
 # Open data
@@ -327,8 +326,6 @@ ggsave("figsandtabs/F2_Prices_CDF_Subsamples_corrw.png",
 rm(data, gg, step)
 
 ##### Figure #: Passthrough estimates in each of 5 quintiles of the distribution of lagged prices. ----
-if (!exclude) {
-  
 # Open data
 data <- fread("Demand_iv_sat_initial_price_semester_boot_r.csv")
 
@@ -380,7 +377,6 @@ ggsave("figsandtabs/F2_NonLinearpassthrough_main.png",
 
 rm(data, data.0, data.boot, labels)
 
-}
 ##### Figure #: Estimated demand function  and elasticity under K^d = L^d = 2. -------
 
 ## Add options to plots
@@ -727,7 +723,8 @@ gg <- ggplot(av.theta[K==2 & sigma %in% c(0.25, 0.3, 0.5, 0.75, 1)],
       # geom_rect(aes(xmin=1/(1+ed), xmax = 1, ymin = 0, ymax = 0.0666), color = "green", fill = "green", alpha = 0.015) +
       coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
       scale_y_continuous(breaks = seq(0, 1, 0.1)) +
-      geom_vline(xintercept = 1/(1+ed), linetype = "dashed") + 
+    scale_color_brewer(palette = "Dark2") +
+    geom_vline(xintercept = 1/(1+ed), linetype = "dashed") + 
       theme(legend.position = "bottom",
             legend.margin = unit(0, "mm"),
             # text = element_text(family = "Garamond"), # have to comment out for it produces a weird error
@@ -785,6 +782,11 @@ ggsave("figsandtabs/F6_average_mvpf_nationwide_sigma1_theta0_boot.png",
        height = 120, width = 200, units = "mm")  
 
 rm(data.all)
+
+##### Figure #: Extrapolation. Heterogeneity across states -------
+
+
+
 #################################### Simulation results, to be replicated ################################
 
 quit(save = "no")
