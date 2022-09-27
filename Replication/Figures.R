@@ -362,7 +362,7 @@ ggplot(data = data, mapping = aes(x = group, y = estimate)) +
                     ymin = estimate - 1.645 * se),
                 width = .3) +
   theme_bw(base_size = fontsize) +
-  scale_y_continuous(limits = c(0.75, 1.25), breaks = seq(0.75, 1.25, 0.1)) +
+  scale_y_continuous(limits = c(0.55, 1.25), breaks = seq(0.55, 1.25, 0.1)) +
   scale_x_continuous(limits = c(0.5, 5.5), breaks = seq(1, 5, 1), labels = labels) +
   labs(x = "Initial Price Level", y = "Estimate") +
   geom_hline(yintercept = 1, color = "red", linetype = "55", alpha = .8) +
