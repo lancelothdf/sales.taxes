@@ -367,7 +367,7 @@ ggplot(data = data, mapping = aes(x = group, y = estimate)) +
   labs(x = "Initial Price Level", y = "Estimate") +
   geom_hline(yintercept = 1, color = "red", linetype = "55", alpha = .8) +
   theme(legend.position = "none",
-        text = element_text(family = "Garamond"),
+        #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
