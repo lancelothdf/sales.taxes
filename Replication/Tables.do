@@ -394,7 +394,18 @@ rtitle("$ \tau$" \ "" ) addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "X",
 }
 
 
-** Tables 9
+** Table 9: Average across states of the MVPF of three reforms to the sales tax rate. ***
+
+
+
+
+
+
+
+
+
+
+
 
 
 

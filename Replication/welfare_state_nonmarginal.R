@@ -161,7 +161,7 @@ while (!done) {
         t0 <- "tauno"
         t1 <- "tau"
         sc <- "No Tax"
-        value <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
+        value <- non.marginal.change(mu = lin, data = data.st, pp = "p_cml", t0 = t0, t1 = t1, theta, sig, "eta_m", min, max, 0, 0)
         results <- rbind(results, 
                          data.table(state, value, est = "", sc, theta, sigma = sig, K = 1, L = 1, s = 4, it = 1, ConsChck = 1))
         
@@ -170,7 +170,7 @@ while (!done) {
         t0 <- "tau"
         t1 <- "tau5"
         sc <- "plus 5 Tax"
-        value <- non.marginal.change(lin, data.st, "p_cml", t0, t1, theta, sig, "eta_m", min, max, 0, 0)
+        value <- non.marginal.change(mu = lin, data = data.st, pp = "p_cml", t0 = t0, t1 = t1, theta, sig, "eta_m", min, max, 0, 0)
         results<- rbind(results, 
                         data.table(state, value, est = "", sc, theta, sigma = sig, K = 1, L = 1, s = 4, it = 1, ConsChck = 1))
 
