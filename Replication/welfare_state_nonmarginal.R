@@ -46,6 +46,8 @@ registerDoParallel(cores=n.cores)
 # 1. Open data
 data <- fread(binned.data.tax)
 data[, p_cml := p_m - tau]
+data[, tauno := 0]
+data[, tau5 := tau + log(1+0.05)]
 
 ## 2. Values of sigma to Tests and conduct parameters 
 # In practice, this was done in batches to avoid running all cases and exceed the running time
