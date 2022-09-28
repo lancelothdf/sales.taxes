@@ -396,8 +396,183 @@ rtitle("$ \tau$" \ "" ) addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "X",
 
 ** Table 9: Average across states of the MVPF of three reforms to the sales tax rate. ***
 
+{
+* Import Results File
+import delimited "$inputs/average_nationwide_extrapolation.csv", clear
+keep if sigma == 1 & theta == 0
+
+** produce panels
+foreach scv in "Original" "No Tax" "plus 5 Tax" {
+	* Create output matrix
+	mat drop _all
+	matrix table = J(3,5,.)
+	local rn = 0 
+	foreach kv in 1 2 8 {
+		local ++rn
+		local cn = 1
+		forvalues lv =1/2 {
+			if (`kv'>= `lv') {
+				qui sum value if est == "LB" & sc == "`scv'" & k == `kv' & l == `lv'
+				mat table[`rn',`cn'] = r(mean)
+				local ++cn
+				if (`kv' > `lv') {
+					qui sum value if est == "UB" & sc == "`scv'"  & k == `kv' & l == `lv'
+					mat table[`rn',`cn'] = r(mean)
+				}
+			}
+			local cn = `cn' + 2
+		}
+		
+	}
+	local tabti
+	local let
+	if ("`scv'" == "Original")  {
+		local tabti "\it{Panel A: Marginal change in tax}"
+		local let "A"
+	}		
+	if ("`scv'" == "No Tax") {
+		local tabti "\it{Panel B: Non-marginal change - from no tax to current tax}"
+		local let "B"
+	}		
+	if ("`scv'" == "plus 5 Tax") {
+		local tabti "\it{Panel C: Non-marginal change - 5pp increase in tax}"
+		local let "C"
+	}	
+
+	
+	frmttable using  "$outputfolder/Table_welfare_av_`let'", replace tex statmat(table) sdec(3) ///
+	multicol(1,1,6;2,2,2;2,5,2;4,2,2;4,5,2;5,5,2) fragment coljust(lccccc) hlines(1101{0}1)  ///
+	ctitle("`tabti'", "", "", "", "" \ "" "$ L^d =1$", "", "", "$ L^d =2$", "" \ "", "LB", "UB", "", "LB", "UB") ///
+	rtitle("$ K^d=1$" \ "$ K^d=2$" \ "$ K^d=8$") 
+}
+}
 
 
+** Table 9A: Robustness - Average across states of the MVPF of three reforms to the sales tax rate under imperfect competition ***
+{
+* Import Results File
+import delimited "$inputs/average_nationwide_extrapolation.csv", clear
+keep if sigma == 1 & theta != 0 
+* Create output matrix (can produce this one directly)
+mat drop _all
+matrix table = J(24,5,.)
+* Round theta to capture correctly
+gen thetatxt = "0" + string(round(theta, 0.00001))
+levelsof thetatxt, local(levt)
+
+local tabti
+local scn = 0
+foreach scv in "Original" "No Tax" "plus 5 Tax" {
+	
+	** Capture row titles
+	if ("`scv'" == "Original")  	local tabti 	`" `tabti' "\it{Panel A: Marginal change in tax}" \ "" "'
+	if ("`scv'" == "No Tax")		local tabti    	`" `tabti' \ "\it{Panel B: Non-marginal change - from no tax to current tax}" \ "" "'
+	if ("`scv'" == "plus 5 Tax") 	local tabti  	`" `tabti' \ "\it{Panel C: Non-marginal change - 5pp increase in tax}" \ "" "'
+
+	
+	
+	* Create output matrix
+	local rn = 8*`scn' + 2
+	local ++scn
+	forvalues lv = 1/2 {
+		foreach kv in 1 2 8 {
+			local ++rn
+			if (`kv'>= `lv') {
+				local tabti  	`" `tabti' \ "$ L^d = `lv'$, $ K = `kv'$" "'
+				local cn = 1
+				foreach th of local levt {
+					qui sum value if est == "LB" & sc == "`scv'" & k == `kv' & l == `lv' & thetatxt == "`th'"
+					mat table[`rn',`cn'] = r(mean)
+					local ++cn
+					if (`kv' > `lv') {
+						qui sum value if est == "UB" & sc == "`scv'"  & k == `kv' & l == `lv' & thetatxt == "`th'"
+						mat table[`rn',`cn'] = r(mean)
+					}
+					local cn = `cn' + 2
+				}
+			}
+			else local tabti  	`" `tabti' \ "" "'
+		}
+		
+	}
+	
+	
+}
+
+frmttable using  "$outputfolder/Table_welfare_av_rob_elas", replace tex statmat(table) sdec(3) ///
+multicol(1,2,2;1,5,2;3,1,6;5,2,2;5,5,2;9,2,2;9,5,2;11,1,6;13,2,2;13,5,2;17,2,2;17,5,2;19,1,6;21,2,2;21,5,2;25,2,2;25,5,2) fragment coljust(lccccc) hlines(101100000110000011000001)  ///
+ctitle("", "$ \varepsilon^S \to \infty$ \& $ \theta = `: word 1 of `levt''$", "", "", "$ \varepsilon^S =1$ \& $ \theta = `: word 2 of `levt''$", "" \ "", "LB", "UB", "", "LB", "UB") ///
+rtitle(`tabti') 
+}
+
+
+
+
+
+** Table 9B: Robustness - Average across states of the MVPF of three reforms to the sales tax rate under imperfect competition ***
+{
+* Import Results File
+import delimited "$inputs/average_nationwide_extrapolation.csv", clear
+keep if theta == 0 & sigma !=.75
+* Create output matrix (can produce this one directly)
+mat drop _all
+matrix table = J(24,8,.)
+* Round sigma to capture correctly
+gen sigmatxt =  string(sigma)
+replace sigmatxt = "0" + sigmatxt if length(sigmatxt) > 1
+levelsof sigmatxt, local(levt)
+* flip order of local to produce as we want
+local levs
+foreach l of local levt {
+	local levs `" `l' `levs' "'
+}
+di 	`"`levs'"'
+
+local tabti
+local scn = 0
+foreach scv in "Original" "No Tax" "plus 5 Tax" {
+	
+	** Capture row titles
+	if ("`scv'" == "Original")  	local tabti 	`" `tabti' "\it{Panel A: Marginal change in tax}" \ "" "'
+	if ("`scv'" == "No Tax")		local tabti    	`" `tabti' \ "\it{Panel B: Non-marginal change - from no tax to current tax}" \ "" "'
+	if ("`scv'" == "plus 5 Tax") 	local tabti  	`" `tabti' \ "\it{Panel C: Non-marginal change - 5pp increase in tax}" \ "" "'
+
+	
+	
+	* Create output matrix
+	local rn = 8*`scn' + 2
+	local ++scn
+	forvalues lv = 1/2 {
+		foreach kv in 1 2 8 {
+			local ++rn
+			if (`kv'>= `lv') {
+				local tabti  	`" `tabti' \ "$ L^d = `lv'$, $ K = `kv'$" "'
+				local cn = 1
+				foreach s of local levs {
+					qui sum value if est == "LB" & sc == "`scv'" & k == `kv' & l == `lv' & sigmatxt == "`s'"
+					mat table[`rn',`cn'] = r(mean)
+					local ++cn
+					if (`kv' > `lv') {
+						qui sum value if est == "UB" & sc == "`scv'"  & k == `kv' & l == `lv' & sigmatxt == "`s'"
+						mat table[`rn',`cn'] = r(mean)
+					}
+					local cn = `cn' + 2
+				}
+			}
+			else local tabti  	`" `tabti' \ "" "'
+		}
+		
+	}
+	
+	
+}
+
+frmttable using  "$outputfolder/Table_welfare_av_rob_sal", replace tex statmat(table) sdec(3) ///
+multicol(1,2,2;1,5,2;1,8,2;3,1,9;5,2,2;5,5,2;5,8,2;9,2,2;9,5,2;9,8,2;11,1,9;13,2,2;13,5,2;13,8,2;17,2,2;17,5,2;17,8,2;19,1,9;21,2,2;21,5,2;21,8,2;25,2,2;25,5,2;25,8,2) ///
+fragment coljust(lcccccccc) hlines(101100000110000011000001)  ///
+ctitle("", "$ \sigma = `: word 1 of `levs''$", "", "", "$ \sigma = `: word 2 of `levs''$", "", "", "$ \sigma = `: word 3 of `levs''$", "" \ "", "LB", "UB", "", "LB", "UB", "", "LB", "UB") ///
+rtitle(`tabti') 
+}
 
 
 
