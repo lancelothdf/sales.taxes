@@ -165,7 +165,7 @@ while (!done) {
         sc <- "No Tax"
         value <- non.marginal.change(mu = lin, data = data.st, pp = "p_cml", t0 = t0, t1 = t1, theta, sig, "eta_m", min, max, 0, 0)
         results <- rbind(results, 
-                         data.table(state, value, est = "", sc, theta, sigma = sig, K = 1, L = 1, s = 4, it = 1, ConsChck = 1))
+                         data.table(state, value, est = "", sc, theta, sigma = sig, K = 1, L = 1, s = 4, it = 1, ConsChck = 1, attempt = 1))
         
         
         # Non Marginal Change: Plus 5 tax
@@ -174,7 +174,7 @@ while (!done) {
         sc <- "plus 5 Tax"
         value <- non.marginal.change(mu = lin, data = data.st, pp = "p_cml", t0 = t0, t1 = t1, theta, sig, "eta_m", min, max, 0, 0)
         results<- rbind(results, 
-                        data.table(state, value, est = "", sc, theta, sigma = sig, K = 1, L = 1, s = 4, it = 1, ConsChck = 1))
+                        data.table(state, value, est = "", sc, theta, sigma = sig, K = 1, L = 1, s = 4, it = 1, ConsChck = 1, attempt = 1))
 
       }
     }
