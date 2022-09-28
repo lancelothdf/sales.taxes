@@ -155,7 +155,7 @@ while (!done) {
         theta <- comb$theta
         sig <- comb$sigma
         
-        lin <- IVs[outcome == "IV" & sigma == sig][["Estimate"]]
+        lin <- res.ivs[n.groups == 1 & sigma == sig & iter == rep][["Estimate"]]
         
         # Non Marginal Change: No tax
         t0 <- "tauno"
