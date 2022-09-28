@@ -400,6 +400,7 @@ rtitle("$ \tau$" \ "" ) addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "X",
 * Import Results File
 import delimited "$inputs/average_nationwide_extrapolation.csv", clear
 keep if sigma == 1 & theta == 0
+replace est = "LB" if est == "" // to capture linear cases properly
 
 ** produce panels
 foreach scv in "Original" "No Tax" "plus 5 Tax" {
@@ -453,6 +454,7 @@ foreach scv in "Original" "No Tax" "plus 5 Tax" {
 * Import Results File
 import delimited "$inputs/average_nationwide_extrapolation.csv", clear
 keep if sigma == 1 & theta != 0 
+replace est = "LB" if est == "" // to capture linear cases properly
 * Create output matrix (can produce this one directly)
 mat drop _all
 matrix table = J(24,5,.)
@@ -514,6 +516,7 @@ rtitle(`tabti')
 * Import Results File
 import delimited "$inputs/average_nationwide_extrapolation.csv", clear
 keep if theta == 0 & sigma !=.75
+replace est = "LB" if est == "" // to capture linear cases properly
 * Create output matrix (can produce this one directly)
 mat drop _all
 matrix table = J(24,8,.)
