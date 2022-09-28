@@ -345,8 +345,8 @@ while (!done) {
       
       
       ## F2c Export
-      rbind(data.table(est = "LB", value = down, state, L=D , K, sigma = sig, theta, s = s1, it = it1 + maxit*(attempt-1), ConsChck = ConsChckDown),
-            data.table(est = "UB", value = up,   state, L=D , K, sigma = sig, theta, s = s2, it = it2 + maxit*(attempt-1), ConsChck = ConsChckUp)
+      rbind(data.table(est = "LB", value = down, state, sc, L=D , K, sigma = sig, theta, s = s1, it = it1 + maxit*(attempt-1), ConsChck = ConsChckDown),
+            data.table(est = "UB", value = up,   state, sc, L=D , K, sigma = sig, theta, s = s2, it = it2 + maxit*(attempt-1), ConsChck = ConsChckUp)
       )
     }
     results <- rbind(results, welfare.st[, attempt := attempt])
