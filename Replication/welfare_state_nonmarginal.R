@@ -212,6 +212,7 @@ while (!done) {
     
     # Capture prev. attempt number and add one
     attempt <- max(results$attempt) + 1
+    # Save only results that work!
     results <- results[s!=5]
   }
   
