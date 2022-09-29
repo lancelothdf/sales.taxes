@@ -197,10 +197,11 @@ while (!done) {
     
     ## Keep previous progress
     results <- rbind(prev.res.K1, prev.res)
-    results <- results[s!=5]
     
     # Capture prev. attempt number and add one
     attempt <- max(results$attempt) + 1
+    # Save only results that work!
+    results <- results[s!=5]
   }
   
   flog.info("Starting attempt %s", attempt)
