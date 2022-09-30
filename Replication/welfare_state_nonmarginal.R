@@ -185,7 +185,7 @@ while (!done) {
   else {
     
     ## Identify cases to be solved
-    prev.res <- fread(out.welfare.state.marg)
+    prev.res <- fread(out.welfare.state.nonmarg)
     prev.res.K1 <-  prev.res[K==1]
     prev.res <- prev.res[K!=1]
     flog.info("Number of estimates in previous results is %s", nrow(prev.res))
