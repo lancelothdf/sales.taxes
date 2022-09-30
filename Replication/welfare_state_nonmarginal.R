@@ -64,7 +64,7 @@ for (sig in sigmas.test) {
   # theta = 0 
   thetas.list[[paste0("s",sig*100,"-th.Inf")]] <- list(
     sigma = sig, theta = 0)
-  if (sigma ==1) {
+  if (sig ==1) {
     # theta estimated when e_s = Inf
     thetas.list[[paste0("s",sig*100,"-Inf")]] <- list(
       sigma = sig, theta = round(thetas[sigma==sig & is.infinite(es.val), mean(theta)], 6))
