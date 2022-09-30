@@ -383,13 +383,109 @@ ctitle("", "Price", "", "Quantity", "", "Prod. Price", "", "Sales", "" \ "", "(1
 rtitle("$ \tau_t$" \ "" \ "$ \tau_{t+2}$" \ "" \ "$ \tau_{t+3}$") ///
 addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "X", "", "X", "", "X", "" \ "" \"Div $\times$ Mod $\times$ Time" , "", "X", "", "X", "", "X", "", "X" )
 
+* Produce a short version
 mat table = table[1,1..8]
+mat stars = stars[1,1..8]
 
-* Export LaTex table
 frmttable using  "$outputfolder/TWFE_LR_short", replace tex statmat(table) sub(1) sdec(3) ann(stars) asymbol(*, **, ***) multicol(1,2,2;1,4,2) fragment ///
-ctitle("", "Price", "", "Quantity" \ "", "(1)", "(2)", "(3)", "(4)") coljust(lcccc) hlines(101000001{0}1)  ///
+ctitle("", "Price", "", "Quantity" \ "", "(1)", "(2)", "(3)", "(4)") coljust(lcccc) hlines(101{0}1)  ///
 rtitle("$ \tau$" \ "" ) addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "X", "" \ "" \"Div $\times$ Mod $\times$ Time" , "", "X", "", "X")
 
+** We now produce a new short version where we also include the sample splitting by median and the IV estimate
+
+* First capture the remaining information
+tempfile boot_res
+import delimited "$inputs/Demand_iv_sat_initial_price_semester_boot_r.csv", clear
+
+* create group indicator
+sort iter outcome controls ngroups lev
+by iter outcome controls ngroups: gen group = _n
+
+* reshape so that we can capture the IV
+keep estimate outcome controls group ngroups iter
+replace outcome = "_p" if outcome == "w.ln_cpricei2"
+replace outcome = "_q" if outcome == "w.ln_quantity3"
+reshape wide estimate, i(iter controls group ngroups) j(outcome) string
+
+* produce the IV
+gen estimate_iv = estimate_q/estimate_p
+
+* Compute the bootsrtrapped SE
+preserve
+	keep if iter > 0
+	collapse (sd) estimate_*, by(controls group ngroups)
+	foreach x in p q iv {
+		rename estimate_`x' se_`x'
+	}
+	save `boot_res'
+restore
+* merge bootstrap results
+keep if iter == 0
+merge 1:1 controls group ngroups using `boot_res'
+drop _merge iter
+
+* reshape back to long again
+reshape long estimate_ se_, i(controls ngroups group) j(out) string
+
+
+** Capture the desired estimates
+* IV full sample
+foreach sp in group_region_by_module_by_time group_division_by_module_by_time  {
+	qui sum estimate_ if out == "iv" & ngroups == 1 & controls == "`sp'"
+	local es = r(mean)
+	qui sum se_ if out == "iv" & ngroups == 1 & controls == "`sp'"
+	local se = r(mean)
+	mat table = (table , `es', `se')
+	local pval = 1 - normal(abs(`es'/`se'))
+	
+	matrix stars = (stars, (`pval'  <= 0.1 ) + (`pval'  <= 0.05 ) + (`pval'  <= 0.01 ), 0)
+}
+
+* Estimate for splitted sample
+keep if ngroups == 2
+cap mat drop table2 stars2
+matrix table2 = J(2,12,.)
+matrix stars2 = J(2,12,0)
+
+* Loop across outcomes
+local col1 = 0
+foreach var in p q iv {
+
+	* Loop across spec
+	local col2 = 1
+	foreach sp in group_region_by_module_by_time group_division_by_module_by_time  {
+		
+		* Loop Across group
+		local r = 0
+		local c = `col1' + `col2'
+		forvalues g =1/2 {
+			
+			local ++r
+			qui sum estimate_ if group == `g' & out == "`var'" &  controls == "`sp'"
+			local es = r(mean)
+			matrix table2[`r',`c'] = r(mean)
+			qui sum se_ if group == `g' & out == "`var'" & controls == "`sp'"
+			local se = r(mean)
+			matrix table2[`r',`c'+1] = r(mean)
+			local pval = 1 - normal(abs(`es'/`se'))
+			matrix stars2[`r',`c'] = (`pval'  <= 0.1 ) + (`pval'  <= 0.05 ) + (`pval'  <= 0.01 )
+			
+		}	
+		local col2 = `col2' + 2
+		
+	} 
+	local col1 = `col1' + 4
+}
+
+cap mat drop alltab allstar
+mat alltab = (table \ table2)
+mat allstar = (stars \ stars2)
+
+** Export table
+frmttable using  "$outputfolder/TWFE_LR_short_all", replace tex statmat(alltab) sub(1) sdec(3) ann(allstar) asymbol(*, **, ***) multicol(1,2,2;1,4,2;1,6,2) fragment ///
+ctitle("", "Price", "", "Quantity", "", "Demand ($ \hat{\beta}^d$)" \ "", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)") coljust(lcccccc) hlines(101010101)  ///
+rtitle("Full Sample" \ "" \ "Below median $ p_{it-1}^c$" \ "" \ "Above median $ p_{it-1}^c$" \ "" ) ///
+addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "X", "" \ "" \"Div $\times$ Mod $\times$ Time" , "", "X", "", "X")
 
 }
 
