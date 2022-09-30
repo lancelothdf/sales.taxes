@@ -57,19 +57,21 @@ sigmas.test <- c(0.25, 0.5, 0.75, 1)
 thetas <- fread(conduct.parameter.at.p)
 thetas <- thetas[K==2] # We use the K=2 estimates
 
-# Capture values of interest into a list
+# Capture values of interest into a list. We reduce this  set as it takes a long time
 thetas.list <- list()
 for (sig in sigmas.test) {
   
   # theta = 0 
   thetas.list[[paste0("s",sig*100,"-th.Inf")]] <- list(
     sigma = sig, theta = 0)
-  # theta estimated when e_s = Inf
-  thetas.list[[paste0("s",sig*100,"-Inf")]] <- list(
-    sigma = sig, theta = round(thetas[sigma==sig & is.infinite(es.val), mean(theta)], 6))
-  # theta estimated when e_s = 1
-  thetas.list[[paste0("s",sig*100,"-1")]] <- list(
-    sigma = sig, theta = round(thetas[sigma==sig & es.val == 1, mean(theta)], 6))
+  if (sigma ==1) {
+    # theta estimated when e_s = Inf
+    thetas.list[[paste0("s",sig*100,"-Inf")]] <- list(
+      sigma = sig, theta = round(thetas[sigma==sig & is.infinite(es.val), mean(theta)], 6))
+    # theta estimated when e_s = 1
+    thetas.list[[paste0("s",sig*100,"-1")]] <- list(
+      sigma = sig, theta = round(thetas[sigma==sig & es.val == 1, mean(theta)], 6))
+  }
   
 }
 
@@ -99,7 +101,7 @@ L.test <- c(1, 2)
 states.test <- unique(data$fips_state)
 
 ## 6. Set up Optimization Parameters (algorithm for now)
-maxit <- 2000
+maxit <- 1000
 nlo.opts.local.df <- list(
   "algorithm"="NLOPT_LN_COBYLA",
   "maxeval" = maxit,
