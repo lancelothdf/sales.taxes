@@ -485,7 +485,7 @@ mat allstar = (stars \ stars2)
 frmttable using  "$outputfolder/TWFE_LR_short_all", replace tex statmat(alltab) sub(1) sdec(3) ann(allstar) asymbol(*, **, ***) multicol(1,2,2;1,4,2;1,6,2) fragment ///
 ctitle("", "Price", "", "Quantity", "", "Demand ($ \hat{\beta}^d$)" \ "", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)") coljust(lcccccc) hlines(101010101)  ///
 rtitle("Full Sample" \ "" \ "Below median $ p_{it-1}^c$" \ "" \ "Above median $ p_{it-1}^c$" \ "" ) ///
-addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "X", "" \ "" \"Div $\times$ Mod $\times$ Time" , "", "X", "", "X")
+addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "X", "", "X", "" \ "" \"Div $\times$ Mod $\times$ Time" , "", "X", "", "X", "", "X")
 
 }
 
