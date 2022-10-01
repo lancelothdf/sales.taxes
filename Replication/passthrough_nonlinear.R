@@ -91,7 +91,7 @@ for (rep in 1:100) {
   for (n.g in c(1:3,5)) {
     
     # Create groups of initial values of tax rate
-    for (inp in c(dm.L.ln_cpricei2, dm.ln_pricei2)) {
+    for (inp in  c("dm.L.ln_cpricei2", "dm.L.ln_pricei2")) {
       # We use the full weighted distribution
       sampled.data <- sampled.data[, quantile := cut(get(inp),
                                          breaks = quantile(get(inp), probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
