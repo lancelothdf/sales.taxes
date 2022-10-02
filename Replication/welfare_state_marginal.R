@@ -289,7 +289,7 @@ while (!done) {
                       min.crit = mc,
                       elas = T,
                       ub = rep(0, K),
-                      lb = rep(min(IVs)/min(constr), K)
+                      lb = 10*rep(min(IVs)/min(constr), K)
       )
       # F2a2 Results extraction
       down <- res0$objective
@@ -313,12 +313,14 @@ while (!done) {
                       min.crit = mc,
                       elas = T,
                       ub = rep(0, K),
-                      lb = rep(min(IVs)/min(constr), K)
+                      lb = 10*rep(min(IVs)/min(constr), K)
       )
       # F2b2 Results extraction
       up <- -res0$objective
       s2 <- res0$status
       it2 <- res0$iterations
+      
+      if (new) print(paste0("For state ", state, ", res is [", down,", ", up, "]"))
       
       ## F2c Export
       rbind(data.table(est = "LB", value = down, state, L=D , K, sigma = sig, theta, s = s1, it = it1 + maxit*(attempt-1)),
