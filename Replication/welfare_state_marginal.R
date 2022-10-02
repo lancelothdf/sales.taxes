@@ -96,7 +96,7 @@ L.test <- c(1, 2)
 states.test <- unique(data$fips_state)
 
 ## 6. Set up Optimization Parameters (algorithm for now)
-maxit <- 8000
+maxit <- 7000
 nlo.opts.local.df <- list(
   "algorithm"="NLOPT_LN_COBYLA",
   "maxeval" = maxit,
@@ -255,6 +255,15 @@ while (!done) {
     
     ## D4. Reinitialize initial values (same for max and min)
     init.val0 <- get.init.val(constr, IVs, mc) 
+    
+    if (new) {
+      
+      print("Constraint is")
+      print(constr)
+      print("=")
+      print(IVs)
+      print(paste0("With min criterion = ", mc))
+    }
     
     ## F Loop across states
     welfare.st <- foreach (state= states.case, .combine=rbind) %dopar% {
