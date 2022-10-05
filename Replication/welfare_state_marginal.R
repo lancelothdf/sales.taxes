@@ -235,8 +235,8 @@ while (!done) {
     gamma.full.data <- fread(in.file)
   
     ## C.1 Extract support to use
-    p.min <- res.pq[extrap == "Original" & sigma == sig][["min.p"]]
-    p.max <- res.pq[extrap == "Original" & sigma == sig][["max.p"]]
+    p.min <- res.pq[extrap == "Original" & sigma == sig & iter == rep][["min.p"]]
+    p.max <- res.pq[extrap == "Original" & sigma == sig & iter == rep][["max.p"]]
     
     ## C.2 Restrict gamma file. Constant across p
     gamma <- gamma.full.data[extrap == "Original" & n.groups <= max(L.test) & sigma == sig & iter == rep][, c(paste0("b", 0:(K-1)), "n.groups"), with = F]             ## For elasticity
@@ -247,9 +247,6 @@ while (!done) {
     ## D2. Retrieve IVs
     IVs <- res.ivs[n.groups == D  & sigma == sig & iter == rep][["Estimate"]] 
     
-    ## D3. Load min.criterion for case
-    mc <- min.criteria[Deg == K & L == D & sigma == sig & extrap == "Original" & iter == rep,][["min.criteria"]]
-      
     ## D3. Load min.criterion for case
     mc <- min.criteria[Deg == K & L == D & sigma == sig & extrap == "Original" & iter == rep,]
     mc <- mc[["min.criteria"]]
