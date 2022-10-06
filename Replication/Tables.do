@@ -127,7 +127,7 @@ varlabels fragment
 
 ** Table 3: Reduced-form evidence of the effect of sales taxes on consumer price. **
 {
-
+*** Main version: using 2-years
 * Create output matrix
 mat drop _all
 matrix table = J(3,10,.)
@@ -198,12 +198,156 @@ rtitle("On-Impact" \ "" \ "6 months" \ "" \ "2 years") ///
 addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "", "", "" \ "" \"Div $\times$ Mod $\times$ Time" , "", "X", "X", "X", "X" \ "" \"Lagged Econ (1-2)" , "", "", "X", "", "" \ "" \"Lagged Econ (1-3)" , "", "", "", "X", "" \ "" \"Lagged Econ (1-4)" , "", "", "", "", "X" \ "" \"Adj. Rsq", "`r2_1'", "`r2_3'", "`r2_5'", "`r2_7'", "`r2_9'")
 
 
+
+*** Version 2: using 1-year
+* Create output matrix
+mat drop _all
+matrix table = J(3,10,.)
+matrix stars = J(3,10,0)
+* Import Results File (no controls)
+import delimited "$inputs/LRdiff_semesterly_main.csv", clear
+
+* Keep interest outcome
+keep if outcome == "D.ln_cpricei2" & sample == "all"
+
+* Capture values. Columns 1 and 2
+local c = 1
+foreach control in region_by_module_by_time division_by_module_by_time {
+	
+	local r = 0
+	foreach est in cumul.lag0.D.ln_sales_tax cumul.lag1.D.ln_sales_tax cumul.lag2.D.ln_sales_tax {
+	
+		local ++r
+		qui sum estimate if rn == "`est'" & controls == "`control'" 
+		matrix table[`r',`c'] = r(mean)
+		qui sum clusterse if rn == "`est'" & controls == "`control'" 
+		matrix table[`r',`c'+1] = r(mean)
+		
+		qui sum prt if rn == "`est'" & controls == "`control'" 
+		local pval = r(mean)
+		matrix stars[`r',`c'] = (`pval'  <= 0.1 ) + (`pval'  <= 0.05 ) + (`pval'  <= 0.01 )
+		
+	}
+	qui sum adjrsq if controls == "`control'"
+	local r2_`c' = round(r(mean), 0.001)
+	local c = `c' + 2
+
+}
+* 
+import delimited "$inputs/LRdiff_semesterly_w_econ.csv", clear
+
+* Keep interest outcome
+keep if outcome == "D.ln_cpricei2" & sample == "all"
+
+* Capture values. Columns 3, 4 and 5
+forvalues e=2/4 {
+
+	local r = 0
+	foreach est in cumul.lag0.D.ln_sales_tax cumul.lag1.D.ln_sales_tax cumul.lag2.D.ln_sales_tax {
+	
+		local ++r
+		qui sum estimate if rn == "`est'" & controls == "division_by_module_by_time" & econ == `e'
+		matrix table[`r',`c'] = r(mean)
+		qui sum clusterse if rn == "`est'" & controls == "division_by_module_by_time" & econ == `e'
+		matrix table[`r',`c'+1] = r(mean)
+		
+		qui sum prt if rn == "`est'" & controls == "division_by_module_by_time" & econ == `e'
+		local pval = r(mean)
+		matrix stars[`r',`c'] = (`pval'  <= 0.1 ) + (`pval'  <= 0.05 ) + (`pval'  <= 0.01 )
+		
+	}
+	qui sum adjrsq if controls == "division_by_module_by_time" & econ == `e'	
+	local r2_`c' = round(r(mean), 0.001)
+	local c = `c' + 2
+
+} 
+
+
+* Export LaTex table
+frmttable using  "$outputfolder/Passthrough_2", replace tex statmat(table) sub(1) sdec(3) ann(stars) asymbol(*, **, ***) ///
+ctitle("", "(1)", "(2)", "(3)", "(4)", "(5)") coljust(lccccc) hlines(11000001{0}1) fragment ///
+rtitle("On-Impact" \ "" \ "6 months" \ "" \ "1 year") ///
+addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "", "", "" \ "" \"Div $\times$ Mod $\times$ Time" , "", "X", "X", "X", "X" \ "" \"Lagged Econ (1-2)" , "", "", "X", "", "" \ "" \"Lagged Econ (1-3)" , "", "", "", "X", "" \ "" \"Lagged Econ (1-4)" , "", "", "", "", "X" \ "" \"Adj. Rsq", "`r2_1'", "`r2_3'", "`r2_5'", "`r2_7'", "`r2_9'")
+
+
+
+*** Version 2: using 18 months
+* Create output matrix
+mat drop _all
+matrix table = J(3,10,.)
+matrix stars = J(3,10,0)
+* Import Results File (no controls)
+import delimited "$inputs/LRdiff_semesterly_main.csv", clear
+
+* Keep interest outcome
+keep if outcome == "D.ln_cpricei2" & sample == "all"
+
+* Capture values. Columns 1 and 2
+local c = 1
+foreach control in region_by_module_by_time division_by_module_by_time {
+	
+	local r = 0
+	foreach est in cumul.lag0.D.ln_sales_tax cumul.lag1.D.ln_sales_tax cumul.lag3.D.ln_sales_tax {
+	
+		local ++r
+		qui sum estimate if rn == "`est'" & controls == "`control'" 
+		matrix table[`r',`c'] = r(mean)
+		qui sum clusterse if rn == "`est'" & controls == "`control'" 
+		matrix table[`r',`c'+1] = r(mean)
+		
+		qui sum prt if rn == "`est'" & controls == "`control'" 
+		local pval = r(mean)
+		matrix stars[`r',`c'] = (`pval'  <= 0.1 ) + (`pval'  <= 0.05 ) + (`pval'  <= 0.01 )
+		
+	}
+	qui sum adjrsq if controls == "`control'"
+	local r2_`c' = round(r(mean), 0.001)
+	local c = `c' + 2
+
+}
+* 
+import delimited "$inputs/LRdiff_semesterly_w_econ.csv", clear
+
+* Keep interest outcome
+keep if outcome == "D.ln_cpricei2" & sample == "all"
+
+* Capture values. Columns 3, 4 and 5
+forvalues e=2/4 {
+
+	local r = 0
+	foreach est in cumul.lag0.D.ln_sales_tax cumul.lag1.D.ln_sales_tax cumul.lag3.D.ln_sales_tax {
+	
+		local ++r
+		qui sum estimate if rn == "`est'" & controls == "division_by_module_by_time" & econ == `e'
+		matrix table[`r',`c'] = r(mean)
+		qui sum clusterse if rn == "`est'" & controls == "division_by_module_by_time" & econ == `e'
+		matrix table[`r',`c'+1] = r(mean)
+		
+		qui sum prt if rn == "`est'" & controls == "division_by_module_by_time" & econ == `e'
+		local pval = r(mean)
+		matrix stars[`r',`c'] = (`pval'  <= 0.1 ) + (`pval'  <= 0.05 ) + (`pval'  <= 0.01 )
+		
+	}
+	qui sum adjrsq if controls == "division_by_module_by_time" & econ == `e'	
+	local r2_`c' = round(r(mean), 0.001)
+	local c = `c' + 2
+
+} 
+
+
+* Export LaTex table
+frmttable using  "$outputfolder/Passthrough_3", replace tex statmat(table) sub(1) sdec(3) ann(stars) asymbol(*, **, ***) ///
+ctitle("", "(1)", "(2)", "(3)", "(4)", "(5)") coljust(lccccc) hlines(11000001{0}1) fragment ///
+rtitle("On-Impact" \ "" \ "6 months" \ "" \ "18 months") ///
+addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "", "", "" \ "" \"Div $\times$ Mod $\times$ Time" , "", "X", "X", "X", "X" \ "" \"Lagged Econ (1-2)" , "", "", "X", "", "" \ "" \"Lagged Econ (1-3)" , "", "", "", "X", "" \ "" \"Lagged Econ (1-4)" , "", "", "", "", "X" \ "" \"Adj. Rsq", "`r2_1'", "`r2_3'", "`r2_5'", "`r2_7'", "`r2_9'")
+
+
 }
 
 
 ** Table 4: Reduced-form evidence of the effect of sales taxes on quantity. **
 {
-
+** Main version: using 2 -years
 * Create output matrix
 mat drop _all
 matrix table = J(3,10,.)
@@ -275,6 +419,152 @@ ctitle("", "(1)", "(2)", "(3)", "(4)", "(5)") coljust(lccccc) hlines(11000001{0}
 rtitle("On-Impact" \ "" \ "6 months" \ "" \ "2 years") ///
 addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "", "", "" \ "" \"Div $\times$ Mod $\times$ Time" , "", "X", "X", "X", "X" \ "" \"Lagged Econ (1-2)" , "", "", "X", "", "" \ "" \"Lagged Econ (1-3)" , "", "", "", "X", "" \ "" \"Lagged Econ (1-4)" , "", "", "", "", "X" \ "" \"Adj. Rsq", "`r2_1'", "`r2_3'", "`r2_5'", "`r2_7'", "`r2_9'")
 
+
+** Version 2: using 1 -year
+* Create output matrix
+mat drop _all
+matrix table = J(3,10,.)
+matrix stars = J(3,10,0)
+* Import Results File (no controls)
+import delimited "$inputs/LRdiff_semesterly_main.csv", clear
+
+* Keep interest outcome
+keep if outcome == "D.ln_quantity3" & sample == "all"
+
+
+* Capture values. Columns 1 and 2
+local c = 1
+foreach control in region_by_module_by_time division_by_module_by_time {
+	
+	local r = 0
+	foreach est in cumul.lag0.D.ln_sales_tax cumul.lag1.D.ln_sales_tax cumul.lag2.D.ln_sales_tax {
+	
+		local ++r
+		qui sum estimate if rn == "`est'" & controls == "`control'" 
+		matrix table[`r',`c'] = r(mean)
+		qui sum clusterse if rn == "`est'" & controls == "`control'"
+		matrix table[`r',`c'+1] = r(mean)
+		
+		qui sum prt if rn == "`est'" & controls == "`control'"
+		local pval = r(mean)
+		matrix stars[`r',`c'] = (`pval'  <= 0.1 ) + (`pval'  <= 0.05 ) + (`pval'  <= 0.01 )
+		
+	}
+	qui sum adjrsq if controls == "`control'" 
+	local r2_`c' = round(r(mean), 0.001)
+	local c = `c' + 2
+
+}
+
+* Import Results File. 
+import delimited "$inputs/LRdiff_semesterly_w_econ.csv", clear
+
+* Keep interest outcome
+keep if outcome == "D.ln_quantity3"  & sample == "all"
+
+* Capture values. Columns 3, 4 and 5
+forvalues e=2/4 {
+
+	local r = 0
+	foreach est in cumul.lag0.D.ln_sales_tax cumul.lag1.D.ln_sales_tax cumul.lag2.D.ln_sales_tax {
+	
+		local ++r
+		qui sum estimate if rn == "`est'" & controls == "division_by_module_by_time" & econ == `e'
+		matrix table[`r',`c'] = r(mean)
+		qui sum clusterse if rn == "`est'" & controls == "division_by_module_by_time" & econ == `e'
+		matrix table[`r',`c'+1] = r(mean)
+		
+		qui sum prt if rn == "`est'" & controls == "division_by_module_by_time" & econ == `e'
+		local pval = r(mean)
+		matrix stars[`r',`c'] = (`pval'  <= 0.1 ) + (`pval'  <= 0.05 ) + (`pval'  <= 0.01 )
+		
+	}
+	qui sum adjrsq if controls == "division_by_module_by_time" & econ == `e'
+	local r2_`c' = round(r(mean), 0.001)
+	local c = `c' + 2
+
+} 
+
+
+* Export LaTex table
+frmttable using  "$outputfolder/Quantity_2", replace tex statmat(table) sub(1) sdec(3) ann(stars) asymbol(*, **, ***) ///
+ctitle("", "(1)", "(2)", "(3)", "(4)", "(5)") coljust(lccccc) hlines(11000001{0}1) fragment ///
+rtitle("On-Impact" \ "" \ "6 months" \ "" \ "1 year") ///
+addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "", "", "" \ "" \"Div $\times$ Mod $\times$ Time" , "", "X", "X", "X", "X" \ "" \"Lagged Econ (1-2)" , "", "", "X", "", "" \ "" \"Lagged Econ (1-3)" , "", "", "", "X", "" \ "" \"Lagged Econ (1-4)" , "", "", "", "", "X" \ "" \"Adj. Rsq", "`r2_1'", "`r2_3'", "`r2_5'", "`r2_7'", "`r2_9'")
+
+
+
+** Version 2: using 18-months
+* Create output matrix
+mat drop _all
+matrix table = J(3,10,.)
+matrix stars = J(3,10,0)
+* Import Results File (no controls)
+import delimited "$inputs/LRdiff_semesterly_main.csv", clear
+
+* Keep interest outcome
+keep if outcome == "D.ln_quantity3" & sample == "all"
+
+
+* Capture values. Columns 1 and 2
+local c = 1
+foreach control in region_by_module_by_time division_by_module_by_time {
+	
+	local r = 0
+	foreach est in cumul.lag0.D.ln_sales_tax cumul.lag1.D.ln_sales_tax cumul.lag3.D.ln_sales_tax {
+	
+		local ++r
+		qui sum estimate if rn == "`est'" & controls == "`control'" 
+		matrix table[`r',`c'] = r(mean)
+		qui sum clusterse if rn == "`est'" & controls == "`control'"
+		matrix table[`r',`c'+1] = r(mean)
+		
+		qui sum prt if rn == "`est'" & controls == "`control'"
+		local pval = r(mean)
+		matrix stars[`r',`c'] = (`pval'  <= 0.1 ) + (`pval'  <= 0.05 ) + (`pval'  <= 0.01 )
+		
+	}
+	qui sum adjrsq if controls == "`control'" 
+	local r2_`c' = round(r(mean), 0.001)
+	local c = `c' + 2
+
+}
+
+* Import Results File. 
+import delimited "$inputs/LRdiff_semesterly_w_econ.csv", clear
+
+* Keep interest outcome
+keep if outcome == "D.ln_quantity3"  & sample == "all"
+
+* Capture values. Columns 3, 4 and 5
+forvalues e=2/4 {
+
+	local r = 0
+	foreach est in cumul.lag0.D.ln_sales_tax cumul.lag1.D.ln_sales_tax cumul.lag3.D.ln_sales_tax {
+	
+		local ++r
+		qui sum estimate if rn == "`est'" & controls == "division_by_module_by_time" & econ == `e'
+		matrix table[`r',`c'] = r(mean)
+		qui sum clusterse if rn == "`est'" & controls == "division_by_module_by_time" & econ == `e'
+		matrix table[`r',`c'+1] = r(mean)
+		
+		qui sum prt if rn == "`est'" & controls == "division_by_module_by_time" & econ == `e'
+		local pval = r(mean)
+		matrix stars[`r',`c'] = (`pval'  <= 0.1 ) + (`pval'  <= 0.05 ) + (`pval'  <= 0.01 )
+		
+	}
+	qui sum adjrsq if controls == "division_by_module_by_time" & econ == `e'
+	local r2_`c' = round(r(mean), 0.001)
+	local c = `c' + 2
+
+} 
+
+
+* Export LaTex table
+frmttable using  "$outputfolder/Quantity_3", replace tex statmat(table) sub(1) sdec(3) ann(stars) asymbol(*, **, ***) ///
+ctitle("", "(1)", "(2)", "(3)", "(4)", "(5)") coljust(lccccc) hlines(11000001{0}1) fragment ///
+rtitle("On-Impact" \ "" \ "6 months" \ "" \ "18 months") ///
+addrows("Reg $\times$ Mod $\times$ Time" , "X", "", "", "", "" \ "" \"Div $\times$ Mod $\times$ Time" , "", "X", "X", "X", "X" \ "" \"Lagged Econ (1-2)" , "", "", "X", "", "" \ "" \"Lagged Econ (1-3)" , "", "", "", "X", "" \ "" \"Lagged Econ (1-4)" , "", "", "", "", "X" \ "" \"Adj. Rsq", "`r2_1'", "`r2_3'", "`r2_5'", "`r2_7'", "`r2_9'")
 
 
 }

@@ -786,6 +786,639 @@ rm(data.all)
 ##### Figure #: Extrapolation. Heterogeneity across states -------
 
 
+# Prepare tax and prices data to use for plots
+data.st <- fread("extraction_state_binned_tax.csv")
+data.st <- data.st[, .(tau = weighted.mean(tau, eta_m),
+                       p_m = weighted.mean(p_m, eta_m)),
+                   by = (fips_state)]
+
+# merge in state initials
+data.st <- merge(data.st, fread("fips_states.csv"), by = c("fips_state"))
+
+
+
+# Order staes
+# By price
+data.st[, state.ord := factor(p_m,
+                              levels = c(data.st$p_m[order(data.st$p_m)]),
+                              labels = c(data.st$state[order(data.st$p_m)]), 
+                              ordered = T)]
+
+# By tax
+data.st[, state.ord.t := factor(tau, 
+                                levels = c(data.st$tau[order(data.st$tau)]),
+                                labels = c(data.st$state[order(data.st$tau)]), 
+                                ordered = T)]
+
+
+
+
+### Marginal changes
+
+
+# Prepare MVPF results to plot them
+data.all <- fread("state_welfare_extrapolation_marginal.csv")
+
+# Drop duplicates that we may have left
+data.all <- data.all[!duplicated(data.all[, c('est', 'L', 'K', 'sigma', 'theta', 'state')]),]
+# dcast to have min and max
+data.all <- dcast(data.all, state + theta + sigma + K + L ~ est, value.var = 'value')
+
+
+# Merge state attributes
+setnames(data.all, "state", "fips_state")
+data.all <- merge(data.all, data.st, by = c("fips_state"))
+
+
+
+# Order states
+# By price
+data.all[, state.ord := factor(p_m, 
+                               levels = c(data.st$p_m[order(data.st$p_m)]),
+                               labels = c(data.st$state[order(data.st$p_m)]), 
+                               ordered = T)]
+# By tax
+data.all[, state.ord.t := factor(tau, 
+                                 levels = c(data.st$tau[order(data.st$tau)]),
+                                 labels = c(data.st$state[order(data.st$tau)]), 
+                                 ordered = T)]
+### sigma = 1, theta = 0 case
+
+# Plot, ordering by price 
+ggplot(data = NULL, aes(x = state.ord)) +
+  geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+ggsave("figsandtabs/F7_mvpf_state_marg_sigma1_theta0_byp.png",
+       height = 120, width = 200, units = "mm")  
+
+
+# Plot, ordering by tax
+ggplot(data = NULL, aes(x = state.ord.t)) +
+  geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+
+ggsave("figsandtabs/F7_mvpf_state_marg_sigma1_theta0_byt.png",
+       height = 120, width = 200, units = "mm")  
+
+
+
+
+### sigma = 0.5, theta = 0 case
+
+# Plot, ordering by price 
+ggplot(data = NULL, aes(x = state.ord)) +
+  geom_linerange(data = data.all[K==8 & sigma==0.5 & theta == 0],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+ggsave("figsandtabs/F7_mvpf_state_marg_sigma05_theta0_byp.png",
+       height = 120, width = 200, units = "mm")  
+
+
+# Plot, ordering by tax
+ggplot(data = NULL, aes(x = state.ord.t)) +
+  geom_linerange(data = data.all[K==8 & sigma==0.5 & theta == 0],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+
+ggsave("figsandtabs/F7_mvpf_state_marg_sigma05_theta0_byt.png",
+       height = 120, width = 200, units = "mm")  
+
+
+### sigma = 1, theta = 0 case
+
+# Plot, ordering by price 
+ggplot(data = NULL, aes(x = state.ord)) +
+  geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0.067569],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+ggsave("figsandtabs/F7_mvpf_state_marg_sigma1_thetanon0_byp.png",
+       height = 120, width = 200, units = "mm")  
+
+
+# Plot, ordering by tax
+ggplot(data = NULL, aes(x = state.ord.t)) +
+  geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0.067569],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+
+ggsave("figsandtabs/F7_mvpf_state_marg_sigma1_thetanon0_byt.png",
+       height = 120, width = 200, units = "mm")  
+
+
+
+
+
+
+### Non-Marginal changes
+
+
+# Prepare MVPF results to plot them
+data.all <- fread("state_welfare_extrapolation_nonmarginal.csv")
+
+# Drop duplicates that we may have left
+data.all <- data.all[!duplicated(data.all[, c('est', 'L', 'K', 'sigma', 'theta', 'state')]),]
+# dcast to have min and max
+data.all <- dcast(data.all, state + theta + sigma + K + L + sc ~ est, value.var = 'value')
+
+
+# Merge state attributes
+setnames(data.all, "state", "fips_state")
+data.all <- merge(data.all, data.st, by = c("fips_state"))
+
+
+
+# Order states
+# By price
+data.all[, state.ord := factor(p_m, 
+                               levels = c(data.st$p_m[order(data.st$p_m)]),
+                               labels = c(data.st$state[order(data.st$p_m)]), 
+                               ordered = T)]
+# By tax
+data.all[, state.ord.t := factor(tau, 
+                                 levels = c(data.st$tau[order(data.st$tau)]),
+                                 labels = c(data.st$state[order(data.st$tau)]), 
+                                 ordered = T)]
+
+
+#### No tax
+
+### sigma = 1, theta = 0 case
+
+# Plot, ordering by price 
+ggplot(data = NULL, aes(x = state.ord)) +
+  geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0 & sc == "No Tax"],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+ggsave("figsandtabs/F7_mvpf_state_nonmarg0_sigma1_theta0_byp.png",
+       height = 120, width = 200, units = "mm")  
+
+
+# Plot, ordering by tax
+ggplot(data = NULL, aes(x = state.ord.t)) +
+  geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0  & sc == "No Tax"],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+
+ggsave("figsandtabs/F7_mvpf_state_nonmarg0_sigma1_theta0_byt.png",
+       height = 120, width = 200, units = "mm")  
+
+
+
+
+### sigma = 0.5, theta = 0 case
+
+# Plot, ordering by price 
+ggplot(data = NULL, aes(x = state.ord)) +
+  geom_linerange(data = data.all[K==8 & sigma==0.5 & theta == 0  & sc == "No Tax"],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+ggsave("figsandtabs/F7_mvpf_state_nonmarg0_sigma05_theta0_byp.png",
+       height = 120, width = 200, units = "mm")  
+
+
+# Plot, ordering by tax
+ggplot(data = NULL, aes(x = state.ord.t)) +
+  geom_linerange(data = data.all[K==8 & sigma==0.5 & theta == 0 & sc == "No Tax"],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+
+ggsave("figsandtabs/F7_mvpf_state_nonmarg0_sigma05_theta0_byt.png",
+       height = 120, width = 200, units = "mm")  
+
+
+### sigma = 1, theta = 0 case
+
+# Plot, ordering by price 
+ggplot(data = NULL, aes(x = state.ord)) +
+  geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0.067569 & sc == "No Tax"],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+ggsave("figsandtabs/F7_mvpf_state_nonmarg0_sigma1_thetanon0_byp.png",
+       height = 120, width = 200, units = "mm")  
+
+
+# Plot, ordering by tax
+ggplot(data = NULL, aes(x = state.ord.t)) +
+  geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0.067569 & sc == "No Tax"],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+
+ggsave("figsandtabs/F7_mvpf_state_nonmarg0_sigma1_thetanon0_byt.png",
+       height = 120, width = 200, units = "mm")  
+
+
+#### Plus 5 tax
+
+### sigma = 1, theta = 0 case
+
+# Plot, ordering by price 
+ggplot(data = NULL, aes(x = state.ord)) +
+  geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0 & sc == "plus 5 Tax"],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+ggsave("figsandtabs/F7_mvpf_state_nonmarg5_sigma1_theta0_byp.png",
+       height = 120, width = 200, units = "mm")  
+
+
+# Plot, ordering by tax
+ggplot(data = NULL, aes(x = state.ord.t)) +
+  geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0 & sc == "plus 5 Tax"],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+
+ggsave("figsandtabs/F7_mvpf_state_nonmarg5_sigma1_theta0_byt.png",
+       height = 120, width = 200, units = "mm")  
+
+
+
+
+### sigma = 0.5, theta = 0 case
+
+# Plot, ordering by price 
+ggplot(data = NULL, aes(x = state.ord)) +
+  geom_linerange(data = data.all[K==8 & sigma==0.5 & theta == 0 & sc == "plus 5 Tax"],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+ggsave("figsandtabs/F7_mvpf_state_nonmarg5_sigma05_theta0_byp.png",
+       height = 120, width = 200, units = "mm")  
+
+
+# Plot, ordering by tax
+ggplot(data = NULL, aes(x = state.ord.t)) +
+  geom_linerange(data = data.all[K==8 & sigma==0.5 & theta == 0 & sc == "plus 5 Tax"],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+
+ggsave("figsandtabs/F7_mvpf_state_nonmarg5_sigma05_theta0_byt.png",
+       height = 120, width = 200, units = "mm")  
+
+
+### sigma = 1, theta = 0 case
+
+# Plot, ordering by price 
+ggplot(data = NULL, aes(x = state.ord)) +
+  geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0.067569 & sc == "plus 5 Tax"],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+ggsave("figsandtabs/F7_mvpf_state_nonmarg5_sigma1_thetanon0_byp.png",
+       height = 120, width = 200, units = "mm")  
+
+
+# Plot, ordering by tax
+ggplot(data = NULL, aes(x = state.ord.t)) +
+  geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0.067569 & sc == "plus 5 Tax"],
+                 aes(ymin = LB, ymax = UB, color = factor(L)), 
+                 position = position_dodge(width = 0.5), size = 1.5) +
+  geom_point(data = data.st, aes(y = 1 + tau)) +
+  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = 18) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "MVPF",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+  ) +
+  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  coord_cartesian(ylim = c(1,1.15)) + 
+  theme(legend.position = "bottom",
+        text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+
+ggsave("figsandtabs/F7_mvpf_state_nonmarg5_sigma1_thetanon0_byt.png",
+       height = 120, width = 200, units = "mm")  
+
+
+
 
 #################################### Simulation results, to be replicated ################################
 
