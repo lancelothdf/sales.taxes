@@ -858,7 +858,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average price"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
@@ -886,7 +886,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average tax"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
@@ -919,7 +919,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average price"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
@@ -947,7 +947,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average tax"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
@@ -978,7 +978,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average price"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
@@ -1006,7 +1006,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average tax"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
@@ -1074,7 +1074,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average price"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
@@ -1102,7 +1102,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average tax"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
@@ -1135,7 +1135,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average price"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
@@ -1163,7 +1163,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average tax"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
@@ -1194,7 +1194,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average price"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
@@ -1222,7 +1222,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average tax"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
@@ -1255,7 +1255,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average price"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
@@ -1283,7 +1283,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average tax"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
@@ -1316,7 +1316,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average price"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
@@ -1344,7 +1344,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average tax"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
@@ -1375,7 +1375,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $p_{it}^c)$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average price"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
@@ -1403,7 +1403,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $\\tau_{it})$"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States (ordered by average tax"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
