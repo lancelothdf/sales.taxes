@@ -446,7 +446,7 @@ data[, ul90 := demand + 1.645 * s.e.dmd]
 
 gg <- ggplot(data = data, aes(x = p, y = demand)) +
   geom_line() +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = fontsize) +
   geom_ribbon(data = data, aes(ymax = ul, ymin = ll), alpha = 0.2) +
   geom_ribbon(data = data, aes(ymax = ul90, ymin = ll90), alpha = 0.4) +
   scale_y_continuous(limits = c(7.5, 8), breaks = seq(7.5, 8, 0.1), labels = scales::number_format(accuracy = 0.1)) +
@@ -475,7 +475,7 @@ gg <- ggplot(data = data, aes(x = p, y = elasticity)) +
   geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
   geom_ribbon(data = data, aes(ymax = ul, ymin = ll), alpha = 0.2) +
   geom_ribbon(data = data, aes(ymax = ul90, ymin = ll90), alpha = 0.4) +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = fontsize) +
   scale_x_continuous(limits = c(min.price, max.price), breaks = seq(min.price, max.price, 0.05), 
                      labels = scales::number_format(accuracy = 0.01)) +
   scale_y_continuous(limits = c(-2, 2), breaks = seq(-2, 2, 0.5), labels = scales::number_format(accuracy = 0.1)) +
@@ -541,7 +541,7 @@ for (dem in demographics) {
   ## Plot
   gg <- ggplot(data = data.plot, mapping = aes(x = price, y = elas, color = factor(m))) +
     geom_line(size = 1.1, alpha = .5) +
-    theme_bw(base_size = 18) +
+    theme_bw(base_size = fontsize) +
     scale_y_continuous(limits = c(-1.3, 0.5), breaks = round(seq(-1.2, 0.4, 0.4),2)) +
     scale_x_continuous(breaks = round(seq(-0.15, 0.15, 0.05),2)) +
     labs(x = "Price", y = "Elasticity", color = "M") +
@@ -851,7 +851,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
                  position = position_dodge(width = 0.5), size = 1.5) +
   geom_point(data = data.st, aes(y = 1 + tau)) +
   geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
@@ -878,7 +878,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
                  position = position_dodge(width = 0.5), size = 1.5) +
   geom_point(data = data.st, aes(y = 1 + tau)) +
   geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
@@ -910,7 +910,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
                  position = position_dodge(width = 0.5), size = 1.5) +
   geom_point(data = data.st, aes(y = 1 + tau)) +
   geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
@@ -937,7 +937,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
                  position = position_dodge(width = 0.5), size = 1.5) +
   geom_point(data = data.st, aes(y = 1 + tau)) +
   geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
@@ -967,7 +967,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
                  position = position_dodge(width = 0.5), size = 1.5) +
   geom_point(data = data.st, aes(y = 1 + tau)) +
   geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
@@ -994,7 +994,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
                  position = position_dodge(width = 0.5), size = 1.5) +
   geom_point(data = data.st, aes(y = 1 + tau)) +
   geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
@@ -1059,16 +1059,16 @@ ggplot(data = NULL, aes(x = state.ord)) +
   geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0 & sc == "No Tax"],
                  aes(ymin = LB, ymax = UB, color = factor(L)), 
                  position = position_dodge(width = 0.5), size = 1.5) +
-  geom_point(data = data.st, aes(y = 1 + tau)) +
-  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  geom_point(data = data.st, aes(y = 0.7*(1.5 + p_m))) +
+  geom_text(data = data.st, aes(y = 0.7*(1.5 + p_m), label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
     # Add a second axis and specify its features
-    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+    sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
-  labs(x = TeX("States (ordered by average $p_{it}^c$)"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
@@ -1088,7 +1088,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
                  position = position_dodge(width = 0.5), size = 1.5) +
   geom_point(data = data.st, aes(y = 1 + tau)) +
   geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
@@ -1118,16 +1118,16 @@ ggplot(data = NULL, aes(x = state.ord)) +
   geom_linerange(data = data.all[K==8 & sigma==0.5 & theta == 0  & sc == "No Tax"],
                  aes(ymin = LB, ymax = UB, color = factor(L)), 
                  position = position_dodge(width = 0.5), size = 1.5) +
-  geom_point(data = data.st, aes(y = 1 + tau)) +
-  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  geom_point(data = data.st, aes(y = 0.7*(1.5 + p_m))) +
+  geom_text(data = data.st, aes(y = 0.7*(1.5 + p_m), label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
     # Add a second axis and specify its features
-    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+    sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
-  labs(x = TeX("States (ordered by average $p_{it}^c$)"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
@@ -1147,7 +1147,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
                  position = position_dodge(width = 0.5), size = 1.5) +
   geom_point(data = data.st, aes(y = 1 + tau)) +
   geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
@@ -1163,7 +1163,6 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
-
 ggsave("figsandtabs/F7_mvpf_state_nonmarg0_sigma05_theta0_byt.png",
        height = 120, width = 200, units = "mm")  
 
@@ -1175,16 +1174,16 @@ ggplot(data = NULL, aes(x = state.ord)) +
   geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0.067569 & sc == "No Tax"],
                  aes(ymin = LB, ymax = UB, color = factor(L)), 
                  position = position_dodge(width = 0.5), size = 1.5) +
-  geom_point(data = data.st, aes(y = 1 + tau)) +
-  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  geom_point(data = data.st, aes(y = 0.7*(1.5 + p_m))) +
+  geom_text(data = data.st, aes(y = 0.7*(1.5 + p_m), label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
     # Add a second axis and specify its features
-    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+    sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
-  labs(x = TeX("States (ordered by average $p_{it}^c$)"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
@@ -1204,7 +1203,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
                  position = position_dodge(width = 0.5), size = 1.5) +
   geom_point(data = data.st, aes(y = 1 + tau)) +
   geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
@@ -1220,7 +1219,6 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
-
 ggsave("figsandtabs/F7_mvpf_state_nonmarg0_sigma1_thetanon0_byt.png",
        height = 120, width = 200, units = "mm")  
 
@@ -1234,16 +1232,16 @@ ggplot(data = NULL, aes(x = state.ord)) +
   geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0 & sc == "plus 5 Tax"],
                  aes(ymin = LB, ymax = UB, color = factor(L)), 
                  position = position_dodge(width = 0.5), size = 1.5) +
-  geom_point(data = data.st, aes(y = 1 + tau)) +
-  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  geom_point(data = data.st, aes(y = 0.7*(1.5 + p_m))) +
+  geom_text(data = data.st, aes(y = 0.7*(1.5 + p_m), label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
     # Add a second axis and specify its features
-    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+    sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
-  labs(x = TeX("States (ordered by average $p_{it}^c$)"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
@@ -1263,7 +1261,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
                  position = position_dodge(width = 0.5), size = 1.5) +
   geom_point(data = data.st, aes(y = 1 + tau)) +
   geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
@@ -1293,16 +1291,16 @@ ggplot(data = NULL, aes(x = state.ord)) +
   geom_linerange(data = data.all[K==8 & sigma==0.5 & theta == 0 & sc == "plus 5 Tax"],
                  aes(ymin = LB, ymax = UB, color = factor(L)), 
                  position = position_dodge(width = 0.5), size = 1.5) +
-  geom_point(data = data.st, aes(y = 1 + tau)) +
-  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  geom_point(data = data.st, aes(y = 0.7*(1.5 + p_m))) +
+  geom_text(data = data.st, aes(y = 0.7*(1.5 + p_m), label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
     # Add a second axis and specify its features
-    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+    sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
-  labs(x = TeX("States (ordered by average $p_{it}^c$)"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
@@ -1322,7 +1320,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
                  position = position_dodge(width = 0.5), size = 1.5) +
   geom_point(data = data.st, aes(y = 1 + tau)) +
   geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
@@ -1352,7 +1350,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
                  position = position_dodge(width = 0.5), size = 1.5) +
   geom_point(data = data.st, aes(y = 1 + tau)) +
   geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
@@ -1368,25 +1366,25 @@ ggplot(data = NULL, aes(x = state.ord)) +
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
-ggsave("figsandtabs/F7_mvpf_state_nonmarg5_sigma1_thetanon0_byp.png",
+ggsave("figsandtabs/F7_mvpf_state_nonmarg5_sigma1_thetanon0_byt.png",
        height = 120, width = 200, units = "mm")  
 
 
 # Plot, ordering by tax
-ggplot(data = NULL, aes(x = state.ord.t)) +
+ggplot(data = NULL, aes(x = state.ord.p)) +
   geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0.067569 & sc == "plus 5 Tax"],
                  aes(ymin = LB, ymax = UB, color = factor(L)), 
                  position = position_dodge(width = 0.5), size = 1.5) +
-  geom_point(data = data.st, aes(y = 1 + tau)) +
-  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
-  theme_bw(base_size = 18) +
+  geom_point(data = data.st, aes(y = 0.7*(1.5 + p_m))) +
+  geom_text(data = data.st, aes(y = 0.7*(1.5 + p_m), label = state), vjust=-1, size = 2) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
     # Add a second axis and specify its features
-    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+    sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
-  labs(x = TeX("States (ordered by average $\\tau_{it}$)"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
@@ -1396,8 +1394,12 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
         axis.ticks.x = element_blank(),
         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 
-ggsave("figsandtabs/F7_mvpf_state_nonmarg5_sigma1_thetanon0_byt.png",
+ggsave("figsandtabs/F7_mvpf_state_nonmarg5_sigma1_thetanon0_byp.png",
        height = 120, width = 200, units = "mm")  
+
+
+
+
 
 
 
@@ -1439,7 +1441,7 @@ gg <- ggplot(data = res.sim, mapping = aes(x = beta_n, y = beta_hat)) +
   geom_errorbar(aes(ymax = beta_hat + 1.96 * beta_hat_se,
                     ymin = beta_hat - 1.96 * beta_hat_se),
                 width = .6) +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(limits = c(-20, 10), breaks = seq(-20, 10, 5)) +
   scale_x_continuous(breaks = seq(0, nrow(res.sim), 1), labels = TeX(paste0("$\\mu_", 0:nrow(res.sim), "$"))) +
   labs(x = "Parameter", y = "Estimate", color = NULL) +
@@ -1536,7 +1538,7 @@ gg <- ggplot(data = data.plot, aes(x = p)) +
   geom_line(aes(y = true.elas), color = "red") +
   geom_line(aes(y = est.elas)) +
   geom_ribbon(data = data.plot, aes(ymax = ul, ymin = ll), alpha = 0.3) +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(limits = c(-1.65, -1.25), breaks = seq(-1.65, -1.25, 0.1)) +
   scale_x_continuous(limits = c(0.01, 0.11), breaks = seq(0.01, 0.11, 0.02)) +
   labs(x = "Price", y = "Estimated Elasticity", color = NULL) +
@@ -1655,7 +1657,7 @@ for (d in 1:2) {
       geom_line(aes(y = m.elas.down + 1.96*s.elas.down), linetype="dashed") +
       geom_line(aes(y = m.elas.down - 1.96*s.elas.down), linetype="dashed") +
       geom_line(aes(y = elas.real), color = "red") +
-      theme_bw(base_size = 18) +
+      theme_bw(base_size = fontsize) +
       scale_x_continuous(limits = c(0.01, 0.11), breaks = seq(0.01, 0.11, 0.02), labels = scales::number_format(accuracy = 0.01)) +
       labs(x = "Log(price)", y = "Elasticity") +
       theme(panel.grid.major.x = element_blank(),

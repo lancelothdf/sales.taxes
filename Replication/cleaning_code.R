@@ -352,6 +352,8 @@ all_pi <- merge(all_pi, all_pi_cs, by = c("year", "semester", "fips_state", "fip
 names.rem <- c(paste0("w.ln_cpricei2_sig", seq(0.25, 1, 0.05)),
                paste0("dm.L.ln_cpricei2_sig", seq(0.25, 1, 0.05)))
 all_pi_econ <- all_pi_econ[, (names.rem):= NULL]
+all_pi_spill <- all_pi_spill[, (names.rem):= NULL]
+all_pi_spill_econ <- all_pi_spill_econ[, (names.rem):= NULL]
 
 
 ### Final binned data sets for welfare extrapolations
@@ -371,6 +373,7 @@ all_pi_t[, tau := round(ln_sales_tax, 3)]
 # collapse for every price x state on taxable goods 
 all_pi_t<- all_pi_t[ln_sales_tax > 0, .(p_m = weighted.mean(dm.ln_cpricei2, w = base.sales),
                                       eta_m = sum(base.sales)), by = .(fips_state, tau)]
+
 
 
 # Save Datasets
