@@ -7,13 +7,11 @@
 
 library(data.table)
 library(futile.logger)
-library(lfe)
 library(multcomp)
 library(ggplot2)
 library(boot)
-library(dplyr)
 library(gurobi)
-
+library(purrr)
 
 setwd("/project2/igaarder")
 
