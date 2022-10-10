@@ -1343,8 +1343,8 @@ ggsave("figsandtabs/F7_mvpf_state_nonmarg5_sigma05_theta0_byt.png",
 
 ### sigma = 1, theta = 0 case
 
-# Plot, ordering by price 
-ggplot(data = NULL, aes(x = state.ord)) +
+# Plot, ordering by tax 
+ggplot(data = NULL, aes(x = state.ord.t)) +
   geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0.067569 & sc == "plus 5 Tax"],
                  aes(ymin = LB, ymax = UB, color = factor(L)), 
                  position = position_dodge(width = 0.5), size = 1.5) +
@@ -1370,8 +1370,8 @@ ggsave("figsandtabs/F7_mvpf_state_nonmarg5_sigma1_thetanon0_byt.png",
        height = 120, width = 200, units = "mm")  
 
 
-# Plot, ordering by tax
-ggplot(data = NULL, aes(x = state.ord.p)) +
+# Plot, ordering by price
+ggplot(data = NULL, aes(x = state.ord)) +
   geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0.067569 & sc == "plus 5 Tax"],
                  aes(ymin = LB, ymax = UB, color = factor(L)), 
                  position = position_dodge(width = 0.5), size = 1.5) +
