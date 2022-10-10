@@ -331,7 +331,6 @@ data <- fread("Passthrough_nonlinear_sat_initial_price_semester_boot.csv")
 
 # Keep 5 quintiles case, div x module x time FE and 50 iters
 data <- data[n.groups == 5 & controls == "group_division_by_module_by_time"]
-print(nrow(data))
 # Change names to produce plot
 setnames(data, old = c("Estimate", "Std. Error"), new = c("estimate", "se"))
 
@@ -339,8 +338,8 @@ labels <- paste0("Q", unique(data[iter==0]$group))
 print(labels)
 
 # Capture bootstrapped s.e.s
-data.0 <- data[outcome == "w.ln_cpricei2" & iter == 0]
-data.boot <- data[outcome == "w.ln_cpricei2" & iter != 0]
+data.0 <- data[iter == 0]
+data.boot <- data[iter != 0]
 data.boot <- data.boot[, .(mean = mean(estimate), 
                           se = sd(estimate), 
                                ll90 = quantile(estimate, probs = 0.1),
