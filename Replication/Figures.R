@@ -327,16 +327,13 @@ rm(data, gg, step)
 
 ##### Figure #: Passthrough estimates in each of 5 quintiles of the distribution of lagged prices. ----
 # Open data
-data <- fread("Demand_iv_sat_initial_price_semester_boot_r.csv")
+data <- fread("Passthrough_nonlinear_sat_initial_price_semester_boot.csv")
 
 # Keep 5 quintiles case, div x module x time FE and 50 iters
 data <- data[n.groups == 5 & controls == "group_division_by_module_by_time"]
 print(nrow(data))
 # Change names to produce plot
 setnames(data, old = c("Estimate", "Std. Error"), new = c("estimate", "se"))
-data <- data[order(iter, lev)]
-print(nrow(data))
-data[, group := seq_len(.N), by =.(iter, outcome)]
 
 labels <- paste0("Q", unique(data[iter==0]$group))
 print(labels)
@@ -347,8 +344,8 @@ data.boot <- data[outcome == "w.ln_cpricei2" & iter != 0]
 data.boot <- data.boot[, .(mean = mean(estimate), 
                           se = sd(estimate), 
                                ll90 = quantile(estimate, probs = 0.1),
-                               ul90 = quantile(estimate, probs = 0.9)), by = .(group)]
-data <- merge(data.0[, -c("se")], data.boot, by = c("group"))
+                               ul90 = quantile(estimate, probs = 0.9)), by = .(group, initprice)]
+data <- merge(data.0[, -c("se")], data.boot, by = c("group", "initprice"))
 
 data <- data[, c("group", "estimate", "mean", "se", "ll90", "ul90")]
 data[, ll90.norm := estimate - 1.645*se]
@@ -356,7 +353,8 @@ data[, ul90.norm := estimate + 1.645*se]
 
 
 # Produce passthrough estimates plot
-ggplot(data = data, mapping = aes(x = group, y = estimate)) +
+# Consumer price
+ggplot(data = data[initprice == "dm.L.ln_cpricei2"], mapping = aes(x = group, y = estimate)) +
   geom_point(size = 2.2, alpha = .8) +
   geom_errorbar(aes(ymax = estimate + 1.645 * se,
                     ymin = estimate - 1.645 * se),
@@ -374,6 +372,28 @@ ggplot(data = data, mapping = aes(x = group, y = estimate)) +
         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("figsandtabs/F2_NonLinearpassthrough_main.png",
        height = 120, width = 200, units = "mm")
+
+# Producer price
+ggplot(data = data[initprice == "dm.L.ln_pricei2"], mapping = aes(x = group, y = estimate)) +
+  geom_point(size = 2.2, alpha = .8) +
+  geom_errorbar(aes(ymax = estimate + 1.645 * se,
+                    ymin = estimate - 1.645 * se),
+                width = .3) +
+  theme_bw(base_size = fontsize) +
+  scale_y_continuous(limits = c(0.55, 1.25), breaks = seq(0.55, 1.25, 0.1)) +
+  scale_x_continuous(limits = c(0.5, 5.5), breaks = seq(1, 5, 1), labels = labels) +
+  labs(x = "Initial Price Level", y = "Estimate") +
+  geom_hline(yintercept = 1, color = "red", linetype = "55", alpha = .8) +
+  theme(legend.position = "none",
+        #text = element_text(family = "Garamond"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+ggsave("figsandtabs/F2_NonLinearpassthrough_pp.png",
+       height = 120, width = 200, units = "mm")
+
+
 
 rm(data, data.0, data.boot, labels)
 
