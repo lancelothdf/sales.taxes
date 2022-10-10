@@ -346,7 +346,7 @@ data.boot <- data.boot[, .(mean = mean(estimate),
                                ul90 = quantile(estimate, probs = 0.9)), by = .(group, initprice)]
 data <- merge(data.0[, -c("se")], data.boot, by = c("group", "initprice"))
 
-data <- data[, c("group", "estimate", "mean", "se", "ll90", "ul90")]
+data <- data[, c("initprice", "group", "estimate", "mean", "se", "ll90", "ul90")]
 data[, ll90.norm := estimate - 1.645*se]
 data[, ul90.norm := estimate + 1.645*se]
 
