@@ -269,7 +269,7 @@ ggsave("figsandtabs/F2_Subsample_IVs_boot.png",
 
 # both FEs
 gg <- ggplot(data = data, 
-             mapping = aes(x = group, y = estimate, color =factor(control, 
+             mapping = aes(x = group, y = estimate, color =factor(controls, 
                                                                   levels = c("division_by_module_by_time", "region_by_module_by_time"),
                                                                   labels = c("Div FE", "Reg FE")))) +
   geom_point(size = 2.2, alpha = .8, position_dodge(width = 0.3)) +
