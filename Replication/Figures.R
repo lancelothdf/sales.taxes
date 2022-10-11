@@ -281,7 +281,7 @@ gg <- ggplot(data = data,
   scale_x_continuous(limits = c(0.5, 5.5), breaks = seq(1, 5, 1), labels = labels) +
   labs(x = "Initial Price Level Quantile", y = "IV Estimate") +
   geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
-  theme(legend.position = "none",
+  theme(legend.position = "bottom",
         text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
