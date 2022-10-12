@@ -255,7 +255,7 @@ gg <- ggplot(data = data[controls == "division_by_module_by_time"],
   theme_bw(base_size = fontsize) +
   scale_y_continuous(limits = c(-2, 1), breaks = seq(-2, 1, 0.5)) +
   scale_x_continuous(limits = c(0.5, 5.5), breaks = seq(1, 5, 1), labels = labels) +
-  labs(x = "Initial Price Level Quantile", y = "IV Estimate") +
+  labs(x = "Initial Price Level Quantile", y = "IV Estimate", color = NULL) +
   geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
   theme(legend.position = "none",
         text = element_text(family = "Garamond"),
@@ -954,16 +954,16 @@ ggplot(data = NULL, aes(x = state.ord)) +
   geom_linerange(data = data.all[K==8 & sigma==0.5 & theta == 0],
                  aes(ymin = LB, ymax = UB, color = factor(L)), 
                  position = position_dodge(width = 0.5), size = 1.5) +
-  geom_point(data = data.st, aes(y = 1 + tau)) +
-  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  geom_point(data = data.st, aes(y = 0.7*(1.5 + p_m))) +
+  geom_text(data = data.st, aes(y = 0.7*(1.5 + p_m), label = state), vjust=-1, size = 2) +
   theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
     # Add a second axis and specify its features
-    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+    sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
-  labs(x = TeX("States (ordered by average $p_{it}^c$)"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
@@ -990,7 +990,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $\\tau_{it}$)"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
@@ -1011,16 +1011,16 @@ ggplot(data = NULL, aes(x = state.ord)) +
   geom_linerange(data = data.all[K==8 & sigma==1 & theta == 0.067569],
                  aes(ymin = LB, ymax = UB, color = factor(L)), 
                  position = position_dodge(width = 0.5), size = 1.5) +
-  geom_point(data = data.st, aes(y = 1 + tau)) +
-  geom_text(data = data.st, aes(y = 1+tau, label = state), vjust=-1, size = 2) +
+  geom_point(data = data.st, aes(y = 0.7*(1.5 + p_m))) +
+  geom_text(data = data.st, aes(y = 0.7*(1.5 + p_m), label = state), vjust=-1, size = 2) +
   theme_bw(base_size = fontsize) +
   scale_y_continuous(
     # Features of the first axis
     name = "MVPF",
     # Add a second axis and specify its features
-    sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
+    sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
-  labs(x = TeX("States (ordered by average $p_{it}^c$)"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
@@ -1047,7 +1047,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     # Add a second axis and specify its features
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
-  labs(x = TeX("States (ordered by average $\\tau_{it}$)"), color = TeX("$L^d$") ) +
+  labs(x = TeX("States"), color = TeX("$L^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
