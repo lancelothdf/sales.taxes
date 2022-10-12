@@ -7,6 +7,7 @@
 
 library(data.table)
 library(futile.logger)
+library(lfe)
 library(multcomp)
 library(ggplot2)
 library(boot)
