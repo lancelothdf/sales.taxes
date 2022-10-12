@@ -272,10 +272,10 @@ gg <- ggplot(data = data,
              mapping = aes(x = group, y = estimate, color =factor(controls, 
                                                                   levels = c("division_by_module_by_time", "region_by_module_by_time"),
                                                                   labels = c("Div FE", "Reg FE")))) +
-  geom_point(size = 2.2, alpha = .8, position_dodge(width = 0.3)) +
+  geom_point(size = 2.2, alpha = .8, position = position_dodge(width = 0.3)) +
   geom_errorbar(mapping = aes(ymax = ul90.norm,
                               ymin = ll90.norm),
-                width = .3, position_dodge(width = 0.3)) +
+                width = .3, position = position_dodge(width = 0.3)) +
   theme_bw(base_size = fontsize) +
   scale_y_continuous(limits = c(-2, 1), breaks = seq(-2, 1, 0.5)) +
   scale_x_continuous(limits = c(0.5, 5.5), breaks = seq(1, 5, 1), labels = labels) +
