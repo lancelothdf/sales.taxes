@@ -710,53 +710,53 @@ max.price <- 0.15
 p <- seq(min.price, max.price, 0.005)
 
 ## Estimations across p
-  data.plot <- data.table(NULL)
-  for (sig in c(0.25, 0.5, 0.75, 1)) {
-    beta_hat <- data[controls == "division_by_module_by_time" & sigma == sig & n.groups == 2, ][["beta_hat"]]
+data.plot <- data.table(NULL)
+for (sig in c(0.25, 0.5, 0.75, 1)) {
+  beta_hat <- data[controls == "division_by_module_by_time" & sigma == sig & n.groups == 2, ][["beta_hat"]]
 
-    elasticity <- rep(0, length(p))
-    # Calculate Demand, Elas and s.e.s
-    for (i in 1:n.g) {
+  elasticity <- rep(0, length(p))
+  # Calculate Demand, Elas and s.e.s
+  for (i in 1:2) {
 
-      elasticity <- elasticity + i*beta_hat[i+1]*p^(i-1)
-    }
-    response <- elasticity*sig
-
-    # Save
-    data.plot <- rbind(data.plot, data.table(p, elasticity, response, sigma = sig))
+    elasticity <- elasticity + i*beta_hat[i+1]*p^(i-1)
   }
+  response <- elasticity*sig
 
-  # Elasticity
-  ggplot(data.plot, aes(x = p, y = elasticity, color = factor(sigma))) +
-    geom_line() +
-    geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
-    theme_bw(base_size = fontsize) +
-    scale_x_continuous(limits = c(min.price, max.price), breaks = seq(min.price, max.price, 0.05), labels = scales::number_format(accuracy = 0.01)) +
-    scale_y_continuous(limits = c(-3.5, 1.5), breaks = seq(-3.5, 1.5, 0.5), labels = scales::number_format(accuracy = 0.1)) +
-    labs(x = "Price", y = "Estimated Elasticity", color = TeX("$\\sigma$")) +
-    theme(legend.position = "bottom",
-          panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank(),
-          panel.grid.minor.y = element_blank(),
-          panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
-  ggsave("figsandtabs/F5a_Elasticity_bysigma_K2.png",
-         height = 120, width = 200, units = "mm")
+  # Save
+  data.plot <- rbind(data.plot, data.table(p, elasticity, response, sigma = sig))
+}
 
-  # Response
-  ggplot(data.plot, aes(x = p, y = response, color = factor(sigma))) +
-    geom_line() +
-    geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
-    theme_bw(base_size = fontsize) +
-    scale_x_continuous(limits = c(min.price, max.price), breaks = seq(min.price, max.price, 0.05), labels = scales::number_format(accuracy = 0.01)) +
-    scale_y_continuous(limits = c(-1, 0.75), breaks = seq(-1, 0.75, 0.25), labels = scales::number_format(accuracy = 0.01)) +
-    labs(x = "Price", y = "Estimated tax response", color = TeX("$\\sigma$")) +
-    theme(legend.position = "bottom",
-          panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank(),
-          panel.grid.minor.y = element_blank(),
-          panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
-  ggsave("figsandtabs/F5a_Response_bysigma_K2.png",
-         height = 120, width = 200, units = "mm")
+# Elasticity
+ggplot(data.plot, aes(x = p, y = elasticity, color = factor(sigma))) +
+  geom_line() +
+  geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
+  theme_bw(base_size = fontsize) +
+  scale_x_continuous(limits = c(min.price, max.price), breaks = seq(min.price, max.price, 0.05), labels = scales::number_format(accuracy = 0.01)) +
+  scale_y_continuous(limits = c(-3.5, 1.5), breaks = seq(-3.5, 1.5, 0.5), labels = scales::number_format(accuracy = 0.1)) +
+  labs(x = "Price", y = "Estimated Elasticity", color = TeX("$\\sigma$")) +
+  theme(legend.position = "bottom",
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+ggsave("figsandtabs/F5a_Elasticity_bysigma_K2.png",
+       height = 120, width = 200, units = "mm")
+
+# Response
+ggplot(data.plot, aes(x = p, y = response, color = factor(sigma))) +
+  geom_line() +
+  geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
+  theme_bw(base_size = fontsize) +
+  scale_x_continuous(limits = c(min.price, max.price), breaks = seq(min.price, max.price, 0.05), labels = scales::number_format(accuracy = 0.01)) +
+  scale_y_continuous(limits = c(-1, 0.75), breaks = seq(-1, 0.75, 0.25), labels = scales::number_format(accuracy = 0.01)) +
+  labs(x = "Price", y = "Estimated tax response", color = TeX("$\\sigma$")) +
+  theme(legend.position = "bottom",
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+ggsave("figsandtabs/F5a_Response_bysigma_K2.png",
+       height = 120, width = 200, units = "mm")
 
 
 
