@@ -1178,7 +1178,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.15)) + 
+  coord_cartesian(ylim = c(1,1.2)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1205,7 +1205,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.15)) + 
+  coord_cartesian(ylim = c(1,1.2)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1237,7 +1237,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.15)) + 
+  coord_cartesian(ylim = c(1,1.2)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1264,7 +1264,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.15)) + 
+  coord_cartesian(ylim = c(1,1.2)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1293,7 +1293,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.15)) + 
+  coord_cartesian(ylim = c(1,1.2)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1320,7 +1320,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.15)) + 
+  coord_cartesian(ylim = c(1,1.2)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1351,7 +1351,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.15)) + 
+  coord_cartesian(ylim = c(1,1.2)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1378,7 +1378,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.15)) + 
+  coord_cartesian(ylim = c(1,1.2)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1410,7 +1410,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.15)) + 
+  coord_cartesian(ylim = c(1,1.2)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1437,7 +1437,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.15)) + 
+  coord_cartesian(ylim = c(1,1.2)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1466,7 +1466,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.15)) + 
+  coord_cartesian(ylim = c(1,1.2)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1493,7 +1493,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.15)) + 
+  coord_cartesian(ylim = c(1,1.2)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1507,16 +1507,7 @@ ggsave("figsandtabs/F7_mvpf_state_nonmarg5_sigma1_thetanon0_byp.png",
 
 
 
-
-
-
-
-
-#################################### Simulation results, to be replicated ################################
-
-quit(save = "no")
-
-##### Figure 13: Simulation results - Parameters of the demand curve. ------
+##### Figure #: Simulation results - Parameters of the demand curve. ------
 
 # Parameters we aim to recover
 beta <- c(2, -1.5, 0.8, -0.3)
@@ -1541,9 +1532,6 @@ true.vals <- data.table(beta, x)
 
 
 # Plot Estimated Values
-
-outfile <- paste0("figsandtabs/F10_Simulation_Parameters.eps")
-
 gg <- ggplot(data = res.sim, mapping = aes(x = beta_n, y = beta_hat)) +
   geom_point(size = 2, alpha = .5) +
   geom_errorbar(aes(ymax = beta_hat + 1.96 * beta_hat_se,
@@ -1554,18 +1542,16 @@ gg <- ggplot(data = res.sim, mapping = aes(x = beta_n, y = beta_hat)) +
   scale_x_continuous(breaks = seq(0, nrow(res.sim), 1), labels = TeX(paste0("$\\mu_", 0:nrow(res.sim), "$"))) +
   labs(x = "Parameter", y = "Estimate", color = NULL) +
   theme(legend.position = "bottom",
-        text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5)) +
   geom_point(data = true.vals , aes(x = x, y = beta), size = 4, alpha = .5, color = "red")
-ggsave(outfile,
-       height = 120, width = 200, units = "mm", device=cairo_ps)
+ggsave("figsandtabs/SF10_Simulation_Parameters.png",
+       height = 120, width = 200, units = "mm")
 
 
-##### Figure 14: Simulation results - Estimated bounds on demand. ------
-
+##### Figure #: Simulation results - Estimated point identified demand and supply. ------
 
 # Parameters we aim to recover
 beta <- c(2, -1.5, 0.8, -0.3)
@@ -1638,9 +1624,6 @@ data.plot[, ll := est.elas - 1.96 * s.e.elas]
 data.plot[, ul := est.elas + 1.96 * s.e.elas]
 
 
-# Output path
-outfile <- paste0("figsandtabs/F10_Simulation_Elasticty.eps")
-
 # Plot Estimation
 gg <- ggplot(data = data.plot, aes(x = p)) + 
   geom_line(aes(y = true.elas), color = "red") +
@@ -1651,13 +1634,12 @@ gg <- ggplot(data = data.plot, aes(x = p)) +
   scale_x_continuous(limits = c(0.01, 0.11), breaks = seq(0.01, 0.11, 0.02)) +
   labs(x = "Price", y = "Estimated Elasticity", color = NULL) +
   theme(legend.position = "none",
-        text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
-ggsave(outfile,
-       height = 120, width = 200, units = "mm", device=cairo_ps)
+ggsave("figsandtabs/SF10_Simulation_Elasticty.png",
+       height = 120, width = 200, units = "mm")
 
 
 #### Demand
@@ -1686,10 +1668,6 @@ data.plot[, ll := est.dmd - 1.96 * s.e.dmd]
 data.plot[, ul := est.dmd + 1.96 * s.e.dmd]
 
 
-# Output path
-outfile <- paste0("figsandtabs/F10_Simulation_Demand.eps")
-
-
 # Plot Estimation
 gg <- ggplot(data = data.plot, aes(x = p)) +
   geom_line(aes(y = true.dmd), color = "red") +
@@ -1700,16 +1678,24 @@ gg <- ggplot(data = data.plot, aes(x = p)) +
   scale_x_continuous(limits = c(0.01, 0.11), breaks = seq(0.01, 0.11, 0.02)) +
   labs(x = "Price", y = "Estimated Demand", color = NULL) +
   theme(legend.position = "none",
-        text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 
-ggsave(outfile,
-       height = 120, width = 200, units = "mm", device=cairo_ps)
+ggsave("figsandtabs/SF10_Simulation_Demand.png",
+       height = 120, width = 200, units = "mm")
 
-##### Figure 15: Recovering bounds around the point elasticity of demand in a Monte-Carlo simulation. -------
+
+
+
+
+
+#################################### Simulation results, to be replicated ################################
+
+quit(save = "no")
+
+##### Figure #: Recovering bounds around the point elasticity of demand in a Monte-Carlo simulation. -------
 
 ### Open Data 
 boot.bounds <- fread("Simulation_bounds_table.csv")
@@ -1772,7 +1758,7 @@ for (d in 1:2) {
             panel.grid.minor.x = element_blank(),
             panel.grid.minor.y = element_blank(),
             panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
-    ggsave(paste0("Figures and Tables/Sim_Bounds_elas_L", d,"_K", k,".png"),
+    ggsave(paste0("figsandtabs/FS11_Bounds_elas_L", d,"_K", k,".png"),
            height = 140, width = 200, units = "mm")
     
   }
