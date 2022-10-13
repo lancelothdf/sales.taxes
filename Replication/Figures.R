@@ -1135,7 +1135,7 @@ ggsave("figsandtabs/F7_mvpf_state_marg_sigma1_thetanon0_byt.png",
 data.all <- fread("state_welfare_extrapolation_nonmarginal.csv")
 
 # Drop duplicates that we may have left
-data.all <- data.all[!duplicated(data.all[, c('est', 'L', 'K', 'sigma', 'theta', 'state')]),]
+data.all <- data.all[!duplicated(data.all[, c('est', 'L', 'K', 'sigma', 'theta', 'state', 'sc')]),]
 # dcast to have min and max
 data.all <- dcast(data.all, state + theta + sigma + K + L + sc ~ est, value.var = 'value')
 
