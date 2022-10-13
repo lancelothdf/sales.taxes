@@ -279,6 +279,7 @@ for (rep in 1:100) {
   
 }
 
+print(matKs)
 
 
 ## Partial identification Set-Up --------------------
@@ -392,8 +393,9 @@ for (rep in 1:100) {
         
         ## Get the minimum criterion estimated and modify the setting of the problem
         min.criteria <- min.crit.sol$objval
-        tuning <- min.criteria*(1 + tolerance)
+        min.criteria <- min.criteria*(1 + tolerance)
       }
+      else min.criteria <- 0
       
       ## A6. Start loop at a given price
       for (p in prices) {
@@ -422,7 +424,7 @@ for (rep in 1:100) {
         if (D > 1) {
           
           model$A <- rbind(constr, constr, constr.mono)                                  ## Constraints
-          model$rhs <- c(c(RHS + tuning), c(RHS - tuning), RHS.mono)                     ## RHS
+          model$rhs <- c(c(RHS + min.criteria), c(RHS - min.criteria), RHS.mono)         ## RHS
           model$sense <- c(rep('<=', length(RHS)), rep('>=', length(RHS)), rep('<=',K))  ## Equalities
           
         }
@@ -465,8 +467,8 @@ for (rep in 1:100) {
         if (D > 1) {
           
           model$A <- rbind(constr.dd, constr.dd, constr.mono.dd, constr.inter)                   ## Constraints
-          model$rhs <- c(c(RHS + tuning), c(RHS - tuning), RHS.mono, RHS.inter)               ## RHS
-          model$sense <- c(rep('<=', length(RHS)), rep('>=', length(RHS)), rep('<=',K), '=')  ## Equalities
+          model$rhs <- c(c(RHS + min.criteria), c(RHS - min.criteria), RHS.mono, RHS.inter)      ## RHS
+          model$sense <- c(rep('<=', length(RHS)), rep('>=', length(RHS)), rep('<=',K), '=')     ## Equalities
           
         }
         
