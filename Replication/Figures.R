@@ -1538,7 +1538,7 @@ gg <- ggplot(data = res.sim, mapping = aes(x = beta_n, y = beta_hat)) +
                     ymin = beta_hat - 1.96 * beta_hat_se),
                 width = .6) +
   theme_bw(base_size = fontsize) +
-  scale_y_continuous(limits = c(-20, 10), breaks = seq(-25, 15, 5)) +
+  scale_y_continuous(limits = c(-25, 15), breaks = seq(-25, 15, 5)) +
   scale_x_continuous(breaks = seq(0, nrow(res.sim), 1), labels = TeX(paste0("$\\mu_", 0:nrow(res.sim), "$"))) +
   labs(x = "Parameter", y = "Estimate", color = NULL) +
   theme(legend.position = "bottom",
@@ -1630,7 +1630,7 @@ gg <- ggplot(data = data.plot, aes(x = p)) +
   geom_line(aes(y = est.elas)) +
   geom_ribbon(data = data.plot, aes(ymax = ul, ymin = ll), alpha = 0.3) +
   theme_bw(base_size = fontsize) +
-  scale_y_continuous(limits = c(-1.85, -1.25), breaks = seq(-1.65, -1.25, 0.1)) +
+  scale_y_continuous(limits = c(-1.8, -1.25), breaks = seq(-1.8, -1.25, 0.1)) +
   scale_x_continuous(limits = c(0.01, 0.11), breaks = seq(0.01, 0.11, 0.02)) +
   labs(x = "Price", y = "Estimated Elasticity", color = NULL) +
   theme(legend.position = "none",
@@ -1751,7 +1751,7 @@ for (d in 1:2) {
             panel.grid.minor.x = element_blank(),
             panel.grid.minor.y = element_blank(),
             panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
-    ggsave(paste0("figsandtabs/FS11_Bounds_elas_L", d,"_K", k,".png"),
+    ggsave(paste0("figsandtabs/SF11_Bounds_elas_L", d,"_K", k,".png"),
            height = 140, width = 200, units = "mm")
     
   }
