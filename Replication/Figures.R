@@ -1701,7 +1701,7 @@ bound.simul <- boot.bounds[, .(m.elas.down = mean(elas.down),
                                s.dd.down = sd(dd.down),
                                m.dd.up = mean(dd.up),
                                s.dd.up = sd(dd.up)),
-                           by = .(p, D, K)]
+                           by = .(p, L, K)]
 
 ## Add real elasticity and demand
 # Parameters
@@ -1733,7 +1733,7 @@ for (d in 1:2) {
   for (k in kss) {
     
     ## Keep data in k case
-    plot <- bound.simul[K == k & D == d]
+    plot <- bound.simul[K == k & L == d]
     
     ## Plot elasticity
     gg <- ggplot(plot, aes(x = p)) +
