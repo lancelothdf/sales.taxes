@@ -216,6 +216,9 @@ while (!done) {
     attempt <- max(results$attempt) + 1
     # Save only results that work!
     results <- results[s!=5]
+    # shuffle the rows to avoid accumulated lag for last cases
+    combinations <- combinations[sample(1:nrow(combinations)), ]
+    
   }
   
   flog.info("Starting attempt %s", attempt)
