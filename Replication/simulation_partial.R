@@ -310,6 +310,7 @@ params$NumericFocus <- 3
 params$ScaleFlag <- 2
 params$Method <- 1
 params$Presolve <- 0
+params$OutputFlag <- 0
 
 ## 5. Set up Tolerance
 tolerance <- 1e-6

@@ -1538,7 +1538,7 @@ gg <- ggplot(data = res.sim, mapping = aes(x = beta_n, y = beta_hat)) +
                     ymin = beta_hat - 1.96 * beta_hat_se),
                 width = .6) +
   theme_bw(base_size = fontsize) +
-  scale_y_continuous(limits = c(-20, 10), breaks = seq(-20, 10, 5)) +
+  scale_y_continuous(limits = c(-20, 10), breaks = seq(-25, 15, 5)) +
   scale_x_continuous(breaks = seq(0, nrow(res.sim), 1), labels = TeX(paste0("$\\mu_", 0:nrow(res.sim), "$"))) +
   labs(x = "Parameter", y = "Estimate", color = NULL) +
   theme(legend.position = "bottom",
@@ -1546,7 +1546,7 @@ gg <- ggplot(data = res.sim, mapping = aes(x = beta_n, y = beta_hat)) +
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5)) +
-  geom_point(data = true.vals , aes(x = x, y = beta), size = 4, alpha = .5, color = "red")
+  geom_point(data = true.vals , aes(x = x, y = beta), size = 3, alpha = .5, color = "red")
 ggsave("figsandtabs/SF10_Simulation_Parameters.png",
        height = 120, width = 200, units = "mm")
 
@@ -1630,7 +1630,7 @@ gg <- ggplot(data = data.plot, aes(x = p)) +
   geom_line(aes(y = est.elas)) +
   geom_ribbon(data = data.plot, aes(ymax = ul, ymin = ll), alpha = 0.3) +
   theme_bw(base_size = fontsize) +
-  scale_y_continuous(limits = c(-1.65, -1.25), breaks = seq(-1.65, -1.25, 0.1)) +
+  scale_y_continuous(limits = c(-1.85, -1.25), breaks = seq(-1.65, -1.25, 0.1)) +
   scale_x_continuous(limits = c(0.01, 0.11), breaks = seq(0.01, 0.11, 0.02)) +
   labs(x = "Price", y = "Estimated Elasticity", color = NULL) +
   theme(legend.position = "none",
@@ -1673,7 +1673,7 @@ gg <- ggplot(data = data.plot, aes(x = p)) +
   geom_line(aes(y = true.dmd), color = "red") +
   geom_line(aes(y = est.dmd)) +
   geom_ribbon(data = data.plot, aes(ymax = ul, ymin = ll), alpha = 0.3) +
-  theme_bw(base_size = 24) +
+  theme_bw(base_size = fontsize) +
   scale_y_continuous(limits = c(1.84, 2), breaks = seq(1.84, 2, 0.05)) +
   scale_x_continuous(limits = c(0.01, 0.11), breaks = seq(0.01, 0.11, 0.02)) +
   labs(x = "Price", y = "Estimated Demand", color = NULL) +
@@ -1687,13 +1687,6 @@ ggsave("figsandtabs/SF10_Simulation_Demand.png",
        height = 120, width = 200, units = "mm")
 
 
-
-
-
-
-#################################### Simulation results, to be replicated ################################
-
-quit(save = "no")
 
 ##### Figure #: Recovering bounds around the point elasticity of demand in a Monte-Carlo simulation. -------
 
@@ -1764,5 +1757,3 @@ for (d in 1:2) {
   }
 }
 
-
-#
