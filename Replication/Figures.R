@@ -1538,7 +1538,7 @@ gg <- ggplot(data = res.sim, mapping = aes(x = beta_n, y = beta_hat)) +
                     ymin = beta_hat - 1.96 * beta_hat_se),
                 width = .6) +
   theme_bw(base_size = fontsize) +
-  scale_y_continuous(limits = c(-25, 15), breaks = seq(-25, 15, 5)) +
+  scale_y_continuous(limits = c(-30, 20), breaks = seq(-30, 20, 5)) +
   scale_x_continuous(breaks = seq(0, nrow(res.sim), 1), labels = TeX(paste0("$\\mu_", 0:nrow(res.sim), "$"))) +
   labs(x = "Parameter", y = "Estimate", color = NULL) +
   theme(legend.position = "bottom",
