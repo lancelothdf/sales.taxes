@@ -137,6 +137,7 @@ for (K in K.test) {
 rep <- 0 # try only on baseline
 # We do it by batches of "maxeval" number of iterations.
 done <- F
+max.att <- 15
 while (!done) {
   # Capture existing results
   new <- !file.exists(out.welfare.state.nonmarg) 
@@ -357,6 +358,6 @@ while (!done) {
     
   }
   # Check results, are we done?
-  if (nrow(results[s==5]) == 0) done <- T
+  if (nrow(results[s==5]) == 0 | attempt >= max.att) done <- T
 }
   
