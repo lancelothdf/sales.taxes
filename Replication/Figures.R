@@ -1531,6 +1531,7 @@ rm(marginal, nonmarginal)
 ## D. Compute p10, p90 and median in each scenario. Only K=8, L=2
 summary <- estimates[K == 8 & L == 2, .(p10 = quantile(value, 0.1),
                                         median = median(value),
+                                        mean = mean(value),
                                         p90 = quantile(value, 0.9)), by = .(sigma, theta, sc, est)]
 
 
@@ -1548,31 +1549,6 @@ summary[, est := factor(est, levels = c("LB", "UB"))]
 summary[, sc := factor(sc, levels = c("No Tax", "marginal", "plus 5 Tax"), labels = c("Statu quo", "Marginal Change", "5pp Increase"))]
 
 
-
-## Add averages
-mean <- fread("average_nationwide_extrapolation.csv")
-
-# Keep relevant
-mean <- mean[K == 8 & L == 2]
-mean <- mean[, -c("it.n", "L", "K")]
-mean[, sc := ifelse(sc == "Original", "marginal", sc)]
-
-mean[theta == 0 & sigma ==1, scenario := 1]
-mean[theta > 0.06 & sigma ==1, scenario := 2]
-mean[theta == 0 & sigma ==0.5, scenario := 3]
-
-mean <- mean[!is.na(scenario)][,-c("sigma", "theta")]
-
-
-# Melt and clean
-mean <- melt(mean, id.vars = c("scenario", "est", "sc"), variable.name = "estimate")
-
-mean[, estimate := "mean"]
-mean[, estimate := as.integer(factor(estimate, levels = c("p10", "median", "p90", "mean")))]
-summary[, est := factor(est, levels = c("LB", "UB"))]
-mean[, sc := factor(sc, levels = c("No Tax", "marginal", "plus 5 Tax"), labels = c("Statu quo", "Marginal Change", "5pp Increase"))]
-
-summary <- rbind(summary, mean)
 summary[, estimate := ifelse(estimate == 4, 5, estimate)]
 
 # Plot
@@ -1593,7 +1569,7 @@ for (s in unique(summary$scenario)) {
           panel.grid.minor.x = element_blank(),
           panel.grid.minor.y = element_blank(),
           panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
-  ggsave(paste0("Figures and Tables/Figures/heterogeneity_welfare_K8L2_", s,".png"), height = 4, width = 9)
+  ggsave(paste0("figsandtabs/Heterogeneity_welfare_K8L2_", s,".png"), height = 4, width = 9)
   
   
 }
