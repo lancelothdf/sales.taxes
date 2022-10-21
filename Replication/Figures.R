@@ -1178,7 +1178,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.2)) + 
+  coord_cartesian(ylim = c(1,1.25)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1205,7 +1205,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.2)) + 
+  coord_cartesian(ylim = c(1,1.25)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1237,7 +1237,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.2)) + 
+  coord_cartesian(ylim = c(1,1.25)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1264,7 +1264,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.2)) + 
+  coord_cartesian(ylim = c(1,1.25)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1293,7 +1293,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.2)) + 
+  coord_cartesian(ylim = c(1,1.25)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1320,7 +1320,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.2)) + 
+  coord_cartesian(ylim = c(1,1.25)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1351,7 +1351,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.2)) + 
+  coord_cartesian(ylim = c(1,1.25)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1378,7 +1378,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.2)) + 
+  coord_cartesian(ylim = c(1,1.25)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1410,7 +1410,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.2)) + 
+  coord_cartesian(ylim = c(1,1.25)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1437,7 +1437,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.2)) + 
+  coord_cartesian(ylim = c(1,1.25)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1466,7 +1466,7 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
     sec.axis = sec_axis(~(.-1)*100, name="Average Tax rate (%)")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.2)) + 
+  coord_cartesian(ylim = c(1,1.25)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1493,7 +1493,7 @@ ggplot(data = NULL, aes(x = state.ord)) +
     sec.axis = sec_axis(~(./0.7-1.5), name="Average Price")
   ) +
   labs(x = TeX("States"), color = TeX("$L^d$") ) +
-  coord_cartesian(ylim = c(1,1.2)) + 
+  coord_cartesian(ylim = c(1,1.25)) + 
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -1505,6 +1505,98 @@ ggplot(data = NULL, aes(x = state.ord)) +
 ggsave("figsandtabs/F7_mvpf_state_nonmarg5_sigma1_thetanon0_byp.png",
        height = 120, width = 200, units = "mm")  
 
+
+
+##### Figure #: Extrapolation. Heterogeneity across states. Distribution summary ------
+
+## A. Open interest estimates
+marginal <- fread("state_welfare_extrapolation_marginal.csv")
+nonmarginal <- fread("state_welfare_extrapolation_nonmarginal.csv")
+
+## B. Clean individually all estimates
+# B1 Maginal
+# Drop duplicates that we may have left
+marginal <- marginal[!duplicated(marginal[, c('est', 'L', 'K', 'sigma', 'theta', 'state')]),]
+marginal[, sc:= "marginal"]
+marginal <- marginal[, -c("it", "s", "attempt")]
+# B2 
+# Drop duplicates that we may have left
+nonmarginal <- nonmarginal[!duplicated(nonmarginal[, c('est', 'L', 'K', 'sigma', 'theta', 'state')]),]
+nonmarginal <- nonmarginal[, -c("it", "s", "attempt", "ConsChck")]
+
+## C. Put together all estimates
+estimates <- rbind(marginal, nonmarginal)
+rm(marginal, nonmarginal)
+
+## D. Compute p10, p90 and median in each scenario. Only K=8, L=2
+summary <- estimates[K == 8 & L == 2, .(p10 = quantile(value, 0.1),
+                                        median = median(value),
+                                        p90 = quantile(value, 0.9)), by = .(sigma, theta, sc, est)]
+
+
+# Melt to plot together
+## Label Scenarii
+summary[theta == 0 & sigma ==1, scenario := 1]
+summary[theta > 0.06 & sigma ==1, scenario := 2]
+summary[theta == 0 & sigma ==0.5, scenario := 3]
+
+summary <- summary[!is.na(scenario)][,-c("sigma", "theta")]
+# Melt and clean
+summary <- melt(summary, id.vars = c("scenario", "est", "sc"), variable.name = "estimate")
+summary[, estimate := as.integer(factor(estimate, levels = c("p10", "median", "p90", "mean")))]
+summary[, est := factor(est, levels = c("LB", "UB"))]
+summary[, sc := factor(sc, levels = c("No Tax", "marginal", "plus 5 Tax"), labels = c("Statu quo", "Marginal Change", "5pp Increase"))]
+
+
+
+## Add averages
+mean <- fread("average_nationwide_extrapolation.csv")
+
+# Keep relevant
+mean <- mean[K == 8 & L == 2]
+mean <- mean[, -c("it.n", "L", "K")]
+mean[, sc := ifelse(sc == "Original", "marginal", sc)]
+
+mean[theta == 0 & sigma ==1, scenario := 1]
+mean[theta > 0.06 & sigma ==1, scenario := 2]
+mean[theta == 0 & sigma ==0.5, scenario := 3]
+
+mean <- mean[!is.na(scenario)][,-c("sigma", "theta")]
+
+
+# Melt and clean
+mean <- melt(mean, id.vars = c("scenario", "est", "sc"), variable.name = "estimate")
+
+mean[, estimate := "mean"]
+mean[, estimate := as.integer(factor(estimate, levels = c("p10", "median", "p90", "mean")))]
+summary[, est := factor(est, levels = c("LB", "UB"))]
+mean[, sc := factor(sc, levels = c("No Tax", "marginal", "plus 5 Tax"), labels = c("Statu quo", "Marginal Change", "5pp Increase"))]
+
+summary <- rbind(summary, mean)
+summary[, estimate := ifelse(estimate == 4, 5, estimate)]
+
+# Plot
+for (s in unique(summary$scenario)) {
+  
+  ggplot(summary[scenario == s], aes(estimate, value, fill = est)) +
+    facet_grid(. ~ sc) +
+    geom_bar(stat = "identity", position = "dodge") +
+    geom_vline(xintercept = 4, color = "red") +
+    labs(y = NULL, x = NULL, fill = NULL) +
+    coord_cartesian(ylim = c(1,1.125)) +
+    scale_x_continuous(breaks = c(1:5), 
+                       labels=c("p10", "median", "p90", "", "mean")) +
+    theme_bw(base_size = 14) +
+    theme(legend.position = "bottom",
+          legend.margin = unit(0, "mm"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+  ggsave(paste0("Figures and Tables/Figures/heterogeneity_welfare_K8L2_", s,".png"), height = 4, width = 9)
+  
+  
+}
 
 
 ##### Figure #: Simulation results - Parameters of the demand curve. ------
