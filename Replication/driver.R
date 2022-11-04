@@ -13,6 +13,7 @@ setwd("/project2/igaarder")
 
 ###Run Code
 source("cleaning_code.R") #DONE - Revisiting to reduce disk use
+source("summary_data.R") #DONE - Revisiting to reduce disk use
 source("cleaning_store_characteristics.R") #DONE
 source("reduced_form_evidence.R") #DONE
 source("reduced_form_evidence_controls.R") #DONE
