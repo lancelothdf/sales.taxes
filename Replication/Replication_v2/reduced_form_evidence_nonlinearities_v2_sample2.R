@@ -23,13 +23,15 @@ all_pi <- fread("Data/Replication_v2/all_pi.csv")
 pricedist <- T
 
 ## output filepath ----------------------------------------------
-iv.output.results.file <- "Data/Replication_v2/IV_subsamples_initprice.csv"
-output.emp.price.dist <- "Data/Replication_v2/Emp_price_subsamples_initprice.csv"
-iv.output.results.file.boot <- "Data/Replication_v2/IV_subsamples_initprice_boot.csv"
+iv.output.results.file <- "Data/Replication_v2/IV_subsamples_initprice_sample2.csv"
+output.emp.price.dist <- "Data/Replication_v2/Emp_price_subsamples_initprice_sample2.csv"
+iv.output.results.file.boot <- "Data/Replication_v2/IV_subsamples_initprice_boot_sample2.csv"
 
 
 ## We only want to use the "true" tax variation
-all_pi <- all_pi[non_imp_tax == 1]
+
+
+all_pi <- all_pi[non_imp_tax_strong == 1]
 # Create demeaned current prices
 all_pi[, n.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(module_by_time)]
 # Create treatment groups
