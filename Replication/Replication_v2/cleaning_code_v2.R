@@ -292,7 +292,8 @@ all_pi_cs[(year > 2007 & year < 2015)
           & !(year ==2008 & semester == 1) 
           & !(year ==2014 & semester == 2) 
           , non_imp_tax := 1]
-
+all_pi_cs[(year > 2009 & year < 2015)
+          , non_imp_tax_strong := 1]
 
 
 #### Spillovers data: identify statutory' tax rate
