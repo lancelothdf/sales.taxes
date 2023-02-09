@@ -1,0 +1,272 @@
+##### Santiago Lacouture
+#' Sales Taxes
+#' Replication File. Updated on 8/24/2022
+#' Step 5b: Reduced form evidence of non-linearities.
+#' Export IV estimates by quantiles of lagged price distribution,
+#' and distribution of current prices, using relevant estimation weights.
+#' 
+
+library(data.table)
+library(futile.logger)
+library(lfe)
+library(Matrix)
+library(zoo)
+library(tidyverse)
+library(stringr)
+
+
+setwd("/project2/igaarder")
+rm(list = ls())
+
+## input filepath ----------------------------------------------
+all_pi <- fread("Data/Replication/all_pi.csv")
+pricedist <- T
+
+## output filepath ----------------------------------------------
+iv.output.results.file <- "Data/Replication/IV_subsamples_initprice.csv"
+output.emp.price.dist <- "Data/Replication/Emp_price_subsamples_initprice.csv"
+iv.output.results.file.boot <- "Data/Replication/IV_subsamples_initprice_boot.csv"
+
+
+## We only want to use the "true" tax variation
+all_pi <- all_pi[non_imp_tax == 1]
+# Create demeaned current prices
+all_pi[, n.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(module_by_time)]
+# Create treatment groups
+all_pi[, treated := D.ln_sales_tax != 0]
+
+FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
+
+### Estimation ----
+
+LRdiff_res <- data.table(NULL)
+empirical_price_dist <- data.table(NULL)
+## Run within
+flog.info("Iteration 0")
+for (n.g in 1:5) {
+  # Create groups of initial values of tax rate
+  # We use the full weighted distribution
+  all_pi <- all_pi[, quantile := cut(dm.L.ln_cpricei2,
+                                     breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
+                                     labels = 1:n.g, right = FALSE)]
+  quantlab <- round(quantile(all_pi$dm.L.ln_cpricei2, 
+                             probs = seq(0, 1, by = 1/n.g), na.rm = T, 
+                             weight = all_pi$base.sales), digits = 4)
+  
+  # Saturate fixed effects
+  all_pi[, group_region_by_module_by_time := .GRP, by = .(region_by_module_by_time, quantile)]
+  all_pi[, group_division_by_module_by_time := .GRP, by = .(division_by_module_by_time, quantile)]
+  
+  # # Demean properly by quantile
+  # if (n.g > 1) {
+  #   all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = .(store_by_module, quantile)]
+  #   all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(store_by_module, quantile)]
+  #   all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = .(store_by_module, quantile)]
+  # }
+  
+  
+  ## Estimate RF and FS
+  for (FE in FE_opts) {
+    
+    
+    ## Produce appropiate weights implied by regression
+    grouped_FE <- paste0("group_", FE)
+    all_pi[, wVAR := weighted.mean((w.ln_sales_tax - 
+                                      weighted.mean(w.ln_sales_tax, 
+                                                    w = base.sales, na.rm = T))^2,
+                                   w = base.sales, na.rm = T), by = grouped_FE]
+    all_pi[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]
+    # Weight normalized within quantile
+    all_pi[, base.sales.q := (wVAR*base.sales)/sum(wVAR*base.sales), by = .(quantile)]
+    all_pi[, base.sales.qor := base.sales/sum(base.sales), by = .(quantile)]
+    
+    if (pricedist) {
+      
+      # capture prices by bins
+      step.log.p <- (max(all_pi$ln_cpricei2, na.rm = T) - min(all_pi$ln_cpricei2, na.rm = T) )/1500
+      step.n.log.p <- (max(all_pi$n.ln_cpricei2, na.rm = T) - min(all_pi$n.ln_cpricei2, na.rm = T)) /1500
+      min.log.p <- min(all_pi$ln_cpricei2, na.rm = T)
+      min.n.log.p <- min(all_pi$n.ln_cpricei2, na.rm = T)
+      all_pi[, d.lp := floor((ln_cpricei2 - min.log.p)/step.log.p)]
+      all_pi[, d.n.lp := floor((n.ln_cpricei2 - min.n.log.p)/step.n.log.p)]
+      
+      ### Version 1: using bases.sales
+      
+      # Produce empirical weighted distribution of (de-meaned) current prices
+      d1 <- all_pi[, .(dens.log.p = sum(base.sales.qor)), by = .(quantile, d.lp)]
+      d1[, dens.log.p := dens.log.p/sum(dens.log.p), by =.(quantile)]
+      d1[, log.p := d.lp*step.log.p + min.log.p + step.log.p/2]
+      # Produce empirical weighted distribution of log (de-meaned) current prices
+      d2 <- all_pi[, .(dens.n.log.p = sum(base.sales.qor)), by = .(quantile, d.n.lp)]
+      d2[, dens.n.log.p := dens.n.log.p/sum(dens.n.log.p), by =.(quantile)]
+      d2[, log.n.p := d.n.lp*step.n.log.p + min.n.log.p + step.n.log.p/2]
+      
+      prices_densities <- merge(d1, d2, by.x = c("d.lp", "quantile"), by.y = c("d.n.lp", "quantile"))
+      prices_densities[, n.groups := n.g]
+      prices_densities[, controls := FE]
+      prices_densities[, treated := NA]
+      prices_densities[, w := "base.sales"]
+      empirical_price_dist<- rbind(empirical_price_dist, prices_densities)
+      fwrite(empirical_price_dist, output.emp.price.dist)   
+      
+      ## Repeat by treatment group
+      
+      # Produce empirical weighted distribution of log (de-meaned) current prices
+      d1 <- all_pi[, .(dens.log.p = sum(base.sales.qor)), by = .(quantile, d.lp, treated)]
+      d1[, dens.log.p := dens.log.p/sum(dens.log.p), by =.(quantile, treated)]
+      d1[, log.p := d.lp*step.log.p + min.log.p + step.log.p/2]
+      d2 <- all_pi[, .(dens.n.log.p = sum(base.sales.qor)), by = .(quantile, d.n.lp, treated)]
+      d2[, dens.n.log.p := dens.n.log.p/sum(dens.n.log.p), by =.(quantile, treated)]
+      d2[, log.n.p := d.n.lp*step.n.log.p + min.n.log.p + step.n.log.p/2]    
+      prices_densities <- merge(d1, d2, by.x = c("d.lp", "quantile", "treated"), by.y = c("d.n.lp", "quantile", "treated"))
+      prices_densities[, n.groups := n.g]
+      prices_densities[, controls := FE]
+      prices_densities[, w := "base.sales"]
+      empirical_price_dist<- rbind(empirical_price_dist, prices_densities)
+      fwrite(empirical_price_dist, output.emp.price.dist)     
+      
+      
+      
+      
+      ### Version 2: using ``cohort-corrected'' weights
+      
+      
+      # Produce empirical weighted distribution of (de-meaned) current prices
+      d1 <- all_pi[, .(dens.log.p = sum(base.sales.q)), by = .(quantile, d.lp)]
+      d1[, dens.log.p := dens.log.p/sum(dens.log.p), by =.(quantile)]
+      d1[, log.p := d.lp*step.log.p + min.log.p + step.log.p/2]
+      # Produce empirical weighted distribution of log (de-meaned) current prices
+      d2 <- all_pi[, .(dens.n.log.p = sum(base.sales.q)), by = .(quantile, d.n.lp)]
+      d2[, dens.n.log.p := dens.n.log.p/sum(dens.n.log.p), by =.(quantile)]
+      d2[, log.n.p := d.n.lp*step.n.log.p + min.n.log.p + step.n.log.p/2]
+      
+      prices_densities <- merge(d1, d2, by.x = c("d.lp", "quantile"), by.y = c("d.n.lp", "quantile"))
+      prices_densities[, n.groups := n.g]
+      prices_densities[, controls := FE]
+      prices_densities[, treated := NA]
+      prices_densities[, w := "base.sales.q"]
+      empirical_price_dist<- rbind(empirical_price_dist, prices_densities)
+      fwrite(empirical_price_dist, output.emp.price.dist)   
+      
+      ## Repeat by treatment group
+      
+      # Produce empirical weighted distribution of log (de-meaned) current prices
+      d1 <- all_pi[, .(dens.log.p = sum(base.sales.q)), by = .(quantile, d.lp, treated)]
+      d1[, dens.log.p := dens.log.p/sum(dens.log.p), by =.(quantile, treated)]
+      d1[, log.p := d.lp*step.log.p + min.log.p + step.log.p/2]
+      d2 <- all_pi[, .(dens.n.log.p = sum(base.sales.q)), by = .(quantile, d.n.lp, treated)]
+      d2[, dens.n.log.p := dens.n.log.p/sum(dens.n.log.p), by =.(quantile, treated)]
+      d2[, log.n.p := d.n.lp*step.n.log.p + min.n.log.p + step.n.log.p/2]    
+      prices_densities <- merge(d1, d2, by.x = c("d.lp", "quantile", "treated"), by.y = c("d.n.lp", "quantile", "treated"))
+      prices_densities[, n.groups := n.g]
+      prices_densities[, controls := FE]
+      prices_densities[, w := "base.sales.q"]
+      empirical_price_dist<- rbind(empirical_price_dist, prices_densities)
+      fwrite(empirical_price_dist, output.emp.price.dist)     
+      
+    }
+
+    ## Produce IVs
+    for (q in unique(all_pi$quantile)) {
+      if (nrow(all_pi[quantile == q]) > 0) {
+        formula1 <- as.formula(paste0("w.ln_quantity3 ~ 0 | ", 
+                                      FE, 
+                                      " | (w.ln_cpricei2 ~ w.ln_sales_tax) | module_by_state"))
+        res1 <- felm(formula = formula1, data = all_pi[quantile == q],
+                     weights = all_pi[quantile == q]$base.sales)
+        
+        ## attach results
+        res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+        res1.dt[, controls := FE]
+        res1.dt[, group := q]
+        res1.dt[, n.groups := n.g]
+        
+        LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+        fwrite(LRdiff_res, iv.output.results.file)
+        
+      }
+
+    }
+  }
+}
+
+
+### Bootstrap (only IV estimates) ----
+
+### Start manual bootstrap
+set.seed(2019)
+ids <- unique(all_pi$module_by_state)
+LRdiff_res <- data.table(NULL)
+
+for (rep in 1:100) {
+  
+  flog.info("Iteration %s", rep)
+  
+  # Sample by block
+  sampled.ids <- data.table(module_by_state = sample(ids, replace = T))
+  # Merge data to actual data
+  sampled.data <- merge(sampled.ids, all_pi, by = c("module_by_state") , allow.cartesian = T, all.x = T)
+  
+  # First split, then merge
+  for (n.g in 1:5) {
+    # Create groups of initial values of tax rate
+    # We use the full weighted distribution
+    sampled.data <- sampled.data[, quantile := cut(dm.L.ln_cpricei2,
+                                       breaks = quantile(dm.L.ln_cpricei2, probs = seq(0, 1, by = 1/n.g), na.rm = T, weight = base.sales),
+                                       labels = 1:n.g, right = FALSE)]
+    quantlab <- round(quantile(sampled.data$dm.L.ln_cpricei2, 
+                               probs = seq(0, 1, by = 1/n.g), na.rm = T, 
+                               weight = sampled.data$base.sales), digits = 4)
+    
+    # # Demean properly by quantile
+    # if (n.g > 1) {
+    #   sampled.data[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = .(store_by_module, quantile)]
+    #   sampled.data[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(store_by_module, quantile)]
+    #   sampled.data[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax, na.rm = T), by = .(store_by_module, quantile)]
+    # }
+    
+    # Sample within quantile
+    # sampled.data <- data.table(NULL)
+    # for (g in 1:n.g) {
+    #   # identify relevant ids from quantile data and make sure we always have them in same order
+    #   ids <- unique(all_pi[quantile == g]$module_by_state)
+    #   ids <- ids[order(ids)]
+    #   # Sample by block within quantile
+    #   sampled.ids.q <- data.table(module_by_state = sample(ids, replace = T))
+    #   
+    #   # Merge data to actual data
+    #   sampled.data.q <- merge(sampled.ids.q, all_pi[quantile == g], by = c("module_by_state") , allow.cartesian = T, all.x = T)
+    #   sampled.data <- rbind(sampled.data, sampled.data.q)
+    #   
+    # }
+    
+    
+    ## Estimate RF and FS
+    for (FE in FE_opts) {
+      
+      ## Produce IVs
+      for (q in unique(sampled.data$quantile)) {
+        if (nrow(sampled.data[quantile == q]) > 0) {
+          formula1 <- as.formula(paste0("w.ln_quantity3 ~ 0 | ", 
+                                        FE, 
+                                        " | (w.ln_cpricei2 ~ w.ln_sales_tax) "))
+          res1 <- felm(formula = formula1, data = sampled.data[quantile == q],
+                       weights = sampled.data[quantile == q]$base.sales)
+          
+          ## attach results
+          res1.dt <- data.table(coef(summary(res1)), keep.rownames=T)
+          res1.dt[, controls := FE]
+          res1.dt[, group := q]
+          res1.dt[, n.groups := n.g]
+          res1.dt[, iter := rep]
+          
+          LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
+          fwrite(LRdiff_res, iv.output.results.file.boot)
+          
+        }
+        
+      }
+    }
+  }
+  
+}
