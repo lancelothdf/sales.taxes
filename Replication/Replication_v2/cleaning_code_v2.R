@@ -186,11 +186,6 @@ for (val in 1:4) {
 ## Create 2-year differences
 all_pi <- all_pi[order(store_code_uc, product_module_code, year, semester),] ##Sort on store by year-semester (in ascending order) 
 
-all_pi[, DL.ln_cpricei := ln_cpricei - shift(ln_cpricei, n=4, type="lag"),
-       by = .(store_code_uc, product_module_code)]
-
-all_pi[, DL.ln_pricei := ln_pricei - shift(ln_pricei, n=4, type="lag"),
-       by = .(store_code_uc, product_module_code)]
 
 all_pi[, DL.ln_cpricei2 := ln_cpricei2 - shift(ln_cpricei2, n=4, type="lag"),
        by = .(store_code_uc, product_module_code)]
@@ -198,17 +193,10 @@ all_pi[, DL.ln_cpricei2 := ln_cpricei2 - shift(ln_cpricei2, n=4, type="lag"),
 all_pi[, DL.ln_pricei2 := ln_pricei2 - shift(ln_pricei2, n=4, type="lag"),
        by = .(store_code_uc, product_module_code)]
 
-all_pi[, DL.ln_quantity := ln_quantity - shift(ln_quantity, n=4, type="lag"),
-       by = .(store_code_uc, product_module_code)]
-
-all_pi[, DL.ln_quantity2 := ln_quantity2 - shift(ln_quantity2, n=4, type="lag"),
-       by = .(store_code_uc, product_module_code)]
 
 all_pi[, DL.ln_quantity3 := ln_quantity3 - shift(ln_quantity3, n=4, type="lag"),
        by = .(store_code_uc, product_module_code)]
 
-all_pi[, DL.ln_sales := ln_sales - shift(ln_sales, n=4, type="lag"),
-       by = .(store_code_uc, product_module_code)]
 
 all_pi[, DL.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=4, type="lag"),
        by = .(store_code_uc, product_module_code)]
