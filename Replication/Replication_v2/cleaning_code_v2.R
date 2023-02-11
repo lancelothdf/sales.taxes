@@ -245,8 +245,8 @@ for (sig in seq(0.25, 1, 0.05)) {
 }
 names.rem <- c(paste0("w.ln_cpricei2_sig", seq(0.25, 1, 0.05)),
                paste0("dm.L.ln_cpricei2_sig", seq(0.25, 1, 0.05)))
-all_pi_econ <- all_pi_econ[, (names.rem):= NULL]
-
+#all_pi_econ <- all_pi_econ[, (names.rem):= NULL]
+all_pi <- all_pi[, (names.rem):= NULL]
 
 
 #### Define Common Support
