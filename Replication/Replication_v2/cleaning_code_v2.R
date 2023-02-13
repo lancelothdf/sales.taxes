@@ -334,7 +334,7 @@ all_pi_spill <- all_pi_spill[order(store_code_uc, product_module_code, cal_time)
 all_pi_spill[, D.ln_statutory_tax := ln_statutory_tax - shift(ln_statutory_tax, n=1, type="lag"),
              by = .(store_code_uc, product_module_code)]
 
-all_pi_spill[, , DL.ln_statutory_tax := ln_statutory_tax - shift(ln_statutory_tax, n=4, type="lag"),
+all_pi_spill[, DL.ln_statutory_tax := ln_statutory_tax - shift(ln_statutory_tax, n=4, type="lag"),
              by = .(store_code_uc, product_module_code)]
 
 
