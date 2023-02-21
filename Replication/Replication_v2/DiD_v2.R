@@ -24,7 +24,7 @@ outcomes <- c("DL.ln_cpricei2", "DL.ln_quantity3", "DL.ln_pricei2", "DL.ln_sales
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 # Define samples
-samples <- c("all", "non_imp_tax", "non_imp_tax_strong")
+samples <- c("non_imp_tax_strong", "non_imp_tax", "all")
 
 
 LRdiff_res <- data.table(NULL)
@@ -63,6 +63,7 @@ for (s in samples) {
                                                            "product_module_code"))]
       LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
       fwrite(LRdiff_res, output.results.file.TWFE)
+      flog.info("Finished writing csv with %s as outcome with %s FE in sample %s.", Y, FE, s)
       
     }
   }
