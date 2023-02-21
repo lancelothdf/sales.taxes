@@ -31,8 +31,8 @@ LRdiff_res <- data.table(NULL)
 ## Run
 for (s in samples) {
   
-  #data.est <- all_pi[get(s) == 1,]
-  data <- all_pi[get(s) == 1,] ## If samples is defined in the right order, then we get the right samples (all > non_imp_tax > non_imp_tax_strong)
+  data.est <- all_pi[get(s) == 1,]
+  #data <- all_pi[get(s) == 1,] ## If samples is defined in the right order, then we get the right samples (all > non_imp_tax > non_imp_tax_strong)
   
   for (Y in c(outcomes)) {
     for (FE in FE_opts) {
@@ -41,12 +41,12 @@ for (s in samples) {
         Y, "~ DL.ln_sales_tax | ", FE, " | 0 | module_by_state"
       ))
       flog.info("Estimating with %s as outcome with %s FE in sample %s.", Y, FE, s)
-      res1 <- felm(formula = formula1, data = data,
-                   weights = data$base.sales)
-      flog.info("Finished estimating with %s as outcome with %s FE in sample %s.", Y, FE, s)
-      #res1 <- felm(formula = formula1, data = data.est,
-      #             weights = data.est$base.sales)
+      #res1 <- felm(formula = formula1, data = data,
+      #             weights = data$base.sales)
       #flog.info("Finished estimating with %s as outcome with %s FE in sample %s.", Y, FE, s)
+      res1 <- felm(formula = formula1, data = data.est,
+                   weights = data.est$base.sales)
+      flog.info("Finished estimating with %s as outcome with %s FE in sample %s.", Y, FE, s)
       
       
       ## attach results
@@ -58,20 +58,20 @@ for (s in samples) {
       # Add summary values
       res1.dt[, Rsq := summary(res1)$r.squared]
       res1.dt[, adj.Rsq := summary(res1)$adj.r.squared]
-      #res1.dt[, N_obs := nrow(data.est)]
-      #res1.dt[, N_modules := length(unique(data.est$product_module_code))]
-      #res1.dt[, N_stores :=  length(unique(data.est$store_code_uc))]
-      #res1.dt[, N_counties := uniqueN(data.est, by = c("fips_state", "fips_county"))]
-      #res1.dt[, N_years := uniqueN(data.est, by = c("year"))]
-      #res1.dt[, N_county_modules := uniqueN(data.est, by = c("fips_state", "fips_county",
-      #                                                     "product_module_code"))]
-      res1.dt[, N_obs := nrow(data)]
-      res1.dt[, N_modules := length(unique(data$product_module_code))]
-      res1.dt[, N_stores :=  length(unique(data$store_code_uc))]
-      res1.dt[, N_counties := uniqueN(data, by = c("fips_state", "fips_county"))]
-      res1.dt[, N_years := uniqueN(data, by = c("year"))]
-      res1.dt[, N_county_modules := uniqueN(data, by = c("fips_state", "fips_county",
-                                                             "product_module_code"))]
+      res1.dt[, N_obs := nrow(data.est)]
+      res1.dt[, N_modules := length(unique(data.est$product_module_code))]
+      res1.dt[, N_stores :=  length(unique(data.est$store_code_uc))]
+      res1.dt[, N_counties := uniqueN(data.est, by = c("fips_state", "fips_county"))]
+      res1.dt[, N_years := uniqueN(data.est, by = c("year"))]
+      res1.dt[, N_county_modules := uniqueN(data.est, by = c("fips_state", "fips_county",
+                                                          "product_module_code"))]
+      #res1.dt[, N_obs := nrow(data)]
+      #res1.dt[, N_modules := length(unique(data$product_module_code))]
+      #res1.dt[, N_stores :=  length(unique(data$store_code_uc))]
+      #res1.dt[, N_counties := uniqueN(data, by = c("fips_state", "fips_county"))]
+      #res1.dt[, N_years := uniqueN(data, by = c("year"))]
+      #res1.dt[, N_county_modules := uniqueN(data, by = c("fips_state", "fips_county",
+      #                                                       "product_module_code"))]
       LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
       fwrite(LRdiff_res, output.results.file.TWFE)
       flog.info("Finished writing csv with %s as outcome with %s FE in sample %s.", Y, FE, s)
