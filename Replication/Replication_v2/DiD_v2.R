@@ -20,7 +20,7 @@ output.results.file.TWFE <- "Data/Replication_v2/LR_Diff_design.csv"
 
 
 ### 5. Long DiD estimates  ---------------
-outcomes <- c("DL.ln_cpricei2", "DL.ln_quantity3", "DL.ln_pricei2", "DL.ln_sales")
+outcomes <- c("DL.ln_cpricei2", "DL.ln_quantity3", "DL.ln_pricei2")
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 # Define samples
