@@ -23,16 +23,16 @@ rm(list = ls())
 all_pi_econ <- fread("Data/Replication_v2/all_pi_econ.csv")
 
 ## output filepath ----------------------------------------------
-output.results.file.econ <- "Data/Replication_v2/LRdiff_semesterly_w_econ.csv"
+output.results.file.econ <- "Data/Replication_v2/LRdiff_semesterly_w_econ_DLL.csv"
 
 
 ### 2. Reduced Form Evidence with Controls -----------------
 #formula_lags <- paste0("L", 1:4, ".D.ln_sales_tax", collapse = "+")
 #formula_leads <- paste0("F", 1:4, ".D.ln_sales_tax", collapse = "+")
 #formula_RHS <- paste0("D.ln_sales_tax + ", formula_lags, "+", formula_leads)
-formula_RHS <- "DL.ln_sales_tax"
+formula_RHS <- "DLL.ln_sales_tax"
 
-outcomes <- c("DL.ln_cpricei", "DL.ln_cpricei2", "DL.ln_quantity", "DL.ln_quantity2", "DL.ln_quantity3")
+outcomes <- c("DLL.ln_cpricei", "DLL.ln_cpricei2", "DLL.ln_quantity", "DLL.ln_quantity2", "DLL.ln_quantity3")
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 ## for linear hypothesis tests
@@ -62,7 +62,7 @@ for (s in samples) {
         
         
         formula1 <- as.formula(paste0(
-          Y, "~", formula_RHS, " + DL.ln_home_price + D.ln_unemp | ", FE, " | 0 | module_by_state"
+          Y, "~", formula_RHS, " + DLL.ln_home_price + DLL.ln_unemp | ", FE, " | 0 | module_by_state"
         ))
         flog.info("Estimating with %s as outcome with %s FE in sample %s.", Y, FE, s)
         res1 <- felm(formula = formula1, data = data.est,

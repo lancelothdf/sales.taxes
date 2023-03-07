@@ -160,17 +160,32 @@ zillow_dt[, D.ln_unemp := ln_unemp - shift(ln_unemp, n=1, type="lag"),
           by = .(fips_state, fips_county)]
 
 
-## generate lags
-for (lag.val in 1:4) {
-  lag.X <- paste0("L", lag.val, ".D.ln_home_price")
-  zillow_dt[, (lag.X) := shift(D.ln_home_price, n=lag.val, type="lag"),
-            by = .(fips_state, fips_county)]
+### generate lags
+#for (lag.val in 1:4) {
+#  lag.X <- paste0("L", lag.val, ".D.ln_home_price")
+#  zillow_dt[, (lag.X) := shift(D.ln_home_price, n=lag.val, type="lag"),
+#            by = .(fips_state, fips_county)]
   
-  lag.X <- paste0("L", lag.val, ".D.ln_unemp")
-  zillow_dt[, (lag.X) := shift(D.ln_unemp, n=lag.val, type="lag"),
-            by = .(fips_state, fips_county)]
+#  lag.X <- paste0("L", lag.val, ".D.ln_unemp")
+#  zillow_dt[, (lag.X) := shift(D.ln_unemp, n=lag.val, type="lag"),
+#            by = .(fips_state, fips_county)]
   
-}
+#}
+
+### generate long differences
+# 2 years
+zillow_dt[, DL.ln_home_price := ln_home_price - shift(ln_home_price, n=4, type="lag"),
+          by = .(fips_state, fips_county)]
+
+zillow_dt[, DL.ln_unemp := ln_unemp - shift(ln_unemp, n=4, type="lag"),
+          by = .(fips_state, fips_county)]
+
+# 2+ years
+zillow_dt[, DLL.ln_home_price := ln_home_price - shift(ln_home_price, n=5, type="lag"),
+          by = .(fips_state, fips_county)]
+
+zillow_dt[, DLL.ln_unemp := ln_unemp - shift(ln_unemp, n=5, type="lag"),
+          by = .(fips_state, fips_county)]
 
 ## Nielsen Retailer Data Cleaning. Semester -----------------------
 
