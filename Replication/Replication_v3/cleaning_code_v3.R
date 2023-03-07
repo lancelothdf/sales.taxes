@@ -17,6 +17,7 @@ library(geodist)
 ## In this case, let us not set a directory but change below in the input and (at the end) in the output filepaths
 # Because input files are from midway2 and but output is saved on midway3
 #setwd("/project2/igaarder")
+#setwd("/Users/lancelot/Documents/Sales Taxes/Data/")
 
 rm(list = ls())
 
@@ -35,9 +36,12 @@ data.hh <- "/project2/igaarder/Data/Nielsen/Household_panel/cleaning/consumer_pa
 
 # Semesterly data
 all_pi <- fread(data.semester)
+#all_pi <- fread("training_data_all_pi.csv")
+
 
 ## Open Taxability panel
 taxability <- fread(data.taxability)
+#taxability <- fread("taxability_state_panel.csv")
 
 
 # collapse taxability to the semester
@@ -46,6 +50,7 @@ taxability <- taxability[, .(taxability = mean(taxability),
                              reduced_rate = mean(reduced_rate, na.rm = T)), 
                          by = .(product_module_code, semester, year, fips_state)]
 taxability[, taxability := ifelse(!is.nan(reduced_rate), 2, taxability)]
+
 
 ## Open clean Household Panel
 purchases.sample <- fread(data.hh)
@@ -169,21 +174,21 @@ for (lag.val in 1:4) {
 
 ## Nielsen Retailer Data Cleaning. Semester -----------------------
 
-#### Create Variables
-all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax), by = .(store_by_module)]
-all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2), by = .(store_by_module)]
-all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3), by = .(store_by_module)]
-all_pi[, w.ln_pricei2 := ln_pricei2 - mean(ln_pricei2), by = .(store_by_module)]
-all_pi[, w.ln_sales := ln_sales - mean(ln_sales), by = .(store_by_module)]
+##### Create Variables
+#all_pi[, w.ln_sales_tax := ln_sales_tax - mean(ln_sales_tax), by = .(store_by_module)]
+#all_pi[, w.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2), by = .(store_by_module)]
+#all_pi[, w.ln_quantity3 := ln_quantity3 - mean(ln_quantity3), by = .(store_by_module)]
+#all_pi[, w.ln_pricei2 := ln_pricei2 - mean(ln_pricei2), by = .(store_by_module)]
+#all_pi[, w.ln_sales := ln_sales - mean(ln_sales), by = .(store_by_module)]
 
-## Create lead demeaned tax rate for pre-trends
-all_pi <- all_pi[order(store_code_uc, product_module_code, year, semester),] ##Sort on store by year-semester (in ascending order)
-for (val in 1:4) {
+### Create lead demeaned tax rate for pre-trends
+#all_pi <- all_pi[order(store_code_uc, product_module_code, year, semester),] ##Sort on store by year-semester (in ascending order)
+#for (val in 1:4) {
   
-  lead.X <- paste0("F", val, ".w.ln_sales_tax")
-  all_pi[, (lead.X) := shift(w.ln_sales_tax, n=val, type="lead"),
-         by = .(store_code_uc, product_module_code)]
-}
+#  lead.X <- paste0("F", val, ".w.ln_sales_tax")
+#  all_pi[, (lead.X) := shift(w.ln_sales_tax, n=val, type="lead"),
+#         by = .(store_code_uc, product_module_code)]
+#}
 
 
 ## Create 2-year differences
@@ -204,14 +209,83 @@ all_pi[, DL.ln_quantity3 := ln_quantity3 - shift(ln_quantity3, n=4, type="lag"),
 all_pi[, DL.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=4, type="lag"),
        by = .(store_code_uc, product_module_code)]
 
-#all_pi[, DL.ln_UPC := ln_UPC - shift(ln_UPC, n=4, type="lag"),
-#       by = .(store_code_uc, product_module_code)]
+all_pi[, DL.ln_sales := ln_sales - shift(ln_sales, n=4, type="lag"),
+       by = .(store_code_uc, product_module_code)]
 
-#all_pi[, DL.ln_raw_quant := ln_raw_quant - shift(ln_raw_quant, n=4, type="lag"),
-#       by = .(store_code_uc, product_module_code)]
+## Actually, we were sort of looking at 2+ year difference on distributed lag model -- do longer difference
+all_pi[, DLL.ln_cpricei2 := ln_cpricei2 - shift(ln_cpricei2, n=5, type="lag"),
+       by = .(store_code_uc, product_module_code)]
 
-#all_pi[, DL.ln_sales_share := ln_sales_share - shift(ln_sales_share, n=4, type = "lag"),
-#       by = .(store_code_uc, product_module_code)]
+all_pi[, DLL.ln_pricei2 := ln_pricei2 - shift(ln_pricei2, n=5, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+
+all_pi[, DLL.ln_quantity3 := ln_quantity3 - shift(ln_quantity3, n=5, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+
+all_pi[, DLL.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=5, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+all_pi[, DLL.ln_sales := ln_sales - shift(ln_sales, n=5, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+
+
+#### We want the long-differences in cpricei, pricei, quantity, and quantity2 as well for robustness checks
+# For some reasons we only have the first-differences, not levels anymore
+# Re-construct long-difference from short difference
+
+### cpricei
+## generate lags
+for (lag.val in 1:4) {
+  lag.X <- paste0("L", lag.val, ".D.ln_cpricei")
+  all_pi[, (lag.X) := shift(D.ln_cpricei, n=lag.val, type="lag"),
+            by = .(store_code_uc, product_module_code)]
+  
+}
+
+## Create long differences
+all_pi[, DL.ln_cpricei := D.ln_cpricei + L1.D.ln_cpricei + L2.D.ln_cpricei + L3.D.ln_cpricei]
+all_pi[, DLL.ln_cpricei := D.ln_cpricei + L1.D.ln_cpricei + L2.D.ln_cpricei + L3.D.ln_cpricei + L4.D.ln_cpricei]
+
+## Remove leads and lags
+all_pi <- all_pi[, -c("L1.D.ln_cpricei", "L2.D.ln_cpricei", "L3.D.ln_cpricei", "L4.D.ln_cpricei")]
+
+
+### quantity
+## generate lags
+for (lag.val in 1:4) {
+  lag.X <- paste0("L", lag.val, ".D.ln_quantity")
+  all_pi[, (lag.X) := shift(D.ln_quantity, n=lag.val, type="lag"),
+         by = .(store_code_uc, product_module_code)]
+  
+}
+
+all_pi[, DL.ln_quantity := D.ln_quantity + L1.D.ln_quantity + L2.D.ln_quantity + L3.D.ln_quantity]
+all_pi[, DLL.ln_quantity := D.ln_quantity + L1.D.ln_quantity + L2.D.ln_quantity + L3.D.ln_quantity + L4.D.ln_quantity]
+
+## Remove leads and lags
+all_pi <- all_pi[, -c("L1.D.ln_quantity", "L2.D.ln_quantity", "L3.D.ln_quantity", "L4.D.ln_quantity")]
+
+
+### quantity2
+## generate lags
+for (lag.val in 1:4) {
+  lag.X <- paste0("L", lag.val, ".D.ln_quantity2")
+  all_pi[, (lag.X) := shift(D.ln_quantity2, n=lag.val, type="lag"),
+         by = .(store_code_uc, product_module_code)]
+  
+}
+
+all_pi[, DL.ln_quantity2 := D.ln_quantity2 + L1.D.ln_quantity2 + L2.D.ln_quantity2 + L3.D.ln_quantity2]
+all_pi[, DLL.ln_quantity2 := D.ln_quantity2 + L1.D.ln_quantity2 + L2.D.ln_quantity2 + L3.D.ln_quantity2 + L4.D.ln_quantity2]
+
+## Remove leads and lags
+all_pi <- all_pi[, -c("L1.D.ln_quantity2", "L2.D.ln_quantity2", "L3.D.ln_quantity2", "L4.D.ln_quantity2")]
+
+## Remove some variables no longer in use
+all_pi <- all_pi[, -c("ln_quant_raw", "ln_UPC", "D.ln_UPC", "D.ln_raw_quant")]
 
 
 
@@ -231,15 +305,21 @@ all_pi[, dm.ln_pricei2 := ln_pricei2 - mean(ln_pricei2, na.rm = T), by = module_
 all_pi[, L.ln_sales_tax := ln_sales_tax - D.ln_sales_tax]
 
 for (sig in seq(0.25, 1, 0.05)) {
+  
   # build p^sigma
   all_pi[, paste0("ln_cpricei2_sig", sig) := ln_pricei2 +sig*ln_sales_tax]
+  
   # Create within
   all_pi[, paste0("w.ln_cpricei2_sig", sig) := get(paste0("ln_cpricei2_sig", sig)) - mean(get(paste0("ln_cpricei2_sig", sig))), by = .(store_by_module)]
+  
   # Create de-meaned for cutting tails
   all_pi[, paste0("dm.ln_cpricei2_sig", sig)  := get(paste0("ln_cpricei2_sig", sig)) - mean(get(paste0("ln_cpricei2_sig", sig)), na.rm = T), by = module_by_time]
+  
   # Created lagged and de-meaned lagegd for splitting sample
   all_pi[, paste0("D.ln_cpricei2_sig", sig) := D.ln_pricei2 +sig*D.ln_sales_tax]
   all_pi[, paste0("DL.ln_cpricei2_sig", sig) := DL.ln_pricei2 +sig*DL.ln_sales_tax] ## Long Difference
+  all_pi[, paste0("DLL.ln_cpricei2_sig", sig) := DLL.ln_pricei2 +sig*DLL.ln_sales_tax] ## Longer Difference
+  
   all_pi[, paste0("L.ln_cpricei2_sig", sig) := get(paste0("ln_cpricei2_sig", sig)) - get(paste0("D.ln_cpricei2_sig", sig))]
   all_pi[, paste0("dm.L.ln_cpricei2_sig", sig) := get(paste0("L.ln_cpricei2_sig", sig)) - mean(get(paste0("L.ln_cpricei2_sig", sig)), na.rm = T), by = module_by_time]
   
@@ -292,10 +372,14 @@ all_pi_cs[(year > 2009 & year < 2015)
 # Merge to create data set for spillovers
 all_pi_spill <- merge(all_pi, taxability, by = c("year", "semester", "fips_state", "product_module_code"), all.x = T)
 rm(taxability)
+
 # Remove \sigma columns from this file
 names.rem <- c(paste0("w.ln_cpricei2_sig", seq(0.25, 1, 0.05)),
-               paste0("dm.L.ln_cpricei2_sig", seq(0.25, 1, 0.05)))
+               paste0("dm.L.ln_cpricei2_sig", seq(0.25, 1, 0.05)),
+               paste0("DL.ln_cpricei2_sig", seq(0.25, 1, 0.05)),
+               paste0("DLL.ln_cpricei2_sig", seq(0.25, 1, 0.05)))
 all_pi_spill <- all_pi_spill[, (names.rem):= NULL]
+
 
 # Identify always taxable and always tax-exempt
 all_pi_spill[, tax_exempt := taxability == 0]
@@ -306,9 +390,11 @@ all_pi_spill[, T_total := .N, by = .(store_by_module)]
 all_pi_spill[, all_taxable:= ifelse(T_taxable == T_total,1,0)]
 all_pi_spill[, all_taxexempt:= ifelse(T_tax_exempt == T_total,1,0)]
 
+
 # Identify statutory tax rate
 all_pi_spill[, ln_statutory_tax := max(ln_sales_tax, na.rm = T), by = .(fips_state, fips_county, year, semester)]
 all_pi_spill[, ln_statutory_tax := ifelse(taxability == 1, ln_sales_tax, ln_statutory_tax)]
+
 
 # Make sure this step worked correctly
 print("No controls check.")
@@ -338,6 +424,9 @@ all_pi_spill[, D.ln_statutory_tax := ln_statutory_tax - shift(ln_statutory_tax, 
              by = .(store_code_uc, product_module_code)]
 
 all_pi_spill[, DL.ln_statutory_tax := ln_statutory_tax - shift(ln_statutory_tax, n=4, type="lag"),
+             by = .(store_code_uc, product_module_code)]
+
+all_pi_spill[, DLL.ln_statutory_tax := ln_statutory_tax - shift(ln_statutory_tax, n=5, type="lag"),
              by = .(store_code_uc, product_module_code)]
 
 
@@ -393,7 +482,9 @@ all_pi <- merge(all_pi, all_pi_cs, by = c("year", "semester", "fips_state", "fip
 
 # Remove excesive data to save disk space
 names.rem <- c(paste0("w.ln_cpricei2_sig", seq(0.25, 1, 0.05)),
-               paste0("dm.L.ln_cpricei2_sig", seq(0.25, 1, 0.05)))
+               paste0("dm.L.ln_cpricei2_sig", seq(0.25, 1, 0.05)),
+               paste0("DL.ln_cpricei2_sig", seq(0.25, 1, 0.05)),
+               paste0("DLL.ln_cpricei2_sig", seq(0.25, 1, 0.05)))
 all_pi_econ <- all_pi_econ[, (names.rem):= NULL]
 
 
