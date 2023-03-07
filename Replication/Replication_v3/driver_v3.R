@@ -34,8 +34,8 @@ source("reduced_form_evidence_controls_v3.R") #DONE
 ##For now _ I tried an alternative version
 source("reduced_form_evidence_controls_DLL_v3.R") #DONE
 
-
 source("reduced_form_evidence_spillovers_v3.R") #DONE
+
 
 source("cross_section_retailer_v3.R") #DONE
 source("cross_section_consumer_panel_v3.R") #DONE
