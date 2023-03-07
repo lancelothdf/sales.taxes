@@ -15,6 +15,7 @@ setwd("/project/igaarder")
 source("cleaning_code_v3.R") #DONE - Revisiting to reduce disk use
 source("summary_data_v3.R") #DONE - Revisiting to reduce disk use
 source("cleaning_store_characteristics_v3.R") #DONE
+
 source("reduced_form_evidence_v3.R") #DONE
 source("reduced_form_evidence_controls_v3.R") #DONE
 source("reduced_form_evidence_spillovers_v3.R") #DONE
