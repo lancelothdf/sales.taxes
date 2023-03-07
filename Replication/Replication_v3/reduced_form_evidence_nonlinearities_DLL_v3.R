@@ -23,9 +23,9 @@ all_pi <- fread("Data/Replication_v2/all_pi.csv")
 pricedist <- T
 
 ## output filepath ----------------------------------------------
-iv.output.results.file <- "Data/Replication_v2/IV_subsamples_initprice.csv"
-output.emp.price.dist <- "Data/Replication_v2/Emp_price_subsamples_initprice.csv"
-iv.output.results.file.boot <- "Data/Replication_v2/IV_subsamples_initprice_boot.csv"
+iv.output.results.file <- "Data/Replication_v2/IV_subsamples_initprice_DLL.csv"
+output.emp.price.dist <- "Data/Replication_v2/Emp_price_subsamples_initprice_DLL.csv"
+iv.output.results.file.boot <- "Data/Replication_v2/IV_subsamples_initprice_boot_DLL.csv"
 
 
 ## We only want to use the "true" tax variation
@@ -67,8 +67,8 @@ for (n.g in 1:5) {
     
     ## Produce appropiate weights implied by regression
     grouped_FE <- paste0("group_", FE)
-    all_pi[, wVAR := weighted.mean((DL.ln_sales_tax - 
-                                      weighted.mean(DL.ln_sales_tax, 
+    all_pi[, wVAR := weighted.mean((DLL.ln_sales_tax - 
+                                      weighted.mean(DLL.ln_sales_tax, 
                                                     w = base.sales, na.rm = T))^2,
                                    w = base.sales, na.rm = T), by = grouped_FE]
     all_pi[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]
@@ -165,9 +165,9 @@ for (n.g in 1:5) {
     ## Produce IVs
     for (q in unique(all_pi$quantile)) {
       if (nrow(all_pi[quantile == q]) > 0) {
-        formula1 <- as.formula(paste0("DL.ln_quantity3 ~ 0 | ", 
+        formula1 <- as.formula(paste0("DLL.ln_quantity3 ~ 0 | ", 
                                       FE, 
-                                      " | (DL.ln_cpricei2 ~ DL.ln_sales_tax) | module_by_state"))
+                                      " | (DLL.ln_cpricei2 ~ DLL.ln_sales_tax) | module_by_state"))
         res1 <- felm(formula = formula1, data = all_pi[quantile == q],
                      weights = all_pi[quantile == q]$base.sales)
         
@@ -237,9 +237,9 @@ for (rep in 1:100) {
       ## Produce IVs
       for (q in unique(sampled.data$quantile)) {
         if (nrow(sampled.data[quantile == q]) > 0) {
-          formula1 <- as.formula(paste0("DL.ln_quantity3 ~ 0 | ", 
+          formula1 <- as.formula(paste0("DLL.ln_quantity3 ~ 0 | ", 
                                         FE, 
-                                        " | (DL.ln_cpricei2 ~ DL.ln_sales_tax) "))
+                                        " | (DLL.ln_cpricei2 ~ DLL.ln_sales_tax) "))
           res1 <- felm(formula = formula1, data = sampled.data[quantile == q],
                        weights = sampled.data[quantile == q]$base.sales)
           
