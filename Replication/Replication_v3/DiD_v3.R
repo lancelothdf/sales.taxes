@@ -1,6 +1,6 @@
 ##### Wesley Janson
 #' Sales Taxes
-#' Replication File. Updated on 2/09/2023
+#' Replication File. Updated on 03/07/2023
 #' Step 5: TWFE estimates and pre-trends portion of replication
 
 library(data.table)
@@ -9,7 +9,7 @@ library(lfe)
 library(multcomp)
 library(Matrix)
 
-setwd("/project2/igaarder")
+setwd("/project/igaarder")
 rm(list = ls())
 
 ## input filepath ----------------------------------------------
@@ -20,7 +20,7 @@ output.results.file.TWFE <- "Data/Replication_v2/LR_Diff_design.csv"
 
 
 ### 5. Long DiD estimates  ---------------
-outcomes <- c("DL.ln_cpricei2", "DL.ln_quantity3", "DL.ln_pricei2")
+outcomes <- c("DL.ln_cpricei", "DL.ln_cpricei2", "DL.ln_quantity", "DL.ln_quantity2", "DL.ln_quantity3", "DL.ln_pricei2", "DLL.ln_cpricei", "DLL.ln_cpricei2", "DLL.ln_quantity", "DLL.ln_quantity2", "DLL.ln_quantity3", "DLL.ln_pricei2")
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 # Define samples
