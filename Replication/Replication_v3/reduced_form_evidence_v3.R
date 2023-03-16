@@ -13,10 +13,10 @@ setwd("/project/igaarder")
 rm(list = ls())
 
 ## input filepaths ----------------------------------------------
-all_pi <- fread("Data/Replication_v2/all_pi.csv")
+all_pi <- fread("/Data/Replication_v2/all_pi.csv")
 
 ## output filepaths ----------------------------------------------
-output.results.file <- "Data/Replication_v2/LRdiff_semesterly_main.csv"
+output.results.file <- "/Data/Replication_v2/LRdiff_semesterly_main.csv"
 
 ########## Estimations -----------------
 
