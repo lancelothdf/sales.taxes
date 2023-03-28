@@ -300,8 +300,8 @@ all_pi[, DLL.ln_quantity2 := D.ln_quantity2 + L1.D.ln_quantity2 + L2.D.ln_quanti
 all_pi <- all_pi[, -c("L1.D.ln_quantity2", "L2.D.ln_quantity2", "L3.D.ln_quantity2", "L4.D.ln_quantity2")]
 
 ## Remove some variables no longer in use
-all_pi <- all_pi[, -c("ln_quant_raw", "ln_UPC", "D.ln_UPC", "D.ln_raw_quant")]
-
+#all_pi <- all_pi[, -c("ln_quant_raw", "ln_UPC", "D.ln_UPC", "D.ln_raw_quant")]
+all_pi <- all_pi[, -c("D.ln_UPC", "D.ln_raw_quant")]
 
 
 # Create some necesary variables
