@@ -23,9 +23,9 @@ all_pi <- fread("Data/Replication_v2/all_pi.csv")
 pricedist <- T
 
 ## output filepath ----------------------------------------------
-iv.output.results.file <- "Data/Replication_v2/IV_subsamples_initprice.csv"
-output.emp.price.dist <- "Data/Replication_v2/Emp_price_subsamples_initprice.csv"
-iv.output.results.file.boot <- "Data/Replication_v2/IV_subsamples_initprice_boot.csv"
+iv.output.results.file <- "Data/Replication_v2/IV_subsamples_initprice_sample3.csv"
+output.emp.price.dist <- "Data/Replication_v2/Emp_price_subsamples_initprice_sample3.csv"
+iv.output.results.file.boot <- "Data/Replication_v2/IV_subsamples_initprice_boot_sample3.csv"
 
 
 ## We only want to use the "true" tax variation
