@@ -32,7 +32,6 @@ source("reduced_form_evidence_controls_v3.R")
 
 ##For now _ I tried an alternative version
 source("reduced_form_evidence_controls_DLL_v3.R") 
-
 source("reduced_form_evidence_spillovers_v3.R") 
 
 
