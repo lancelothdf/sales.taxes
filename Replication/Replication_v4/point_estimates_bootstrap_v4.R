@@ -1,6 +1,6 @@
 ##### Wesley Janson and Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 8/24/2022
+#' Replication File. Updated on 04/18/2023
 #' Step 6: Point identification/main estimates and bootstrap portion of replication
 
 library(data.table)
@@ -11,23 +11,25 @@ library(zoo)
 library(tidyverse)
 library(stringr)
 
-setwd("/project2/igaarder")
+setwd("/project/igaarder")
 rm(list = ls())
 
 ## input filepath ----------------------------------------------
-all_pi <- fread("Data/Replication/all_pi.csv")
+all_pi <- fread("Data/Replication_v4/all_pi.csv")
 
 
 ## output filepath ----------------------------------------------
-theta.output.results.file <- "Data/Replication/Demand_theta_sat_initial_price_semester_boot_r.csv"
-iv.output.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_boot_r.csv"
+theta.output.results.file <- "Data/Replication_v4/Demand_theta_sat_initial_price_semester_boot_r.csv"
+iv.output.results.file <- "Data/Replication_v4/Demand_iv_sat_initial_price_semester_boot_r.csv"
+
 
 ### 6. Point identification (K = L). L= 1, ..., 5 Main estimates and Bootstrap -----------
-outcomes <- c("w.ln_cpricei2", "w.ln_quantity3")
+outcomes <- c("DL.ln_cpricei2", "DL.ln_quantity3")
 FE_opts <- c("group_region_by_module_by_time", "group_division_by_module_by_time")
 
 ## We only want to use the "true" tax variation
-all_pi <- all_pi[non_imp_tax == 1]
+all_pi <- all_pi[non_imp_tax_strong == 1] ## Should already be limited to this sample
+
 # Check: Drop observations with missings so that bootstrap should work
 # print(nrow(all_pi))
 # all_pi <- all_pi[!is.na(ln_sales_tax) & !is.na(ln_quantity3) & !is.na(ln_cpricei2) & is.finite(ln_cpricei2) & is.finite(ln_quantity3)]
@@ -62,9 +64,9 @@ for (n.g in c(1:3,5)) {
   for (FE in FE_opts) {
     for (Y in outcomes) {
       formula1 <- as.formula(paste0(
-        Y, " ~ w.ln_sales_tax:quantile | ", FE, "+ quantile"
+        Y, " ~ DL.ln_sales_tax:quantile | ", FE, "+ quantile"
       ))
-      if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ w.ln_sales_tax | ", FE)) }
+      if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ DL.ln_sales_tax | ", FE)) }
       res1 <- felm(formula = formula1, data = all_pi,
                    weights = all_pi$base.sales)
       
@@ -82,20 +84,21 @@ for (n.g in c(1:3,5)) {
     }
     
     ## Estimate IVs and retrieve in vector
-    IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE,][["Estimate"]]
+    IV <- LRdiff_res[outcome == "DL.ln_quantity3" & n.groups == n.g & controls == FE,][["Estimate"]]/LRdiff_res[outcome == "DL.ln_cpricei2" & n.groups == n.g & controls == FE,][["Estimate"]]
     
     ## Estimate the matrix of the implied system of equations
     if (n.g > 1) {
       ## Get the empirical distribution of prices by quantile, weighted properly by base.sales \times 
       # start by creating the weights and normalizing them 
       # Part 1 of weight: (base.sales) weighted variance of de-meaned sales tax within cohort (FE)
-      all_pi[, wVAR := weighted.mean((w.ln_sales_tax - 
-                                           weighted.mean(w.ln_sales_tax, 
+      all_pi[, wVAR := weighted.mean((DL.ln_sales_tax - 
+                                           weighted.mean(DL.ln_sales_tax, 
                                                          w = base.sales, na.rm = T))^2,
                                         w = base.sales, na.rm = T), by = FE]
       all_pi[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]
       # Weight normalized within quantile
       all_pi[, base.sales.q := (wVAR*base.sales)/sum(wVAR*base.sales), by = .(quantile)]
+      
       # To compute the empirical distribution of prices, we need to bin the support.
       all_pi[, p_group := floor((dm.ln_cpricei2 - min(dm.ln_cpricei2, na.rm = T))/((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500)), by = .(quantile)]
       all_pi[, p_ll := p_group*((max(dm.ln_cpricei2, na.rm = T)-min(dm.ln_cpricei2, na.rm = T))/500), by = .(quantile)]
@@ -177,9 +180,9 @@ for (rep in 1:100) {
     for (FE in FE_opts) {
       for (Y in outcomes) {
         formula1 <- as.formula(paste0(
-          Y, " ~ w.ln_sales_tax:quantile | ", FE, "+ quantile"
+          Y, " ~ DL.ln_sales_tax:quantile | ", FE, "+ quantile"
         ))
-        if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ w.ln_sales_tax | ", FE)) }
+        if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ DL.ln_sales_tax | ", FE)) }
         res1 <- felm(formula = formula1, data = sampled.data,
                      weights = sampled.data$base.sales)
         
@@ -197,7 +200,7 @@ for (rep in 1:100) {
       }
       
       ## Estimate IVs and retrieve in vector
-      IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE & iter == rep,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" & n.groups == n.g & controls == FE & iter == rep,][["Estimate"]]
+      IV <- LRdiff_res[outcome == "DL.ln_quantity3" & n.groups == n.g & controls == FE & iter == rep,][["Estimate"]]/LRdiff_res[outcome == "DL.ln_cpricei2" & n.groups == n.g & controls == FE & iter == rep,][["Estimate"]]
       
       ## Estimate the matrix of the implied system of equations
       if (n.g > 1 & n.g <5) { # do not build matrices for L = 5
@@ -205,8 +208,8 @@ for (rep in 1:100) {
         ## Get the empirical distribution of prices by quantile, weighted properly by base.sales \times 
         # start by creating the weights and normalizing them 
         # Part 1 of weight: (base.sales) weighted variance of de-meaned sales tax within cohort (FE)
-        sampled.data[, wVAR := weighted.mean((w.ln_sales_tax - 
-                                                  weighted.mean(w.ln_sales_tax, 
+        sampled.data[, wVAR := weighted.mean((DL.ln_sales_tax - 
+                                                  weighted.mean(DL.ln_sales_tax, 
                                                                 w = base.sales, na.rm = T))^2,
                                                w = base.sales, na.rm = T), by = FE]
         sampled.data[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]
