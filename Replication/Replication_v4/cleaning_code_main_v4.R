@@ -16,8 +16,8 @@ library(geodist)
 
 ## In this case, let us not set a directory but change below in the input and (at the end) in the output filepaths
 # Because input files are from midway2 and but output is saved on midway3
-#setwd("/project2/igaarder")
-setwd("/Users/lancelot/Documents/Sales Taxes/Data/")
+setwd("/project2/igaarder")
+#setwd("/Users/lancelot/Documents/Sales Taxes/Data/")
 
 rm(list = ls())
 
@@ -35,8 +35,8 @@ data.hh <- "/project2/igaarder/Data/Nielsen/Household_panel/cleaning/consumer_pa
 ## Open Data ----------------
 
 # Semesterly data
-#all_pi <- fread(data.semester)
-all_pi <- fread("training_data_all_pi.csv")
+all_pi <- fread(data.semester)
+#all_pi <- fread("training_data_all_pi.csv")
 
 
 ## Open Taxability panel
@@ -190,6 +190,7 @@ all_pi[, DL.ln_quantity3 := ln_quantity3 - shift(ln_quantity3, n=4, type="lag"),
 all_pi[, DL.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=4, type="lag"),
        by = .(store_code_uc, product_module_code)]
 
+
 all_pi[, DL.ln_sales := ln_sales - shift(ln_sales, n=4, type="lag"),
        by = .(store_code_uc, product_module_code)]
 
@@ -201,6 +202,10 @@ all_pi[, DLL.ln_pricei2 := ln_pricei2 - shift(ln_pricei2, n=5, type="lag"),
        by = .(store_code_uc, product_module_code)]
 
 all_pi[, DLL.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=5, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
+## Add a lead tax rate so that we can test for pre-trends
+all_pi[, FL.ln_sales_tax := shift(ln_sales_tax, n=4, type="lead") - ln_sales_tax,
        by = .(store_code_uc, product_module_code)]
 
 

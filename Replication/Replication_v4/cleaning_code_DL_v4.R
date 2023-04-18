@@ -64,6 +64,9 @@ all_pi <- all_pi[order(store_code_uc, product_module_code, year, semester),] ##S
 all_pi[, DLL.ln_cpricei2 := ln_cpricei2 - shift(ln_cpricei2, n=5, type="lag"),
        by = .(store_code_uc, product_module_code)]
 
+all_pi[, DL.ln_sales_tax := ln_sales_tax - shift(ln_sales_tax, n=4, type="lag"),
+       by = .(store_code_uc, product_module_code)]
+
 # Create some necesary variables
 all_pi[, module_by_time := .GRP, by = .(product_module_code, semester, year)]
 all_pi[, L.ln_cpricei2 := ln_cpricei2 - DLL.ln_cpricei2]
