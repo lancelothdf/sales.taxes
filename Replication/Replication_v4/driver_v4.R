@@ -12,7 +12,9 @@
 setwd("/project/igaarder")
 
 ###Run Code
-source("cleaning_code_v4.R") #DONE - Revisiting to reduce disk use
+source("cleaning_code_DL_v4.R") #DONE - Revisiting to reduce disk use -- Prepare dataset for Distributed Lags specification
+source("cleaning_code_main_v4.R") #DONE - Revisiting to reduce disk use -- Prepare dataset for long-difference specifications + household sample + econ covariates + spillover datasets
+
 source("summary_data_v3.R") #DONE - Revisiting to reduce disk use
 source("cleaning_store_characteristics_v3.R") 
 source("reduced_form_evidence_v3.R") #DONE
