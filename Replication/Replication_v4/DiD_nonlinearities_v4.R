@@ -1,6 +1,6 @@
 ##### Santiago Lacouture & Lancelot Henry de Frahan
 #' Sales Taxes
-#' Replication File. Updated on 3/07/2023
+#' Replication File. Updated on 04/18/2023
 #' Step 5b: Reduced form evidence of non-linearities.
 #' Export IV estimates by quantiles of lagged price distribution,
 #' and distribution of current prices, using relevant estimation weights.
@@ -19,23 +19,22 @@ setwd("/project/igaarder")
 rm(list = ls())
 
 ## input filepath ----------------------------------------------
-all_pi <- fread("Data/Replication_v2/all_pi.csv")
+all_pi <- fread("Data/Replication_v4/all_pi.csv")
 pricedist <- T
 
 ## output filepath ----------------------------------------------
-iv.output.results.file <- "Data/Replication_v2/IV_subsamples_initprice.csv"
-output.emp.price.dist <- "Data/Replication_v2/Emp_price_subsamples_initprice.csv"
-#iv.output.results.file.boot <- "Data/Replication_v2/IV_subsamples_initprice_boot.csv"
+iv.output.results.file <- "Data/Replication_v4/IV_subsamples_initprice.csv"
+output.emp.price.dist <- "Data/Replication_v4/Emp_price_subsamples_initprice.csv"
 
 
 ## We only want to use the "true" tax variation
-all_pi <- all_pi[non_imp_tax_strong == 1]
+all_pi <- all_pi[non_imp_tax_strong == 1] ## all_pi should already only include this sample
 
 # Create demeaned current prices
 all_pi[, n.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = .(module_by_time)]
 
 # Create treatment groups
-all_pi[, treated := D.ln_sales_tax != 0]
+all_pi[, treated := DL.ln_sales_tax != 0]
 
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
@@ -165,7 +164,6 @@ for (n.g in 1:5) {
     ## Produce IVs
     for (q in unique(all_pi$quantile)) {
       if (nrow(all_pi[quantile == q]) > 0) {
-        
         formula1 <- as.formula(paste0("DL.ln_quantity3 ~ 0 | ", 
                                       FE, 
                                       " | (DL.ln_cpricei2 ~ DL.ln_sales_tax) | module_by_state"))
@@ -181,7 +179,6 @@ for (n.g in 1:5) {
         
         LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
         fwrite(LRdiff_res, iv.output.results.file)
-        
         
         ## First-stage 
         formula1 <- as.formula(paste0("DL.ln_cpricei2 ~ DL.ln_sales_tax | ", FE, " | 0 | module_by_state"))

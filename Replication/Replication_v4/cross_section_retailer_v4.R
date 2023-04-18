@@ -1,6 +1,9 @@
+#####NOTE: we are currently using only years 2010-2014 because we dropped other years in dataset all_pi (because other years had at least one imputed tax rate when taking the difference)
+## In this case/cross-sectional specification, we could actually use 2008-2014 without having any imputed tax rate => Should we look at whether results look the same when including 2008-2009?
+
 ##### Wesley Janson and Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 8/2/2022
+#' Replication File. Updated on 04/18/2022
 #' Step 4A: Cross-sectional estimates using retailer data portion of replication
 
 library(data.table)
@@ -16,14 +19,14 @@ library(doParallel)
 library(MASS)
 library(pracma)
 
-setwd("/project2/igaarder")
+setwd("/project/igaarder")
 rm(list = ls())
 
 ## input filepath ----------------------------------------------
-all_pi <- fread("Data/Replication/all_pi.csv")
+all_pi <- fread("Data/Replication_v4/all_pi.csv")
 
 ## output filepath ----------------------------------------------
-output.results.file.crossec <- "Data/Replication/LRdiff_cross_sectional_design.csv"
+output.results.file.crossec <- "Data/Replication_v4/LRdiff_cross_sectional_design.csv"
 
 
 ### Clean data ----
@@ -41,7 +44,7 @@ nrow(yearly_data)
 
 
 # Redefine base.sales
-base <- yearly_data[year == 2008, .(base.sales = mean(sales)), by = c("store_code_uc", "product_module_code")]
+base <- yearly_data[year == 2010, .(base.sales = mean(sales)), by = c("store_code_uc", "product_module_code")]
 yearly_data<- merge(yearly_data, base, by = c("store_code_uc", "product_module_code")) 
 rm(base)
 
@@ -51,12 +54,12 @@ yearly_data[, ln_sales := log(sales)]
 
 
 # Restrict to relevant tax data span
-yearly_data <- yearly_data[year >= 2008 & year <= 2014]
+yearly_data <- yearly_data[year >= 2010 & year <= 2014]
 yearly_data$year <- factor(yearly_data$year) ##Convert the indicator for year to a factor variable (needed for interaction in the regression between ln_sales_tax and dummy for year)
 nrow(yearly_data)
 
 ##Construct weights to average across cohorts/years.  Equal weights
-cohort.weights <- rep(1, 7) 
+cohort.weights <- rep(1, 5) 
 cohort.weights <- cohort.weights/sum(cohort.weights)
 
 
@@ -90,7 +93,7 @@ for (Y in outcomes) {
   
   
   ### Take linear combinations of coefficients and attach results (this is the coefficient of interest)
-  lc.lr0 <- paste0(cohort.weights[1], "*ln_sales_tax:year2008 + ", cohort.weights[2], "*ln_sales_tax:year2009 + ", cohort.weights[3], "*ln_sales_tax:year2010 + ", cohort.weights[4], "*ln_sales_tax:year2011 + ", cohort.weights[5], "*ln_sales_tax:year2012 + ", cohort.weights[6], "*ln_sales_tax:year2013 + ", cohort.weights[7], "*ln_sales_tax:year2014", sep = "")
+  lc.lr0 <- paste0(cohort.weights[1], "*ln_sales_tax:year2010 + ", cohort.weights[2], "*ln_sales_tax:year2011 + ", cohort.weights[3], "*ln_sales_tax:year2012 + ", cohort.weights[4], "*ln_sales_tax:year2013 + ", cohort.weights[5], "*ln_sales_tax:year2014", sep = "")
   lc.formula0 <- paste0(lc.lr0, " = 0", sep = "")
   lc.test0 <- glht(res0, linfct = c(lc.formula0))
   

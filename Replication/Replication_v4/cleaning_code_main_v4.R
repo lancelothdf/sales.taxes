@@ -438,9 +438,9 @@ all_pi_econ <- all_pi_econ[, (names.rem):= NULL]
 
 
 # Save Datasets
-fwrite(all_pi, "/project/igaarder/Data/Replication_v2/all_pi.csv", showProgress = T)
-fwrite(all_pi_spill, "/project/igaarder/Data/Replication_v2/all_pi_spill.csv", showProgress = T)
-fwrite(all_pi_spill_econ, "/project/igaarder/Data/Replication_v2/all_pi_spill_econ.csv", showProgress = T)
-fwrite(all_pi_econ, "/project/igaarder/Data/Replication_v2/all_pi_econ.csv", showProgress = T)
-fwrite(purchases.sample, "/project/igaarder/Data/Replication_v2/purchases.sample.csv", showProgress = T)
+fwrite(all_pi, "/project/igaarder/Data/Replication_v4/all_pi.csv", showProgress = T)
+fwrite(all_pi_spill, "/project/igaarder/Data/Replication_v4/all_pi_spill.csv", showProgress = T)
+fwrite(all_pi_spill_econ, "/project/igaarder/Data/Replication_v4/all_pi_spill_econ.csv", showProgress = T)
+fwrite(all_pi_econ, "/project/igaarder/Data/Replication_v4/all_pi_econ.csv", showProgress = T)
+fwrite(purchases.sample, "/project/igaarder/Data/Replication_v4/purchases.sample.csv", showProgress = T)
 

@@ -12,7 +12,7 @@ setwd("/project/igaarder")
 rm(list = ls())
 
 ## Open data filepaths ----------------------------------------------
-all_pi <- fread("Data/Replication_v2/all_pi.csv")
+all_pi <- fread("Data/Replication_v4/all_pi.csv")
 
 
 ### Final binned data sets for welfare extrapolations ---------
@@ -36,6 +36,6 @@ all_pi_t<- all_pi_t[ln_sales_tax > 0, .(p_m = weighted.mean(dm.ln_cpricei2, w = 
                                         eta_m = sum(base.sales)), by = .(fips_state, tau)]
 
 
-fwrite(all_pi_p, "Data/Replication_v2/extraction_state_binned_price.csv", showProgress = T)
-fwrite(all_pi_t, "Data/Replication_v2/extraction_state_binned_tax.csv", showProgress = T)
+fwrite(all_pi_p, "Data/Replication_v4/extraction_state_binned_price.csv", showProgress = T)
+fwrite(all_pi_t, "Data/Replication_v4/extraction_state_binned_tax.csv", showProgress = T)
 

@@ -15,30 +15,25 @@ setwd("/project/igaarder")
 source("cleaning_code_DL_v4.R") #DONE - Revisiting to reduce disk use -- Prepare dataset for Distributed Lags specification
 source("cleaning_code_main_v4.R") #DONE - Revisiting to reduce disk use -- Prepare dataset for long-difference specifications + household sample + econ covariates + spillover datasets
 
-source("summary_data_v3.R") #DONE - Revisiting to reduce disk use
-source("cleaning_store_characteristics_v3.R") 
-source("reduced_form_evidence_v3.R") #DONE
+source("summary_data_v4.R") #DONE - Revisiting to reduce disk use
+source("cleaning_store_characteristics_v4.R") 
+## For now run temp_cleaning_store_characteristics_v4.R
 
-source("DiD_v3.R") 
+source("reduced_form_evidence_v4.R") #DONE
+source("DiD_v4.R") 
+source("DiD_nonlinearities_v4.R") 
+source("DiD_controls_v4.R") 
+source("DiD_spillovers_v4.R") 
 
-source("reduced_form_evidence_nonlinearities_v3.R") 
+source("DiD_IV_v4.R")
+source("DiD_IV_controls_v4.R")
 
-##For now - I tried alternative versions of the reduced-form evidence
-source("reduced_form_evidence_nonlinearities_DLL_v3.R") 
-source("reduced_form_evidence_nonlinearities_sample2_v3.R")
-source("reduced_form_evidence_nonlinearities_DLL_sample2_v3.R")
-source("reduced_form_evidence_nonlinearities_sample3_v3.R")
-source("reduced_form_evidence_nonlinearities_DLL_sample3_v3.R") 
+# For now use 2010-2014 because of structure of all_pi.csv --> Maybe see what we get with 2008-2014 since there would not be any imputed data?
+source("cross_section_retailer_v4.R") 
 
-source("reduced_form_evidence_controls_v3.R") 
+source("cross_section_consumer_panel_v4.R") 
+source("cross_section_consumer_panel-2010_2014_v4.R") 
 
-##For now _ I tried an alternative version
-source("reduced_form_evidence_controls_DLL_v3.R") 
-source("reduced_form_evidence_spillovers_v3.R") 
-
-
-source("cross_section_retailer_v3.R") 
-source("cross_section_consumer_panel_v3.R") 
 #source("twfe_pre_trends_v2.R") 
 #source("reduced_form_cohort_twfe_parallel_v2.R") #DONE ## I don't think we need to run this one anymore
 

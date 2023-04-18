@@ -27,11 +27,11 @@ output.results.file <- "Data/Replication_v4/LRdiff_cross_sectional_design_hh.csv
 
 
 ### 4B. Cross-Sectional Estimates from Consumer Panel ------------------
-
+purchases.sample <- purchases.sample[year >= 2010]
 purchases.sample$year <- factor(purchases.sample$year) ##Convert the indicator for year to a factor variable (needed for interaction in the regression between ln_sales_tax and dummy for year)
 
 ##Construct weights to average across cohorts/years.  Equal weights
-cohort.weights <- rep(1, 7) 
+cohort.weights <- rep(1, 5) 
 cohort.weights <- cohort.weights/sum(cohort.weights)
 
 FE_opts <- c("income_by_group_by_time", "group_by_time")
@@ -40,6 +40,7 @@ LRdiff_res <- data.table(NULL)
 
 for (FE in FE_opts) {
   data.est <- purchases.sample[!is.na(get(FE))]
+  
   formula1 <- as.formula(paste0(
     "ln_expenditures ~ ln_sales_tax:year | household_by_time + ", FE, " | 0 | household_code"
   ))
@@ -62,11 +63,10 @@ for (FE in FE_opts) {
   fwrite(LRdiff_res, output.results.file)
   
   ### Take linear combinations of coefficients and attach results (this is the coefficient of interest)
-  lc.lr0 <- paste0(cohort.weights[1], "*ln_sales_tax:year2008 + ", cohort.weights[2], 
-                   "*ln_sales_tax:year2009 + ", cohort.weights[3], "*ln_sales_tax:year2010 + ", 
-                   cohort.weights[4], "*ln_sales_tax:year2011 + ", cohort.weights[5], 
-                   "*ln_sales_tax:year2012 + ", cohort.weights[6], "*ln_sales_tax:year2013 + ", 
-                   cohort.weights[7], "*ln_sales_tax:year2014", sep = "")
+  lc.lr0 <- paste0(cohort.weights[1], "*ln_sales_tax:year2010 + ", 
+                   cohort.weights[2], "*ln_sales_tax:year2011 + ", cohort.weights[3], 
+                   "*ln_sales_tax:year2012 + ", cohort.weights[4], "*ln_sales_tax:year2013 + ", 
+                   cohort.weights[5], "*ln_sales_tax:year2014", sep = "")
   lc.formula0 <- paste0(lc.lr0, " = 0", sep = "")
   lc.test0 <- glht(res1, linfct = c(lc.formula0))
   

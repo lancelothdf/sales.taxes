@@ -1,6 +1,6 @@
 ##### Wesley Janson and Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 03/07/2023
+#' Replication File. Updated on 04/18/2023
 #' Step 1: Reduced Form Evidence portion of replication
 
 library(data.table)
@@ -13,16 +13,16 @@ setwd("/project/igaarder")
 rm(list = ls())
 
 ## input filepaths ----------------------------------------------
-all_pi <- fread("/project/igaarder/Data/Replication_v2/all_pi.csv")
+all_pi <- fread("/project/igaarder/Data/Replication_v4/all_pi_DL.csv")
 
 ## output filepaths ----------------------------------------------
-output.results.file <- "/project/igaarder/Data/Replication_v2/LRdiff_semesterly_main.csv"
+output.results.file <- "/project/igaarder/Data/Replication_v4/LRdiff_semesterly_main.csv"
 
 ########## Estimations -----------------
 
 ### 1. Reduced Form Evidence -----------------
 ## Set up
-formula_lags <- paste0("L", 1:4, ".D.ln_sales_tax", collapse = "+")
+formula_lags <- paste0("L", 1:3, ".D.ln_sales_tax", collapse = "+")
 formula_leads <- paste0("F", 1:4, ".D.ln_sales_tax", collapse = "+")
 formula_RHS <- paste0("D.ln_sales_tax + ", formula_lags, "+", formula_leads)
 outcomes <- c("D.ln_cpricei", "D.ln_cpricei2", "D.ln_quantity", "D.ln_quantity2", "D.ln_quantity3")
@@ -30,13 +30,13 @@ FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 ## for linear hypothesis tests
 lead.vars <- paste(paste0("F", 4:1, ".D.ln_sales_tax"), collapse = " + ")
-lag.vars <- paste(paste0("L", 4:1, ".D.ln_sales_tax"), collapse = " + ")
+lag.vars <- paste(paste0("L", 3:1, ".D.ln_sales_tax"), collapse = " + ")
 lead.lp.restr <- paste(lead.vars, "= 0")
 lag.lp.restr <- paste(lag.vars, "+ D.ln_sales_tax = 0")
 total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 
 # Define samples
-samples <- c("all", "non_imp_tax", "non_imp_tax_strong")
+samples <- c("non_imp_tax_strong")
 
 
 LRdiff_res <- data.table(NULL)
@@ -143,7 +143,7 @@ for (s in samples) {
       cumul.lag0.pval <- coef(summary(res1))[ "D.ln_sales_tax", "Pr(>|t|)"]
       
       
-      for(j in 1:4) {
+      for(j in 1:3) {
         
         ## Create a name for estimate, se and pval of each lead
         cumul.test.est.name <- paste("cumul.lag", j, ".est", sep = "")
@@ -164,10 +164,10 @@ for (s in samples) {
       
       ## linear hypothesis results
       lp.dt <- data.table(
-        rn = c("cumul.lead5.D.ln_sales_tax", "cumul.lead4.D.ln_sales_tax", "cumul.lead3.D.ln_sales_tax", "cumul.lead2.D.ln_sales_tax", "cumul.lead1.D.ln_sales_tax", "cumul.lag0.D.ln_sales_tax", "cumul.lag1.D.ln_sales_tax", "cumul.lag2.D.ln_sales_tax", "cumul.lag3.D.ln_sales_tax", "cumul.lag4.D.ln_sales_tax"),
-        Estimate = c(cumul.lead5.est, cumul.lead4.est, cumul.lead3.est, cumul.lead2.est, cumul.lead1.est, cumul.lag0.est, cumul.lag1.est, cumul.lag2.est, cumul.lag3.est, cumul.lag4.est),
-        `Cluster s.e.` = c(cumul.lead5.se, cumul.lead4.se, cumul.lead3.se, cumul.lead2.se, cumul.lead1.se, cumul.lag0.se, cumul.lag1.se, cumul.lag2.se, cumul.lag3.se, cumul.lag4.se),
-        `Pr(>|t|)` = c(cumul.lead5.pval, cumul.lead4.pval, cumul.lead3.pval, cumul.lead2.pval, cumul.lead1.pval, cumul.lag0.pval, cumul.lag1.pval, cumul.lag2.pval, cumul.lag3.pval, cumul.lag4.pval),
+        rn = c("cumul.lead5.D.ln_sales_tax", "cumul.lead4.D.ln_sales_tax", "cumul.lead3.D.ln_sales_tax", "cumul.lead2.D.ln_sales_tax", "cumul.lead1.D.ln_sales_tax", "cumul.lag0.D.ln_sales_tax", "cumul.lag1.D.ln_sales_tax", "cumul.lag2.D.ln_sales_tax", "cumul.lag3.D.ln_sales_tax"),
+        Estimate = c(cumul.lead5.est, cumul.lead4.est, cumul.lead3.est, cumul.lead2.est, cumul.lead1.est, cumul.lag0.est, cumul.lag1.est, cumul.lag2.est, cumul.lag3.est),
+        `Cluster s.e.` = c(cumul.lead5.se, cumul.lead4.se, cumul.lead3.se, cumul.lead2.se, cumul.lead1.se, cumul.lag0.se, cumul.lag1.se, cumul.lag2.se, cumul.lag3.se),
+        `Pr(>|t|)` = c(cumul.lead5.pval, cumul.lead4.pval, cumul.lead3.pval, cumul.lead2.pval, cumul.lead1.pval, cumul.lag0.pval, cumul.lag1.pval, cumul.lag2.pval, cumul.lag3.pval),
         outcome = Y,
         controls = FE,
         sample = s,

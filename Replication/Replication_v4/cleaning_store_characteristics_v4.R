@@ -1,6 +1,6 @@
 ##### Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 03/07/2023
+#' Replication File. Updated on 04/18/2023
 #' Step 0: Cleaning stores data by consumers
 
 #' This code retrieves variables to refine the sample of estimation as a robustness exploration.
@@ -318,10 +318,10 @@ nrow(stores.all)
 ncol(stores.all)
 
 ## Save this File
-fwrite(stores.all, "/project/igaarder/Data/Replication_v2/stores_all.csv")
+fwrite(stores.all, "/project/igaarder/Data/Replication_v4/stores_all.csv")
 
 ### 4. Identify stores in retail data -----------------
-our.data <- fread("/project/igaarder/Data/Replication_v2/all_pi.csv")
+our.data <- fread("/project/igaarder/Data/Replication_v4/all_pi.csv")
 nrow(our.data)
 
 ## Collapse to the store level
@@ -336,4 +336,4 @@ nrow(stores.all)
 ncol(stores.all)
 
 ## Save this File
-fwrite(stores.all, "/project/igaarder/Data/Replication_v2/stores_all.csv")
+fwrite(stores.all, "/project/igaarder/Data/Replication_v4/stores_all.csv")
