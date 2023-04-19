@@ -36,7 +36,7 @@ lag.lp.restr <- paste(lag.vars, "+ D.ln_sales_tax = 0")
 total.lp.restr <- paste(lag.vars, "+", lead.vars, "+ D.ln_sales_tax = 0")
 
 # Define samples
-samples <- c("non_imp_tax_strong")
+samples <- c("all", "non_imp_tax", "non_imp_tax_strong")
 
 
 LRdiff_res <- data.table(NULL)
