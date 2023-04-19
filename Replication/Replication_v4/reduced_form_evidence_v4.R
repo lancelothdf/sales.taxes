@@ -25,7 +25,7 @@ output.results.file <- "/project/igaarder/Data/Replication_v4/LRdiff_semesterly_
 formula_lags <- paste0("L", 1:3, ".D.ln_sales_tax", collapse = "+")
 formula_leads <- paste0("F", 1:4, ".D.ln_sales_tax", collapse = "+")
 formula_RHS <- paste0("D.ln_sales_tax + ", formula_lags, "+", formula_leads)
-outcomes <- c("D.ln_cpricei", "D.ln_cpricei2", "D.ln_quantity", "D.ln_quantity2", "D.ln_quantity3")
+outcomes <- c("D.ln_cpricei2", "D.ln_quantity3")
 FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 ## for linear hypothesis tests
