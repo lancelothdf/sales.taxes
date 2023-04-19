@@ -38,8 +38,9 @@ source("cross_section_consumer_panel-2010_2014_v4.R")
 
 source("point_estimates_bootstrap_v4.R") 
 
+source("point_estimates_robust_storecharact_v4.R")
 
-source("point_estimates_robust_storecharact_v3.R")
+
 source("partial_id_matrices_bootstrap_v3.R") 
 source("partial_id_solve_bootstrap_v3.R")
 source("compute_average_elasticities_v3.R") 

@@ -12,19 +12,19 @@ library(zoo)
 library(tidyverse)
 library(stringr)
 
-setwd("/project2/igaarder")
+setwd("/project/igaarder")
 rm(list = ls())
 
 ## input filepath ----------------------------------------------
-all_pi <- fread("Data/Replication/all_pi.csv")
-stores <- fread("Data/Replication/stores_all.csv")
+all_pi <- fread("Data/Replication_v4/all_pi.csv")
+stores <- fread("Data/Replication_v4/stores_all.csv")
 
 ## output filepaths ----------------------------------------------
-results.file <- "Data/Replication/robust_demog_estimates_initial_price_semester.csv"
-theta.results.file <- "Data/Replication/Demand_theta_robust_demog_initial_price_semester.csv"
+results.file <- "Data/Replication_v4/robust_demog_estimates_initial_price_semester.csv"
+theta.results.file <- "Data/Replication_v4/Demand_theta_robust_demog_initial_price_semester.csv"
 
 # restrict to relevant sample
-all_pi <- all_pi[non_imp_tax == 1,]
+all_pi <- all_pi[non_imp_tax_strong == 1,]
 
 ## Merge Stores characteristics to retail data
 all_pi <- merge(all_pi, stores, by = c("year", "store_code_uc"), all.x = T)
@@ -34,7 +34,7 @@ all_pi <- all_pi[!is.na(av_hh_income_sales)]
 
 
 FE_opts <- c("group_region_by_module_by_time", "group_division_by_module_by_time")
-outcomes <- c("w.ln_cpricei2", "w.ln_quantity3")
+outcomes <- c("DL.ln_cpricei2", "DL.ln_quantity3")
 demographics <- c("av_hh_income_trips", 'per_bachelor_25_trips', 'median_age_trips',
                   'per_hisp_trips', 'per_black_trips', 'per65_trips')
 
@@ -64,9 +64,9 @@ for (n.g in 1:3) {
   for (FE in FE_opts) {
     for (Y in outcomes) {
       formula1 <- as.formula(paste0(
-        Y, " ~ w.ln_sales_tax:quantile | ", FE, "+ quantile"
+        Y, " ~ DL.ln_sales_tax:quantile | ", FE, "+ quantile"
       ))
-      if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ w.ln_sales_tax | ", FE)) }
+      if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ DL.ln_sales_tax | ", FE)) }
       res1 <- felm(formula = formula1, data = all_pi,
                    weights = all_pi$base.sales)
       
@@ -94,8 +94,8 @@ for (n.g in 1:3) {
     }
     
     ## Estimate IVs and retrieve in vector
-    IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
-                       het == "Het.Sample",][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" &
+    IV <- LRdiff_res[outcome == "DL.ln_quantity3" & n.groups == n.g & controls == FE &
+                       het == "Het.Sample",][["Estimate"]]/LRdiff_res[outcome == "DL.ln_cpricei2" &
                                                                            n.groups == n.g & controls == FE & het == "Het.Sample",][["Estimate"]]
     
     ## Estimate the matrix of the implied system of equations
@@ -103,8 +103,8 @@ for (n.g in 1:3) {
       ## Get the empirical distribution of prices by quantile, weighted properly by base.sales \times 
       # start by creating the weights and normalizing them 
       # Part 1 of weight: (base.sales) weighted variance of de-meaned sales tax within cohort (FE)
-      all_pi[, wVAR := weighted.mean((w.ln_sales_tax - 
-                                        weighted.mean(w.ln_sales_tax, 
+      all_pi[, wVAR := weighted.mean((DL.ln_sales_tax - 
+                                        weighted.mean(DL.ln_sales_tax, 
                                                       w = base.sales, na.rm = T))^2,
                                      w = base.sales, na.rm = T), by = FE]
       all_pi[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]
@@ -198,9 +198,9 @@ for (dem in demographics) {
         for (FE in FE_opts) {
           for (Y in outcomes) {
             formula1 <- as.formula(paste0(
-              Y, " ~ w.ln_sales_tax:quantile | ", FE, "+ quantile"
+              Y, " ~ DL.ln_sales_tax:quantile | ", FE, "+ quantile"
             ))
-            if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ w.ln_sales_tax  | ", FE)) }
+            if (n.g == 1) { formula1 <- as.formula(paste0(Y, " ~ DL.ln_sales_tax  | ", FE)) }
             res1 <- felm(formula = formula1, data = sample,
                          weights = sample$base.sales)
             
@@ -228,8 +228,8 @@ for (dem in demographics) {
           }
           
           ## Estimate IVs and retrieve in vector
-          IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE &
-                             n.het.g == sat.groups & het == dem & het.g == d,][["Estimate"]]/LRdiff_res[outcome == "w.ln_cpricei2" &
+          IV <- LRdiff_res[outcome == "DL.ln_quantity3" & n.groups == n.g & controls == FE &
+                             n.het.g == sat.groups & het == dem & het.g == d,][["Estimate"]]/LRdiff_res[outcome == "DL.ln_cpricei2" &
                                                                                                           n.groups == n.g & controls == FE & n.het.g == sat.groups & het == dem & het.g == d,][["Estimate"]]
           
           ## Estimate the matrix of the implied system of equations
@@ -237,8 +237,8 @@ for (dem in demographics) {
             ## Get the empirical distribution of prices by quantile, weighted properly by base.sales \times 
             # start by creating the weights and normalizing them 
             # Part 1 of weight: (base.sales) weighted variance of de-meaned sales tax within cohort (FE)
-            sample[, wVAR := weighted.mean((w.ln_sales_tax - 
-                                              weighted.mean(w.ln_sales_tax, 
+            sample[, wVAR := weighted.mean((DL.ln_sales_tax - 
+                                              weighted.mean(DL.ln_sales_tax, 
                                                             w = base.sales, na.rm = T))^2,
                                            w = base.sales, na.rm = T), by = FE]
             sample[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]
