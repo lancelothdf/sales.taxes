@@ -133,7 +133,7 @@ for (s in samples) {
         res1.dt[, N_county_modules := uniqueN(data.est, by = c("fips_state", "fips_county",
                                                                "product_module_code"))]
         LRdiff_res <- rbind(LRdiff_res, res1.dt, fill = T)
-        fwrite(LRdiff_res, results.file.spillovers.econ)
+        fwrite(LRdiff_res, results.file.spillovers.controls)
         
       }
     }
