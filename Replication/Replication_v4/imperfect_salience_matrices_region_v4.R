@@ -20,8 +20,8 @@ all_pi <- fread("Data/Replication_v4/all_pi.csv")
 all_pi <- all_pi[non_imp_tax == 1,]
 
 ## output filepath ----------------------------------------------
-pq.output.salience.results.file <- "Data/Replication_v4/Demand_pq_sat_initial_price_semester_salience.csv"
-theta.berstein.sal <- "Data/Replication_v4/Demand_gamma_sat_initial_price_semester_salience_K"
+pq.output.salience.results.file <- "Data/Replication_v4/Demand_pq_sat_initial_price_semester_salience_region.csv"
+theta.berstein.sal <- "Data/Replication_v4/Demand_gamma_sat_initial_price_semester_salience_K_region"
 
 
 #### Part 2. IVs and partially identified cases: matrices ------
@@ -56,7 +56,7 @@ for (sig in seq(0.25, 1, 0.05)) {
 
 ### Matrices for different types of extrapolation supports
 # Only for interest FE
-FE <- "group_division_by_module_by_time"
+FE <- "group_region_by_module_by_time"
 n.groups.max <- 2
 
 set.seed(2019)
@@ -600,7 +600,7 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
 ## 1. Input and output files
 # inputs (saved above)
 # output
-partial.results.file.salience <- "Data/Replication_v4/partial_point_results_salience.csv"
+partial.results.file.salience <- "Data/Replication_v4/partial_point_results_salience_region.csv"
 ## 2. Set up Optimization Parameters
 # These options will make Gurobi think more about numerical issues
 params <- list()

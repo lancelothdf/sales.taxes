@@ -20,8 +20,8 @@ all_pi <- fread("Data/Replication_v4/all_pi.csv")
 all_pi <- all_pi[non_imp_tax == 1,]
 
 ## output filepath ----------------------------------------------
-pq.output.salience.results.file <- "Data/Replication_v4/Demand_pq_sat_initial_price_semester_salience.csv"
-theta.berstein.sal <- "Data/Replication_v4/Demand_gamma_sat_initial_price_semester_salience_K"
+pq.output.salience.results.file <- "Data/Replication_v4/Demand_pq_sat_initial_price_semester_salience_division.csv"
+theta.berstein.sal <- "Data/Replication_v4/Demand_gamma_sat_initial_price_semester_salience_K_division"
 
 
 #### Part 2. IVs and partially identified cases: matrices ------
@@ -600,7 +600,7 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
 ## 1. Input and output files
 # inputs (saved above)
 # output
-partial.results.file.salience <- "Data/Replication_v4/partial_point_results_salience.csv"
+partial.results.file.salience <- "Data/Replication_v4/partial_point_results_salience_division.csv"
 ## 2. Set up Optimization Parameters
 # These options will make Gurobi think more about numerical issues
 params <- list()

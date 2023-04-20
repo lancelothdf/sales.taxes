@@ -1,8 +1,8 @@
 ##### Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 8/20/2022
+#' Replication File. Updated on 04/20/2023
 #' Step 10a: Repeat estimation for point identification but with demand under imperfect salience
-#' This version includes bootstrappin
+#' This version includes bootstrapping
 
 library(data.table)
 library(futile.logger)
@@ -11,23 +11,23 @@ library(Matrix)
 library(zoo)
 library(stringr)
 
-setwd("/project2/igaarder")
+setwd("/project/igaarder")
 rm(list = ls())
 
 ## input filepath ----------------------------------------------
-all_pi <- fread("Data/Replication/all_pi.csv")
+all_pi <- fread("Data/Replication_v4/all_pi.csv")
 # restrict to relevant sample
-all_pi <- all_pi[non_imp_tax == 1,]
+all_pi <- all_pi[non_imp_tax_strong == 1,]
 
 ## output filepath ----------------------------------------------
-iv.output.salience.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_salience.csv"
-theta.output.salience.results.file <- "Data/Replication/Demand_theta_sat_initial_price_semester_salience.csv"
+iv.output.salience.results.file <- "Data/Replication_v4/Demand_iv_sat_initial_price_semester_salience.csv"
+theta.output.salience.results.file <- "Data/Replication_v4/Demand_theta_sat_initial_price_semester_salience.csv"
 
 
 ### cut tails
 for (sig in seq(0.25, 1, 0.05)) {
   
-  ## cut the tails (keep between 1st and 99th percentile, not for sigma =1 since thatw as already done)
+  ## cut the tails (keep between 1st and 99th percentile, not for sigma =1 since that was already done)
   if (sig != 1) {
     pct1 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.01, na.rm = T, weight=base.sales)
     pct99 <- quantile(all_pi[[paste0("dm.ln_cpricei2_sig", sig)]], probs = 0.99, na.rm = T, weight=base.sales)
@@ -52,7 +52,7 @@ for (rep in  0:100) {
   for (sig in sigmas.test) {
     
     flog.info("Estimating for Sigma = %s", sig)
-    ## cut the tails (keep between 1st and 99th percentile, not for sigma =1 since thatw as already done)
+    ## cut the tails (keep between 1st and 99th percentile, not for sigma =1 since that was already done)
     print(paste0("Number of obs in sample is ", nrow(all_pi)))
     all_pi_est <- all_pi[ get(paste0("sample_", sig*100)) == 1, ]
     print(paste0("Number of obs in sample is ", nrow(all_pi_est), "after restriction"))
@@ -67,7 +67,7 @@ for (rep in  0:100) {
       # Merge data to actual data
       all_pi_est <- merge(sampled.ids, all_pi_est, by = c("module_by_state") , allow.cartesian = T, all.x = T)
       ## FE Options (fewer for boot)
-      FE_opts <- c("division_by_module_by_time")
+      FE_opts <- c("region_by_module_by_time", "division_by_module_by_time") ## May have to modify this
       n.groups.max <- 2
     }
     else {
@@ -76,7 +76,7 @@ for (rep in  0:100) {
       n.groups.max <- 3
       
     }
-    outcomes <- c(paste0("w.ln_cpricei2_sig",sig), "w.ln_quantity3")
+    outcomes <- c(paste0("DL.ln_cpricei2_sig",sig), "DL.ln_quantity3")
     
 
     ## Full sample estimates (L=1)
@@ -84,7 +84,7 @@ for (rep in  0:100) {
       for (Y in outcomes) {
         ## Full sample passthrough
         formula1 <- as.formula(paste0(
-          Y," ~ w.ln_sales_tax | ", FE
+          Y," ~ DL.ln_sales_tax | ", FE
         ))
         res1 <- felm(formula = formula1, data = all_pi_est,
                      weights = all_pi_est$base.sales)
@@ -124,7 +124,7 @@ for (rep in  0:100) {
         FEg <- paste0("group_", FE)
         for (Y in outcomes) {
           formula1 <- as.formula(paste0(
-            Y, " ~ w.ln_sales_tax:quantile | group_", FE, "+ quantile"
+            Y, " ~ DL.ln_sales_tax:quantile | group_", FE, "+ quantile"
           ))
           res1 <- felm(formula = formula1, data = all_pi_est,
                        weights = all_pi_est$base.sales)
@@ -145,14 +145,14 @@ for (rep in  0:100) {
         
         ## Estimate IVs and retrieve in vector
         
-        IV <- LRdiff_res[outcome == "w.ln_quantity3" & n.groups == n.g & controls == FE & sigma == sig & iter == rep,][["Estimate"]]/LRdiff_res[outcome == paste0("w.ln_cpricei2_sig",sig) & n.groups == n.g & controls == FE & sigma == sig & iter == rep,][["Estimate"]]
+        IV <- LRdiff_res[outcome == "DL.ln_quantity3" & n.groups == n.g & controls == FE & sigma == sig & iter == rep,][["Estimate"]]/LRdiff_res[outcome == paste0("DL.ln_cpricei2_sig",sig) & n.groups == n.g & controls == FE & sigma == sig & iter == rep,][["Estimate"]]
         
         ### Estimate the matrix of the implied system of equations
         ## Get the empirical distribution of prices by quantile, weighted properly by base.sales \times 
         # start by creating the weights and normalizing them 
         # Part 1 of weight: (base.sales) weighted variance of de-meaned sales tax within cohort (FE)
-        all_pi_est[, wVAR := weighted.mean((w.ln_sales_tax - 
-                                              weighted.mean(w.ln_sales_tax, 
+        all_pi_est[, wVAR := weighted.mean((DL.ln_sales_tax - 
+                                              weighted.mean(DL.ln_sales_tax, 
                                                             w = base.sales, na.rm = T))^2,
                                            w = base.sales, na.rm = T), by = FEg]
         all_pi_est[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]
