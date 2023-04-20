@@ -15,12 +15,12 @@ setwd("/project/igaarder")
 rm(list = ls())
 
 ## input filepath ----------------------------------------------
-all_pi <- fread("Data/Replication_v4/all_pi.csv")
+all_pi <- fread("Data/Replication_v4/all_pi_DL.csv")
 
 
 ## output filepath ----------------------------------------------
-theta.output.results.file <- "Data/Replication_v4/Demand_theta_sat_initial_price_semester_boot_r.csv"
-iv.output.results.file <- "Data/Replication_v4/Demand_iv_sat_initial_price_semester_boot_r.csv"
+theta.output.results.file <- "Data/Replication_v4/Demand_theta_sat_initial_price_semester_boot_r_DL.csv"
+iv.output.results.file <- "Data/Replication_v4/Demand_iv_sat_initial_price_semester_boot_r_DL.csv"
 
 
 ### 6. Point identification (K = L). L= 1, ..., 5 Main estimates and Bootstrap -----------

@@ -19,12 +19,12 @@ setwd("/project/igaarder")
 rm(list = ls())
 
 ## input filepath ----------------------------------------------
-all_pi <- fread("Data/Replication_v4/all_pi_DL.csv")
+all_pi <- fread("Data/Replication_v4/all_pi_DLL.csv")
 pricedist <- T
 
 ## output filepath ----------------------------------------------
-iv.output.results.file <- "Data/Replication_v4/IV_subsamples_initprice_DL.csv"
-output.emp.price.dist <- "Data/Replication_v4/Emp_price_subsamples_initprice_DL.csv"
+iv.output.results.file <- "Data/Replication_v4/IV_subsamples_initprice_DLL.csv"
+output.emp.price.dist <- "Data/Replication_v4/Emp_price_subsamples_initprice_DLL.csv"
 
 
 ## We only want to use the "true" tax variation

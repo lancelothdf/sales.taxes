@@ -37,13 +37,16 @@ source("cross_section_consumer_panel-2010_2014_v4.R")
 #source("reduced_form_cohort_twfe_parallel_v2.R") #DONE ## I don't think we need to run this one anymore - we used to estimate cohort specific effects and take a weighted average.  Lack statistical power.
 
 source("point_estimates_bootstrap_v4.R") 
-
 source("point_estimates_robust_storecharact_v4.R")
 
+source("partial_id_matrices_bootstrap_region_v4.R") 
+source("partial_id_matrices_bootstrap_division_v4.R") 
+source("partial_id_solve_bootstrap_division_v4.R")
+source("partial_id_solve_bootstrap_region_v4.R")
+source("compute_average_elasticities_division_v4.R")
+source("compute_average_elasticities_region_v4.R")
 
-source("partial_id_matrices_bootstrap_v3.R") 
-source("partial_id_solve_bootstrap_v3.R")
-source("compute_average_elasticities_v3.R") 
+
 source("imperfect_salience_estimates_v3.R")
 source("imperfect_salience_matrices_v3.R") 
 source("average_conduct_parameter_salience_v3.R")

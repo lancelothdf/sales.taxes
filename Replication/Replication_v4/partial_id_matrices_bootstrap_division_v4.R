@@ -1,6 +1,6 @@
 ##### Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 8/9/2022
+#' Replication File. Updated on 04/20/2023
 #' Step 7: Partial identification. This code produces the matrices for the Bernestein polynomials, bootstrapping.
 #' We take that input and solve the linear programming in a separate code (step 8)
 #' and produce the average estimates across states (step 9)
@@ -13,17 +13,17 @@ library(zoo)
 library(tidyverse)
 library(stringr)
 
-setwd("/project2/igaarder")
+setwd("/project/igaarder")
 rm(list = ls())
 
 ## input filepath ----------------------------------------------
-all_pi <- fread("Data/Replication/all_pi.csv")
+all_pi <- fread("Data/Replication_v4/all_pi.csv")
 
-theta.bernstein <- "Data/Replication/Demand_gamma_sat_initial_price_semester_boot_r_K"
-pq.output.results.file <- "Data/Replication/Demand_pq_sat_initial_price_semester_boot_r_partial.csv"
+theta.bernstein <- "Data/Replication_v4/Demand_gamma_sat_initial_price_semester_boot_r_K_division"
+pq.output.results.file <- "Data/Replication_v4/Demand_pq_sat_initial_price_semester_boot_r_partial_division.csv"
 
 ## We only want to use the "true" tax variation
-all_pi <- all_pi[non_imp_tax == 1]
+all_pi <- all_pi[non_imp_tax_strong == 1]
 
 
 
@@ -74,9 +74,9 @@ for (n.g in 1:3) {
   ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
   ## Get the empirical distribution of prices by quantile, weighted properly by base.sales \times 
   # start by creating the weights and normalizing them 
-  # Part 1 of weight: (base.sales) weighted variance of de-meaned sales tax within cohort (FE)
-  all_pi[, wVAR := weighted.mean((w.ln_sales_tax - 
-                                    weighted.mean(w.ln_sales_tax, 
+  # Part 1 of weight: (base.sales) weighted variance of differenced sales tax within cohort (FE)
+  all_pi[, wVAR := weighted.mean((DL.ln_sales_tax - 
+                                    weighted.mean(DL.ln_sales_tax, 
                                                   w = base.sales, na.rm = T))^2,
                                  w = base.sales, na.rm = T), by = FE]
   all_pi[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]
@@ -163,9 +163,9 @@ for (rep in 1:100) {
     ## Estimate the matrix of the implied system of equations. For each possible polynomial degree and compute 
     ## Get the empirical distribution of prices by quantile, weighted properly by base.sales \times 
     # start by creating the weights and normalizing them 
-    # Part 1 of weight: (base.sales) weighted variance of de-meaned sales tax within cohort (FE)
-    sampled.data[, wVAR := weighted.mean((w.ln_sales_tax - 
-                                      weighted.mean(w.ln_sales_tax, 
+    # Part 1 of weight: (base.sales) weighted variance of differenced sales tax within cohort (FE)
+    sampled.data[, wVAR := weighted.mean((DL.ln_sales_tax - 
+                                      weighted.mean(DL.ln_sales_tax, 
                                                     w = base.sales, na.rm = T))^2,
                                    w = base.sales, na.rm = T), by = FE]
     sampled.data[, wVAR := ifelse(is.na(wVAR), 0, wVAR)]

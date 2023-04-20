@@ -1,10 +1,10 @@
 ##### Santiago Lacouture
 #' Sales Taxes
-#' Replication File. Updated on 8/24/2022
+#' Replication File. Updated on 04/20/2023
 #' Step 8 and 9: Partial identification. 
 #' This code produces the partially identified estimates (step 8) and averages (step 9),
 #' taking as inputs the matrices for the Bernestein polynomials and the IVs.
-#' Here we only run the division \times module \times time specification
+#' Here we only run the region \times module \times time specification
 #' Use Paralell for efficiency across iterations
 
 
@@ -19,7 +19,7 @@ library(parallel)
 
 
 ### Set directy path and clean R
-setwd("/project2/igaarder")
+setwd("/project/igaarder")
 rm(list = ls())
 
 # Detect number of Cores to parallel
@@ -280,12 +280,12 @@ obtain.bounds <- function(ests, prices, params, noise = F) {
 
 ## 1. Input and output files
 # inputs
-theta.bernestein <- "Data/Replication/Demand_gamma_sat_initial_price_semester_boot_r_K"
-ivs.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_boot_r.csv"
-pq.output.results.file <- "Data/Replication/Demand_pq_sat_initial_price_semester_boot_r_partial.csv"
+theta.bernestein <- "Data/Replication_v4/Demand_gamma_sat_initial_price_semester_boot_r_K_region"
+ivs.results.file <- "Data/Replication_v4/Demand_iv_sat_initial_price_semester_boot_r.csv"
+pq.output.results.file <- "Data/Replication_v4/Demand_pq_sat_initial_price_semester_boot_r_partial_region.csv"
 # output
-partial.results.file <- "Data/Replication/partial_point_results.csv"
-partial.results.file.boot <- "Data/Replication/partial_point_results_boot.csv"
+partial.results.file <- "Data/Replication_v4/partial_point_results_region.csv"
+partial.results.file.boot <- "Data/Replication_v4/partial_point_results_boot_region.csv"
 ## 2. Set up Optimization Parameters
 # These options will make Gurobi think more about numerical issues
 params <- list()
@@ -327,11 +327,11 @@ for (rep in c(0:100)) {
   
   ## 2. Set up betas
   # 2.1 Keep iterest results
-  res.ivs <- res.ivs.all[iter == rep & controls == "group_division_by_module_by_time"]
+  res.ivs <- res.ivs.all[iter == rep & controls == "group_region_by_module_by_time"]
   # 2.2  dcast outcomes
   res.ivs <- dcast(res.ivs, n.groups + lev ~ outcome,  fun=sum, value.var = c("Estimate"))
   # 2.3 Calculate IV
-  res.ivs[, estimate := w.ln_quantity3/w.ln_cpricei2]
+  res.ivs[, estimate := DL.ln_quantity3/DL.ln_cpricei2]
   # 2.4 Order appropiately
   res.ivs <- res.ivs[order(n.groups, lev)]
   # 2.5 Save in list of betas

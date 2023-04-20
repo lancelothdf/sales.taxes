@@ -269,18 +269,18 @@ all_pi <- all_pi[, -c("D.ln_UPC", "D.ln_raw_quant")]
 
 # Create some necesary variables
 all_pi[, module_by_time := .GRP, by = .(product_module_code, semester, year)]
-all_pi[, L.ln_cpricei2 := ln_cpricei2 - DLL.ln_cpricei2]
+all_pi[, L.ln_cpricei2 := ln_cpricei2 - DL.ln_cpricei2]
 all_pi[, dm.L.ln_cpricei2 := L.ln_cpricei2 - mean(L.ln_cpricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.ln_cpricei2 := ln_cpricei2 - mean(ln_cpricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.ln_quantity3 := ln_quantity3 - mean(ln_quantity3, na.rm = T), by = module_by_time]
-all_pi[, L.ln_pricei2 := ln_pricei2 - DLL.ln_pricei2]
+all_pi[, L.ln_pricei2 := ln_pricei2 - DL.ln_pricei2]
 all_pi[, dm.L.ln_pricei2 := L.ln_pricei2 - mean(L.ln_pricei2, na.rm = T), by = module_by_time]
 all_pi[, dm.ln_pricei2 := ln_pricei2 - mean(ln_pricei2, na.rm = T), by = module_by_time]
 
 
 
 ## Create transformed price under imperfect salience for estimations
-all_pi[, L.ln_sales_tax := ln_sales_tax - DLL.ln_sales_tax]
+all_pi[, L.ln_sales_tax := ln_sales_tax - DL.ln_sales_tax]
 
 for (sig in seq(0.25, 1, 0.05)) {
   
