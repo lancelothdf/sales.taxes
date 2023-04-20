@@ -10,18 +10,18 @@ library(Matrix)
 library(zoo)
 library(stringr)
 
-setwd("/project2/igaarder")
+setwd("/project/igaarder")
 rm(list = ls())
 
 ## input filepath ----------------------------------------------
-all_pi <- fread("Data/Replication/all_pi.csv")
+all_pi <- fread("Data/Replication_v4/all_pi.csv")
 # restrict to relevant sample
 all_pi <- all_pi[non_imp_tax == 1,]
 # input
-iv.output.salience.results.file <- "Data/Replication/Demand_iv_sat_initial_price_semester_salience.csv"
-theta.output.salience.results.file <- "Data/Replication/Demand_theta_sat_initial_price_semester_salience.csv"
+iv.output.salience.results.file <- "Data/Replication_v4/Demand_iv_sat_initial_price_semester_salience.csv"
+theta.output.salience.results.file <- "Data/Replication_v4/Demand_theta_sat_initial_price_semester_salience.csv"
 # output
-conduct.parameter.file <- "Data/Replication/salience_conduct_parameter_at_p.csv"
+conduct.parameter.file <- "Data/Replication_v4/salience_conduct_parameter_at_p.csv"
 
 
 
