@@ -23,7 +23,7 @@ rm(list = ls())
 purchases.sample <-  fread("Data/Replication_v4/purchases.sample.csv")
 
 ## output filepath ----------------------------------------------
-output.results.file <- "Data/Replication_v4/LRdiff_cross_sectional_design_hh.csv"
+output.results.file <- "Data/Replication_v4/LRdiff_cross_sectional_design_hh_2010_2014.csv"
 
 
 ### 4B. Cross-Sectional Estimates from Consumer Panel ------------------
