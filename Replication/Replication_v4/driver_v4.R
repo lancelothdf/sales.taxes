@@ -46,16 +46,23 @@ source("partial_id_solve_bootstrap_region_v4.R")
 source("compute_average_elasticities_division_v4.R")
 source("compute_average_elasticities_region_v4.R")
 
+
+#Still need to run
 source("imperfect_salience_estimates_v4.R")
 source("imperfect_salience_matrices_division_v4.R") 
 source("imperfect_salience_matrices_region_v4.R") 
+source("average_conduct_parameter_salience_division_v4.R")
+source("average_conduct_parameter_salience_region_v4.R")
 
-## Still some modifications to make here
-source("average_conduct_parameter_salience_v3.R")
+source("welfare_mincriteria_division_v4.R") 
+source("welfare_mincriteria_region_v4.R") 
+source("welfare_nationwide_division_v4.R") 
+source("welfare_nationwide_region_v4.R") 
+source("welfare_nationwide_bootrel_division_v4.R") 
+source("welfare_nationwide_bootrel_region_v4.R") 
 
-source("welfare_mincriteria_v3.R") 
-source("welfare_nationwide_v3.R") 
-source("welfare_nationwide_bootrel_v3.R") 
+
+#Still need to modify
 source("welfare_state_marginal_v3.R")
 source("welfare_state_nonmarginal_v3.R") 
 

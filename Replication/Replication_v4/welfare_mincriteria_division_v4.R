@@ -16,10 +16,10 @@ rm(list = ls())
 
 ## Inputs
 iv.output.salience.results.file <- "Data/Replication_v4/Demand_iv_sat_initial_price_semester_salience.csv"
-theta.berstein.sal <- "Data/Replication_v4/Demand_gamma_sat_initial_price_semester_salience_K"
+theta.berstein.sal <- "Data/Replication_v4/Demand_gamma_sat_initial_price_semester_salience_K_division"
 
 ## Ouputs
-out.file.mc.welf <- "Data/Replication_v4/mincriteria_welfare_boot.csv"
+out.file.mc.welf <- "Data/Replication_v4/mincriteria_welfare_boot_division.csv"
 
 ### Part 1. Set up Extrapolation ----
 
@@ -31,8 +31,8 @@ IVs <- IVs[controls == "division_by_module_by_time"]
 
 # For L > 1
 IVs2 <- dcast(IVs, n.groups + lev + sigma + iter ~ outcome,  fun=sum, value.var = c("Estimate"))
-IVs2[, w.ln_cpricei2 := w.ln_cpricei2_sig0.25 + w.ln_cpricei2_sig0.5 + w.ln_cpricei2_sig0.75 + w.ln_cpricei2_sig1]
-IVs2[, Estimate := w.ln_quantity3/w.ln_cpricei2]
+IVs2[, DL.ln_cpricei2 := DL.ln_cpricei2_sig0.25 + DL.ln_cpricei2_sig0.5 + DL.ln_cpricei2_sig0.75 + DL.ln_cpricei2_sig1]
+IVs2[, Estimate := DL.ln_quantity3/DL.ln_cpricei2]
 IVs2 <- IVs2[, c("n.groups", "lev", "sigma", "iter", "Estimate")]
 # Merge and Order appropiately
 res.ivs <- IVs2[order(iter, sigma, n.groups, lev)]
