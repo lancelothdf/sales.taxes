@@ -12,7 +12,7 @@ library(zoo)
 library(tidyverse)
 library(stringr)
 library(nloptr)
-library(doParallel)
+#library(doParallel)
 library(MASS)
 library(pracma)
 
