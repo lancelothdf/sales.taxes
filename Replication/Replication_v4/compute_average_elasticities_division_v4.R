@@ -16,7 +16,7 @@ setwd("/project/igaarder")
 rm(list = ls())
 
 ## input filepath ----------------------------------------------
-theta.output.results.file <- "Data/Replication_v4/Demand_theta_sat_initial_price_semester_boot_r_division.csv"
+theta.output.results.file <- "Data/Replication_v4/Demand_theta_sat_initial_price_semester_boot_r.csv"
 iv.output.results.file <- "Data/Replication_v4/Demand_iv_sat_initial_price_semester_boot_r.csv"
 out.file.elast <- "Data/Replication_v4/partial_point_results_division.csv"
 out.file.elast.boot <- "Data/Replication_v4/partial_point_results_boot_division.csv"
