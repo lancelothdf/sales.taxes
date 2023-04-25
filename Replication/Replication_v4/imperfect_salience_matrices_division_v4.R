@@ -17,7 +17,7 @@ rm(list = ls())
 ## input filepath ----------------------------------------------
 all_pi <- fread("Data/Replication_v4/all_pi.csv")
 # restrict to relevant sample
-all_pi <- all_pi[non_imp_tax == 1,]
+all_pi <- all_pi[non_imp_tax_strong == 1,]
 
 ## output filepath ----------------------------------------------
 pq.output.salience.results.file <- "Data/Replication_v4/Demand_pq_sat_initial_price_semester_salience_division.csv"
