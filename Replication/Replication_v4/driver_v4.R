@@ -43,12 +43,11 @@ source("partial_id_matrices_bootstrap_region_v4.R")
 source("partial_id_matrices_bootstrap_division_v4.R") 
 source("partial_id_solve_bootstrap_division_v4.R")
 source("partial_id_solve_bootstrap_region_v4.R")
-
-
-# Currently running
 source("compute_average_elasticities_division_v4.R")
 source("compute_average_elasticities_region_v4.R")
 
+
+# Currently running
 source("imperfect_salience_estimates_v4.R")
 source("imperfect_salience_matrices_division_v4.R") 
 source("imperfect_salience_matrices_region_v4.R") 
