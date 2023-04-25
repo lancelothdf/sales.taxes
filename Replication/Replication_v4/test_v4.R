@@ -15,7 +15,7 @@ setwd("/project/igaarder")
 rm(list = ls())
 
 ## input filepath ----------------------------------------------
-all_pi <- fread("Data/Replication_v4/all_pi.csv")
+all_pi <- fread("Data/Replication_v4/all_pi_salience.csv")
 # restrict to relevant sample
 all_pi <- all_pi[non_imp_tax_strong == 1,]
 
@@ -28,4 +28,4 @@ print(head(all_pi))
 
 all_pi <- all_pi[fips_state == 1 & fips_county == 3,]
 
-fwrite(all_pi, "/project/igaarder/Data/Replication_v4/test_data.csv")
+fwrite(all_pi, "/project/igaarder/Data/Replication_v4/test_data_salience.csv")
