@@ -15,7 +15,7 @@ setwd("/project/igaarder")
 rm(list = ls())
 
 ## input filepath ----------------------------------------------
-all_pi <- fread("Data/Replication_v4/all_pi.csv")
+all_pi <- fread("Data/Replication_v4/all_pi_salience.csv")
 # restrict to relevant sample
 all_pi <- all_pi[non_imp_tax_strong == 1,]
 
