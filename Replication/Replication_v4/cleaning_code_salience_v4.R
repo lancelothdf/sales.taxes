@@ -118,6 +118,7 @@ for (sig in seq(0.25, 1, 0.05)) {
   
   # build p^sigma
   all_pi[, paste0("ln_cpricei2_sig", sig) := ln_pricei2 + sig*ln_sales_tax]
+  all_pi[, paste0("dm.ln_cpricei2_sig", sig) := get(paste0("ln_cpricei2_sig", sig)) - mean(get(paste0("ln_cpricei2_sig", sig)), na.rm = T), by = module_by_time]
   
   # Created lagged and de-meaned lagegd for splitting sample
   all_pi[, paste0("D.ln_cpricei2_sig", sig) := D.ln_pricei2 +sig*D.ln_sales_tax]
