@@ -85,7 +85,7 @@ nlo.opts.local.df <- list(
 )
 
 ## 7. Define extrapolation functions
-source("Code/sales.taxes/Replication/Replication_v4/welfare_functions_v4.R")
+source("/project2/igaarder/Code/sales.taxes/Replication/Replication_v4/welfare_functions_v4.R")
 
 
 ## 8. Capture all possible combinations

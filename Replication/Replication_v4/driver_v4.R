@@ -22,6 +22,7 @@ source("cleaning_store_characteristics_v4.R")
 source("reduced_form_evidence_v4.R") #DONE
 source("DiD_v4.R") 
 source("DiD_nonlinearities_v4.R") 
+source("DiD_nonlinearities_passthrough_v4.R")
 source("DiD_controls_v4.R") 
 source("DiD_spillovers_v4.R") 
 
