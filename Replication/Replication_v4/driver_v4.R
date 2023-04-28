@@ -49,12 +49,13 @@ source("compute_average_elasticities_region_v4.R")
 
 
 # Currently running
-source("imperfect_salience_estimates_v4.R")
-source("imperfect_salience_matrices_division_v4.R") 
-source("imperfect_salience_matrices_region_v4.R") 
+
 
 
 # Still need to run
+source("imperfect_salience_estimates_v4.R")
+source("imperfect_salience_matrices_division_v4.R") 
+source("imperfect_salience_matrices_region_v4.R") 
 source("average_conduct_parameter_salience_division_v4.R")
 source("average_conduct_parameter_salience_region_v4.R")
 

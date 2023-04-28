@@ -73,7 +73,7 @@ min.criteria <- fread(out.file.mc.welf)
 setnames(min.criteria, "K", "Deg") # for some reason K is confused
 
 ## 5. Set up Ks, Ls, and scenarios (manually)
-K.test <- c(2, 8)
+K.test <- c(2, 4, 8)
 L.test <- c(1, 2)
 
 ## 6. Set up Optimization Parameters (algorithm for now)
