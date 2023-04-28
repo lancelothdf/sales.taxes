@@ -292,7 +292,7 @@ for (sig in seq(0.25, 1, 0.05)) {
   all_pi[, paste0("DL.ln_cpricei2_sig", sig) := DL.ln_pricei2 +sig*DL.ln_sales_tax] ## Long Difference
   all_pi[, paste0("DLL.ln_cpricei2_sig", sig) := DLL.ln_pricei2 +sig*DLL.ln_sales_tax] ## Longer Difference
   
-  all_pi[, paste0("L.ln_cpricei2_sig", sig) := get(paste0("ln_cpricei2_sig", sig)) - get(paste0("DLL.ln_cpricei2_sig", sig))]
+  all_pi[, paste0("L.ln_cpricei2_sig", sig) := get(paste0("ln_cpricei2_sig", sig)) - get(paste0("DL.ln_cpricei2_sig", sig))]
   all_pi[, paste0("dm.L.ln_cpricei2_sig", sig) := get(paste0("L.ln_cpricei2_sig", sig)) - mean(get(paste0("L.ln_cpricei2_sig", sig)), na.rm = T), by = module_by_time]
   
   names.rem <- paste0(c("D.ln_cpricei2_sig", "L.ln_cpricei2_sig", "ln_cpricei2_sig"), sig)
