@@ -557,23 +557,20 @@ av.theta.region <- av.theta.region[K == 2 & es.val == Inf & sigma %in% c(0.25, 0
 
 
 table1 <- as.data.frame(rbind(t(round(av.theta.division[, c("sigma", "theta")], digits = 2)), t(round(av.theta.region[, "theta"], digits = 2))))
-table1 <- as.data.frame(c(as.data.frame(c("sigma", "Div", "Reg")), as.data.frame(c("", "", "")), table1))
-names(table1) <- c("rows", "V1", "V2", "V3", "V4", "V5")
+table1 <- as.data.frame(c(as.data.frame(c("", "", "")), table1, as.data.frame(c("sigma", "Div", "Reg"))))
+names(table1) <- c("V1", "V2", "V3", "V4", "V5", "rows")
 
 setDT(table1)
 for(c in c("V2", "V3", "V4", "V5")) {
   
-  #table1[, (c) := ifelse(rows == "sigma", paste0("$\\boldsymbol{ \\sigma =", table1[[c]], "}$"), table1[[c]])]
-  table1[, (c) := ifelse(rows == "sigma", paste0("$\\boldsymbol{", table1[[c]], "}$"), table1[[c]])]
+  table1[, (c) := ifelse(rows == "sigma", paste0("$\\boldsymbol{ \\sigma =", table1[[c]], "}$"), table1[[c]])]
   
 }
 
-table1[, V5 := ifelse(rows == "sigma", paste0(V5, "\\\\ & \\multicolumn{4}{c}{} & \\\\ \\hline & \\multicolumn{4}{c}{} & "), V5)]
-
-table1[, V1 := ifelse(rows == "sigma", paste0(V1, "$\\boldsymbol{\\sigma =}$"), V1)]
+#table1[, rows := ifelse(rows == "sigma", paste0(V5, "\\\\ \\hline"), V5)]
 table1[, V1 := ifelse(rows == "Div", "\\multirow{2}{*}{$\\boldsymbol{\\theta =}$}", V1)]
 
-table1[, rows := ifelse(rows == "sigma", "\\textbf{Specification}", rows)]
+table1[, rows := ifelse(rows == "sigma", "\\textbf{Specification} \\\\ \\hline", rows)]
 table1[, rows := ifelse(rows == "Div", "Div. FE", rows)]
 table1[, rows := ifelse(rows == "Reg", "Reg. FE", rows)]
 
@@ -582,12 +579,11 @@ table1[, rows := ifelse(rows == "Reg", "Reg. FE", rows)]
 header <- c("%\\begin{table}[htb]",
             "%\\centering",
             "%\\resizebox{\\textwidth}{!}{",
-            "\\begin{tabular}{| c | ccccc |}",
-            "\\hline & \\multicolumn{4}{c}{} & \\\\")
+            "\\begin{tabular}{lccccc}",
+            "\\hline \\\\")
 
 # Define the table footer
-footer <- c("& \\multicolumn{4}{c}{} & \\\\",
-            "\\hline",
+footer <- c("\\hline",
             "\\end{tabular} %}",
             "%\\caption{xx}",
             "%\\label{tab:main_DL}",

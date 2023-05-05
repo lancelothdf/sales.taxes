@@ -14,6 +14,7 @@ setwd("/project/igaarder")
 ###Run Code
 source("cleaning_code_DL_v4.R") #DONE - Revisiting to reduce disk use -- Prepare dataset for Distributed Lags specification
 source("cleaning_code_main_v4.R") #DONE - Revisiting to reduce disk use -- Prepare dataset for long-difference specifications + household sample + econ covariates + spillover datasets
+source("cleaning_code_salience_v4.R") #Prepare data for imperfect salience at different levels of salience 
 
 source("summary_data_v4.R") #DONE - Revisiting to reduce disk use
 source("cleaning_store_characteristics_v4.R") 
@@ -47,12 +48,6 @@ source("partial_id_solve_bootstrap_region_v4.R")
 source("compute_average_elasticities_division_v4.R")
 source("compute_average_elasticities_region_v4.R")
 
-
-# Currently running
-
-
-
-# Still need to run
 source("imperfect_salience_estimates_v4.R")
 source("imperfect_salience_matrices_division_v4.R") 
 source("imperfect_salience_matrices_region_v4.R") 
@@ -61,6 +56,9 @@ source("average_conduct_parameter_salience_region_v4.R")
 
 source("welfare_mincriteria_division_v4.R") 
 source("welfare_mincriteria_region_v4.R") 
+
+
+# Currently running
 source("welfare_nationwide_division_v4.R") 
 source("welfare_nationwide_region_v4.R") 
 source("welfare_nationwide_bootrel_division_v4.R") 
@@ -69,6 +67,10 @@ source("welfare_state_marginal_division_v4.R")
 source("welfare_state_marginal_region_v4.R")
 source("welfare_state_nonmarginal_division_v4.R")
 source("welfare_state_nonmarginal_region_v4.R")
+
+
+# Still need to run
+
 
 
 #Still need to modify
