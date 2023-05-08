@@ -51,7 +51,8 @@ data[, tau5 := tau + log(1+0.05)]
 
 ## 2. Values of sigma to Tests and conduct parameters 
 # In practice, this was done in batches to avoid running all cases and exceed the running time
-sigmas.test <- c(0.25, 0.5, 0.75, 1)
+#sigmas.test <- c(0.25, 0.5, 0.75, 1)
+sigmas.test <- c(0.25, 0.5, 1)
 
 ## Conduct parameters
 thetas <- fread(conduct.parameter.at.p)
@@ -59,19 +60,31 @@ thetas <- thetas[K==2] # We use the K=2 estimates
 
 # Capture values of interest into a list
 thetas.list <- list()
-for (sig in sigmas.test) {
-  
+
+## HERE instead of getting implied theta at all levels of salience - only get estimates of theta for salience = 1
+sig <- 1    
   # theta = 0 
   thetas.list[[paste0("s",sig*100,"-th.Inf")]] <- list(
     sigma = sig, theta = 0)
   # theta estimated when e_s = Inf
   thetas.list[[paste0("s",sig*100,"-Inf")]] <- list(
     sigma = sig, theta = round(thetas[sigma==sig & is.infinite(es.val), mean(theta)], 6))
-  ## theta estimated when e_s = 1
-  #thetas.list[[paste0("s",sig*100,"-1")]] <- list(
-  #  sigma = sig, theta = round(thetas[sigma==sig & es.val == 1, mean(theta)], 6))
+
   
-}
+
+#for (sig in sigmas.test) {
+  
+#  # theta = 0 
+#  thetas.list[[paste0("s",sig*100,"-th.Inf")]] <- list(
+#    sigma = sig, theta = 0)
+#  # theta estimated when e_s = Inf
+#  thetas.list[[paste0("s",sig*100,"-Inf")]] <- list(
+#    sigma = sig, theta = round(thetas[sigma==sig & is.infinite(es.val), mean(theta)], 6))
+#  ## theta estimated when e_s = 1
+#  #thetas.list[[paste0("s",sig*100,"-1")]] <- list(
+#  #  sigma = sig, theta = round(thetas[sigma==sig & es.val == 1, mean(theta)], 6))
+  
+#}
 
 ## 3. Set up IV estimates for each sigma
 IVs <- fread(iv.output.salience.results.file)
@@ -119,15 +132,34 @@ for (sc in scenarios) {
                                          sc = sc, 
                                          sigma = comb$sigma,
                                          theta = comb$theta)
-        )
+         )
+      }
+    }
+  }
+}  
+
+## Add different salience scenarii (assume theta = 0 for all these)
+combinations.all.salience <- data.table(NULL)
+for (sc in scenarios) {
+  for (K in K.test) {
+    for (sig in c(0.25,0.5,0.75)) {
+      for (L in L.test) {
+        combinations.all.salience <- rbind(combinations.all.salience,
+                                      data.table(K=K, L=L,
+                                                 sc = sc,
+                                                 sigma = sig,
+                                                 theta = 0)
+          )
       }
     }
   }
 }
 
+combinations.all <- rbind(combinations.all, combinations.all.salience)
+
+
 
 ### Estimation ----
-
 rep <- 0 # try only on baseline
 
 
