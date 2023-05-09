@@ -141,24 +141,24 @@ source("/project2/igaarder/Code/sales.taxes/Replication/Replication_v4/welfare_f
 combinations.all <- data.table(K = rep(8,8), L = c(2, 1, 1, 2, 1, 2, 2, 2), sc = c("No Tax", rep("Original", 3), rep("plus 5 Tax", 4)), sigma = c(0.25, 0.5, 0.75, 0.5, 0.5, 0.25, 0.5, 0.75), theta = rep(0, 8))
 
 
-## Add different salience scenarii (assume theta = 0 for all these)
-combinations.all.salience <- data.table(NULL)
-for (sc in scenarios) {
-  for (K in K.test) {
-    for (sig in c(0.25,0.5,0.75)) {
-      for (L in L.test) {
-        combinations.all.salience <- rbind(combinations.all.salience,
-                                      data.table(K=K, L=L,
-                                                 sc = sc,
-                                                 sigma = sig,
-                                                 theta = 0)
-          )
-      }
-    }
-  }
-}
+### Add different salience scenarii (assume theta = 0 for all these)
+#combinations.all.salience <- data.table(NULL)
+#for (sc in scenarios) {
+#  for (K in K.test) {
+#    for (sig in c(0.25,0.5,0.75)) {
+#      for (L in L.test) {
+#        combinations.all.salience <- rbind(combinations.all.salience,
+#                                      data.table(K=K, L=L,
+#                                                 sc = sc,
+#                                                 sigma = sig,
+#                                                 theta = 0)
+#          )
+#      }
+#    }
+#  }
+#}
 
-combinations.all <- rbind(combinations.all, combinations.all.salience)
+#combinations.all <- rbind(combinations.all, combinations.all.salience)
 
 
 
