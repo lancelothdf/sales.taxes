@@ -168,7 +168,8 @@ rep <- 0 # try only on baseline
 done <- F
 while (!done) {
   # Capture existing results
-  new <- !file.exists(out.welfare.nationwide.av) | !file.exists(sol.welfare.nationwide.av)
+  #new <- !file.exists(out.welfare.nationwide.av) | !file.exists(sol.welfare.nationwide.av)
+  new <- !file.exists(out.welfare.nationwide.av) & !file.exists(sol.welfare.nationwide.av)
   
 
   # First time? Capture all combinations
