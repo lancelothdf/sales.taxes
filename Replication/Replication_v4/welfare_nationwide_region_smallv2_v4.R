@@ -113,7 +113,7 @@ scenarios <- c("Original", "No Tax", "plus 5 Tax")
 maxit <- 600
 nlo.opts.local.df <- list(
   "algorithm"="NLOPT_LN_COBYLA",
-  "maxeval" = maxit,
+  #"maxeval" = maxit,
   "xtol_rel"=1.0e-8
 )
 
@@ -168,8 +168,7 @@ rep <- 0 # try only on baseline
 done <- F
 while (!done) {
   # Capture existing results
-  #new <- !file.exists(out.welfare.nationwide.av) | !file.exists(sol.welfare.nationwide.av)
-  new <- !file.exists(out.welfare.nationwide.av) & !file.exists(sol.welfare.nationwide.av)
+  new <- !file.exists(out.welfare.nationwide.av) | !file.exists(sol.welfare.nationwide.av)
   
 
   # First time? Capture all combinations
