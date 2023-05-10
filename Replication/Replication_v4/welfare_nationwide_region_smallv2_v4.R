@@ -383,7 +383,7 @@ while (!done) {
                         lb = rep(min(IVs)/min(constr), K)
         )
         # E1a2. Extract and export minimization results
-        if (res0$iterations == maxit) {
+        if (res0$iterations >= maxit) {
           progress.sol <- data.table(est = "LB", sc, L=D , K, 
                                      sigma = sig, theta, status = res0$status, 
                                      it.n = res0$iterations, 
@@ -425,7 +425,7 @@ while (!done) {
                         lb = rep(min(IVs)/min(constr), K)
         )
         # E1b2 Results extraction
-        if (res0$iterations == maxit) {
+        if (res0$iterations >= maxit) {
           progress.sol <- data.table(est = "UB", sc, L=D , K, 
                                      sigma = sig, theta, status = res0$status, 
                                      it.n = res0$iterations, 
