@@ -30,8 +30,8 @@ pq.output.salience.results.file <- "Data/Replication_v4/Demand_pq_sat_initial_pr
 out.file.mc.welf <- "Data/Replication_v4/mincriteria_welfare_boot_region.csv"
 conduct.parameter.at.p <- "Data/Replication_v4/salience_conduct_parameter_at_p_region.csv"
 # Output
-out.welfare.nationwide.av <- "Data/Replication_v4/average_nationwide_extrapolation_region_small.csv"
-sol.welfare.nationwide.av <- "Data/Replication_v4/average_nationwide_temp_progress_region_small.csv"
+out.welfare.nationwide.av <- "Data/Replication_v4/average_nationwide_extrapolation_region_smallv2.csv"
+sol.welfare.nationwide.av <- "Data/Replication_v4/average_nationwide_temp_progress_region_smallv2.csv"
 
 
 ### General setup ----
