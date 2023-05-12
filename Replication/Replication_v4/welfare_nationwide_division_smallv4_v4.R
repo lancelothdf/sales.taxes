@@ -138,7 +138,7 @@ source("/project2/igaarder/Code/sales.taxes/Replication/Replication_v4/welfare_f
 #  }
 #}
 
-combinations.all <- data.table(K = rep(8,7), L = c(1, 1, 2, 1, 2, 2, 2), sc = c(rep("Original", 3), rep("plus 5 Tax", 4)), sigma = c(0.5, 0.75, 0.5, 0.5, 0.25, 0.5, 0.75), theta = rep(0, 7))
+combinations.all <- data.table(K = rep(8,7), L = c(1, 2, 1, 2, 2, 2, 1), sc = c(rep("Original", 2), rep("plus 5 Tax", 4), "Original"), sigma = c(0.75, 0.5, 0.5, 0.25, 0.5, 0.75, 0.5), theta = rep(0, 7))
 
 
 ### Add different salience scenarii (assume theta = 0 for all these)
