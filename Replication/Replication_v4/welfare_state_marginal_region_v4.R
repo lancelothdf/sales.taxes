@@ -98,7 +98,8 @@ states.test <- unique(data$fips_state)
 
 ## 6. Set up Optimization Parameters (algorithm for now)
 #maxit <- 7000
-maxit <- 20000
+#maxit <- 20000
+maxit <- 50000
 nlo.opts.local.df <- list(
   "algorithm"="NLOPT_LN_COBYLA",
   "maxeval" = maxit,
