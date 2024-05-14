@@ -15,7 +15,8 @@ library(extrafont)
 library(RColorBrewer)
 library(latex2exp)
 
-setwd("/project2/igaarder/Data/Replication")
+#setwd("/project2/igaarder/Data/Replication")
+setwd("/Users/lancelot/Documents/Sales Taxes/")
 
 # Font: Need to install TTFs of latin modern roman
 loadfonts()
@@ -23,7 +24,7 @@ fontsize <- 16
 ##### Figure #: Passthrough and Quantity response to sales taxes - dynamic response. ------
 
 # Open data
-data <- fread("LRdiff_semesterly_main.csv")
+data <- fread("Data/LRdiff_semesterly_main.csv")
 
 # Keep only cummulative effects and 
 data <- data[str_detect(rn, "cumul") & sample == "all"]
@@ -59,6 +60,7 @@ gg <- ggplot(data = data[outcome == "D.ln_cpricei2" & controls == "division_by_m
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+
 ggsave("figsandtabs/F1_prices.png",
        height = 120, width = 200, units = "mm")
 
