@@ -76,8 +76,12 @@ source("welfare_state_nonmarginal_region_v4.R")
 #Still need to modify
 source("simulation_point_v3.R") 
 source("simulation_partial_v3.R")
-source("Figures_v3.R") 
-# Tables are produced in Stata with /Tables.do
+#source("Figures_v3.R")  ### Deprecated
+
+
+# Some Tables are produced in Stata with /Tables.do (summary statistics)
+# Other tables and figures:
+source("Figures_Tables_final_v4.R")
 
 
 
