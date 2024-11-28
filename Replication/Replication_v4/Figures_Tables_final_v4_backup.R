@@ -211,14 +211,14 @@ table1 <- rbind(table1, table2)
 header <- c("%\\begin{table}[htb]",
             "%\\centering",
             "%\\resizebox{\\textwidth}{!}{",
-            "\\begin{tabularx}{\textwidth}{lCCCC}",
+            "\\begin{tabular}{lcccc}",
             "\\hline",
             " & (1) & (2) & (3) & (4) \\\\",
             "\\hline \\\\")
 
 # Define the table footer
 footer <- c("\\hline",
-            "\\end{tabularx} %}",
+            "\\end{tabular} %}",
             "%\\caption{xx}",
             "%\\label{tab:main_DL}",
             "%\\end{table}")
@@ -575,14 +575,14 @@ data.sub2 <- data.sub2[, c("group", "estimate", "se", "ll90.norm", "ul90.norm", 
 
 labels <- paste0("Q", order(unique(data.sub2$group), decreasing = TRUE))
 
-# Keep only specification with 
-data.sub2 <- data.sub2[controls == "region_by_module_by_time"]
 
 # Produce plots
 # both FEs
 gg <- ggplot(data = data.sub2, 
-             mapping = aes(x = group, y = estimate)) +
-  geom_point(size = 2.2, alpha = .8, position = position_dodge(width = 0.3), color = "black") +
+             mapping = aes(x = group, y = estimate, color =factor(controls, 
+                                                                  levels = c("division_by_module_by_time", "region_by_module_by_time"),
+                                                                  labels = c("Div FE", "Reg FE")))) +
+  geom_point(size = 2.2, alpha = .8, position = position_dodge(width = 0.3)) +
   geom_errorbar(mapping = aes(ymax = ul90.norm,
                               ymin = ll90.norm),
                 width = .3, position = position_dodge(width = 0.3)) +
@@ -593,19 +593,13 @@ gg <- ggplot(data = data.sub2,
   labs(x = "Initial Price Level Quantile", y = "IV Estimate", color = NULL) +
   geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
         #        text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
-        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size)
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F2_Subsample_IVs_boot_FEs_2Q.png",
-       height = 3, width = 6.5)
+       height = 120, width = 200, units = "mm")
 
 rm(data.sub2, gg)
 
@@ -630,53 +624,40 @@ data[, CDF.n.log.p := CDF.n.log.p/max(CDF.n.log.p, na.rm=T), by = .(quantile, w)
 
 # Version 1: bases.sales weighted
 gg <- ggplot(data[w == "base.sales"], 
-             aes(x = log.n.p, y = CDF.n.log.p, linetype = factor(quantile))) + 
-  geom_line(color = "black") +  # Set color to black for both lines
+             aes(x = log.n.p, y = CDF.n.log.p, color = factor(quantile))) + 
+  geom_line() +
   theme_bw(base_size = fontsize) +
   scale_x_continuous(limits = c(-0.3, 0.3), breaks = seq(-0.25,0.25,0.125)) +
   scale_y_continuous(limits = c(0, 1), breaks = seq(0,1,0.25)) +
-  scale_linetype_manual(values = c("solid", "dashed")) +  # Solid and dashed lines
   scale_color_brewer(palette="Set1") +
-  labs(x = "Log(price)", y = "CDF", linetype = "Quantile") +  # Removed color legend
+  labs(x = "Log(price)", y = "CDF", color = "Quantile") +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
+        # text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
-        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size)
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F2_Prices_CDF_Subsamples_2Q.png",
-       height = 3.5, width = 6.5)
+       height = 140, width = 200, units = "mm")
 
 
 # Version 1: ``cohort-corrected'' bases.sales weighted
 gg <- ggplot(data[w == "base.sales.q"], 
-             aes(x = log.n.p, y = CDF.n.log.p, linetype = factor(quantile))) + 
-  geom_line(color = "black") +
+             aes(x = log.n.p, y = CDF.n.log.p, color = factor(quantile))) + 
+  geom_line() +
   theme_bw(base_size = fontsize) +
   scale_x_continuous(limits = c(-0.3, 0.3), breaks = seq(-0.25,0.25,0.125)) +
   scale_y_continuous(limits = c(0, 1), breaks = seq(0,1,0.25)) +
-  scale_linetype_manual(values = c("solid", "dashed")) +  # Solid and dashed lines
   scale_color_brewer(palette="Set1") +
   labs(x = "Log(price)", y = "CDF", color = "Quantile") +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
         #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
-        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size)
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F2_Prices_CDF_Subsamples_corrw_2Q.png",
-       height = 3.5, width = 6.5)
+       height = 140, width = 200, units = "mm")
 
 rm(data, gg, step)
 
@@ -708,16 +689,16 @@ data.sub2 <- data.sub2[, c("group", "estimate", "se", "ll90.norm", "ul90.norm", 
 
 labels <- paste0("Q", order(unique(data.sub2$group), decreasing = TRUE))
 
-# Keep only specification with 
-data.sub2 <- data.sub2[controls == "region_by_module_by_time"]
 
 # Produce plots
 # both FEs
 maxval <- max(data.sub2$ul90.norm)
 
 gg <- ggplot(data = data.sub2, 
-             mapping = aes(x = group, y = estimate)) +
-  geom_point(size = 2.2, alpha = .8, position = position_dodge(width = 0.3), color = "black") +
+             mapping = aes(x = group, y = estimate, color =factor(controls, 
+                                                                  levels = c("division_by_module_by_time", "region_by_module_by_time"),
+                                                                  labels = c("Div FE", "Reg FE")))) +
+  geom_point(size = 2.2, alpha = .8, position = position_dodge(width = 0.3)) +
   geom_errorbar(mapping = aes(ymax = ul90.norm,
                               ymin = ll90.norm),
                 width = .3, position = position_dodge(width = 0.3)) +
@@ -732,19 +713,13 @@ gg <- ggplot(data = data.sub2,
   labs(x = "Initial Producer Price Level Quantile", y = "IV Estimate", color = NULL) +
   geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
         #        text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
-        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size)
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F2_Subsample_invsup_IVs_boot_FEs_2Q.png",
-       height = 3, width = 6.5)
+       height = 120, width = 200, units = "mm")
 
 rm(data.sub2, gg)
 
@@ -770,54 +745,40 @@ data[, CDF.n.log.p := CDF.n.log.p/max(CDF.n.log.p, na.rm=T), by = .(quantile, w)
 
 # Version 1: bases.sales weighted
 gg <- ggplot(data[w == "base.sales"], 
-             aes(x = log.n.p, y = CDF.n.log.p, linetype = factor(quantile))) + 
-  geom_line(color = "black") +  # Set color to black for both lines
+             aes(x = log.n.p, y = CDF.n.log.p, color = factor(quantile))) + 
+  geom_line() +
   theme_bw(base_size = fontsize) +
   scale_x_continuous(limits = c(-0.3, 0.3), breaks = seq(-0.25,0.25,0.125)) +
   scale_y_continuous(limits = c(0, 1), breaks = seq(0,1,0.25)) +
-  scale_linetype_manual(values = c("solid", "dashed")) +  # Solid and dashed lines
   scale_color_brewer(palette="Set1") +
-  labs(x = "Log(producer price)", y = "CDF", linetype = "Quantile") +
+  labs(x = "Log(producer price)", y = "CDF", color = "Quantile") +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
         # text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
-        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size))
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F2_Producer_Prices_CDF_Subsamples_2Q.png",
-       height = 3.5, width = 6.5)
+       height = 140, width = 200, units = "mm")
 
 
 # Version 1: ``cohort-corrected'' bases.sales weighted
 gg <- ggplot(data[w == "base.sales.q"], 
-             aes(x = log.n.p, y = CDF.n.log.p, linetype = factor(quantile))) + 
-  geom_line(color = "black") + # Set color to black for both lines
+             aes(x = log.n.p, y = CDF.n.log.p, color = factor(quantile))) + 
+  geom_line() +
   theme_bw(base_size = fontsize) +
   scale_x_continuous(limits = c(-0.3, 0.3), breaks = seq(-0.25,0.25,0.125)) +
   scale_y_continuous(limits = c(0, 1), breaks = seq(0,1,0.25)) +
-  scale_linetype_manual(values = c("solid", "dashed")) +  # Solid and dashed lines
   scale_color_brewer(palette="Set1") +
   labs(x = "Log(producer price)", y = "CDF", color = "Quantile") +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
         #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
-        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size))
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F2_Producer_Prices_CDF_Subsamples_corrw_2Q.png",
-       height = 3.5, width = 6.5)
+       height = 140, width = 200, units = "mm")
 
 rm(data, gg, step)
 
@@ -835,67 +796,67 @@ max.price <- 0.15
 
 data <- fread("Data/Demand_theta_sat_initial_price_semester_boot_r.csv")
 
-## Keep 2 quintiles case, div x module x time FE 
-#data <- data[n.groups == 2 & controls == "group_division_by_module_by_time"]
+# Keep 2 quintiles case, div x module x time FE 
+data <- data[n.groups == 2 & controls == "group_division_by_module_by_time"]
 
-## Keep interest variables to dcast data
-#data <- data[, c("beta_n", "beta_hat", "iter")]
+# Keep interest variables to dcast data
+data <- data[, c("beta_n", "beta_hat", "iter")]
 
-## Extract boot data
-#data.0 <- data[iter == 0]
-#data.boot <- data[iter != 0]
-### dcast betas
-#data.boot <- dcast(data.boot, iter ~ beta_n,  fun=sum, value.var = c("beta_hat"))
-#setnames(data.boot, old = c("0", "1", "2"), new = paste0("beta_",0:2))
+# Extract boot data
+data.0 <- data[iter == 0]
+data.boot <- data[iter != 0]
+## dcast betas
+data.boot <- dcast(data.boot, iter ~ beta_n,  fun=sum, value.var = c("beta_hat"))
+setnames(data.boot, old = c("0", "1", "2"), new = paste0("beta_",0:2))
 
-### calculate variances and covariances
-#data.covs <- data.boot[, .(mean0 = mean(beta_0), mean1 = mean(beta_1), mean2 = mean(beta_2),
-#                           var0 = (sd(beta_0))^2, var1 = (sd(beta_1))^2, 
-#                           var2 = (sd(beta_2))^2,
-#                           cov01 = cov(beta_0, beta_1), cov02 = cov(beta_0, beta_2),
-#                           cov12 = cov(beta_2, beta_1))]
-#rm(data.boot)
+## calculate variances and covariances
+data.covs <- data.boot[, .(mean0 = mean(beta_0), mean1 = mean(beta_1), mean2 = mean(beta_2),
+                           var0 = (sd(beta_0))^2, var1 = (sd(beta_1))^2, 
+                           var2 = (sd(beta_2))^2,
+                           cov01 = cov(beta_0, beta_1), cov02 = cov(beta_0, beta_2),
+                           cov12 = cov(beta_2, beta_1))]
+rm(data.boot)
 
 
-#p <- seq(min.price, max.price, 0.005)
+p <- seq(min.price, max.price, 0.005)
 
-### Estimations across p
-#beta_hat <- data.0[["beta_hat"]]
-#rm(data.0, data.boot)
+## Estimations across p
+beta_hat <- data.0[["beta_hat"]]
+rm(data.0, data.boot)
 
-#demand <- rep(beta_hat[1], length(p))
-#elasticity <- rep(0, length(p))
-#s.e.elas <- rep(0, length(p))
-#s.e.dmd <- rep(data.covs[["var0"]], length(p))
-## Calculate Demand, Elas and s.e.s
-#for (i in 1:2) {
+demand <- rep(beta_hat[1], length(p))
+elasticity <- rep(0, length(p))
+s.e.elas <- rep(0, length(p))
+s.e.dmd <- rep(data.covs[["var0"]], length(p))
+# Calculate Demand, Elas and s.e.s
+for (i in 1:2) {
   
-##  demand <- demand + beta_hat[i+1]*p^i
-#  elasticity <- elasticity + i*beta_hat[i+1]*p^(i-1)
+  demand <- demand + beta_hat[i+1]*p^i
+  elasticity <- elasticity + i*beta_hat[i+1]*p^(i-1)
   
-#  s.e.dmd <- s.e.dmd + (p^(2*i))*(data.covs[[paste0("var",i)]]) + 2*(p^i)*(data.covs[[paste0("cov0",i)]])
-#  s.e.elas <- s.e.elas + (i^2)*(p^(2*(i-1)))*(data.covs[[paste0("var",i)]])
-#  for (j in i:2) {
-#    if (i != j) {
-#      s.e.dmd <- s.e.dmd + 2*(p^(i+j))*(data.covs[[paste0("cov",i,j)]])
-#      s.e.elas <- s.e.elas + 2*i*j*(p^(i+j-2))*(data.covs[[paste0("cov",i,j)]])
-#    }
-#  }
-#}
-#s.e.dmd <- (s.e.dmd)^(1/2)
-#s.e.elas <- (s.e.elas)^(1/2)
-## Save
-#data <- data.table(p, demand, elasticity, s.e.dmd, s.e.elas)
-#rm(data.covs, s.e.dmd, p, demand, elasticity, s.e.elas, beta_hat)
+  s.e.dmd <- s.e.dmd + (p^(2*i))*(data.covs[[paste0("var",i)]]) + 2*(p^i)*(data.covs[[paste0("cov0",i)]])
+  s.e.elas <- s.e.elas + (i^2)*(p^(2*(i-1)))*(data.covs[[paste0("var",i)]])
+  for (j in i:2) {
+    if (i != j) {
+      s.e.dmd <- s.e.dmd + 2*(p^(i+j))*(data.covs[[paste0("cov",i,j)]])
+      s.e.elas <- s.e.elas + 2*i*j*(p^(i+j-2))*(data.covs[[paste0("cov",i,j)]])
+    }
+  }
+}
+s.e.dmd <- (s.e.dmd)^(1/2)
+s.e.elas <- (s.e.elas)^(1/2)
+# Save
+data <- data.table(p, demand, elasticity, s.e.dmd, s.e.elas)
+rm(data.covs, s.e.dmd, p, demand, elasticity, s.e.elas, beta_hat)
 
-##### (a) Estimated demand function
-#data[, ll := demand - 1.96 * s.e.dmd]
-#data[, ul := demand + 1.96 * s.e.dmd]
-#data[, ll90 := demand - 1.645 * s.e.dmd]
-#data[, ul90 := demand + 1.645 * s.e.dmd]
-#data[, FE := "Division FE"]
+#### (a) Estimated demand function
+data[, ll := demand - 1.96 * s.e.dmd]
+data[, ul := demand + 1.96 * s.e.dmd]
+data[, ll90 := demand - 1.645 * s.e.dmd]
+data[, ul90 := demand + 1.645 * s.e.dmd]
+data[, FE := "Division FE"]
 
-#data.division <- data
+data.division <- data
 
 
 ### Region FEs
@@ -962,14 +923,14 @@ data[, ul90 := demand + 1.645 * s.e.dmd]
 data[, FE := "Region FE"]
 
 
-#data <- rbind(data, data.division)
+data <- rbind(data, data.division)
 
 
-gg <- ggplot(data = data, aes(x = p, y = demand)) +
+gg <- ggplot(data = data, aes(x = p, y = demand, color = factor(FE))) +
   geom_line() +
   theme_bw(base_size = fontsize) +
   #geom_ribbon(data = data, aes(ymax = ul, ymin = ll, fill = factor(FE)), alpha = 0.2) +
-  geom_ribbon(data = data, aes(ymax = ul90, ymin = ll90), alpha = 0.4, colour = NA, show.legend = FALSE) +
+  geom_ribbon(data = data, aes(ymax = ul90, ymin = ll90, fill = factor(FE)), alpha = 0.4, colour = NA, show.legend = FALSE) +
   scale_y_continuous(limits = c(7.5, 8), breaks = seq(7.5, 8, 0.1), labels = scales::number_format(accuracy = 0.1)) +
   scale_x_continuous(limits = c(min.price, max.price), breaks = seq(min.price, max.price, 0.05), labels = scales::number_format(accuracy = 0.01)) +
   labs(x = "Price", y = "Estimated Demand", color = NULL) +
@@ -978,14 +939,10 @@ gg <- ggplot(data = data, aes(x = p, y = demand)) +
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
-        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size)))
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 
 ggsave("Figures_preferred_v4/F3_Point_Demand_2_FEs.png",
-       height = 3, width = 6.5)
+       height = 120, width = 200, units = "mm")
 
 
 ######### ELASTICITY
@@ -996,11 +953,11 @@ data[, ul := elasticity + 1.96 * s.e.elas]
 data[, ll90 := elasticity - 1.645 * s.e.elas]
 data[, ul90 := elasticity + 1.645 * s.e.elas]
 
-gg <- ggplot(data = data, aes(x = p, y = elasticity)) +
+gg <- ggplot(data = data, aes(x = p, y = elasticity, color = factor(FE))) +
   geom_line() +
   geom_hline(yintercept = 0, color = "red", linetype = "55", alpha = .8) +
   #geom_ribbon(data = data, aes(ymax = ul, ymin = ll, fill = factor(FE)), alpha = 0.2) +
-  geom_ribbon(data = data, aes(ymax = ul90, ymin = ll90), alpha = 0.4, colour = NA, show.legend = FALSE) +
+  geom_ribbon(data = data, aes(ymax = ul90, ymin = ll90, fill = factor(FE)), alpha = 0.4, colour = NA, show.legend = FALSE) +
   theme_bw(base_size = fontsize) +
   scale_x_continuous(limits = c(min.price, max.price), breaks = seq(min.price, max.price, 0.05), 
                      labels = scales::number_format(accuracy = 0.01)) +
@@ -1011,13 +968,9 @@ gg <- ggplot(data = data, aes(x = p, y = elasticity)) +
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
-        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size)))
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F3_Point_Elasticity_2_FEs.png",
-       height = 3, width = 6.5)
+       height = 120, width = 200, units = "mm")
 
 rm(gg, min.price, max.price)
 
@@ -1174,19 +1127,13 @@ gg <- ggplot(data[L==1 & K %in% c(2,3,5,8)], aes(x = p, color = factor(K))) +
   scale_color_brewer(palette="YlOrRd", direction = -1) +
   labs(x = "Log(price)", y = "Elasticity", color = "K") +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
         #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
-        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size)))
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F4_bounds_elas_L1_region.png",
-       height = 3.5, width = 6.5)
+       height = 140, width = 200, units = "mm")
 
 
 ### (b) Bounds on the point elasticity of demand using 2 linear IVs (Ld = 2).
@@ -1199,19 +1146,13 @@ gg <- ggplot(data[L==2 & K %in% c(4,5,6,7,8)], aes(x = p, color = factor(K))) +
   scale_color_brewer(palette="YlOrRd", direction = -1) +
   labs(x = "Log(price)", y = "Elasticity", color = "K") +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
         #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
-        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size)))
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F4_bounds_elas_L2_region.png",
-       height = 3.5, width = 6.5)
+       height = 140, width = 200, units = "mm")
 
 
 
@@ -1226,19 +1167,13 @@ gg <- ggplot(data[L==1 & K %in% c(2,3,5,8)], aes(x = p, color = factor(K))) +
   scale_color_brewer(palette="YlOrRd", direction = -1) +
   labs(x = "Log(price)", y = "Log(quantity)", color = "K") +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
         #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
-        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size)))
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F4_bounds_dd_L1_region.png",
-       height = 3.5, width = 6.5)
+       height = 140, width = 200, units = "mm")
 
 
 ### (d) Bounds on demand when using 2 linear IVs (Ld = 2).
@@ -1251,19 +1186,13 @@ gg <- ggplot(data[L==2 & K %in% c(4,5,6,7,8)], aes(x = p, color = factor(K))) +
   scale_color_brewer(palette="YlOrRd", direction = -1) +
   labs(x = "Log(price)", y = "Log(quantity)", color = "K") +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
         #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
-        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size)))
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F4_bounds_dd_L2_region.png",
-       height = 3.5, width = 6.5)
+       height = 140, width = 200, units = "mm")
 
 rm(data, gg)
 
@@ -1284,19 +1213,13 @@ gg <- ggplot(data[L==1 & K %in% c(2,3,5,8)], aes(x = p, color = factor(K))) +
   scale_color_brewer(palette="YlOrRd", direction = -1) +
   labs(x = "Log(price)", y = "Elasticity", color = "K") +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
         #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
-        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size)))
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F4_bounds_elas_L1_division.png",
-       height = 3.5, width = 6.5)
+       height = 140, width = 200, units = "mm")
 
 
 ### (b) Bounds on the point elasticity of demand using 2 linear IVs (Ld = 2).
@@ -1309,19 +1232,13 @@ gg <- ggplot(data[L==2 & K %in% c(3,4,5,8)], aes(x = p, color = factor(K))) +
   scale_color_brewer(palette="YlOrRd", direction = -1) +
   labs(x = "Log(price)", y = "Elasticity", color = "K") +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
         #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
-        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size)))
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F4_bounds_elas_L2_division.png",
-       height = 3.5, width = 6.5)
+       height = 140, width = 200, units = "mm")
 
 
 
@@ -1336,19 +1253,13 @@ gg <- ggplot(data[L==1 & K %in% c(2,3,5,8)], aes(x = p, color = factor(K))) +
   scale_color_brewer(palette="YlOrRd", direction = -1) +
   labs(x = "Log(price)", y = "Log(quantity)", color = "K") +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
         #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
-        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size)))
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F4_bounds_dd_L1_division.png",
-       height = 3.5, width = 6.5)
+       height = 140, width = 200, units = "mm")
 
 
 ### (d) Bounds on demand when using 2 linear IVs (Ld = 2).
@@ -1361,85 +1272,89 @@ gg <- ggplot(data[L==2 & K %in% c(3,4,5,8)], aes(x = p, color = factor(K))) +
   scale_color_brewer(palette="YlOrRd", direction = -1) +
   labs(x = "Log(price)", y = "Log(quantity)", color = "K") +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
         #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
-        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size)))
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F4_bounds_dd_L2_division.png",
-       height = 3.5, width = 6.5)
+       height = 140, width = 200, units = "mm")
 
 rm(data, gg)
 
 
 
 ##################################### TABLE 6: Bounds around MVPF and AVPF of three reforms -- L = 1
-## Welfare Nationwide - Region FE
+## Welfare Nationwide - Division FE
 #data <- fread("./average_nationwide_extrapolation_region.csv")
 #data.3 <- fread("./average_nationwide_extrapolation_region_smallv2.csv")
 data.region <- fread("Data/average_nationwide_extrapolation_region_small.csv")
 #data.division <- fread("Data/average_nationwide_extrapolation_division.csv")
 
+data.division <- fread("Data/average_nationwide_extrapolation_division.csv")
+data.division2 <- fread("Data/average_nationwide_extrapolation_division_small.csv")
+data.division3 <- fread("Data/average_nationwide_extrapolation_division_smallv2.csv")
+data.division4 <- fread("Data/average_nationwide_extrapolation_division_smallv3.csv")
+data.division5 <- fread("Data/average_nationwide_extrapolation_division_smallv5.csv")
+
+data.division <- rbind(data.division, data.division2, data.division3, data.division4, data.division5)
+
 setDT(data.region)
+setDT(data.division)
+
+# Drop duplicates that we may have left
+data.division <- data.division[!duplicated(data.division[, c('sc', 'L', 'K', 'sigma', 'theta', 'est')]),]
 
 
 # Define the table header
 header1 <- c("%\\begin{table}[htb]",
              "\\centering",
-             "%\\resizebox{0.7\\textwidth}{!}{",
-             "\\begin{tabularx}{\\textwidth}{lCCCCC}",
+             "\\resizebox{0.7\\textwidth}{!}{",
+             "\\begin{tabular}{lccccccccccc}",
              "\\hline\\noalign{\\smallskip}",
-             "\\multicolumn{6}{c}{ \\footnotesize{\\textbf{Panel A: Marginal change in tax}}}  \\\\[1em]",
-             " & \\multicolumn{2}{c}{\\footnotesize{$L^{d}=1$}} & & \\multicolumn{2}{c}{\\footnotesize{$L^{d}=2$}} \\\\",
-             "\\cline{2-3} \\cline{5-6} \\\\",
-             " & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} & & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} \\\\",
+             "\\multicolumn{4}{c}{} & \\multicolumn{6}{c}{\\footnotesize{$L^{d} = 1$}} &  & \\\\",
+             "\\hline",
+             "\\multicolumn{11}{l}{ \\footnotesize{\\textit{Panel A: Marginal change in tax}}} & \\\\",
+             "\\multicolumn{4}{c}{} & \\multicolumn{2}{c}{\\footnotesize{w/ Region FE}} & & &\\multicolumn{2}{c}{\\footnotesize{w/ division FE}} &  & \\\\",
+             "\\multicolumn{4}{c}{} & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & \\\\",
              "\\hline")
 
 # Fill in the body
-data.region1 <- data.region[sigma == 1 & L == 1 & theta == 0,]
-data.region2 <- data.region[sigma == 1 & L == 2 & theta == 0,]
+data.region <- data.region[sigma == 1 & L == 1 & theta == 0,]
+data.division <- data.division[sigma == 1 & L == 1 & theta == 0,]
 
-
-row1 <- paste0("$K^{d}=1$ &", paste0("\\multicolumn{2}{c}{", round(data.region1[sc == "Original" & K == 1,]$value, digits = 3), "} & & "), "\\multicolumn{2}{c}{.} \\\\", sep = "")
-row2 <- paste0("$K^{d}=2$ &", paste0(round(data.region1[sc == "Original" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "Original" & K == 2 & est == "UB",]$value, digits = 3), " & &"), "\\multicolumn{2}{c}{.} \\\\", sep = "")
-row3 <- paste0("$K^{d}=4$ &", paste0(round(data.region1[sc == "Original" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "Original" & K == 4 & est == "UB",]$value, digits = 3), " & &"), paste0(round(data.region2[sc == "Original" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "Original" & K == 4 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
-row4 <- paste0("$K^{d}=8$ &", paste0(round(data.region1[sc == "Original" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "Original" & K == 8 & est == "UB",]$value, digits = 3), " & &"), paste0(round(data.region2[sc == "Original" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "Original" & K == 8 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
+row1 <- paste0("$K^{d}=1$ &", " &", " &", " &", paste0("\\multicolumn{2}{c}{", round(data.region[sc == "Original" & K == 1,]$value, digits = 3), "} &"), " &", " &", paste0("\\multicolumn{2}{c}{", round(data.division[sc == "Original" & K == 1,]$value, digits = 3), "} &"), " &", "\\\\", sep = "")
+row2 <- paste0("$K^{d}=2$ &", " &", " &", " &", paste0(round(data.region[sc == "Original" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "Original" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "Original" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "Original" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
+row3 <- paste0("$K^{d}=4$ &", " &", " &", " &", paste0(round(data.region[sc == "Original" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "Original" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "Original" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "Original" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
+row4 <- paste0("$K^{d}=8$ &", " &", " &", " &", paste0(round(data.region[sc == "Original" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "Original" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "Original" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "Original" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
 
 
 header2 <- c("\\hline",
-             "\\multicolumn{6}{c}{ \\footnotesize{\\textbf{Panel B: Non-marginal change - from no tax to current tax}}}  \\\\[1em]",
-             " & \\multicolumn{2}{c}{\\footnotesize{$L^{d}=1$}} & & \\multicolumn{2}{c}{\\footnotesize{$L^{d}=2$}} \\\\",
-             "\\cline{2-3} \\cline{5-6} \\\\",
-             " & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} & & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} \\\\",
+             "\\multicolumn{11}{l}{ \\footnotesize{\\textit{Panel B: Non-marginal change - from no tax to current tax}}}  & \\\\",
+             "\\multicolumn{4}{c}{} & \\multicolumn{2}{c}{\\footnotesize{w/ Region FE}} & & &\\multicolumn{2}{c}{\\footnotesize{w/ division FE}} &  & \\\\",
+             "\\multicolumn{4}{c}{} & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & \\\\",
              "\\hline")
 
-row5 <- paste0("$K^{d}=1$ &", paste0("\\multicolumn{2}{c}{", round(data.region1[sc == "No Tax" & K == 1,]$value, digits = 3), "} & & "), "\\multicolumn{2}{c}{.}", "\\\\", sep = "")
-row6 <- paste0("$K^{d}=2$ &", paste0(round(data.region1[sc == "No Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "No Tax" & K == 2 & est == "UB",]$value, digits = 3), " & &"), "\\multicolumn{2}{c}{.}", "\\\\", sep = "")
-row7 <- paste0("$K^{d}=4$ &", paste0(round(data.region1[sc == "No Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "No Tax" & K == 4 & est == "UB",]$value, digits = 3), " & &"), paste0(round(data.region2[sc == "No Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "No Tax" & K == 4 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
-row8 <- paste0("$K^{d}=8$ &", paste0(round(data.region1[sc == "No Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "No Tax" & K == 8 & est == "UB",]$value, digits = 3), " & &"), paste0(round(data.region2[sc == "No Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "No Tax" & K == 8 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
+row5 <- paste0("$K^{d}=1$ &", " &", " &", " &", paste0("\\multicolumn{2}{c}{", round(data.region[sc == "No Tax" & K == 1,]$value, digits = 3), "} &"), " &", " &", paste0("\\multicolumn{2}{c}{", round(data.division[sc == "No Tax" & K == 1,]$value, digits = 3), "} &"), " &", "\\\\", sep = "")
+row6 <- paste0("$K^{d}=2$ &", " &", " &", " &", paste0(round(data.region[sc == "No Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "No Tax" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "No Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "No Tax" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
+row7 <- paste0("$K^{d}=4$ &", " &", " &", " &", paste0(round(data.region[sc == "No Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "No Tax" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "No Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "No Tax" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
+row8 <- paste0("$K^{d}=8$ &", " &", " &", " &", paste0(round(data.region[sc == "No Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "No Tax" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "No Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "No Tax" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
 
 header3 <- c("\\hline",
-             "\\multicolumn{6}{c}{ \\footnotesize{\\textbf{Panel C: Non-marginal change - 5pp increase in tax}}}  \\\\[1em]",
-             " & \\multicolumn{2}{c}{\\footnotesize{$L^{d}=1$}} & & \\multicolumn{2}{c}{\\footnotesize{$L^{d}=2$}} \\\\",
-             "\\cline{2-3} \\cline{5-6} \\\\",
-             " & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} & & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} \\\\",
+             "\\multicolumn{11}{l}{ \\footnotesize{\\textit{Panel C: Non-marginal change - 5pp increase in tax}}}  & \\\\",
+             "\\multicolumn{4}{c}{} & \\multicolumn{2}{c}{\\footnotesize{w/ Region FE}} & & &\\multicolumn{2}{c}{\\footnotesize{w/ division FE}} &  & \\\\",
+             "\\multicolumn{4}{c}{} & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & \\\\",
              "\\hline")
 
-row9 <- paste0("$K^{d}=1$ &", paste0("\\multicolumn{2}{c}{", round(data.region1[sc == "plus 5 Tax" & K == 1,]$value, digits = 3), "} & & "), "\\multicolumn{2}{c}{.}", "\\\\", sep = "")
-row10 <- paste0("$K^{d}=2$ &", paste0(round(data.region1[sc == "plus 5 Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "plus 5 Tax" & K == 2 & est == "UB",]$value, digits = 3), " & &"), "\\multicolumn{2}{c}{.}", "\\\\", sep = "")
-row11 <- paste0("$K^{d}=4$ &", paste0(round(data.region1[sc == "plus 5 Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "plus 5 Tax" & K == 4 & est == "UB",]$value, digits = 3), " & &"), paste0(round(data.region2[sc == "plus 5 Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "plus 5 Tax" & K == 4 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
-row12 <- paste0("$K^{d}=8$ &", paste0(round(data.region1[sc == "plus 5 Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "plus 5 Tax" & K == 8 & est == "UB",]$value, digits = 3), " & &"), paste0(round(data.region2[sc == "plus 5 Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "plus 5 Tax" & K == 8 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
+row9 <- paste0("$K^{d}=1$ &", " &", " &", " &", paste0("\\multicolumn{2}{c}{", round(data.region[sc == "plus 5 Tax" & K == 1,]$value, digits = 3), "} &"), " &", " &", paste0("\\multicolumn{2}{c}{", round(data.division[sc == "plus 5 Tax" & K == 1,]$value, digits = 3), "} &"), " &", "\\\\", sep = "")
+row10 <- paste0("$K^{d}=2$ &", " &", " &", " &", paste0(round(data.region[sc == "plus 5 Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "plus 5 Tax" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "plus 5 Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "plus 5 Tax" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
+row11 <- paste0("$K^{d}=4$ &", " &", " &", " &", paste0(round(data.region[sc == "plus 5 Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "plus 5 Tax" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "plus 5 Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "plus 5 Tax" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
+row12 <- paste0("$K^{d}=8$ &", " &", " &", " &", paste0(round(data.region[sc == "plus 5 Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "plus 5 Tax" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "plus 5 Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "plus 5 Tax" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
 
 
 # Define the table footer
 footer <- c("\\hline \\\\",
-            "\\end{tabularx}%}",
+            "\\end{tabular}}",
             "%\\caption{xx}",
             "%\\label{tab:main_DL}",
             "%\\end{table}")
@@ -1451,6 +1366,91 @@ table_str <- c(header1, row1, row2, row3, row4, header2, row5, row6, row7, row8,
 writeLines(table_str, "Figures_preferred_v4/Table_welfare_av_all.tex")
 
 
+
+################ TABLE 7: MVPF and AVPF of three reforms for average state under L=2
+data.region <- fread("Data/average_nationwide_extrapolation_region_small.csv")
+
+data.division <- fread("Data/average_nationwide_extrapolation_division.csv")
+data.division2 <- fread("Data/average_nationwide_extrapolation_division_small.csv")
+data.division3 <- fread("Data/average_nationwide_extrapolation_division_smallv2.csv")
+data.division4 <- fread("Data/average_nationwide_extrapolation_division_smallv3.csv")
+data.division5 <- fread("Data/average_nationwide_extrapolation_division_smallv5.csv")
+
+data.division <- rbind(data.division, data.division2, data.division3, data.division4, data.division5)
+
+setDT(data.region)
+setDT(data.division)
+
+#### Check if we have all estimates and if everything is ok with duplicates
+#data.region <- data.region[sigma == 1 & L == 2 & theta == 0,]
+#data.division <- data.division[sigma == 1 & L == 2 & theta == 0,]
+#data.division <- data.division[order(sc, K, est),]
+
+# Drop duplicates that we may have left
+data.division <- data.division[!duplicated(data.division[, c('sc', 'L', 'K', 'sigma', 'theta', 'est')]),]
+
+
+# Define the table header
+header1 <- c("%\\begin{table}[htb]",
+             "\\centering",
+             "\\resizebox{0.7\\textwidth}{!}{",
+             "\\begin{tabular}{lccccccccccc}",
+             "\\hline\\noalign{\\smallskip}",
+             "\\multicolumn{4}{c}{} & \\multicolumn{6}{c}{\\footnotesize{$L^{d} = 2$}} &  & \\\\",
+             "\\hline",
+             "\\multicolumn{11}{l}{ \\footnotesize{\\textit{Panel A: Marginal change in tax}}} & \\\\",
+             "\\multicolumn{4}{c}{} & \\multicolumn{2}{c}{\\footnotesize{w/ Region FE}} & & &\\multicolumn{2}{c}{\\footnotesize{w/ division FE}} &  & \\\\",
+             "\\multicolumn{4}{c}{} & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & \\\\",
+             "\\hline")
+
+# Fill in the body
+data.region <- data.region[sigma == 1 & L == 2 & theta == 0,]
+data.division <- data.division[sigma == 1 & L == 2 & theta == 0,]
+
+#row1 <- paste0("$K^{d}=1$ &", " &", " &", " &", paste0("\\multicolumn{2}{c}{", round(data.region[sc == "Original" & K == 1,]$value, digits = 3), "} &"), " &", " &", paste0("\\multicolumn{2}{c}{", round(data.division[sc == "Original" & K == 1,]$value, digits = 3), "} &"), " &", "\\\\", sep = "")
+## For K = 2 - not show results for region FE (they look odd because data essentially reject that demand is monotonic given the two IV estimate and assumption that K=2) + results under division FE are point identified
+row2 <- paste0("$K^{d}=2$ &", " &", " &", " &", "\\multicolumn{2}{c}{.} &", " &", " &", paste0("\\multicolumn{2}{c}{", round(data.division[sc == "Original" & K == 2 & est == "LB",]$value, digits = 3), "} &"), " &", "\\\\", sep = "")
+row3 <- paste0("$K^{d}=4$ &", " &", " &", " &", paste0(round(data.region[sc == "Original" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "Original" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "Original" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "Original" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
+row4 <- paste0("$K^{d}=8$ &", " &", " &", " &", paste0(round(data.region[sc == "Original" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "Original" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "Original" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "Original" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
+
+
+header2 <- c("\\hline",
+             "\\multicolumn{11}{l}{ \\footnotesize{\\textit{Panel B: Non-marginal change - from no tax to current tax}}}  & \\\\",
+             "\\multicolumn{4}{c}{} & \\multicolumn{2}{c}{\\footnotesize{w/ Region FE}} & & &\\multicolumn{2}{c}{\\footnotesize{w/ division FE}} &  & \\\\",
+             "\\multicolumn{4}{c}{} & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & \\\\",
+             "\\hline")
+
+#row5 <- paste0("$K^{d}=1$ &", " &", " &", " &", paste0("\\multicolumn{2}{c}{", round(data.region[sc == "No Tax" & K == 1,]$value, digits = 3), "} &"), " &", " &", paste0("\\multicolumn{2}{c}{", round(data.division[sc == "No Tax" & K == 1,]$value, digits = 3), "} &"), " &", "\\\\", sep = "")
+## For K = 2 - not show results for region FE (they look odd because data essentially reject that demand is monotonic given the two IV estimate and assumption that K=2) + results under division FE are point identified
+row6 <- paste0("$K^{d}=2$ &", " &", " &", " &", "\\multicolumn{2}{c}{.} &", " &", " &", paste0("\\multicolumn{2}{c}{", round(data.division[sc == "No Tax" & K == 2 & est == "LB",]$value, digits = 3), "} &"), " &", "\\\\", sep = "")
+row7 <- paste0("$K^{d}=4$ &", " &", " &", " &", paste0(round(data.region[sc == "No Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "No Tax" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "No Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "No Tax" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
+row8 <- paste0("$K^{d}=8$ &", " &", " &", " &", paste0(round(data.region[sc == "No Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "No Tax" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "No Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "No Tax" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
+
+header3 <- c("\\hline",
+             "\\multicolumn{11}{l}{ \\footnotesize{\\textit{Panel C: Non-marginal change - 5pp increase in tax}}}  & \\\\",
+             "\\multicolumn{4}{c}{} & \\multicolumn{2}{c}{\\footnotesize{w/ Region FE}} & & &\\multicolumn{2}{c}{\\footnotesize{w/ division FE}} &  & \\\\",
+             "\\multicolumn{4}{c}{} & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & \\\\",
+             "\\hline")
+
+#row9 <- paste0("$K^{d}=1$ &", " &", " &", " &", paste0("\\multicolumn{2}{c}{", round(data.region[sc == "plus 5 Tax" & K == 1,]$value, digits = 3), "} &"), " &", " &", paste0("\\multicolumn{2}{c}{", round(data.division[sc == "plus 5 Tax" & K == 1,]$value, digits = 3), "} &"), " &", "\\\\", sep = "")
+## For K = 2 - not show results for region FE (they look odd because data essentially reject that demand is monotonic given the two IV estimate and assumption that K=2) + results under division FE are point identified
+row10 <- paste0("$K^{d}=2$ &", " &", " &", " &", "\\multicolumn{2}{c}{.} &", " &", " &", paste0("\\multicolumn{2}{c}{", round(data.division[sc == "plus 5 Tax" & K == 2 & est == "LB",]$value, digits = 3), "} &"), " &", "\\\\", sep = "")
+row11 <- paste0("$K^{d}=4$ &", " &", " &", " &", paste0(round(data.region[sc == "plus 5 Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "plus 5 Tax" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "plus 5 Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "plus 5 Tax" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
+row12 <- paste0("$K^{d}=8$ &", " &", " &", " &", paste0(round(data.region[sc == "plus 5 Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "plus 5 Tax" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "plus 5 Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "plus 5 Tax" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
+
+
+# Define the table footer
+footer <- c("\\hline \\\\",
+            "\\end{tabular}}",
+            "%\\caption{xx}",
+            "%\\label{tab:main_DL}",
+            "%\\end{table}")
+
+# Combine the header, body, and footer into a single string
+table_str <- c(header1, row2, row3, row4, header2, row6, row7, row8, header3, row10, row11, row12, footer)
+
+# Write the table string to a file
+writeLines(table_str, "Figures_preferred_v4/Table_welfare_av_all_L2.tex")
 
 
 
@@ -1767,9 +1767,6 @@ data.st <- data.st[, .(tau = weighted.mean(tau, eta_m),
 data.st <- merge(data.st, fread("./Data/fips_states.csv"), by = c("fips_state"))
 
 
-# Create a combined variable to ensure unique ordering
-data.st <- data.st[order(tau, p_m)]  # Sort by tau, then p_m
-data.st[, tau_state := paste(tau, state, sep = "_")]  # Create unique combination of tau and state
 
 # Order staes
 # By price
@@ -1779,14 +1776,11 @@ data.st[, state.ord := factor(p_m,
                               ordered = T)]
 
 # By tax
-#data.st[, state.ord.t := factor(tau, 
-#                                levels = c(data.st$tau[order(data.st$tau)]),
-#                                labels = c(data.st$state[order(data.st$tau)]), 
-#                                ordered = T)]
-data.st[, state.ord.t := factor(tau_state, 
-                                 levels = unique(data.st$tau_state),  # Unique combinations
-                                 labels = data.st$state,  # Corresponding state names
-                                 ordered = TRUE)]
+data.st[, state.ord.t := factor(tau, 
+                                levels = c(data.st$tau[order(data.st$tau)]),
+                                labels = c(data.st$state[order(data.st$tau)]), 
+                                ordered = T)]
+
 
 
 
@@ -1816,18 +1810,10 @@ data.all[, state.ord := factor(p_m,
                                labels = c(data.st$state[order(data.st$p_m)]), 
                                ordered = T)]
 # By tax
-#data.all[, state.ord.t := factor(tau, 
-#                                 levels = c(data.st$tau[order(data.st$tau)]),
-#                                 labels = c(data.st$state[order(data.st$tau)]), 
-#                                 ordered = T)]
-
-# Create the ordered factor in data.all
-data.all[, state.ord.t := factor(tau_state, 
-                                 levels = unique(data.st$tau_state),  # Unique combinations
-                                 labels = data.st$state,  # Corresponding state names
-                                 ordered = TRUE)]
-
-
+data.all[, state.ord.t := factor(tau, 
+                                 levels = c(data.st$tau[order(data.st$tau)]),
+                                 labels = c(data.st$state[order(data.st$tau)]), 
+                                 ordered = T)]
 ### sigma = 1, theta = 0 case
 
 # Plot, ordering by price 
@@ -1847,20 +1833,14 @@ ggplot(data = NULL, aes(x = state.ord)) +
   labs(x = TeX("States"), color = TeX("$K^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
-        #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.y = element_text(size = 8),    # Modify Y axis numbers (tick labels) font size)))
         axis.text.x = element_blank(),
-        axis.ticks.x = element_blank())
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F7_mvpf_state_marg_sigma1_theta0_byp.png",
-       height = 2.7, width = 6.5)  
+       height = 120, width = 200, units = "mm")  
 
 
 # Plot, ordering by tax
@@ -1880,21 +1860,15 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
   labs(x = TeX("States"), color = TeX("$K^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
-        #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.y = element_text(size = 8),    # Modify Y axis numbers (tick labels) font size)))
         axis.text.x = element_blank(),
-        axis.ticks.x = element_blank())
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 
 ggsave("Figures_preferred_v4/F7_mvpf_state_marg_sigma1_theta0_byt.png",
-       height = 2.7, width = 6.5)  
+       height = 120, width = 200, units = "mm")  
 
 
 
@@ -1926,14 +1900,10 @@ data.all[, state.ord := factor(p_m,
                                labels = c(data.st$state[order(data.st$p_m)]), 
                                ordered = T)]
 # By tax
-#data.all[, state.ord.t := factor(tau, 
-#                                 levels = c(data.st$tau[order(data.st$tau)]),
-#                                 labels = c(data.st$state[order(data.st$tau)]), 
-#                                 ordered = T)]
-data.all[, state.ord.t := factor(tau_state, 
-                                 levels = unique(data.st$tau_state),  # Unique combinations
-                                 labels = data.st$state,  # Corresponding state names
-                                 ordered = TRUE)]
+data.all[, state.ord.t := factor(tau, 
+                                 levels = c(data.st$tau[order(data.st$tau)]),
+                                 labels = c(data.st$state[order(data.st$tau)]), 
+                                 ordered = T)]
 
 
 #### No tax
@@ -1957,20 +1927,14 @@ ggplot(data = NULL, aes(x = state.ord)) +
   labs(x = TeX("States"), color = TeX("$K^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
-        #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.y = element_text(size = 8),    # Modify Y axis numbers (tick labels) font size)))
         axis.text.x = element_blank(),
-        axis.ticks.x = element_blank())
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F7_mvpf_state_nonmarg0_sigma1_theta0_byp.png",
-       height = 2.7, width = 6.5)  
+       height = 120, width = 200, units = "mm")  
 
 
 # Plot, ordering by tax
@@ -1990,21 +1954,15 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
   labs(x = TeX("States"), color = TeX("$K^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
-        #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.y = element_text(size = 8),    # Modify Y axis numbers (tick labels) font size)))
         axis.text.x = element_blank(),
-        axis.ticks.x = element_blank())
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 
 ggsave("Figures_preferred_v4/F7_mvpf_state_nonmarg0_sigma1_theta0_byt.png",
-       height = 2.7, width = 6.5)  
+       height = 120, width = 200, units = "mm")  
 
 
 
@@ -2030,20 +1988,14 @@ ggplot(data = NULL, aes(x = state.ord)) +
   labs(x = TeX("States"), color = TeX("$K^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
-        #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.y = element_text(size = 8),    # Modify Y axis numbers (tick labels) font size)))
         axis.text.x = element_blank(),
-        axis.ticks.x = element_blank())
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 ggsave("Figures_preferred_v4/F7_mvpf_state_nonmarg5_sigma1_theta0_byp.png",
-       height = 2.7, width = 6.5)  
+       height = 120, width = 200, units = "mm")  
 
 
 # Plot, ordering by tax
@@ -2063,21 +2015,15 @@ ggplot(data = NULL, aes(x = state.ord.t)) +
   labs(x = TeX("States"), color = TeX("$K^d$") ) +
   coord_cartesian(ylim = c(1,1.15)) + 
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 8),   # Modify legend text font size
-        legend.title = element_text(size = 8), # Modify legend title font size
-        #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
-        axis.title.x = element_text(size = 9),  # Modify X axis label font size
-        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
-        axis.text.y = element_text(size = 8),    # Modify Y axis numbers (tick labels) font size)))
         axis.text.x = element_blank(),
-        axis.ticks.x = element_blank())
+        axis.ticks.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
 
 ggsave("Figures_preferred_v4/F7_mvpf_state_nonmarg5_sigma1_theta0_byt.png",
-       height = 2.7, width = 6.5)  
+       height = 120, width = 200, units = "mm")  
 
 
 
