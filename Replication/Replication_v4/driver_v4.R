@@ -42,37 +42,35 @@ source("point_estimates_bootstrap_v4.R")
 source("point_estimates_robust_storecharact_v4.R")
 
 source("partial_id_matrices_bootstrap_region_v4.R") 
-source("partial_id_matrices_bootstrap_division_v4.R") 
-source("partial_id_solve_bootstrap_division_v4.R")
+#source("partial_id_matrices_bootstrap_division_v4.R") 
+#source("partial_id_solve_bootstrap_division_v4.R")
 source("partial_id_solve_bootstrap_region_v4.R")
-source("compute_average_elasticities_division_v4.R")
+#source("compute_average_elasticities_division_v4.R")
 source("compute_average_elasticities_region_v4.R")
 
 source("imperfect_salience_estimates_v4.R")
-source("imperfect_salience_matrices_division_v4.R") 
+#source("imperfect_salience_matrices_division_v4.R") 
 source("imperfect_salience_matrices_region_v4.R") 
-source("average_conduct_parameter_salience_division_v4.R")
+#source("average_conduct_parameter_salience_division_v4.R")
 source("average_conduct_parameter_salience_region_v4.R")
 
-source("welfare_mincriteria_division_v4.R") 
+#source("welfare_mincriteria_division_v4.R") 
 source("welfare_mincriteria_region_v4.R") 
 
 
 # Currently running
-source("welfare_nationwide_division_v4.R") 
+#source("welfare_nationwide_division_v4.R") 
 source("welfare_nationwide_region_v4.R") 
-source("welfare_nationwide_bootrel_division_v4.R") 
+#source("welfare_nationwide_bootrel_division_v4.R") 
 source("welfare_nationwide_bootrel_region_v4.R") 
-source("welfare_state_marginal_division_v4.R")
+#source("welfare_state_marginal_division_v4.R")
 source("welfare_state_marginal_region_v4.R")
-source("welfare_state_nonmarginal_division_v4.R")
+#source("welfare_state_nonmarginal_division_v4.R")
 source("welfare_state_nonmarginal_region_v4.R")
 
 
+
 # Still need to run
-
-
-
 #Still need to modify
 source("simulation_point_v3.R") 
 source("simulation_partial_v3.R")
