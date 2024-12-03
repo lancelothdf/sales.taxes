@@ -7,6 +7,7 @@
 
 
 library(data.table)
+install.packages("futile.logger")
 library(futile.logger)
 library(Matrix)
 library(zoo)
