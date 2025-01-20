@@ -4,7 +4,7 @@
 #' Step 5: TWFE estimates and pre-trends portion of replication
 
 library(data.table)
-#library(futile.logger)
+library(futile.logger)
 library(lfe)
 library(multcomp)
 library(Matrix)
@@ -16,16 +16,15 @@ rm(list = ls())
 all_pi <- fread("Data/Replication_v4/all_pi.csv")
 
 ## output filepath ----------------------------------------------
-output.results.file <- "Data/Replication_v4/LR_Diff_design_robust.csv"
-output.pre.trends.file <- "Data/Replication_v4/LR_Diff_design_pretrends_robust.csv"
+output.results.file <- "Data/Replication_v4/LR_Diff_design_robust2.csv"
+output.pre.trends.file <- "Data/Replication_v4/LR_Diff_design_pretrends_robust2.csv"
 
 
 ### 5. Long DiD estimates  ---------------
 DL.outcomes <- c("DL.ln_cpricei", "DL.ln_cpricei2", "DL.ln_quantity", "DL.ln_quantity2", "DL.ln_quantity3", "DL.ln_pricei2")
 
-all_pi[, state_by_module_by_time := .GRP, by = .(fips_state, product_module_code, year, semester)]
 
-FE_opts <- c("state_by_module_by_time", "region_by_module_by_time", "division_by_module_by_time")
+FE_opts <- c("region_by_module_by_time", "division_by_module_by_time")
 
 # Define samples
 samples <- c("non_imp_tax_strong")  
