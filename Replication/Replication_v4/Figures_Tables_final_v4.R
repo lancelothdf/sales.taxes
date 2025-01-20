@@ -413,23 +413,26 @@ writeLines(table_str, "Figures_preferred_v4/table_cross_section_hh.tex")
 ######### TABLE 5: Conduct parameter under different assumptions about salience
 ####### Make table for conduct parameter under different assumptions about salience
 #### Using division X module X FEs
-data.division <- fread("Data/salience_conduct_parameter_at_p_division.csv")
+#data.division <- fread("Data/salience_conduct_parameter_at_p_division.csv")
 data.region <- fread("Data/salience_conduct_parameter_at_p_region.csv")
 
 ## Keep Collapse to average across prices and keep only desired specifications
-av.theta.division <- data.division[, .(theta = mean(theta, na.rm = T)), by = .(sigma, es.val, K)]
+#av.theta.division <- data.division[, .(theta = mean(theta, na.rm = T)), by = .(sigma, es.val, K)]
 av.theta.region <- data.region[, .(theta = mean(theta, na.rm = T)), by = .(sigma, es.val, K)]
 
-av.theta.division <- av.theta.division[K == 2 & es.val == Inf & sigma %in% c(0.25, 0.5, 0.75, 1)]
+#av.theta.division <- av.theta.division[K == 2 & es.val == Inf & sigma %in% c(0.25, 0.5, 0.75, 1)]
 av.theta.region <- av.theta.region[K == 2 & es.val == Inf & sigma %in% c(0.25, 0.5, 0.75, 1)]
 
 
-table1 <- as.data.frame(rbind(t(round(av.theta.division[, c("sigma", "theta")], digits = 2)), t(round(av.theta.region[, "theta"], digits = 2))))
-table1 <- as.data.frame(c(as.data.frame(c("sigma", "Div", "Reg")), as.data.frame(c("", "", "")), table1))
-names(table1) <- c("rows", "V1", "V2", "V3", "V4", "V5")
+table1 <- as.data.frame(rbind(c(0.25, 0.50, 0.75, 1.00), t(round(av.theta.region[, "theta"], digits = 3))))
+table1 <- as.data.frame(c(as.data.frame(c("sigma", "")), table1))
+#table1 <- as.data.frame(c(as.data.frame(c("sigma", "Div", "Reg")), as.data.frame(c("", "", "")), table1))
+names(table1) <- c("rows", "V1", "V2", "V3", "V4")
 
+
+### NEED TO UPDATE BELOW
 setDT(table1)
-for(c in c("V2", "V3", "V4", "V5")) {
+for(c in c("V2", "V3", "V4")) {
   
   #table1[, (c) := ifelse(rows == "sigma", paste0("$\\boldsymbol{ \\sigma =", table1[[c]], "}$"), table1[[c]])]
   table1[, (c) := ifelse(rows == "sigma", paste0("$\\boldsymbol{", table1[[c]], "}$"), table1[[c]])]
@@ -1379,7 +1382,7 @@ rm(data, gg)
 
 
 
-##################################### TABLE 6: Bounds around MVPF and AVPF of three reforms -- L = 1
+##################################### TABLE 6: Bounds around MVPF and AVPF of three reforms -- L = 1 and L = 2
 ## Welfare Nationwide - Region FE
 #data <- fread("./average_nationwide_extrapolation_region.csv")
 #data.3 <- fread("./average_nationwide_extrapolation_region_smallv2.csv")
@@ -1668,12 +1671,19 @@ ggplot(data.plot, aes(x = p, y = elasticity, color = factor(sigma))) +
   scale_y_continuous(limits = c(-4, 2), breaks = seq(-4, 2, 0.5), labels = scales::number_format(accuracy = 0.1)) +
   labs(x = "Price", y = "Estimated Price Elasticity", color = TeX("$\\sigma$")) +
   theme(legend.position = "bottom",
+        legend.text = element_text(size = 8),   # Modify legend text font size
+        legend.title = element_text(size = 8), # Modify legend title font size
+        #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
+        axis.title.x = element_text(size = 9),  # Modify X axis label font size
+        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
+        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
+        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size))))
 ggsave("Figures_preferred_v4/F5a_Elasticity_bysigma_K2_region.png",
-       height = 120, width = 200, units = "mm")
+       height = 3, width = 6.5)
 
 # Response
 ggplot(data.plot, aes(x = p, y = response, color = factor(sigma))) +
@@ -1684,12 +1694,19 @@ ggplot(data.plot, aes(x = p, y = response, color = factor(sigma))) +
   scale_y_continuous(limits = c(-1.5, 1), breaks = seq(-1.5, 1, 0.25), labels = scales::number_format(accuracy = 0.01)) +
   labs(x = "Price", y = "Estimated Tax Response", color = TeX("$\\sigma$")) +
   theme(legend.position = "bottom",
+        legend.text = element_text(size = 8),   # Modify legend text font size
+        legend.title = element_text(size = 8), # Modify legend title font size
+        #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
+        axis.title.x = element_text(size = 9),  # Modify X axis label font size
+        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
+        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
+        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size))))
 ggsave("Figures_preferred_v4/F5a_Response_bysigma_K2_region.png",
-       height = 120, width = 200, units = "mm")
+       height = 3, width = 6.5)
 
 
 
@@ -1730,12 +1747,19 @@ ggplot(data.plot, aes(x = p, y = elasticity, color = factor(sigma))) +
   scale_y_continuous(limits = c(-4, 2), breaks = seq(-4, 2, 0.5), labels = scales::number_format(accuracy = 0.1)) +
   labs(x = "Price", y = "Estimated Price Elasticity", color = TeX("$\\sigma$")) +
   theme(legend.position = "bottom",
+        legend.text = element_text(size = 8),   # Modify legend text font size
+        legend.title = element_text(size = 8), # Modify legend title font size
+        #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
+        axis.title.x = element_text(size = 9),  # Modify X axis label font size
+        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
+        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
+        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size))))
 ggsave("Figures_preferred_v4/F5a_Elasticity_bysigma_K2_division.png",
-       height = 120, width = 200, units = "mm")
+       height = 3, width = 6.5)
 
 # Response
 ggplot(data.plot, aes(x = p, y = response, color = factor(sigma))) +
@@ -1746,12 +1770,19 @@ ggplot(data.plot, aes(x = p, y = response, color = factor(sigma))) +
   scale_y_continuous(limits = c(-1.5, 1), breaks = seq(-1.5, 1, 0.25), labels = scales::number_format(accuracy = 0.01)) +
   labs(x = "Price", y = "Estimated Tax Response", color = TeX("$\\sigma$")) +
   theme(legend.position = "bottom",
+        legend.text = element_text(size = 8),   # Modify legend text font size
+        legend.title = element_text(size = 8), # Modify legend title font size
+        #text = element_text(family = "Garamond"),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5))
+        panel.grid.major.y = element_line(colour = "black", linetype = "dotted", size = 0.5),
+        axis.title.x = element_text(size = 9),  # Modify X axis label font size
+        axis.title.y = element_text(size = 9),   # Modify Y axis label font size
+        axis.text.x = element_text(size = 8),   # Modify X axis numbers (tick labels) font size
+        axis.text.y = element_text(size = 8))    # Modify Y axis numbers (tick labels) font size))))
 ggsave("Figures_preferred_v4/F5a_Response_bysigma_K2_division.png",
-       height = 120, width = 200, units = "mm")
+       height = 3, width = 6.5)
 
 
 
@@ -2173,70 +2204,74 @@ for (s in unique(summary$scenario)) {
 #data.3 <- fread("./average_nationwide_extrapolation_region_smallv2.csv")
 data.region <- fread("Data/average_nationwide_extrapolation_region_small.csv")
 
-data.division <- fread("Data/average_nationwide_extrapolation_division.csv")
-data.division2 <- fread("Data/average_nationwide_extrapolation_division_small.csv")
-data.division3 <- fread("Data/average_nationwide_extrapolation_division_smallv2.csv")
-data.division4 <- fread("Data/average_nationwide_extrapolation_division_smallv3.csv")
-data.division5 <- fread("Data/average_nationwide_extrapolation_division_smallv5.csv")
+#data.division <- fread("Data/average_nationwide_extrapolation_division.csv")
+#data.division2 <- fread("Data/average_nationwide_extrapolation_division_small.csv")
+#data.division3 <- fread("Data/average_nationwide_extrapolation_division_smallv2.csv")
+#data.division4 <- fread("Data/average_nationwide_extrapolation_division_smallv3.csv")
+#data.division5 <- fread("Data/average_nationwide_extrapolation_division_smallv5.csv")
 
-data.division <- rbind(data.division, data.division2, data.division3, data.division4, data.division5)
+#data.division <- rbind(data.division, data.division2, data.division3, data.division4, data.division5)
 
 setDT(data.region)
-setDT(data.division)
+#setDT(data.division)
 
-# Drop duplicates that we may have left
-data.division <- data.division[!duplicated(data.division[, c('sc', 'L', 'K', 'sigma', 'theta', 'est')]),]
+## Drop duplicates that we may have left
+#data.division <- data.division[!duplicated(data.division[, c('sc', 'L', 'K', 'sigma', 'theta', 'est')]),]
 
 
 # Define the table header
 header1 <- c("%\\begin{table}[htb]",
              "\\centering",
-             "\\resizebox{0.7\\textwidth}{!}{",
-             "\\begin{tabular}{lccccccccccc}",
+             "%\\resizebox{0.7\\textwidth}{!}{",
+             "\\begin{tabularx}{\\textwidth}{lCCCCC}",
              "\\hline\\noalign{\\smallskip}",
-             "\\multicolumn{4}{c}{} & \\multicolumn{6}{c}{\\footnotesize{$L^{d} = 1$}} &  & \\\\",
+             "\\multicolumn{6}{c}{\\footnotesize{$L^{d} = 1$}} \\\\",
              "\\hline",
-             "\\multicolumn{11}{l}{ \\footnotesize{\\textit{Panel A: Marginal change in tax}}} & \\\\",
-             "\\multicolumn{4}{c}{} & \\multicolumn{2}{c}{\\footnotesize{w/ Region FE and $\\theta = 0.002$}} & & &\\multicolumn{2}{c}{\\footnotesize{w/ division FE and $\\theta = 0.026$}} &  & \\\\",
-             "\\multicolumn{4}{c}{} & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & \\\\",
+             "\\multicolumn{6}{c}{ \\footnotesize{\\textbf{Panel A: Marginal change in tax}}} \\\\",
+             " & \\multicolumn{2}{c}{\\footnotesize{Baseline ($\\theta = 0$})} & & \\multicolumn{2}{c}{\\footnotesize{Imperfect Competition ($\\theta = 0.002$)}} \\\\",
+             "\\cline{2-3} \\cline{5-6} \\\\",
+             " & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} & & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} \\\\",
              "\\hline")
 
 # Fill in the body
-data.region <- data.region[sigma == 1 & L == 1 & (theta >= 0.002 & theta <= 0.003),]
-data.division <- data.division[sigma == 1 & L == 1 & (theta >= 0.02 & theta <= 0.03),]
+data.region2 <- data.region[sigma == 1 & L == 1 & (theta >= 0.002 & theta <= 0.003),]
+data.region1 <- data.region[sigma == 1 & L == 1 & (theta == 0),]
+#data.division <- data.division[sigma == 1 & L == 1 & (theta >= 0.02 & theta <= 0.03),]
 
-row1 <- paste0("$K^{d}=1$ &", " &", " &", " &", paste0("\\multicolumn{2}{c}{", round(data.region[sc == "Original" & K == 1,]$value, digits = 3), "} &"), " &", " &", paste0("\\multicolumn{2}{c}{", round(data.division[sc == "Original" & K == 1,]$value, digits = 3), "} &"), " &", "\\\\", sep = "")
-row2 <- paste0("$K^{d}=2$ &", " &", " &", " &", paste0(round(data.region[sc == "Original" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "Original" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "Original" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "Original" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
-row3 <- paste0("$K^{d}=4$ &", " &", " &", " &", paste0(round(data.region[sc == "Original" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "Original" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "Original" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "Original" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
-row4 <- paste0("$K^{d}=8$ &", " &", " &", " &", paste0(round(data.region[sc == "Original" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "Original" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "Original" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "Original" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
+row1 <- paste0("$K^{d}=1$ &", paste0("\\multicolumn{2}{c}{", round(data.region1[sc == "Original" & K == 1,]$value, digits = 3), "} &"), " &", paste0("\\multicolumn{2}{c}{", round(data.region2[sc == "Original" & K == 1,]$value, digits = 3), "}"), "\\\\", sep = "")
+row2 <- paste0("$K^{d}=2$ &", paste0(round(data.region1[sc == "Original" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "Original" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "Original" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "Original" & K == 2 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
+row3 <- paste0("$K^{d}=4$ &", paste0(round(data.region1[sc == "Original" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "Original" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "Original" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "Original" & K == 4 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
+row4 <- paste0("$K^{d}=8$ &", paste0(round(data.region1[sc == "Original" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "Original" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "Original" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "Original" & K == 8 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
 
 
 header2 <- c("\\hline",
-             "\\multicolumn{11}{l}{ \\footnotesize{\\textit{Panel B: Non-marginal change - from no tax to current tax}}}  & \\\\",
-             "\\multicolumn{4}{c}{} & \\multicolumn{2}{c}{\\footnotesize{w/ Region FE and $\\theta = 0.002$}} & & &\\multicolumn{2}{c}{\\footnotesize{w/ division FE and $\\theta = 0.026$}} &  & \\\\",
-             "\\multicolumn{4}{c}{} & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & \\\\",
+             "\\multicolumn{6}{c}{ \\footnotesize{\\textbf{Panel B: Non-marginal change - from no tax to current tax}}}  \\\\",
+             " & \\multicolumn{2}{c}{\\footnotesize{Baseline ($\\theta = 0$})} & & \\multicolumn{2}{c}{\\footnotesize{Imperfect Competition ($\\theta = 0.002$)}} \\\\",
+             "\\cline{2-3} \\cline{5-6} \\\\",
+             " & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} & & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} \\\\",
              "\\hline")
 
-row5 <- paste0("$K^{d}=1$ &", " &", " &", " &", paste0("\\multicolumn{2}{c}{", round(data.region[sc == "No Tax" & K == 1,]$value, digits = 3), "} &"), " &", " &", paste0("\\multicolumn{2}{c}{", round(data.division[sc == "No Tax" & K == 1,]$value, digits = 3), "} &"), " &", "\\\\", sep = "")
-row6 <- paste0("$K^{d}=2$ &", " &", " &", " &", paste0(round(data.region[sc == "No Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "No Tax" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "No Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "No Tax" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
-row7 <- paste0("$K^{d}=4$ &", " &", " &", " &", paste0(round(data.region[sc == "No Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "No Tax" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "No Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "No Tax" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
-row8 <- paste0("$K^{d}=8$ &", " &", " &", " &", paste0(round(data.region[sc == "No Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "No Tax" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "No Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "No Tax" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
+row5 <- paste0("$K^{d}=1$ &", paste0("\\multicolumn{2}{c}{", round(data.region1[sc == "No Tax" & K == 1,]$value, digits = 3), "} &"), " &", paste0("\\multicolumn{2}{c}{", round(data.region2[sc == "No Tax" & K == 1,]$value, digits = 3), "}"), "\\\\", sep = "")
+row6 <- paste0("$K^{d}=2$ &", paste0(round(data.region1[sc == "No Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "No Tax" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "No Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "No Tax" & K == 2 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
+row7 <- paste0("$K^{d}=4$ &", paste0(round(data.region1[sc == "No Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "No Tax" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "No Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "No Tax" & K == 4 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
+row8 <- paste0("$K^{d}=8$ &", paste0(round(data.region1[sc == "No Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "No Tax" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "No Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "No Tax" & K == 8 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
 
 header3 <- c("\\hline",
-             "\\multicolumn{11}{l}{ \\footnotesize{\\textit{Panel C: Non-marginal change - 5pp increase in tax}}}  & \\\\",
-             "\\multicolumn{4}{c}{} & \\multicolumn{2}{c}{\\footnotesize{w/ Region FE and $\\theta = 0.002$}} & & &\\multicolumn{2}{c}{\\footnotesize{w/ division FE and $\\theta = 0.026$}} &  & \\\\",
-             "\\multicolumn{4}{c}{} & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & & \\footnotesize{\\textbf{LB}} & \\footnotesize{\\textbf{UB}} & & \\\\",
+             "\\multicolumn{6}{c}{ \\footnotesize{\\textbf{Panel C: Non-marginal change - 5pp increase in tax}}}  \\\\",
+             " & \\multicolumn{2}{c}{\\footnotesize{Baseline ($\\theta = 0$})} & & \\multicolumn{2}{c}{\\footnotesize{Imperfect Competition ($\\theta = 0.002$)}} \\\\",
+             "\\cline{2-3} \\cline{5-6} \\\\",
+             " & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} & & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} \\\\",
              "\\hline")
 
-row9 <- paste0("$K^{d}=1$ &", " &", " &", " &", paste0("\\multicolumn{2}{c}{", round(data.region[sc == "plus 5 Tax" & K == 1,]$value, digits = 3), "} &"), " &", " &", paste0("\\multicolumn{2}{c}{", round(data.division[sc == "plus 5 Tax" & K == 1,]$value, digits = 3), "} &"), " &", "\\\\", sep = "")
-row10 <- paste0("$K^{d}=2$ &", " &", " &", " &", paste0(round(data.region[sc == "plus 5 Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "plus 5 Tax" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "plus 5 Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "plus 5 Tax" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
-row11 <- paste0("$K^{d}=4$ &", " &", " &", " &", paste0(round(data.region[sc == "plus 5 Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "plus 5 Tax" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "plus 5 Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "plus 5 Tax" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
-row12 <- paste0("$K^{d}=8$ &", " &", " &", " &", paste0(round(data.region[sc == "plus 5 Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region[sc == "plus 5 Tax" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", " &", paste0(round(data.division[sc == "plus 5 Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.division[sc == "plus 5 Tax" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", "\\\\", sep = "")
+row9 <- paste0("$K^{d}=1$ &", paste0("\\multicolumn{2}{c}{", round(data.region1[sc == "plus 5 Tax" & K == 1,]$value, digits = 3), "} &"), " &", paste0("\\multicolumn{2}{c}{", round(data.region2[sc == "plus 5 Tax" & K == 1,]$value, digits = 3), "}"), "\\\\", sep = "")
+row10 <- paste0("$K^{d}=2$ &", paste0(round(data.region1[sc == "plus 5 Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "plus 5 Tax" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "plus 5 Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "plus 5 Tax" & K == 2 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
+row11 <- paste0("$K^{d}=4$ &", paste0(round(data.region1[sc == "plus 5 Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "plus 5 Tax" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "plus 5 Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "plus 5 Tax" & K == 4 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
+row12 <- paste0("$K^{d}=8$ &", paste0(round(data.region1[sc == "plus 5 Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "plus 5 Tax" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "plus 5 Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "plus 5 Tax" & K == 8 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
 
 
 # Define the table footer
 footer <- c("\\hline \\\\",
-            "\\end{tabular}}",
+            "\\end{tabularx}%}",
             "%\\caption{xx}",
             "%\\label{tab:main_DL}",
             "%\\end{table}")
@@ -2257,62 +2292,63 @@ setDT(data.region)
 
 # Define the table header
 header1 <- c("%\\begin{table}[htb]",
-             "%\\begin{center}",
              "\\centering",
-             "\\resizebox{0.8\\textwidth}{!}{",
-             "\\begin{tabular}{lcccccccccccccc}",
-             "\\hline\\noalign{\\smallskip}\\hline",
-             "\\multicolumn{15}{c}{}\\\\",
-             "& & \\multicolumn{4}{c}{$\\sigma = 1$ }  & \\multicolumn{4}{c}{$\\sigma = 0.5$} & \\multicolumn{4}{c}{ $\\sigma = 0.25$ }  \\\\",
-             "\\multicolumn{2}{c}{Demand} & \\multicolumn{13}{c}{}\\\\",
-             "\\noalign{\\smallskip}\\hline \\noalign{\\smallskip}\\multicolumn{2}{c}{ } & \\multicolumn{13}{c}{\\textit{Panel A: Marginal change in tax}}\\\\",
-             "\\multicolumn{15}{c}{}\\\\",
-             "\\multicolumn{2}{c}{} & & \\textbf{LB} & \\textbf{UB} & & & \\textbf{LB} & \\textbf{UB} & & & \\textbf{LB} & \\textbf{UB} \\\\")
+             "%\\resizebox{0.7\\textwidth}{!}{",
+             "\\begin{tabularx}{\\textwidth}{lCCCCC}",
+             "\\hline\\noalign{\\smallskip}",
+             "\\multicolumn{6}{c}{\\footnotesize{$L^{d} = 1$}} \\\\",
+             "\\hline",
+             "\\multicolumn{6}{c}{ \\footnotesize{\\textbf{Panel A: Marginal change in tax}}} \\\\",
+             " & \\multicolumn{2}{c}{\\footnotesize{Baseline ($\\sigma = 1$})} & & \\multicolumn{2}{c}{\\footnotesize{Low Salience ($\\sigma = 0.25$)}} \\\\",
+             "\\cline{2-3} \\cline{5-6} \\\\",
+             " & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} & & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} \\\\",
+             "\\hline")
 
 # Fill in the body
-data.region <- data.region[theta == 0 & L == 1,]
+data.region1 <- data.region[theta == 0 & L == 1 & sigma == 1,]
+data.region2 <- data.region[theta == 0 & L == 1 & sigma == 0.25,]
 
 
-#row1 <- paste0("\\multirow{2}{*}{$L^{d}=1$} & $K^{d}=1$ & & \\multicolumn{2}{c}{", round(data.region[sc == "Original" & K == 1 & sigma == 1,]$value, digits = 3), "} & & &  \\multicolumn{2}{c}{", round(data.region[sc == "Original" & K == 1 & sigma == 0.5,]$value, digits = 3), "} & & & \\multicolumn{2}{c}{", round(data.region[sc == "Original" & K == 1 & sigma == 0.25,]$value, digits = 3), "} \\\\")
-row1 <- paste0("\\multirow{3}{*}{$L^{d}=1$} & $K^{d}=2$ & & ", round(data.region[sc == "Original" & K == 2 & sigma == 1 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "Original" & K == 2 & sigma == 1 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "Original" & K == 2 & sigma == 0.5 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "Original" & K == 2 & sigma == 0.5 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "Original" & K == 2 & sigma == 0.25 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "Original" & K == 2 & sigma == 0.25 & est == "UB",]$value, digits = 3), " \\\\")
-row2 <- paste0(" & $K^{d}=4$ & & ", round(data.region[sc == "Original" & K == 4 & sigma == 1 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "Original" & K == 4 & sigma == 1 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "Original" & K == 4 & sigma == 0.5 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "Original" & K == 4 & sigma == 0.5 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "Original" & K == 4 & sigma == 0.25 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "Original" & K == 4 & sigma == 0.25 & est == "UB",]$value, digits = 3), " \\\\")
-row3 <- paste0(" & $K^{d}=8$ & & ", round(data.region[sc == "Original" & K == 8 & sigma == 1 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "Original" & K == 8 & sigma == 1 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "Original" & K == 8 & sigma == 0.5 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "Original" & K == 8 & sigma == 0.5 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "Original" & K == 8 & sigma == 0.25 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "Original" & K == 8 & sigma == 0.25 & est == "UB",]$value, digits = 3), " \\\\")
+#row1 <- paste0("$K^{d}=1$ &", paste0("\\multicolumn{2}{c}{", round(data.region1[sc == "Original" & K == 1,]$value, digits = 3), "} &"), " &", paste0("\\multicolumn{2}{c}{", round(data.region2[sc == "Original" & K == 1,]$value, digits = 3), "}"), "\\\\", sep = "")
+row2 <- paste0("$K^{d}=2$ &", paste0(round(data.region1[sc == "Original" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "Original" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "Original" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "Original" & K == 2 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
+row3 <- paste0("$K^{d}=4$ &", paste0(round(data.region1[sc == "Original" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "Original" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "Original" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "Original" & K == 4 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
+row4 <- paste0("$K^{d}=8$ &", paste0(round(data.region1[sc == "Original" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "Original" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "Original" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "Original" & K == 8 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
 
-header2 <- c( "\\multicolumn{15}{c}{} \\\\",
-              "\\hline", 
-              "\\multicolumn{2}{c}{ } & \\multicolumn{13}{c}{\\textit{Panel B: Non-marginal change -- from no tax to current tax rate}} \\\\",
-              "\\multicolumn{15}{c}{} \\\\",
-              "\\multicolumn{2}{c}{} & & \\textbf{LB} & \\textbf{UB} & & & \\textbf{LB} & \\textbf{UB} & & & \\textbf{LB} & \\textbf{UB} \\\\")
 
-#row5 <- paste0("\\multirow{2}{*}{$L^{d}=1$} & $K^{d}=1$ & & \\multicolumn{2}{c}{", round(data.region[sc == "No Tax" & K == 1 & sigma == 1,]$value, digits = 3), "} & & &  \\multicolumn{2}{c}{", round(data.region[sc == "No Tax" & K == 1 & sigma == 0.5,]$value, digits = 3), "} & & & \\multicolumn{2}{c}{", round(data.region[sc == "No Tax" & K == 1 & sigma == 0.25,]$value, digits = 3), "} \\\\")
-row4 <- paste0("\\multirow{3}{*}{$L^{d}=1$} & $K^{d}=2$ & & ", round(data.region[sc == "No Tax" & K == 2 & sigma == 1 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "No Tax" & K == 2 & sigma == 1 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "No Tax" & K == 2 & sigma == 0.5 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "No Tax" & K == 2 & sigma == 0.5 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "No Tax" & K == 2 & sigma == 0.25 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "No Tax" & K == 2 & sigma == 0.25 & est == "UB",]$value, digits = 3), " \\\\")
-row5 <- paste0(" & $K^{d}=4$ & & ", round(data.region[sc == "No Tax" & K == 4 & sigma == 1 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "No Tax" & K == 4 & sigma == 1 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "No Tax" & K == 4 & sigma == 0.5 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "No Tax" & K == 4 & sigma == 0.5 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "No Tax" & K == 4 & sigma == 0.25 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "No Tax" & K == 4 & sigma == 0.25 & est == "UB",]$value, digits = 3), " \\\\")
-row6 <- paste0(" & $K^{d}=8$ & & ", round(data.region[sc == "No Tax" & K == 8 & sigma == 1 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "No Tax" & K == 8 & sigma == 1 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "No Tax" & K == 8 & sigma == 0.5 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "No Tax" & K == 8 & sigma == 0.5 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "No Tax" & K == 8 & sigma == 0.25 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "No Tax" & K == 8 & sigma == 0.25 & est == "UB",]$value, digits = 3), " \\\\")
-   
+header2 <- c("\\hline",
+             "\\multicolumn{6}{c}{ \\footnotesize{\\textbf{Panel B: Non-marginal change - from no tax to current tax}}}  \\\\",
+             " & \\multicolumn{2}{c}{\\footnotesize{Baseline ($\\sigma = 1$})} & & \\multicolumn{2}{c}{\\footnotesize{Low Salience ($\\sigma = 0.25$)}} \\\\",
+             "\\cline{2-3} \\cline{5-6} \\\\",
+             " & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} & & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} \\\\",
+             "\\hline")
 
-header3 <- c("\\multicolumn{15}{c}{} \\\\",
-              "\\hline", 
-              "\\multicolumn{2}{c}{ } & \\multicolumn{13}{c}{\\textit{Panel C: Non-marginal change -- 5pp increase in taxes}} \\\\",
-              "\\multicolumn{15}{c}{} \\\\",
-              "\\multicolumn{2}{c}{} & & \\textbf{LB} & \\textbf{UB} & & & \\textbf{LB} & \\textbf{UB} & & & \\textbf{LB} & \\textbf{UB} \\\\")
-               
-#row9 <- paste0("\\multirow{2}{*}{$L^{d}=1$} & $K^{d}=1$ & & \\multicolumn{2}{c}{", round(data.region[sc == "plus 5 Tax" & K == 1 & sigma == 1,]$value, digits = 3), "} & & &  \\multicolumn{2}{c}{", round(data.region[sc == "plus 5 Tax" & K == 1 & sigma == 0.5,]$value, digits = 3), "} & & & \\multicolumn{2}{c}{", round(data.region[sc == "plus 5 Tax" & K == 1 & sigma == 0.25,]$value, digits = 3), "} \\\\")
-row7 <- paste0("\\multirow{3}{*}{$L^{d}=1$} & $K^{d}=2$ & & ", round(data.region[sc == "plus 5 Tax" & K == 2 & sigma == 1 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "plus 5 Tax" & K == 2 & sigma == 1 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "plus 5 Tax" & K == 2 & sigma == 0.5 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "plus 5 Tax" & K == 2 & sigma == 0.5 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "plus 5 Tax" & K == 2 & sigma == 0.25 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "plus 5 Tax" & K == 2 & sigma == 0.25 & est == "UB",]$value, digits = 3), " \\\\")
-row8 <- paste0(" & $K^{d}=4$ & & ", round(data.region[sc == "plus 5 Tax" & K == 4 & sigma == 1 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "plus 5 Tax" & K == 4 & sigma == 1 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "plus 5 Tax" & K == 4 & sigma == 0.5 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "plus 5 Tax" & K == 4 & sigma == 0.5 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "plus 5 Tax" & K == 4 & sigma == 0.25 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "plus 5 Tax" & K == 4 & sigma == 0.25 & est == "UB",]$value, digits = 3), " \\\\")
-row9 <- paste0(" & $K^{d}=8$ & & ", round(data.region[sc == "plus 5 Tax" & K == 8 & sigma == 1 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "plus 5 Tax" & K == 8 & sigma == 1 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "plus 5 Tax" & K == 8 & sigma == 0.5 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "plus 5 Tax" & K == 8 & sigma == 0.5 & est == "UB",]$value, digits = 3), " & & & ", round(data.region[sc == "plus 5 Tax" & K == 8 & sigma == 0.25 & est == "LB",]$value, digits = 3), " & ", round(data.region[sc == "plus 5 Tax" & K == 8 & sigma == 0.25 & est == "UB",]$value, digits = 3), " \\\\")
-               
+#row5 <- paste0("$K^{d}=1$ &", paste0("\\multicolumn{2}{c}{", round(data.region1[sc == "No Tax" & K == 1,]$value, digits = 3), "} &"), " &", paste0("\\multicolumn{2}{c}{", round(data.region2[sc == "No Tax" & K == 1,]$value, digits = 3), "}"), "\\\\", sep = "")
+row6 <- paste0("$K^{d}=2$ &", paste0(round(data.region1[sc == "No Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "No Tax" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "No Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "No Tax" & K == 2 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
+row7 <- paste0("$K^{d}=4$ &", paste0(round(data.region1[sc == "No Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "No Tax" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "No Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "No Tax" & K == 4 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
+row8 <- paste0("$K^{d}=8$ &", paste0(round(data.region1[sc == "No Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "No Tax" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "No Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "No Tax" & K == 8 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
+
+header3 <- c("\\hline",
+             "\\multicolumn{6}{c}{ \\footnotesize{\\textbf{Panel C: Non-marginal change - 5pp increase in tax}}}  \\\\",
+             " & \\multicolumn{2}{c}{\\footnotesize{Baseline ($\\sigma = 1$})} & & \\multicolumn{2}{c}{\\footnotesize{Low Salience ($\\theta = 0.25$)}} \\\\",
+             "\\cline{2-3} \\cline{5-6} \\\\",
+             " & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} & & \\footnotesize{\\textbf{Lower-Bound}} & \\footnotesize{\\textbf{Upper-Bound}} \\\\",
+             "\\hline")
+
+#row9 <- paste0("$K^{d}=1$ &", paste0("\\multicolumn{2}{c}{", round(data.region1[sc == "plus 5 Tax" & K == 1,]$value, digits = 3), "} &"), " &", paste0("\\multicolumn{2}{c}{", round(data.region2[sc == "plus 5 Tax" & K == 1,]$value, digits = 3), "}"), "\\\\", sep = "")
+row10 <- paste0("$K^{d}=2$ &", paste0(round(data.region1[sc == "plus 5 Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "plus 5 Tax" & K == 2 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "plus 5 Tax" & K == 2 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "plus 5 Tax" & K == 2 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
+row11 <- paste0("$K^{d}=4$ &", paste0(round(data.region1[sc == "plus 5 Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "plus 5 Tax" & K == 4 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "plus 5 Tax" & K == 4 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "plus 5 Tax" & K == 4 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
+row12 <- paste0("$K^{d}=8$ &", paste0(round(data.region1[sc == "plus 5 Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region1[sc == "plus 5 Tax" & K == 8 & est == "UB",]$value, digits = 3), " &"), " &", paste0(round(data.region2[sc == "plus 5 Tax" & K == 8 & est == "LB",]$value, digits = 3), " &"), paste0(round(data.region2[sc == "plus 5 Tax" & K == 8 & est == "UB",]$value, digits = 3)), "\\\\", sep = "")
+
 
 # Define the table footer
-footer <- c("\\multicolumn{15}{c}{} \\\\",
-            "\\hline \\hline", 
-            "\\end{tabular}}",
+footer <- c("\\hline \\\\",
+            "\\end{tabularx}%}",
             "%\\caption{xx}",
-            "%\\end{center}",
             "%\\label{tab:main_DL}",
             "%\\end{table}")
 
 # Combine the header, body, and footer into a single string
-table_str <- c(header1, row1, row2, row3, header2, row4, row5, row6, header3, row7, row8, row9, footer)
+table_str <- c(header1, row2, row3, row4, header2, row6, row7, row8, header3, row10, row11, row12, footer)
 
 # Write the table string to a file
 writeLines(table_str, "Figures_preferred_v4/Table_welfare_av_rob_salience_all.tex")
