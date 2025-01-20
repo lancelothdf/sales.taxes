@@ -4,7 +4,7 @@
 #' Step 5: TWFE estimates and pre-trends portion of replication
 
 library(data.table)
-#library(futile.logger)
+library(futile.logger)
 library(lfe)
 library(multcomp)
 library(Matrix)
