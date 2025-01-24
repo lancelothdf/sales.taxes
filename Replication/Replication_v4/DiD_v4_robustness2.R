@@ -36,7 +36,7 @@ LRdiff_res <- data.table(NULL)
 for (s in samples) {
   
   #data.est <- all_pi[get(s) == 1,]
-  data.est <- all_pi_[(all_taxable == 1 | all_taxexempt == 1) & get(s) == 1]
+  data.est <- all_pi[(all_taxable == 1 | all_taxexempt == 1) & get(s) == 1]
   
   for (Y in c(DL.outcomes)) {
     for (FE in FE_opts) {
