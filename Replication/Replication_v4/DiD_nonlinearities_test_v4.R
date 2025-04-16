@@ -173,7 +173,7 @@ n.g <- 2
                                       " | (DL.ln_cpricei2 ~ DL.ln_sales_tax + DL.ln_sales_tax:quantile_1) | module_by_state"))
     
     # Estimate IV model on pooled data
-    res_test <- felm(formula = formula_test, data = all_pi[(quantile == 1 | quantile == 2)],
+    res1 <- felm(formula = formula_test, data = all_pi[(quantile == 1 | quantile == 2)],
                      weights = all_pi[(quantile == 1 | quantile == 2)]$base.sales)
     
     #summary(res_test)
